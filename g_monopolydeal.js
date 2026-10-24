@@ -17,7 +17,7 @@ const AN={tratosucio:'Trato sucio',dino:'Di que no',ladron:'Ladrón',forzoso:'Tr
 const cs2=c=>c.cs=='any'?'multicolor':c.cs.map(x=>CN[x]).join('/');
 const cname=id=>{const c=CAT[id];return c.t=='m'?'$'+c.v+'M':c.t=='p'?c.n:c.t=='w'?'comodín '+cs2(c):c.t=='r'?'renta '+cs2(c):AN[c.k]};
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const lg=(G,k,t,c)=>{(G.log=G.log||[]).push({k,t,c,n:G.ln=(G.ln||0)+1});if(G.log.length>12)G.log.shift()};
+const lg=(G,k,t,c,mv)=>{(G.log=G.log||[]).push({k,t,c,mv,n:G.ln=(G.ln||0)+1});if(G.log.length>12)G.log.shift()};
 function pull(G){if(!G.deck.length&&G.disc.length){G.deck=shuf(G.disc);G.disc=[]}return G.deck.pop()}
 function drawN(G,k,n){let g=0;while(g<n){const x=pull(G);if(x===undefined)break;G.hands[k].push(x);g++}return g}
 const sets=(G,k)=>Object.keys(G.tb[k]).filter(c=>cmp(G.tb[k][c],c)).length;
@@ -31,7 +31,7 @@ function deal(R){const G=R.G,n=R.players.length;G.deck=shuf([...Array(CAT.length
  do{G.turn=Math.floor(Math.random()*n)}while(R.players[G.turn].out);
  G.tc++;G.win=-1;G.log=[];G.dn=(G.dn||0)+1;G.rlUntil=Date.now();G.cdUntil=Date.now()+3000;R.pb=null;R.cl={};startTurn(R)}
 function start(R){R.G={phase:'play',players:R.players.map(p=>({id:p.id,name:p.name})),round:0,scores:[],tc:0,opts:{sets:R.opts.sets,autopay:!!R.opts.autopay}};deal(R)}
-function view(R,tok,me,now){const G=R.G,pa=G.pa;let sug;if(pa&&me>=0){const x=pa.tg.find(y=>y.k==me);if(x&&x.st=='wait')sug=autoIds(G,me,pa.amt)}
+function view(R,tok,me,now){const G=R.G,pa=G.pa;let sug;if(pa&&me>=0&&!SK(pa.k)){const x=pa.tg.find(y=>y.k==me);if(x&&x.st=='wait')sug=autoIds(G,me,pa.amt)}
  const v={...G,pa:pa?{...pa,dl:undefined,rem:pa.dl?Math.max(0,pa.dl-now):null}:null,hands:G.hands.map((h,i)=>i==me?h:h.length),deck:G.deck.length,disc:G.disc.slice(-1),dc:G.disc.length,cd:Math.max(0,G.cdUntil-now),rc:0};
  delete v.rlUntil;delete v.cdUntil;return {G:v,claim:false,pend:false,sug}}
 function kick(R,k){const G=R.G;G.disc.push(...G.hands[k],...G.bank[k],...Object.values(G.tb[k]).flat(),...hsIds(G,k),...G.hl[k]);G.hands[k]=[];G.bank[k]=[];G.tb[k]={};G.hs[k]={};G.hl[k]=[];
@@ -39,9 +39,9 @@ function kick(R,k){const G=R.G;G.disc.push(...G.hands[k],...G.bank[k],...Object.
  if(left.length<2){G.phase='final';G.win=left[0]??-1;G.pa=null;return}
  if(G.pa){if(G.pa.by==k)G.pa=null;else{G.pa.tg=G.pa.tg.filter(x=>x.k!=k);settle(R,0)}}
  if(G.turn==k)nextTurn(R)}
-function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
+function act0(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
  if(G.phase!='play')return 'La partida terminó.';
- if(t=='pay'||t=='dino'||t=='accept'||t=='force')return respond(R,i,tok,m);
+ if(t=='pay'||t=='dino'||t=='accept'||t=='force'||t=='allow')return respond(R,i,tok,m);
  if(i<0||i!=G.turn)return 'No es tu turno.';
  if(Date.now()<G.cdUntil)return 'Espera a que termine la cuenta regresiva.';
  if(G.pa)return 'Hay una acción pendiente: espera a que se resuelva.';
@@ -55,6 +55,8 @@ function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
   const hf=G.hs[i][from],gf=G.tb[i][from],rem=gf.filter(x=>x!=id);if(hf&&hf.h!=null&&!cmp(rem,from))return 'Ese set tiene casa: no puedes sacarle propiedades hasta quitarla.';
   if(rem.length&&hasBase(gf)&&!hasBase(rem))return 'Dejarías un comodín multicolor sin propiedad en ese color.';
   if(c.cs=='any'&&!hasBase(G.tb[i][col]||[]))return 'El comodín multicolor necesita antes una propiedad (o comodín de dos colores) en ese color.';
+  if(G.plays>=3)return 'Ya usaste tus 3 jugadas: no puedes mover comodines hasta tu siguiente turno.';
+  if(c.cs=='any'&&hasBase(gf))G.plays++;   // el multicolor cuesta una jugada (gratis si quedó huérfano, sin propiedad)
   G.tb[i][from]=G.tb[i][from].filter(x=>x!=id);if(!G.tb[i][from].length)delete G.tb[i][from];(G.tb[i][col]=G.tb[i][col]||[]).push(id);
   lg(G,i,'movió '+cname(id)+' a '+CN[col],id);checkWin(R,i);return}
  if(G.plays>=3)return 'Ya jugaste 3 cartas este turno: termina tu turno.';
@@ -80,6 +82,14 @@ function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
   useCards(G,i,[id]);G.plays++;lg(G,i,'jugó Cobro: $5M a '+G.players[x].name,id);startPA(R,'cobro',i,[id],5,[x]);return}
  if(t=='bday'){if(c.k!='cumple')return 'Esa carta no es «Es mi cumpleaños».';
   useCards(G,i,[id]);G.plays++;lg(G,i,'jugó Es mi cumpleaños: $2M de cada uno',id);startPA(R,'bday',i,[id],2,others(R,i));return}
+ if(t=='sly'||t=='forced'||t=='deal'){if(c.k!={sly:'ladron',forced:'forzoso',deal:'tratosucio'}[t])return 'Esa no es la carta correcta.';
+  const x=+m.tgt;if(!others(R,i).includes(x))return 'Elige a un rival.';
+  const inc=k=>Object.keys(G.tb[k]).filter(q=>!cmp(G.tb[k][q],q)).flatMap(q=>G.tb[k][q]),pa={k:t,by:i,cards:[id],amt:0,tg:[{k:x,st:'wait',ch:0}]};
+  if(t=='deal'){const col=+m.col;if(!Number.isInteger(col)||!cmp(G.tb[x][col],col))return 'Ese set no está completo.';pa.col=col}
+  else{if(!inc(x).includes(m.take))return 'Esa propiedad no se puede tomar (o está en un set completo).';pa.take=m.take;
+   if(t=='forced'){if(!inc(i).includes(m.give))return 'Elige una propiedad tuya que no esté en un set completo.';pa.give=m.give}}
+  useCards(G,i,[id]);G.plays++;G.pa=pa;armPA(R);
+  lg(G,i,'jugó '+cname(id)+' contra '+G.players[x].name+(t=='deal'?': set '+CN[pa.col]:': '+cname(pa.take)+(t=='forced'?' por '+cname(pa.give):'')),id);return}
  if(t=='bank'){if(c.t=='p'||c.t=='w')return 'Las propiedades no se guardan en el banco.';
   G.hands[i]=h.filter(x=>x!=id);G.bank[i].push(id);G.plays++;lg(G,i,'guardó '+cname(id)+' en el banco',id);return}
  if(t=='prop'){if(c.t!='p'&&c.t!='w')return 'Esa carta no es una propiedad.';const col=c.t=='p'?c.c:+m.col;if(!canColor(c,col))return 'Elige un color válido para ese comodín.';
@@ -132,29 +142,54 @@ function xfer(G,from,to,ids){for(const id of ids){let q=G.bank[from].indexOf(id)
 // si un set pierde su condición de completo, su casa y hotel quedan sueltos
 function gcHs(G,k){for(const c in G.hs[k])if(!cmp(G.tb[k][c],c)){const s=G.hs[k][c];[s.h,s.hh].forEach(x=>x!=null&&G.hl[k].push(x));delete G.hs[k][c]}}
 function armPA(R){const G=R.G,pa=G.pa;pa.n=(G.pn=(G.pn||0)+1);if(!G.opts.autopay){pa.dl=null;return}
- pa.dl=Date.now()+60000;const n=pa.n;setTimeout(()=>{const g=R.G;if(!g||g.phase!='play'||!g.pa||g.pa.n!==n)return;autoAll(R);if(R.poke)R.poke()},60300)}
+ pa.dl=Date.now()+60000;const n=pa.n;setTimeout(()=>{const g=R.G;if(!g||g.phase!='play'||!g.pa||g.pa.n!==n)return;autoAll(R);chk(R);if(R.poke)R.poke()},60300)}
 function settle(R,reset){const G=R.G,pa=G.pa;if(!pa)return;if(pa.tg.every(x=>x.st=='paid'||x.st=='no')){G.pa=null;return}if(reset)armPA(R)}
 function startPA(R,k,by,cards,amt,tgts,col){const G=R.G,tg=[];
  tgts.forEach(x=>{if(assets(G,x).length)tg.push({k:x,st:'wait',ch:0});else lg(G,x,'no tiene nada que pagar')});
  if(!tg.length)return;G.pa={k,by,cards,amt,col,tg};armPA(R)}
-function doPay(R,x,ids,auto){const G=R.G,pa=G.pa,s=sumV(ids);xfer(G,x.k,pa.by,ids);gcHs(G,x.k);x.st='paid';
- lg(G,x.k,(auto?'pagó automáticamente $':'pagó $')+s+'M a '+G.players[pa.by].name);checkWin(R,pa.by)}
+function doPay(R,x,ids,auto){const G=R.G,pa=G.pa,s=sumV(ids),mv=ids.slice(0,10).map(id=>G.bank[x.k].includes(id)?{v:CAT[id].v,f:x.k,t:pa.by}:{i:id,f:x.k,t:pa.by});xfer(G,x.k,pa.by,ids);gcHs(G,x.k);x.st='paid';
+ lg(G,x.k,(auto?'pagó automáticamente $':'pagó $')+s+'M a '+G.players[pa.by].name,undefined,mv);checkWin(R,pa.by)}
 function autoAll(R,only){const G=R.G,pa=G.pa;if(!pa)return;
  for(const x of pa.tg){if(only!==undefined&&x.k!=only)continue;
-  if(x.st=='wait'){doPay(R,x,autoIds(G,x.k,pa.amt),1);if(!G.pa)return}else if(x.st=='say'){x.st='no';lg(G,pa.by,'aceptó el «Di que no» de '+G.players[x.k].name)}}
+  if(x.st=='wait'){if(SK(pa.k)){execSteal(R,x);if(!G.pa)return}else{doPay(R,x,autoIds(G,x.k,pa.amt),1);if(!G.pa)return}}else if(x.st=='say'){x.st='no';lg(G,pa.by,'aceptó el «Di que no» de '+G.players[x.k].name)}}
  settle(R,0)}
 function respond(R,i,tok,m){const G=R.G,pa=G.pa,t=m.t;
  if(!pa)return 'No hay ninguna acción pendiente.';
  if(t=='force'){if(R.host!=tok)return 'Solo el host puede forzar la respuesta.';autoAll(R,m.k===undefined?undefined:+m.k);return}
  if(i<0)return 'No participas en esta acción.';
- if(t=='pay'){const x=pa.tg.find(y=>y.k==i);if(!x||x.st!='wait')return 'No tienes que pagar ahora.';const e=payErr(G,i,m.ids,pa.amt);if(e)return e;doPay(R,x,m.ids);settle(R,0);return}
+ if(t=='allow'){const x=pa.tg.find(y=>y.k==i);if(!SK(pa.k)||!x||x.st!='wait')return 'No hay nada que permitir ahora.';execSteal(R,x);settle(R,0);return}
+ if(t=='pay'){const x=pa.tg.find(y=>y.k==i);if(SK(pa.k)||!x||x.st!='wait')return 'No tienes que pagar ahora.';const e=payErr(G,i,m.ids,pa.amt);if(e)return e;doPay(R,x,m.ids);settle(R,0);return}
  if(t=='accept'){const x=pa.tg.find(y=>y.k==+m.k);if(i!=pa.by||!x||x.st!='say')return 'No hay ningún «Di que no» que aceptar.';x.st='no';lg(G,i,'aceptó el «Di que no» de '+G.players[x.k].name);settle(R,0);return}
  const id=m.id,h=G.hands[i];if(!h||!h.includes(id)||CAT[id].k!='dino')return 'Esa carta no es «Di que no».';
  const x=i==pa.by?pa.tg.find(y=>y.k==+m.k&&y.st=='say'):pa.tg.find(y=>y.k==i&&y.st=='wait');
  if(!x)return i==pa.by?'Nadie te ha dicho que no.':'Ahora no puedes responder.';
  G.hands[i]=h.filter(y=>y!=id);G.disc.push(id);x.ch++;
  if(i==pa.by){x.st='wait';lg(G,i,'jugó Di que no contra '+G.players[x.k].name,id)}
- else{x.st='say';lg(G,i,'jugó Di que no',id);if(!G.hands[pa.by].some(y=>CAT[y].k=='dino')){x.st='no';lg(G,pa.by,'no tiene cómo responder')}}
+ else{x.st='say';lg(G,i,'jugó Di que no',id)}
  settle(R,1);return}
-const tick=R=>{const G=R.G;if(G&&G.phase=='play'&&G.pa&&G.pa.dl&&Date.now()>=G.pa.dl+500){autoAll(R);if(R.poke)R.poke()}};
+
+// ---- Etapa 3b: Ladrón (sly), Trato forzoso (forced), Trato sucio (deal) ----
+const SK=k=>k=='sly'||k=='forced'||k=='deal';
+function execSteal(R,x){const G=R.G,pa=G.pa,by=pa.by,v=x.k,nv=G.players[v].name;
+ const colOf=(k,id)=>+Object.keys(G.tb[k]).find(c=>G.tb[k][c].includes(id));
+ const mv=(from,to,id)=>{const c=colOf(from,id);G.tb[from][c]=G.tb[from][c].filter(y=>y!=id);if(!G.tb[from][c].length)delete G.tb[from][c];(G.tb[to][c]=G.tb[to][c]||[]).push(id)};
+ if(pa.k=='deal'){const col=pa.col,g=G.tb[v][col]||[];if(!cmp(g,col)){x.st='no';return}
+  const s=G.hs[v][col]||{};delete G.hs[v][col];delete G.tb[v][col];G.tb[by][col]=(G.tb[by][col]||[]).concat(g);
+  const mine=G.hs[by][col]=G.hs[by][col]||{};
+  if(s.h!=null){if(mine.h==null)mine.h=s.h;else G.hl[by].push(s.h)}
+  if(s.hh!=null){if(mine.hh==null&&mine.h!=null)mine.hh=s.hh;else G.hl[by].push(s.hh)}
+  if(mine.h==null&&mine.hh==null)delete G.hs[by][col];
+  lg(G,by,'le robó a '+nv+' el set '+CN[col]+' completo',undefined,[...g,s.h,s.hh].filter(y=>y!=null).slice(0,10).map(i=>({i,f:v,t:by})))}
+ else{const all=a=>Object.values(G.tb[a]).flat();if(!all(v).includes(pa.take)||(pa.k=='forced'&&!all(by).includes(pa.give))){x.st='no';return}
+  mv(v,by,pa.take);if(pa.k=='forced'){mv(by,v,pa.give);lg(G,by,'cambió '+cname(pa.give)+' por '+cname(pa.take)+' de '+nv,undefined,[{i:pa.take,f:v,t:by},{i:pa.give,f:by,t:v}])}else lg(G,by,'le robó '+cname(pa.take)+' a '+nv,undefined,[{i:pa.take,f:v,t:by}])}
+ gcHs(G,v);gcHs(G,by);x.st='paid';checkWin(R,by);checkWin(R,v)}
+// turno automático: sin movimientos (3 jugadas usadas, o solo quedan multicolores sin dónde ponerlos y ningún comodín que mover)
+function endTurn(R){const G=R.G,i=G.turn;if(G.hands[i].length>7)G.step='disc';else nextTurn(R)}
+function noMoves(G,i){if(G.plays>=3)return true;
+ if(Object.values(G.tb[i]).flat().some(x=>CAT[x].t=='w'&&CAT[x].cs!='any'))return false;
+ const base=Object.values(G.tb[i]).some(g=>hasBase(g));return G.hands[i].every(x=>CAT[x].t=='w'&&CAT[x].cs=='any'&&!base)}
+function chk(R){const G=R.G;if(!G||G.phase!='play'||G.pa||G.step!='play'||G.ae===G.tc||!noMoves(G,G.turn))return;G.ae=G.tc;const tc=G.tc;
+ setTimeout(()=>{const g=R.G;if(!g||g.phase!='play'||g.tc!==tc||g.pa||g.step!='play'||!noMoves(g,g.turn))return;lg(g,g.turn,'terminó su turno (sin movimientos)');endTurn(R);if(R.poke)R.poke()},2000)}
+function act(R,tok,m){const e=act0(R,tok,m);if(!e)chk(R);return e}
+const tick=R=>{const G=R.G;if(G&&G.phase=='play'&&G.pa&&G.pa.dl&&Date.now()>=G.pa.dl+500){autoAll(R);chk(R);if(R.poke)R.poke()}};
 module.exports={id:'monopolydeal',name:'Monopoly Deal',min:2,max:5,opts:{sets:3,autopay:false},rng:{sets:[2,4]},start,view,act,kick,tick,CAT,NEED,RENT};

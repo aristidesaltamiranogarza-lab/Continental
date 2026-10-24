@@ -136,7 +136,16 @@ const mdRules=`<details><summary>Reglas</summary>Gana quien primero junte <b>3 s
 function mdLobby(host){const o=V.opts||{},s=host?[2,3,4].map(n=>`<button class="b g sm2${o.sets==n?' on':''}" onclick="send({t:'opts',o:{sets:${n}}})">${n}</button>`).join(''):`<b>${o.sets}</b>`;
  return `<div class="box"><b>Reglas de esta sala</b><br>Sets completos para ganar: ${s}${host?'<div class="top">Oficial: 3 sets de colores distintos.</div>':''}<br>Pago automático (60 s): ${host?`<button class="b g sm2${o.autopay?' on':''}" onclick="send({t:'opts',o:{autopay:${!o.autopay}}})">${o.autopay?'Sí':'No'}</button>`:`<b>${o.autopay?'Sí':'No'}</b>`}${host?'<div class="top">Si alguien no responde en 60 s, el servidor paga por él con sus cartas más baratas. Si está en No, no hay límite y el host puede forzar.</div>':''}</div>`+(host?`<button class="b" ${V.players.length<2?'disabled':''} onclick="send({t:'start'})">Empezar partida</button>`:'')}
 setInterval(()=>{document.querySelectorAll('.mdpat').forEach(e=>e.textContent=Math.max(0,Math.ceil((mdPaEnd-Date.now())/1000))+' s')},500);
+// Etapa 4.2: animaciones de cartas (vuelos fuera de #app, con los anclajes de game.js). id<0 = billete de ese valor (el banco siempre se ve como dinero)
+const mdQ=s=>document.querySelector(s),mdSeatEl=k=>mdQ(`[data-seat="${k}"]`),mdTblEl=k=>mdQ(`[data-tbl="${k}"]`);
+function mdFx(e){const t=e.t,k=e.k,L=(a,b,id,d)=>setTimeout(()=>fly(a(),b(),id),d||0),deck=()=>mdQ('#deck'),disc=()=>mdQ('#disc'),me=()=>mdSeatEl(k);
+ if(t.startsWith('robó')){const n=Math.min(+(t.match(/\d+/)||[0])[0],5);for(let j=0;j<n;j++)L(deck,me,null,j*110);return true}
+ if(e.mv){e.mv.slice(0,6).forEach((m,j)=>L(()=>mdTblEl(m.f),()=>mdTblEl(m.t),m.v!=null?-m.v:m.i,j*130));return true}
+ if(t.startsWith('guardó')){L(me,()=>mdTblEl(k),-mdCAT[e.c].v);return true}
+ if(/^(descartó|jugó)/.test(t)){L(me,disc,e.c);return true}
+ if(t.startsWith('puso')){L(me,()=>mdTblEl(k),e.c);return true}
+ return true}
 GM.monopolydeal={name:'Monopoly Deal',emoji:'💰',max:5,rules:mdRules,lobby:mdLobby,body:mdBody,
- face:id=>({h:mdIn(id),cls:'md m'+mdCAT[id].t}),
+ face:id=>id<0?{h:mdBill(-id),cls:'md mm'}:({h:mdIn(id),cls:'md m'+mdCAT[id].t}),fx:mdFx,
  win:(n,fin)=>{const w=n.win;if(!fin||w<0)return;const me=w==V.me;sfx('win');banner(me?'🏆 ¡Ganaste!':'🏆 '+n.players[w].name+' ganó');confetti(me?90:35)},
  after:()=>{const G=V.G;if(G&&G.phase=='play'){prevHand=new Set(Array.isArray(G.hands[V.me])?G.hands[V.me]:[]);prevTop=G.disc[G.disc.length-1]}}};
