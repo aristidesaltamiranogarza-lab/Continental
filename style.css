@@ -216,3 +216,63 @@ html[data-game="uno"] .pile.mid #disc span{font-size:46px}
 html[data-game="uno"] .pile.mid .aura{position:absolute;left:50%;top:60%;width:190%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,var(--uc) 0,transparent 66%);opacity:.85;pointer-events:none;z-index:0}
 html[data-game="uno"] .pstat{text-align:center;margin-top:12px;text-shadow:0 1px 3px #000}
 html[data-game="uno"] .c.dim{opacity:1;filter:brightness(.6) saturate(.5)}
+
+/* ===================== TEMA MONOPOLY DEAL · tablero ===================== */
+html:root[data-game="md"]{--ink:#1c1c1c;--acc:#c8102e;--panel:#fff8e1;--sel:#c8102e}
+html[data-game="md"] body{color:#1c1c1c;font-family:"Trebuchet MS","Arial Rounded MT Bold",system-ui,sans-serif;
+ background:repeating-linear-gradient(0deg,rgba(255,255,255,.4) 0 2px,transparent 2px 48px),repeating-linear-gradient(90deg,rgba(255,255,255,.4) 0 2px,transparent 2px 48px),linear-gradient(#d6eedc,#b4dbc0) fixed}
+html[data-game="md"] body::before{content:"";position:fixed;left:0;right:0;top:0;height:9px;z-index:5;pointer-events:none;
+ background:linear-gradient(90deg,#8b5a3c 0 10%,#8fd3f4 0 20%,#e45aa6 0 30%,#f59a23 0 40%,#d7263d 0 50%,#f7d51d 0 60%,#2e9e5b 0 70%,#1f4aa8 0 80%,#2b2b2b 0 90%,#9ccf9a 0)}
+html[data-game="md"] h1{color:#1c1c1c;font-weight:900}
+html[data-game="md"] h1.mlogo{display:table;margin:.5em auto .6em;background:#d7263d;color:#fff;border:4px solid #1c1c1c;padding:.05em .7em .1em;transform:rotate(-2deg);box-shadow:6px 6px 0 #1c1c1c;text-align:center;line-height:1}
+html[data-game="md"] h1.mlogo span{display:block;font-size:clamp(30px,10vw,52px);letter-spacing:.06em;text-shadow:3px 3px 0 #1c1c1c}
+html[data-game="md"] h1.mlogo small{display:block;font-size:clamp(22px,7vw,34px);color:#f7d51d;letter-spacing:.35em;text-shadow:2px 2px 0 #1c1c1c;margin-top:2px}
+html[data-game="md"] .box{background:#fff8e1;color:#1c1c1c;border:3px solid #1c1c1c;border-radius:12px;box-shadow:4px 4px 0 #1c1c1c}
+html[data-game="md"] .box.felt{background:linear-gradient(#e9f6ec,#cfe9d6);border:3px solid #1c1c1c;border-radius:12px;box-shadow:4px 4px 0 #1c1c1c}
+html[data-game="md"] .piles{gap:14px;align-items:flex-start}html[data-game="md"] .pile small{display:block;font-weight:800;margin-bottom:2px}.pstat{flex:1}
+html[data-game="md"] details{background:#fff8e1;border:2px solid #1c1c1c;border-radius:10px;padding:8px 12px}
+html[data-game="md"] summary{font-weight:800;cursor:pointer}
+html[data-game="md"] .msg{color:#c8102e;font-weight:700}
+html[data-game="md"] input{border:3px solid #1c1c1c;border-radius:8px;background:#fff;color:#1c1c1c}
+html[data-game="md"] .seat{background:#fff8e1;color:#1c1c1c;border:3px solid var(--c);border-radius:12px}
+html[data-game="md"] .seat small{color:#c8102e;font-weight:700}html[data-game="md"] .seat .dn{color:#1c1c1c;font-weight:800}
+html[data-game="md"] .seat.on{box-shadow:0 0 0 4px #f7d51d,0 0 0 6px #1c1c1c}
+html[data-game="md"] .fan u{background:repeating-linear-gradient(45deg,#d7263d 0 3px,#fff 3px 6px);border:1px solid #1c1c1c}
+html[data-game="md"] .log{background:#fff8e1;color:#1c1c1c;border:2px solid #1c1c1c}html[data-game="md"] .log div:first-child{color:#c8102e}
+html[data-game="md"] .b{background:#d7263d;color:#fff;border:3px solid #1c1c1c;border-radius:10px;box-shadow:0 4px 0 #1c1c1c;text-transform:uppercase;letter-spacing:.03em;font-weight:900;text-shadow:0 1px 0 #0006}
+html[data-game="md"] .b:active{transform:translateY(3px);box-shadow:0 1px 0 #1c1c1c}
+html[data-game="md"] .b.g{background:#fff8e1;color:#1c1c1c;text-shadow:none}
+html[data-game="md"] .b.g.on{outline:3px solid #f7d51d;outline-offset:2px;background:#f7d51d}
+html[data-game="md"] .b:disabled{filter:grayscale(.7);opacity:.5}
+html[data-game="md"] .myturn{animation:none;background:#f7d51d;border:3px solid #1c1c1c;border-radius:10px;padding:4px 8px}
+/* cartas */
+html[data-game="md"] .c.md{width:62px;height:90px;margin:3px;padding:0;overflow:hidden;justify-content:flex-start;background:#fffdf3;color:#1c1c1c;border:2px solid #1c1c1c;border-radius:7px;box-shadow:0 2px 0 #1c1c1c;font:700 9.5px/1.1 "Trebuchet MS",system-ui,sans-serif;text-align:center}
+html[data-game="md"] .c.md .mb{display:block;width:100%;height:22px;flex:none;border-bottom:2px solid #1c1c1c}
+html[data-game="md"] .c.md .mn{flex:1;display:flex;align-items:center;justify-content:center;padding:2px 3px;width:100%;box-sizing:border-box}
+html[data-game="md"] .c.md .mv{flex:none;font:900 13px/1 system-ui,sans-serif;padding:0 0 3px}
+html[data-game="md"] .c.md .ma{font-style:normal;font-size:26px;line-height:1;padding-top:8px;flex:none}
+html[data-game="md"] .c.mm{background:linear-gradient(#f3fce6,#b9e29b)}html[data-game="md"] .c.mm .mv{font-size:22px;margin:auto 0}html[data-game="md"] .c.mm .mn{flex:none;padding-top:6px;font-size:10px}
+html[data-game="md"] .c.ma{background:linear-gradient(#fff4d8,#ffd98a)}html[data-game="md"] .c.mw{background:#f4f1ff}
+html[data-game="md"] .c.md.sm{width:40px;height:58px;margin:1px;cursor:default;font-size:7.5px}
+html[data-game="md"] .c.md.sm .mb{height:13px}html[data-game="md"] .c.md.sm .mn{padding:1px;font-size:7px}html[data-game="md"] .c.md.sm .mv{font-size:9px;padding-bottom:1px}
+html[data-game="md"] .c.md.sm .ma{font-size:16px;padding-top:3px}html[data-game="md"] .c.mm.sm .mv{font-size:14px}html[data-game="md"] .c.mm.sm .mn{display:none}
+html[data-game="md"] .c.md.s{transform:translateY(-10px);box-shadow:0 0 0 3px #f7d51d,0 0 0 5px #1c1c1c,0 4px 0 #1c1c1c;border-color:#1c1c1c}
+html[data-game="md"] .c.md.empty{background:transparent;border:2px dashed #1c1c1c88;box-shadow:none}
+html[data-game="md"] .c.bk{width:62px;height:90px;background:repeating-linear-gradient(45deg,#d7263d 0 5px,#fff 5px 10px);border:3px solid #1c1c1c;border-radius:7px;box-shadow:0 2px 0 #1c1c1c;font-size:0}
+html[data-game="md"] .c.sm.bk{width:40px;height:58px}
+html[data-game="md"] .c.md.fly{width:46px;height:64px}
+/* mesas de los jugadores */
+html[data-game="md"] .mtb{border-color:var(--c)}html[data-game="md"] .mtb.on{box-shadow:0 0 0 4px #f7d51d,0 0 0 6px #1c1c1c,4px 4px 0 6px #1c1c1c}html[data-game="md"] .mtb.out{opacity:.5}
+.mth{display:flex;align-items:center;gap:6px;font-size:15px}.msets{margin-left:auto;font-weight:900;background:#1c1c1c;color:#f7d51d;border-radius:999px;padding:1px 10px;font-size:13px}
+.mbank{margin:6px 0 4px}.mbc{display:flex;flex-wrap:wrap}
+.mgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.mg{border:2px solid #1c1c1c;border-radius:9px;background:#fff;min-width:84px;overflow:hidden}
+.mg.full{box-shadow:0 0 0 3px #f7d51d,0 0 0 5px #1c1c1c}
+.mgh{background:var(--gc);color:var(--gt);padding:2px 7px;display:flex;justify-content:space-between;gap:8px;font:800 12px system-ui,sans-serif;border-bottom:2px solid #1c1c1c}
+.pips{display:flex;gap:3px;padding:4px 6px 1px}.pips u{flex:1;height:8px;border:1.5px solid #1c1c1c;border-radius:4px;background:#fff}.pips u.on{background:var(--gc)}
+.mgc{display:flex;flex-wrap:wrap;padding:2px 3px}.mrent{font:700 11px system-ui,sans-serif;padding:0 7px 4px;color:#444}
+.mdm{border-color:#c8102e}.mdmh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+html[data-game="md"] #hand .c.md{width:64px;height:92px}
+html[data-game="md"] .c.md span{font-weight:800}
+html[data-game="md"] .c.md .mn{font-size:10px;line-height:1.05}
+html[data-game="md"] .c.md.sm .mn{font-size:7px}

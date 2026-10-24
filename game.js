@@ -36,13 +36,13 @@ try{sbg=localStorage.getItem('cont_bg')||'green';scards=localStorage.getItem('co
 if(!BGS[sbg])sbg='green';if(!CARDS.includes(scards))scards='classic';if(!BKS[sback])sback='red';
 let cbl=false;try{cbl=localStorage.getItem('cont_cb')=='1'}catch(e){}
 const gnow=()=>S&&V?V.game:pgame;
-function theme(){const r=document.documentElement;r.dataset.game=gnow()=='uno'?'uno':'';r.dataset.cb=cbl?'on':'off';if(gnow()!='uno')delete r.dataset.ucol}
+function theme(){const r=document.documentElement;r.dataset.game=({uno:'uno',monopolydeal:'md'})[gnow()]||'';r.dataset.cb=cbl?'on':'off';if(gnow()!='uno')delete r.dataset.ucol}
 const setCb=x=>{cbl=x;try{localStorage.setItem('cont_cb',x?'1':'0')}catch(e){}render()};
-const H1=t=>gnow()=='uno'?'<h1 class="ulogo"><span>UNO</span></h1>':`<h1>${t}</h1>`;
+const H1=t=>gnow()=='uno'?'<h1 class="ulogo"><span>UNO</span></h1>':gnow()=='monopolydeal'?'<h1 class="mlogo"><span>MONOPOLY</span><small>DEAL</small></h1>':`<h1>${t}</h1>`;
 function applyStyle(){document.documentElement.dataset.bg=sbg;document.documentElement.dataset.cards=scards;document.documentElement.dataset.back=sback;try{localStorage.setItem('cont_bg',sbg);localStorage.setItem('cont_cards',scards);localStorage.setItem('cont_back',sback)}catch(e){}}
 const setBg=x=>{sbg=x;applyStyle();render()},setCards=x=>{scards=x;applyStyle();render()},setBack=x=>{sback=x;applyStyle();render()};
 applyStyle();
-function styleUI(){if(gnow()=='uno')return `<div class="box"><b>Estilo UNO</b> (caja clásica)<br>Letra del color en cada carta (ayuda si confundes colores): <button class="b g sm2${cbl?' on':''}" onclick="setCb(${!cbl})">${cbl?'Sí':'No'}</button></div>`;return '<div class="box">Fondo: '+Object.keys(BGS).map(k=>`<button class="sw${sbg==k?' on':''}" style="background:${BGS[k]}" onclick="setBg('${k}')" aria-label="${k}"></button>`).join('')+`<br>Cartas: ${[['classic','Clásicas'],['black','Negras'],['retro','Retro'],['contrast','Contraste']].map(([k,n])=>`<button class="b g sm2${scards==k?' on':''}" onclick="setCards('${k}')">${n}</button>`).join('')}<br>Reverso: ${Object.keys(BKS).map(k=>`<button class="sw${sback==k?' on':''}" style="background:${BKS[k]}" onclick="setBack('${k}')" aria-label="${k}"></button>`).join('')}</div>`}
+function styleUI(){if(gnow()=='monopolydeal')return '';if(gnow()=='uno')return `<div class="box"><b>Estilo UNO</b> (caja clásica)<br>Letra del color en cada carta (ayuda si confundes colores): <button class="b g sm2${cbl?' on':''}" onclick="setCb(${!cbl})">${cbl?'Sí':'No'}</button></div>`;return '<div class="box">Fondo: '+Object.keys(BGS).map(k=>`<button class="sw${sbg==k?' on':''}" style="background:${BGS[k]}" onclick="setBg('${k}')" aria-label="${k}"></button>`).join('')+`<br>Cartas: ${[['classic','Clásicas'],['black','Negras'],['retro','Retro'],['contrast','Contraste']].map(([k,n])=>`<button class="b g sm2${scards==k?' on':''}" onclick="setCards('${k}')">${n}</button>`).join('')}<br>Reverso: ${Object.keys(BKS).map(k=>`<button class="sw${sback==k?' on':''}" style="background:${BKS[k]}" onclick="setBack('${k}')" aria-label="${k}"></button>`).join('')}</div>`}
 function nz(d,f,q,v,at){const n=AC.sampleRate*d|0,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);const s=AC.createBufferSource(),fl=AC.createBiquadFilter(),g=AC.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.value=f;fl.Q.value=q;g.gain.value=v;s.connect(fl);fl.connect(g);g.connect(AC.destination);s.start(AC.currentTime+(at||0))}
 function cardSfx(k){if(k=='draw'){nz(.1,3200,1,.9);nz(.07,1800,1.2,.6,.05)}else if(k=='place'){nz(.05,900,.8,1.1);nz(.08,3800,1,.7,.01)}else if(k=='shuf'){for(let i=0;i<7;i++)nz(.05,2500+Math.random()*1500,1,.7,i*.07)}else return false;return true}
 function fly(a,b,id){if(RM||!a||!b)return;const r=a.getBoundingClientRect(),q=b.getBoundingClientRect(),W=46,H=64;
@@ -57,6 +57,7 @@ function flyEv(e){const $=s=>document.querySelector(s),dk=()=>$('#deck2')&&Math.
  else if(t.startsWith('compró')){fly($('#disc'),seat(e.k),e.c);fly(dk(),seat(e.k),null)}
  else if(/^(descartó|jugó)/.test(t))fly(seat(e.k),$('#disc'),e.c);
  else if(t.startsWith('pegó')||t.startsWith('cambió'))fly(seat(e.k),$('#mesa'),e.c);
+ else if(/^(guardó|puso|movió)/.test(t))fly(seat(e.k),$(`[data-tbl="${e.k}"]`)||$('#mesa'),e.c);
  else if(t.startsWith('se bajó'))fly(seat(e.k),$('#mesa'),null)}
 function evs(n){const ln=n.ln||0;if(ln<lastN||lastN<0){lastN=ln;return}if(ln==lastN)return;
  const ev=(n.log||[]).filter(e=>e.n>lastN).slice(-3);lastN=ln;

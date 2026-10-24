@@ -1,9 +1,9 @@
-// Servidor de juegos de cartas (Continental, Uno...). Sin dependencias.  Uso: node server.js  (PORT=8080 node server.js para otro puerto)
+// Servidor de juegos de cartas (Continental, Uno, Monopoly Deal...). Sin dependencias.  Uso: node server.js  (PORT=8080 node server.js para otro puerto)
 // Núcleo: salas, polling, chat, expulsar, reconexión. Cada juego es un módulo g_*.js con: id,name,min,max,opts,start,view,act,kick,tick
 const http=require('http'),fs=require('fs'),path=require('path'),cr=require('crypto'),PORT=process.env.PORT||3000;
-const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
+const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
 const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/game.js':['game.js','text/javascript; charset=utf-8'],
- '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8']};
+ '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8'],'/c_monopolydeal.js':['c_monopolydeal.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
@@ -22,7 +22,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
  if(t=='chat'){const tx=String(m.text||'').trim().slice(0,300);if(!tx)return;if(Date.now()-(R.lc[tok]||0)<400)return 'Más despacio.';R.lc[tok]=Date.now();
   R.chat.push({k:i,name:i>=0?R.players[i].name:'Host',t:tx,ts:Date.now()});if(R.chat.length>60)R.chat.shift();return}
  if(t=='kick'){if(!H)return 'Solo el host puede expulsar.';const k=R.players.findIndex(p=>p.id==m.id);if(k<0||R.players[k].tok==tok)return 'No se puede expulsar a ese jugador.';kick(R,k);if(M.tick)M.tick(R);return}
- if(t=='opts'){if(!H)return 'Solo el host puede cambiar las reglas.';if(G)return 'Ya empezó.';const o=m.o||{};for(const k in R.opts)if(typeof o[k]=='boolean')R.opts[k]=o[k];return}
+ if(t=='opts'){if(!H)return 'Solo el host puede cambiar las reglas.';if(G)return 'Ya empezó.';const o=m.o||{};for(const k in R.opts){const x=o[k],r=M.rng&&M.rng[k];if(typeof x=='boolean'&&typeof R.opts[k]=='boolean')R.opts[k]=x;else if(typeof x=='number'&&typeof R.opts[k]=='number'&&r&&x>=r[0]&&x<=r[1])R.opts[k]=Math.floor(x)}return}
  if(t=='start'){if(!H)return 'Solo el host puede empezar.';if(G)return 'Ya empezó.';const n=R.players.length;
   if(n<M.min||n>M.max)return 'Se necesitan de '+M.min+' a '+M.max+' jugadores.';M.start(R,m);return}
  if(!G)return 'No hay partida.';
