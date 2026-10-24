@@ -129,3 +129,74 @@ html[data-cards] .c.u4:not(.bk){background:conic-gradient(#d32f2f 0 25%,#f9a825 
 .b.ucatch:disabled{filter:grayscale(1);opacity:.45}
 .b.uno.pulse{animation:unop .7s ease-in-out infinite}
 @keyframes unop{50%{transform:scale(1.04);box-shadow:0 7px 0 #7f1313,0 0 22px #ff5252}}
+
+/* ===================== TEMA UNO · caja clásica ===================== */
+html:root[data-game="uno"]{--ink:#fff;--acc:#ffde00;--panel:rgba(24,16,84,.92);--uc:#ed1c24;--um:#b3121a;--ud:#6a0910}
+html:root[data-game="uno"][data-ucol="1"]{--uc:#ffde00;--um:#b89700;--ud:#6b5600}
+html:root[data-game="uno"][data-ucol="2"]{--uc:#17a74a;--um:#0f8a3d;--ud:#07431e}
+html:root[data-game="uno"][data-ucol="3"]{--uc:#0a6fd0;--um:#0b5db0;--ud:#05345f}
+html[data-game="uno"] body{background:radial-gradient(ellipse at 50% 0%,#ff5a4d 0%,#e3191f 38%,#9c0b14 100%) fixed;font-family:"Trebuchet MS","Arial Rounded MT Bold",system-ui,sans-serif}
+html[data-game="uno"] body::before{content:"";position:fixed;left:50%;top:48%;width:135vmax;height:50vmax;transform:translate(-50%,-50%) rotate(-24deg);border-radius:50%;
+ background:radial-gradient(ellipse at 38% 30%,#fff27a 0%,#ffde00 45%,#f6b800 100%);box-shadow:0 0 0 1.2vmax rgba(255,255,255,.6),0 0 0 2.2vmax rgba(0,0,0,.14);z-index:-1;pointer-events:none}
+/* logo */
+html[data-game="uno"] h1{color:#ffde00;font-weight:900;-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:0 3px 0 #000}
+html[data-game="uno"] h1.ulogo{display:table;margin:.35em auto .5em;background:radial-gradient(ellipse at 50% 30%,#ff5a4d,#ed1c24 62%,#a30b12);border:6px solid #fff;border-radius:50%;padding:.05em 1.1em .12em;transform:rotate(-6deg);box-shadow:0 8px 0 #7a0a10,0 12px 22px #0008;-webkit-text-stroke:0;text-shadow:none}
+html[data-game="uno"] h1.ulogo span{display:block;font-size:clamp(46px,16vw,84px);font-style:italic;letter-spacing:.04em;line-height:1.1;color:#ffde00;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:0 5px 0 #000}
+/* paneles y textos sueltos legibles sobre el óvalo */
+html[data-game="uno"] .box{background:rgba(24,16,84,.92);border:3px solid rgba(255,255,255,.92);border-radius:20px;box-shadow:0 6px 0 rgba(0,0,0,.28)}
+html[data-game="uno"] #app>.top,html[data-game="uno"] #app>.msg:not(:empty),html[data-game="uno"] #app>p{background:rgba(24,16,84,.92);border-radius:12px;padding:6px 12px;margin:8px 0}
+html[data-game="uno"] details{background:rgba(24,16,84,.92);border-radius:14px;padding:8px 12px}
+html[data-game="uno"] summary{font-weight:700;cursor:pointer}
+html[data-game="uno"] input{border:3px solid #fff;border-radius:14px;background:#fff;color:#222}
+html[data-game="uno"] .seat{background:rgba(24,16,84,.94);border:3px solid var(--c);border-radius:16px}
+html[data-game="uno"] .seat.on{box-shadow:0 0 0 4px #ffde00,0 0 22px #ffde00}
+html[data-game="uno"] .log{background:rgba(24,16,84,.92);border:2px solid rgba(255,255,255,.5)}
+/* mesa: toma el color en juego */
+html[data-game="uno"] .box.felt{background:radial-gradient(ellipse at 50% 35%,var(--um),var(--ud));border:6px solid #fff;border-radius:26px;box-shadow:0 0 0 5px var(--uc),0 0 36px var(--uc),inset 0 0 30px #0008;transition:box-shadow .4s}
+html[data-game="uno"] .piles{text-shadow:0 1px 3px #000}
+html[data-game="uno"] #deck,html[data-game="uno"] #disc{width:66px;height:94px}
+html[data-game="uno"] #disc span{font-size:38px}
+/* cartas */
+html[data-game="uno"] .c:not(.bk){position:relative;overflow:hidden;border:3px solid #fff;border-radius:9px;box-shadow:0 3px 7px #0009;color:#fff}
+html[data-game="uno"] .c.u0:not(.bk){background:#ed1c24;--cc:#d5121a}
+html[data-game="uno"] .c.u1:not(.bk){background:#ffde00;--cc:#e08a00}
+html[data-game="uno"] .c.u2:not(.bk){background:#17a74a;--cc:#0d8f3c}
+html[data-game="uno"] .c.u3:not(.bk){background:#0a6fd0;--cc:#0a58b8}
+html[data-game="uno"] .c.u4:not(.bk){background:#111;--cc:#fff}
+html[data-game="uno"] .c:not(.bk)::before{content:"";position:absolute;left:50%;top:50%;width:150%;height:76%;background:#fff;border-radius:50%;transform:translate(-50%,-50%) rotate(-28deg)}
+html[data-game="uno"] .c.u4:not(.bk)::before{background:conic-gradient(#ed1c24 0 25%,#ffde00 0 50%,#17a74a 0 75%,#0a6fd0 0)}
+html[data-game="uno"] .c:not(.bk) span{position:relative;z-index:1;font:900 27px/1 "Trebuchet MS",system-ui,sans-serif;color:var(--cc);text-shadow:2px 2px 0 rgba(0,0,0,.3)}
+html[data-game="uno"] .c.l2:not(.bk) span{font-size:21px;letter-spacing:-1px}
+html[data-game="uno"] .c.u4:not(.bk) span{text-shadow:-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000}
+html[data-game="uno"] #disc span{font-size:38px}
+html[data-game="uno"] .c i{position:absolute;z-index:2;font:900 10px/1 system-ui,sans-serif;font-style:normal;color:#fff;text-shadow:-1px 0 #0007,1px 0 #0007,0 1px #0007,0 -1px #0007}
+html[data-game="uno"] .c i.k1{left:4px;top:3px}
+html[data-game="uno"] .c i.k2{right:4px;bottom:3px;transform:rotate(180deg)}
+html[data-game="uno"] #disc i,html[data-game="uno"] #hand i{font-size:11px}
+html[data-game="uno"] .c.sm i{display:none}
+html[data-game="uno"] .c.sm:not(.bk) span{font-size:15px}
+html[data-game="uno"] #hand .c{width:52px;height:74px;margin:4px 3px}
+html[data-game="uno"] .c.dim{opacity:.5;filter:grayscale(.55)}
+/* reverso */
+html[data-game="uno"] .c.bk{position:relative;overflow:hidden;background:#111;border:3px solid #fff;font-size:0;box-shadow:0 3px 7px #0009}
+html[data-game="uno"] .c.bk::before{content:"";position:absolute;left:50%;top:50%;width:140%;height:60%;background:#ed1c24;border-radius:50%;transform:translate(-50%,-50%) rotate(-28deg)}
+html[data-game="uno"] .c.bk::after{content:"UNO";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:rotate(-28deg);font:900 17px "Trebuchet MS",system-ui,sans-serif;font-style:italic;color:#ffde00;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;z-index:1}
+html[data-game="uno"] .c.sm.bk::after{font-size:11px}
+html[data-game="uno"] .fan u{background:radial-gradient(ellipse at center,#ed1c24 0 38%,#111 40%);border-color:#fff}
+/* botones */
+html[data-game="uno"] .b{background:linear-gradient(#ffe84d,#ffc400);color:#7a0010;border:3px solid #fff;border-radius:999px;box-shadow:0 5px 0 #b07a00,0 8px 12px #0006;font-family:"Trebuchet MS",system-ui,sans-serif;font-weight:900}
+html[data-game="uno"] .b.g{background:linear-gradient(#4a5de0,#1b2a9e);color:#fff;box-shadow:0 5px 0 #0c1560,0 8px 12px #0006}
+html[data-game="uno"] .b.g.on{outline:3px solid #ffde00;outline-offset:2px}
+html[data-game="uno"] .b:disabled{filter:grayscale(.7);opacity:.5}
+html[data-game="uno"] .b.uno.big{background:radial-gradient(ellipse at 50% 30%,#ff5a4d,#ed1c24 60%,#a30b12);color:#ffde00;border:5px solid #fff;border-radius:50%;padding:24px 10px;font-size:clamp(34px,11vw,58px);font-style:italic;letter-spacing:.06em;-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:0 4px 0 #000;box-shadow:0 8px 0 #7a0a10,0 12px 18px #0008;transform:rotate(-2deg);filter:none;opacity:1}
+html[data-game="uno"] .b.uno.big.pulse{animation:unob .6s ease-in-out infinite}
+@keyframes unob{0%,100%{transform:rotate(-2deg) scale(1)}50%{transform:rotate(-2deg) scale(1.07)}}
+html[data-game="uno"] .b.uno.big:disabled{background:radial-gradient(ellipse at 50% 30%,#c8c8c8,#8a8a8a);color:#ececec;border-color:#e0e0e0;-webkit-text-stroke:2px #555;text-shadow:0 4px 0 #555;box-shadow:0 8px 0 #4a4a4a;opacity:.8}
+html[data-game="uno"] .b.ucatch{background:linear-gradient(#a23bc4,#4a148c);color:#fff;border:3px solid #fff;border-radius:999px;box-shadow:0 5px 0 #260a4a,0 8px 12px #0006}
+html[data-game="uno"] .b.ucatch:disabled{filter:grayscale(1);opacity:.5}
+/* selector de color del comodín */
+html[data-game="uno"] .upick .sw{border:4px solid #fff}
+/* modo daltónico: letra del color */
+html[data-cb="on"] .c[data-cl]:not(.sm)::after{content:attr(data-cl);position:absolute;right:4px;top:3px;font:900 11px/1 system-ui,sans-serif;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 0 3px #000;z-index:3}
+html[data-cb="on"] .upick .sw{display:inline-flex;align-items:center;justify-content:center;font:900 22px system-ui,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+html[data-cb="on"] .upick .sw::after{content:attr(data-l)}
