@@ -5,6 +5,7 @@ const U=id=>{if(id>=100)return{id,c:4,t:id<104?'w':'f',n:-1};const c=Math.floor(
  if(k==0)return{id,c,t:'n',n:0};if(k<=18)return{id,c,t:'n',n:Math.ceil(k/2)};return{id,c,t:k<=20?'s':k<=22?'r':'d',n:-1}};
 const CN=['rojo','amarillo','verde','azul'],SYM={s:'salto',r:'reversa',d:'+2',w:'comodín',f:'comodín +4'};
 const un=id=>{const c=U(id);return c.t=='n'?c.n+' '+CN[c.c]:c.t=='w'||c.t=='f'?SYM[c.t]:SYM[c.t]+' '+CN[c.c]};
+const DRAW_MS=800; // pausa entre cartas cuando robas hasta poder jugar
 const UG=1500; // segundos de gracia (ms) para decir UNO sin riesgo
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const lg=(G,k,t,c)=>{(G.log=G.log||[]).push({k,t,c,n:G.ln=(G.ln||0)+1});if(G.log.length>12)G.log.shift()};
@@ -12,6 +13,7 @@ function pull(G){if(!G.deck.length&&G.disc.length>1){const t=G.disc.pop();G.deck
 function give(G,k,n){let g=0;while(g<n){const x=pull(G);if(x===undefined)break;G.hands[k].push(x);g++}return g}
 // ¿Se puede jugar esta carta ahora? (h = mano del jugador)
 function ok(G,h,id){const c=U(id);
+ if(c.c==4&&h.length==1)return false;                              // no se gana con un comodín
  if(G.pend>0)return c.t=='f'||(c.t=='d'&&G.pendT=='d');           // acumular
  if(c.t=='w')return true;
  if(c.t=='f')return !h.some(x=>U(x).c==G.color);                    // oficial: solo sin cartas del color actual
@@ -22,14 +24,21 @@ function cobrar(R,v,by){const G=R.G;give(G,v.k,2);G.vuln=null;lg(G,by,'cobró UN
 function settle(R){const G=R.G;if(!G||G.phase!='play'||!G.vuln)return false;const v=G.vuln;
  if(v.by<0||Date.now()<v.t0+UG)return false;
  if(G.hands[v.k].length==1&&!G.uno[v.k])cobrar(R,v,v.by);else G.vuln=null;return true}
+// Robar hasta poder jugar, UNA POR UNA: cada carta llega con una pausa para que se note la desesperación
+function sched(R,i,tc){setTimeout(()=>{const G=R.G;if(!G||G.phase!='play'||G.tc!==tc||!G.ad||R.players[i].out)return;
+  const h=G.hands[i],x=pull(G);
+  if(x===undefined){G.ad=0;lg(G,i,'se quedó sin cartas en el mazo');adv(R,1);if(R.poke)R.poke();return}
+  h.push(x);G.ad++;lg(G,i,'robó otra carta ('+G.ad+')');
+  if(ok(G,h,x)){G.ad=0;G.step='drawn';G.drawn=x}else sched(R,i,tc);
+  if(R.poke)R.poke()},DRAW_MS)}
 function adv(R,s){const G=R.G,n=G.players.length;for(let j=0;j<s;j++){do{G.turn=(G.turn+G.dir+n)%n}while(R.players[G.turn].out)}
- G.tc++;G.step='play';G.drawn=null;G.note=''}
+ G.tc++;G.step='play';G.drawn=null;G.note='';G.ad=0}
 function deal(R){const G=R.G,n=R.players.length,d=shuf([...Array(108).keys()]);
  G.hands=R.players.map(p=>p.out?[]:d.splice(0,7));
  let q=d.length-1;while(U(d[q]).t!='n')q--;                          // la primera carta es un número
  G.disc=d.splice(q,1);G.deck=d;G.color=U(G.disc[0]).c;G.dir=1;
  do{G.turn=Math.floor(Math.random()*n)}while(R.players[G.turn].out);
- G.pend=0;G.pendT=null;G.step='play';G.drawn=null;G.uno=Array(n).fill(false);G.vuln=null;G.win=-1;G.tc++;G.note='';G.log=[];
+ G.pend=0;G.pendT=null;G.ad=0;G.step='play';G.drawn=null;G.uno=Array(n).fill(false);G.vuln=null;G.win=-1;G.tc++;G.note='';G.log=[];
  G.dn=(G.dn||0)+1;G.rlUntil=Date.now();G.cdUntil=Date.now()+3000;R.pb=null;R.cl={}}
 function start(R){const o=R.opts||{};
  R.G={phase:'play',players:R.players.map(p=>({id:p.id,name:p.name})),round:0,scores:[],tc:0,opts:{stack:!!o.stack,until:!!o.until}};deal(R)}
@@ -61,17 +70,21 @@ function inner(R,G,i,t,m){
   return}
  if(i<0||i!=G.turn)return 'No es tu turno.';
  if(Date.now()<G.cdUntil)return 'Espera a que termine la cuenta regresiva.';
+ if(G.ad)return 'Se están robando cartas: espera a que termine.';
  const h=G.hands[i];
  if(t=='draw'){if(G.step!='play')return 'Ya robaste: juega esa carta o pasa.';
   if(G.pend>0){const n=G.pend,g=give(G,i,n);G.pend=0;G.pendT=null;lg(G,i,'robó '+g+' cartas (castigo)');adv(R,1);return}
-  let x,g=0;do{x=pull(G);if(x===undefined)break;h.push(x);g++}while(G.opts.until&&!ok(G,h,x));
-  lg(G,i,g>1?'robó '+g+' cartas':'robó del mazo');
-  if(x!==undefined&&ok(G,h,x)){G.step='drawn';G.drawn=x}else adv(R,1);return}
+  const x=pull(G);if(x===undefined){lg(G,i,'no pudo robar: no quedan cartas');adv(R,1);return}
+  h.push(x);lg(G,i,'robó del mazo');
+  if(ok(G,h,x)){G.step='drawn';G.drawn=x;return}
+  if(!G.opts.until){adv(R,1);return}
+  G.ad=1;sched(R,i,G.tc);return}
  if(t=='pass'){if(G.step!='drawn')return 'Primero roba una carta.';lg(G,i,'pasó');adv(R,1);return}
  if(t!='play')return 'Acción desconocida.';
  const id=m.id;if(!h.includes(id))return 'Jugada inválida.';
  if(G.step=='drawn'&&id!=G.drawn)return 'Solo puedes jugar la carta que robaste, o pasar.';
  const c=U(id);
+ if(c.c==4&&h.length==1)return 'No puedes ganar con un comodín: roba una carta para seguir.';
  if(!ok(G,h,id))return G.pend>0?'Hay '+G.pend+' por robar: acumula con un +2/+4 válido o roba.':c.t=='f'?'El +4 solo se juega si no tienes cartas del color actual ('+CN[G.color]+').':'Esa carta no se puede jugar ahora.';
  if(c.c==4){const col=+m.col;if(!(col>=0&&col<4))return 'Elige un color.';G.color=col}else G.color=c.c;
  G.hands[i]=h.filter(x=>x!=id);G.disc.push(id);lg(G,i,'jugó '+un(id)+(c.c==4?' → '+CN[G.color]:''),id);

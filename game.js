@@ -51,10 +51,10 @@ function fly(a,b,id){if(RM||!a||!b)return;const r=a.getBoundingClientRect(),q=b.
  e.style.cssText=`left:${r.left+r.width/2-W/2}px;top:${r.top+r.height/2-H/2}px;width:${W}px;height:${H}px`;FX.appendChild(e);
  requestAnimationFrame(()=>requestAnimationFrame(()=>{e.style.transform=`translate(${q.left+q.width/2-r.left-r.width/2}px,${q.top+q.height/2-r.top-r.height/2}px)`}));
  setTimeout(()=>e.remove(),700)}
-function flyEv(e){const $=s=>document.querySelector(s),seat=k=>$(`[data-seat="${k}"]`),t=e.t;
- if(t.startsWith('robó'))fly($('#deck'),seat(e.k),null);
+function flyEv(e){const $=s=>document.querySelector(s),dk=()=>$('#deck2')&&Math.random()<.5?$('#deck2'):$('#deck'),seat=k=>$(`[data-seat="${k}"]`),t=e.t;
+ if(t.startsWith('robó'))fly(dk(),seat(e.k),null);
  else if(t.startsWith('tomó'))fly($('#disc'),seat(e.k),e.c);
- else if(t.startsWith('compró')){fly($('#disc'),seat(e.k),e.c);fly($('#deck'),seat(e.k),null)}
+ else if(t.startsWith('compró')){fly($('#disc'),seat(e.k),e.c);fly(dk(),seat(e.k),null)}
  else if(/^(descartó|jugó)/.test(t))fly(seat(e.k),$('#disc'),e.c);
  else if(t.startsWith('pegó')||t.startsWith('cambió'))fly(seat(e.k),$('#mesa'),e.c);
  else if(t.startsWith('se bajó'))fly(seat(e.k),$('#mesa'),null)}

@@ -152,10 +152,9 @@ html[data-game="uno"] .seat{background:rgba(24,16,84,.94);border:3px solid var(-
 html[data-game="uno"] .seat.on{box-shadow:0 0 0 4px #ffde00,0 0 22px #ffde00}
 html[data-game="uno"] .log{background:rgba(24,16,84,.92);border:2px solid rgba(255,255,255,.5)}
 /* mesa: toma el color en juego */
-html[data-game="uno"] .box.felt{background:radial-gradient(ellipse at 50% 35%,var(--um),var(--ud));border:6px solid #fff;border-radius:26px;box-shadow:0 0 0 5px var(--uc),0 0 36px var(--uc),inset 0 0 30px #0008;transition:box-shadow .4s}
+html[data-game="uno"] .box.felt{background:radial-gradient(circle at 16% 24%,rgba(255,222,0,.22) 0 6%,transparent 7%),radial-gradient(circle at 84% 70%,rgba(237,28,36,.26) 0 8%,transparent 9%),radial-gradient(circle at 72% 16%,rgba(10,111,208,.3) 0 5%,transparent 6%),radial-gradient(circle at 26% 82%,rgba(23,167,74,.3) 0 7%,transparent 8%),radial-gradient(ellipse at 50% 40%,#7a35d6,#2b0f6b 78%);border:6px solid #fff;border-radius:26px;box-shadow:0 0 0 5px var(--uc),0 0 36px var(--uc),inset 0 0 34px #0009;transition:box-shadow .4s}
 html[data-game="uno"] .piles{text-shadow:0 1px 3px #000}
-html[data-game="uno"] #deck,html[data-game="uno"] #disc{width:66px;height:94px}
-html[data-game="uno"] #disc span{font-size:38px}
+
 /* cartas */
 html[data-game="uno"] .c:not(.bk){position:relative;overflow:hidden;border:3px solid #fff;border-radius:9px;box-shadow:0 3px 7px #0009;color:#fff}
 html[data-game="uno"] .c.u0:not(.bk){background:#ed1c24;--cc:#d5121a}
@@ -200,3 +199,20 @@ html[data-game="uno"] .upick .sw{border:4px solid #fff}
 html[data-cb="on"] .c[data-cl]:not(.sm)::after{content:attr(data-cl);position:absolute;right:4px;top:3px;font:900 11px/1 system-ui,sans-serif;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 0 3px #000;z-index:3}
 html[data-cb="on"] .upick .sw{display:inline-flex;align-items:center;justify-content:center;font:900 22px system-ui,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
 html[data-cb="on"] .upick .sw::after{content:attr(data-l)}
+
+/* ===== mesa de Uno: dos mazos y el descarte en medio ===== */
+html[data-game="uno"] .utable{padding:12px 8px 14px;display:block}
+html[data-game="uno"] .prow{display:flex;justify-content:center;align-items:flex-end;gap:clamp(16px,7vw,46px)}
+html[data-game="uno"] .pile{position:relative;text-align:center}
+html[data-game="uno"] .pile small{display:block;font:800 12px system-ui,sans-serif;letter-spacing:.03em;margin-bottom:6px;text-shadow:0 1px 3px #000}
+html[data-game="uno"] .pile .c{margin:0 auto}
+html[data-game="uno"] #deck,html[data-game="uno"] #deck2{width:68px;height:96px;cursor:default}
+html[data-game="uno"] .pile .c.bk{box-shadow:2px 2px 0 #1a1a1a,4px 4px 0 #333,6px 6px 0 #4a4a4a,0 10px 14px #0009}
+html[data-game="uno"] .pile .c.bk.go{cursor:pointer;animation:deckp 1s ease-in-out infinite;box-shadow:2px 2px 0 #1a1a1a,4px 4px 0 #333,6px 6px 0 #4a4a4a,0 0 18px 4px #ffde00}
+html[data-game="uno"] .pile .c.bk.empty{opacity:.3}
+@keyframes deckp{50%{transform:translateY(-7px)}}
+html[data-game="uno"] .pile.mid #disc{width:82px;height:116px;position:relative;z-index:1}
+html[data-game="uno"] .pile.mid #disc span{font-size:46px}
+html[data-game="uno"] .pile.mid .aura{position:absolute;left:50%;top:60%;width:190%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,var(--uc) 0,transparent 66%);opacity:.85;pointer-events:none;z-index:0}
+html[data-game="uno"] .pstat{text-align:center;margin-top:12px;text-shadow:0 1px 3px #000}
+html[data-game="uno"] .c.dim{opacity:1;filter:brightness(.6) saturate(.5)}
