@@ -276,3 +276,42 @@ html[data-game="md"] #hand .c.md{width:64px;height:92px}
 html[data-game="md"] .c.md span{font-weight:800}
 html[data-game="md"] .c.md .mn{font-size:10px;line-height:1.05}
 html[data-game="md"] .c.md.sm .mn{font-size:7px}
+
+/* ===== MONOPOLY DEAL · Paso A: tiras de rivales, dos columnas, mano fija ===== */
+html[data-game="md"] .mdw{display:flex;flex-direction:column}
+html[data-game="md"] .mdtop{position:sticky;top:0;z-index:20;background:#fff8e1;border:3px solid #1c1c1c;border-radius:10px;padding:4px 8px;margin:4px 0;box-shadow:0 3px 0 #1c1c1c}
+html[data-game="md"] .mdtop.myturn{background:#f7d51d}
+html[data-game="md"] .mdrs{display:flex;flex-direction:column;gap:5px;margin:4px 0}
+html[data-game="md"] .mdst{display:flex;align-items:center;flex-wrap:wrap;gap:3px 8px;background:#fff8e1;color:#1c1c1c;border:3px solid var(--c);border-radius:10px;padding:3px 8px;font:700 13px system-ui,sans-serif;cursor:pointer;min-height:30px}
+html[data-game="md"] .mdst.on{box-shadow:0 0 0 3px #f7d51d,0 0 0 5px #1c1c1c}
+html[data-game="md"] .mdst.open{background:#f7d51d}
+html[data-game="md"] .mdst.out{opacity:.45}
+html[data-game="md"] .mdst .chip{margin-right:0}html[data-game="md"] .mdst .dot{margin-right:0}
+html[data-game="md"] .mdn{max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-game="md"] .mdi{white-space:nowrap}
+html[data-game="md"] .mdps{display:flex;flex-wrap:wrap;gap:3px;flex:1 1 auto;justify-content:flex-end}
+html[data-game="md"] .mdp{background:var(--gc);color:var(--gt);border:1.5px solid #1c1c1c;border-radius:5px;font:800 10px/1 system-ui,sans-serif;padding:2px 4px}
+html[data-game="md"] .mdp.full{box-shadow:0 0 0 2px #f7d51d}
+html[data-game="md"] .mdhint{opacity:.75;color:#fff;text-shadow:0 1px 2px #000a}
+html[data-game="md"] .mdhw{position:sticky;bottom:0;z-index:15;background:#fff8e1;color:#1c1c1c;border-top:3px solid #1c1c1c;border-radius:12px 12px 0 0;margin:6px -12px 0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 10px #0005}
+html[data-game="md"] .mdhb{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font:13px system-ui,sans-serif}
+html[data-game="md"] .mdhb .b{margin:0}html[data-game="md"] .mdhb b:first-child{margin-right:auto}
+html[data-game="md"] .mdhw #hand{display:flex;flex-wrap:nowrap;overflow-x:auto;padding:14px 2px 4px;-webkit-overflow-scrolling:touch}
+html[data-game="md"] .mdhw #hand .c.md{width:56px;height:82px;flex:none}
+html[data-game="md"] .mdw.fold .mdhw #hand{display:none}
+html[data-game="md"] .mdhw .msg{margin:0 0 4px}
+html[data-game="md"] .mdhw .mdm{margin:4px 0;box-shadow:none}
+html[data-game="md"] .mdmy .box:first-child{margin-top:4px}
+@media (min-width:640px){
+ html[data-game="md"] #app{max-width:1240px}
+ html[data-game="md"] .mdw{display:grid;grid-template-columns:minmax(320px,5fr) minmax(0,6fr);grid-template-rows:auto auto auto 1fr auto;column-gap:14px;
+  grid-template-areas:"top top" "rs rs" "pl my" "hw my" "ft ft"}
+ html[data-game="md"] .mdtop{grid-area:top}html[data-game="md"] .mdrs{grid-area:rs;flex-direction:row;flex-wrap:wrap}
+ html[data-game="md"] .mdst{flex:1 1 230px}
+ html[data-game="md"] .mdpl{grid-area:pl}html[data-game="md"] .mdmy{grid-area:my;min-width:0}html[data-game="md"] .mdft{grid-area:ft}
+ html[data-game="md"] .mdhw{grid-area:hw;align-self:start;position:static;margin:6px 0 0;border:3px solid #1c1c1c;border-radius:12px;box-shadow:4px 4px 0 #1c1c1c}
+ html[data-game="md"] .mdhw #hand{flex-wrap:wrap;overflow:visible;padding-top:8px}
+ html[data-game="md"] .mdw.fold .mdhw #hand{display:flex}
+ html[data-game="md"] .mdhw #hand .c.md{width:64px;height:92px}
+ html[data-game="md"] .mdfold{display:none}
+}
