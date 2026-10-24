@@ -324,3 +324,52 @@ html[data-game="md"] .mdpt{background:#1c1c1c;color:#f7d51d;border-radius:999px;
 html[data-game="md"] .mdst.tgm{animation:mdtg .9s ease-in-out infinite;border-style:dashed}
 @keyframes mdtg{50%{box-shadow:0 0 0 4px #d7263d}}
 html[data-game="md"] .mg.orph{opacity:.7;border-style:dashed}
+
+/* ===== MONOPOLY DEAL · Etapa 3b: elegir carta a robar ===== */
+html[data-game="md"] .mg.pk{outline:3px solid #d7263d;outline-offset:2px;cursor:pointer;animation:mdtg .9s ease-in-out infinite}
+html[data-game="md"] .mg.pk .c{cursor:pointer}
+
+/* ===== MONOPOLY DEAL · banco encimado (estilo baraja) ===== */
+html[data-game="md"] .mbc.bn{flex-wrap:wrap;padding:2px 0 2px 2px}
+html[data-game="md"] .c.md.bnk{width:38px;height:54px;margin:1px 0 1px -10px;align-items:flex-start;padding:4px 0 0 3px;box-sizing:border-box;box-shadow:2px 0 4px #0003;position:relative}
+html[data-game="md"] .mbc.bn .c.bnk:first-child{margin-left:1px}
+html[data-game="md"] .c.md.bnk .mv{font-size:11px;margin:0;padding:0;letter-spacing:-.4px}
+html[data-game="md"] .c.md.bnk.s{transform:translateY(-7px);z-index:3}
+
+/* ===== MONOPOLY DEAL · Etapa 4.1: comodín, renta, casa/hotel y dinero de colores ===== */
+html[data-game="md"] .c.md:not(.fly){position:relative}
+html[data-game="md"] .c.md.fly{font-size:7px}html[data-game="md"] .c.md.fly .mv,html[data-game="md"] .c.md.fly .vv{font-size:9px}
+/* dinero: billete de color */
+html[data-game="md"] .c.md.mm{background:#eee;justify-content:center}
+.mbg{position:absolute;inset:0;background:var(--bg);display:grid;place-items:center}
+.mbg::before{content:"";position:absolute;inset:.3em;border:.22em double var(--ln);border-radius:.45em;background:repeating-linear-gradient(45deg,transparent 0 .3em,#0000000d .3em .45em)}
+.mbg .ov{position:relative;width:2.1em;height:2.1em;border-radius:50%;background:#ffffffd9;border:.09em solid var(--ln);display:grid;place-items:center;font:900 2.3em/1 "Trebuchet MS",system-ui,sans-serif;text-decoration:none;color:#1c1c1c}
+.mbg .k{position:absolute;font:900 .85em/1 system-ui,sans-serif;background:#fffdf3;border:1px solid var(--ln);padding:1px 2px;border-radius:2px;text-decoration:none;color:#1c1c1c}
+.mbg .k1{left:.5em;top:.5em}.mbg .k2{right:.5em;bottom:.5em}
+html[data-game="md"] .c.md.sm .mbg .k{display:none}html[data-game="md"] .c.md.sm .mbg .ov{font-size:2em}
+html[data-game="md"] .c.md.bnk{padding:0}
+html[data-game="md"] .c.md.bnk .mbg{place-items:center start}html[data-game="md"] .c.md.bnk .mbg .ov{margin-left:.4em;width:2.3em;height:2.3em;font-size:1.9em}
+/* comodín de propiedad: carta partida en diagonal + tira blanca */
+html[data-game="md"] .c.md.mw{background:#fffdf3;justify-content:center}
+.c.md .wbg{position:absolute;inset:0}
+.c.md .st{position:relative;width:100%;background:#fffdf3;border-top:.2em solid #1c1c1c;border-bottom:.2em solid #1c1c1c;padding:.3em 0 .2em;font:900 .95em/1 "Trebuchet MS",system-ui,sans-serif}
+.c.md .ar{position:absolute;top:.3em;left:0;right:0;font:900 1.8em/1 system-ui,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+.c.md .vv{position:absolute;bottom:.2em;left:0;right:0;font:900 1.4em/1 system-ui,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+html[data-game="md"] .c.md.sm .st{font-size:.85em;padding:.25em 0 .15em}html[data-game="md"] .c.md.sm .ar{font-size:1.45em;top:.2em}html[data-game="md"] .c.md.sm .vv{font-size:1.3em;bottom:.1em}
+/* renta: banda oscura + monedas de color */
+html[data-game="md"] .c.md.mr{background:linear-gradient(#fff4d8,#ffd98a)}
+.c.md .hd{width:100%;background:#1c1c1c;color:#ffd98a;font:900 1.25em/1 "Trebuchet MS",system-ui,sans-serif;padding:.35em 0;letter-spacing:.06em;flex:none}
+.c.md .bag{position:absolute;top:2.4em;right:.3em;font-size:1.15em;line-height:1}
+.c.md .cn{flex:1;display:flex;align-items:center;padding-left:.85em;font-size:1em}
+.c.md .cn u{width:2.7em;height:2.7em;border-radius:50%;border:.2em solid #1c1c1c;margin-left:-.85em;display:block;box-shadow:1px 1px 0 #1c1c1c;text-decoration:none}
+.c.md .cn.one{padding-left:0}.c.md .cn.one u.rb{margin-left:0;width:3.4em;height:3.4em;background:conic-gradient(#d7263d,#f7d51d,#2e9e5b,#1f4aa8,#d7263d)}
+html[data-game="md"] .c.md.sm .hd{font-size:1em;padding:.3em 0}html[data-game="md"] .c.md.sm .bag{display:none}
+html[data-game="md"] .c.md.sm .cn u{width:2.3em;height:2.3em;margin-left:-.7em;border-width:.2em}html[data-game="md"] .c.md.sm .cn{padding-left:.7em}html[data-game="md"] .c.md.sm .cn.one{padding-left:0}html[data-game="md"] .c.md.sm .cn.one u.rb{width:2.9em;height:2.9em}
+/* casa y hotel con el modelo 3D */
+html[data-game="md"] .c.md.mz-casa{background:linear-gradient(#fffbe8 0 48%,#bfe3b4 48%)}
+html[data-game="md"] .c.md.mz-hotel{background:linear-gradient(#fffbe8 0 48%,#f3c0b8 48%)}
+.c.md .ht{font:900 1em/1 "Trebuchet MS",system-ui,sans-serif;letter-spacing:.05em;padding:.5em 0 0;flex:none}
+.c.md.mz-casa .ht{color:#136b2c}.c.md.mz-hotel .ht{color:#a50f10}
+.c.md .hz{flex:none;margin:auto 0;height:auto;pointer-events:none;-webkit-user-drag:none}
+.c.md.mz-casa .hz{width:4.45em}.c.md.mz-hotel .hz{width:5.5em}
+html[data-game="md"] .c.md.sm .ht{font-size:.85em;padding-top:.3em}html[data-game="md"] .c.md.sm.mz-casa .hz{width:4em}html[data-game="md"] .c.md.sm.mz-hotel .hz{width:4.9em}
