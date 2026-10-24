@@ -41,6 +41,7 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  const b=await body(req);
  if(p=='/new'){const code=rnd(5),tok=cr.randomBytes(12).toString('hex'),gt=GAMES[b.game]?b.game:'continental',
    R=rooms[code]={code,gt,opts:Object.assign({},GAMES[gt].opts),host:tok,players:[],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
+  R.poke=()=>bump(R);
   if(b.mode=='listo')R.players.push(mkP(tok,b.name));return out(res,{c:code,t:tok})}
  const R=rooms[String(b.c||'').toUpperCase()];if(!R)return out(res,{err:'No se encontró la sala. Revisa el código y que el servidor siga abierto.'});
  if(p=='/join'){const mx=GAMES[R.gt].max;if(R.G)return out(res,{err:'La partida ya empezó.'});if(R.players.length>=mx)return out(res,{err:'La sala está llena (máximo '+mx+').'});

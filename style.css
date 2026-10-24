@@ -118,3 +118,14 @@ html[data-cards] .c.u4:not(.bk){background:conic-gradient(#d32f2f 0 25%,#f9a825 
 .ucol{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid #fff;vertical-align:middle}
 .upick .sw{width:50px;height:50px}
 .b.uno{background:linear-gradient(#ff8a80,#d32f2f);color:#fff;border-color:#ffd1cc;box-shadow:0 4px 0 #7f1313,0 6px 10px #0006}
+
+/* ===== botones UNO / Cobrar UNO ===== */
+.unobox{padding:10px}
+.b.uno.big{display:block;width:100%;margin:0 0 10px;padding:22px 10px;font-size:clamp(30px,10vw,52px);line-height:1;letter-spacing:.08em;border-radius:22px;box-shadow:0 7px 0 #7f1313,0 10px 16px #0007}
+.b.uno.big:active{transform:translateY(5px);box-shadow:0 2px 0 #7f1313}
+.b.uno:disabled{background:linear-gradient(#a8a8a8,#6f6f6f);color:#e4e4e4;border-color:#cfcfcf;box-shadow:0 5px 0 #3d3d3d;filter:none;opacity:.7}
+.b.uno.big:disabled{box-shadow:0 7px 0 #3d3d3d}
+.b.ucatch{display:block;width:100%;margin:0;padding:14px 10px;font-size:clamp(16px,5vw,22px)}
+.b.ucatch:disabled{filter:grayscale(1);opacity:.45}
+.b.uno.pulse{animation:unop .7s ease-in-out infinite}
+@keyframes unop{50%{transform:scale(1.04);box-shadow:0 7px 0 #7f1313,0 0 22px #ff5252}}
