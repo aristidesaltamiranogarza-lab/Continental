@@ -83,3 +83,26 @@ html[data-cards="contrast"] .c.r{color:#d00000}html[data-cards="contrast"] .c.sm
 html[data-back="blue"] .c.bk,html[data-back="blue"] .fan u{background:repeating-linear-gradient(45deg,#1e4fa3 0 4px,#16367a 4px 8px)}
 html[data-back="gold"] .c.bk,html[data-back="gold"] .fan u{background:repeating-linear-gradient(45deg,#c9a227 0 4px,#7d6414 4px 8px);border-color:#1a1a1a}
 html[data-back="neon"] .c.bk,html[data-back="neon"] .fan u{background:repeating-linear-gradient(45deg,#00e5ff 0 3px,#a100ff 3px 7px);border-color:#fff}
+
+/* ===== mesa de armado ===== */
+#mini{padding:8px 10px}
+#mini .c{width:38px;height:54px;font-size:15px;margin:2px;touch-action:none}
+.slot{border:2px dashed #fff6;border-radius:10px;padding:4px 6px;margin:8px 0;background:rgba(0,0,0,.18);transition:background .12s,border-color .12s}
+.slot.no{border:2px solid #ff6b6b}.slot.ok{border:2px solid #4ade80}
+.slot.over{background:rgba(242,193,78,.28);border-color:var(--acc)}
+.slot .sl{font:13px system-ui,sans-serif}.slot .sl span{opacity:.75;font-size:11px}
+.slot .row{display:flex;flex-wrap:wrap;align-items:center;min-height:62px}
+.slot .ph{opacity:.5;font:13px system-ui,sans-serif;padding:0 8px}
+
+/* ===== ruleta del comodín ===== */
+#rl{position:fixed;inset:0;z-index:56;background:#000d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vmin;color:var(--acc);font:800 5.5vmin system-ui,sans-serif;text-align:center;padding:12px;box-sizing:border-box}
+#rl .rs{font-size:3.6vmin;font-weight:600;color:var(--ink)}
+#rl .rt{margin-bottom:5vmin}
+#rl .rw{position:relative;width:min(78vmin,460px);aspect-ratio:1}
+#rl .rp{position:absolute;left:50%;top:-4.5vmin;transform:translateX(-50%);font-size:6vmin;line-height:1;z-index:2;color:var(--acc);text-shadow:0 2px 4px #000}
+#rl .rd{position:absolute;inset:0;border-radius:50%;border:.9vmin solid var(--acc);box-shadow:0 0 30px #000,inset 0 0 18px #000a;background:repeating-conic-gradient(#b3202a 0 6.923deg,#17120f 6.923deg 13.846deg);will-change:transform}
+#rl .rd::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#ffd96b 0 6.923deg,transparent 6.923deg)}
+#rl .rd::after{content:"";position:absolute;left:50%;top:50%;width:14%;height:14%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(#ffe9a0,#c9a227);box-shadow:0 0 8px #000}
+#rl .rj{position:absolute;left:calc(50% + 2.4%);top:2.5%;transform:translateX(-50%) rotate(3.46deg);font-style:normal;font-size:4.4vmin;line-height:1;z-index:1}
+#rl .rr{min-height:1.4em;opacity:0;transform:scale(.6);transition:opacity .3s,transform .3s}
+#rl .rr.on{opacity:1;transform:none}#rl .rr.win{font-size:6.5vmin;text-shadow:0 0 14px var(--acc)}
