@@ -315,3 +315,12 @@ html[data-game="md"] .mdmy .box:first-child{margin-top:4px}
  html[data-game="md"] .mdhw #hand .c.md{width:64px;height:92px}
  html[data-game="md"] .mdfold{display:none}
 }
+
+/* ===== MONOPOLY DEAL · Etapa 3a: acción pendiente, objetivos, huérfanos ===== */
+html[data-game="md"] .mdpa{margin-top:4px;padding-top:4px;border-top:2px dashed #1c1c1c;font:700 13px system-ui,sans-serif}
+html[data-game="md"] .mdpa .mdpx{display:flex;flex-wrap:wrap;gap:2px 12px;margin:2px 0}
+html[data-game="md"] .mdpa .chip{width:12px;height:12px;border-width:2px;margin-right:3px}
+html[data-game="md"] .mdpt{background:#1c1c1c;color:#f7d51d;border-radius:999px;padding:1px 8px;margin-left:6px}
+html[data-game="md"] .mdst.tgm{animation:mdtg .9s ease-in-out infinite;border-style:dashed}
+@keyframes mdtg{50%{box-shadow:0 0 0 4px #d7263d}}
+html[data-game="md"] .mg.orph{opacity:.7;border-style:dashed}
