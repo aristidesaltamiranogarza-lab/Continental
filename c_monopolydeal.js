@@ -21,13 +21,21 @@ const mdIMG={casa:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAABgCAYAAAD
 const mdMC={1:['#f2f2f5','#8d8d98'],2:['#c9e8bd','#5f9552'],3:['#fbcfa6','#a87749'],4:['#d3c2ee','#7660a6'],5:['#f6c3d2','#a8667a'],10:['#b9e0ee','#4f93a8']};
 const mdBill=v=>`<i class="mbg" style="--bg:${mdMC[v][0]};--ln:${mdMC[v][1]}"><u class="k k1">${v}</u><u class="k k2">${v}</u><u class="ov">${v}</u></i>`;
 const mdWbg=c=>c.cs=='any'?'conic-gradient(from 45deg,#d7263d,#f7d51d,#2e9e5b,#1f4aa8,#d7263d)':`linear-gradient(135deg,${mdCC[c.cs[0]]} 50%,${mdCC[c.cs[1]]} 50%)`;
-function mdIn(id){const c=mdCAT[id],v=`<b class="mv">$${c.v}M</b>`;
+// color del anillo de cada acción (como en las cartas reales, cada acción tiene su color)
+const mdACOL={tratosucio:'#6a2c91',dino:'#d7263d',ladron:'#2b2b2b',forzoso:'#1f4aa8',cobro:'#2e9e5b',cumple:'#e45aa6',salida:'#2e9e5b',doble:'#f59a23'};
+const mdRainbow='conic-gradient(#8b5a3c,#8fd3f4,#e45aa6,#f59a23,#d7263d,#f7d51d,#2e9e5b,#1f4aa8,#2b2b2b,#9ccf9a,#8b5a3c)';
+function mdIn(id){const c=mdCAT[id],v=`<b class="mv">$${c.v}M</b>`,vb=`<b class="vb">$${c.v}M</b>`,ink=k=>mdLT[k]?'#111':'#fff';
  if(c.t=='m')return mdBill(c.v);
- if(c.t=='p')return `<i class="mb" style="background:${mdCC[c.c]}"></i><span class="mn">${c.n}</span>${v}`;
- if(c.t=='w')return `<i class="wbg" style="background:${mdWbg(c)}"></i><span class="ar">⇅</span><span class="st">COMODÍN</span><b class="vv">$${c.v}M</b>`;
- if(c.t=='r')return `<span class="hd">RENTA</span><span class="bag">💰</span><span class="cn${c.cs=='any'?' one':''}">${c.cs=='any'?'<u class="rb"></u>':c.cs.map(x=>`<u style="background:${mdCC[x]}"></u>`).join('')}</span>${v}`;
- if(c.k=='casa'||c.k=='hotel')return `<span class="ht">${c.k=='casa'?'CASA':'HOTEL'}</span><img class="hz" src="${mdIMG[c.k]}" alt="" draggable="false">${v}`;
- return `<i class="ma">${mdAI[c.k]}</i><span class="mn">${mdAN[c.k]}</span>${v}`}
+ // propiedad: cabecera del color con el nombre y la tabla de renta (★ = set completo)
+ if(c.t=='p')return `${vb}<span class="ph" style="--pc:${mdCC[c.c]};--pt:${ink(c.c)}">${c.n}</span><span class="rl">${mdRENT[c.c].map((r,i)=>`<i><em>${i+1}${i+1==mdNEED[c.c]?'★':''}</em><s>$${r}M</s></i>`).join('')}</span>`;
+ // comodín: mitad y mitad (la de abajo de cabeza, como la carta real) o arcoíris
+ if(c.t=='w')return c.cs=='any'?`${vb}<span class="wr" style="background:${mdRainbow}"></span><span class="wc">COMODÍN</span><span class="wr f" style="background:${mdRainbow}"></span>`
+  :`${vb}<span class="wh" style="--pc:${mdCC[c.cs[0]]};--pt:${ink(c.cs[0])}">${mdCN[c.cs[0]]}</span><span class="wc">COMODÍN</span><span class="wh f" style="--pc:${mdCC[c.cs[1]]};--pt:${ink(c.cs[1])}">${mdCN[c.cs[1]]}</span>`;
+ // renta: círculo partido en los dos colores
+ if(c.t=='r')return `${vb}<span class="at">RENTA</span><span class="rc" style="background:${c.cs=='any'?mdRainbow:`linear-gradient(135deg,${mdCC[c.cs[0]]} 50%,${mdCC[c.cs[1]]} 50%)`}"><u>$</u></span><span class="rn">${c.cs=='any'?'A un jugador':mdCN[c.cs[0]]+' / '+mdCN[c.cs[1]]}</span>`;
+ if(c.k=='casa'||c.k=='hotel')return `${vb}<span class="ht">${c.k=='casa'?'CASA':'HOTEL'}</span><img class="hz" src="${mdIMG[c.k]}" alt="" draggable="false">`;
+ // acción: el gran círculo con el ícono y el título
+ return `${vb}<span class="at">ACCIÓN</span><span class="ac" style="--ac:${mdACOL[c.k]}"><i>${mdAI[c.k]}</i><b>${mdAN[c.k]}</b></span>`}
 const mdCls=id=>{const c=mdCAT[id];return 'c md m'+c.t+(c.k=='casa'||c.k=='hotel'?' mz mz-'+c.k:'')};
 function mdc(id,o={}){return `<div class="${mdCls(id)}${o.sel?' s':''}${o.sm?' sm':''}${o.nw?' nw':''}"${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}>${mdIn(id)}</div>`}
 const mdKey=id=>{const c=mdCAT[id];return c.t=='p'?c.c:c.t=='w'?10+(c.cs=='any'?9:c.cs[0]):c.t=='m'?30+c.v:c.t=='a'?60:80};

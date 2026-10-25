@@ -378,3 +378,38 @@ html[data-game="md"] .c.md.mz-hotel{background:linear-gradient(#fffbe8 0 48%,#f3
 .c.md .hz{flex:none;margin:auto 0;height:auto;pointer-events:none;-webkit-user-drag:none}
 .c.md.mz-casa .hz{width:4.45em}.c.md.mz-hotel .hz{width:5.5em}
 html[data-game="md"] .c.md.sm .ht{font-size:.85em;padding-top:.3em}html[data-game="md"] .c.md.sm.mz-casa .hz{width:4em}html[data-game="md"] .c.md.sm.mz-hotel .hz{width:4.9em}
+
+/* ===== Monopoly Deal: cartas con el diseño de las reales (valor en círculo, tabla de renta, círculo de acción) ===== */
+html[data-game="md"] .c.md{position:relative;background:#fff;align-items:stretch}
+html[data-game="md"] #hand .c.md{width:70px;height:100px}
+html[data-game="md"] .c.md .vb{position:absolute;left:2px;top:2px;z-index:2;min-width:21px;height:21px;padding:0 3px;box-sizing:border-box;border-radius:11px;background:#fff;color:#1c1c1c;border:1.5px solid #1c1c1c;font:900 8.5px/18px system-ui,sans-serif;text-align:center;box-shadow:0 1px 0 #1c1c1c}
+/* propiedad */
+html[data-game="md"] .c.mp{background:#fff}
+html[data-game="md"] .c.mp .ph{display:flex;align-items:flex-end;justify-content:center;margin:3px 3px 0;min-height:34px;padding:12px 2px 3px;box-sizing:border-box;background:var(--pc);color:var(--pt);border:1.5px solid #1c1c1c;border-radius:3px;font:900 8px/1.05 "Trebuchet MS",system-ui,sans-serif;text-transform:uppercase;text-align:center}
+html[data-game="md"] .c.mp .rl{display:flex;flex-direction:column;gap:1px;padding:3px 5px 2px;font:800 7.5px/1 system-ui,sans-serif}
+html[data-game="md"] .c.mp .rl i{display:flex;justify-content:space-between;font-style:normal;border-bottom:1px dotted #0004;padding:1px 0}
+html[data-game="md"] .c.mp .rl em{font-style:normal;color:#555}html[data-game="md"] .c.mp .rl s{text-decoration:none}
+html[data-game="md"] .c.mp .rl i:last-child{border-bottom:0;color:#c8102e}
+/* comodín */
+html[data-game="md"] .c.mw{background:#fff}
+html[data-game="md"] .c.mw .wh,html[data-game="md"] .c.mw .wr{flex:1;display:flex;align-items:center;justify-content:center;margin:3px 3px 0;background:var(--pc);color:var(--pt);border:1.5px solid #1c1c1c;border-radius:3px;font:900 7.5px/1 "Trebuchet MS",system-ui,sans-serif;text-transform:uppercase;padding-top:6px}
+html[data-game="md"] .c.mw .f{transform:rotate(180deg);margin:0 3px 3px;padding-top:0;padding-bottom:6px}
+html[data-game="md"] .c.mw .wc{flex:none;text-align:center;font:900 8px/1 system-ui,sans-serif;letter-spacing:.06em;padding:3px 0}
+/* acción y renta */
+html[data-game="md"] .c.ma,html[data-game="md"] .c.mr{background:#fff;align-items:center}
+html[data-game="md"] .c.md .at{align-self:flex-end;margin:4px 4px 0 0;font:900 6.5px/1 system-ui,sans-serif;letter-spacing:.08em;color:#555}
+html[data-game="md"] .c.md .ac{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:56px;margin:5px auto 0;box-sizing:border-box;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff 55%,#f3ede0);border:5px solid var(--ac);box-shadow:0 0 0 1.5px #1c1c1c,inset 0 0 0 1px #1c1c1c33}
+html[data-game="md"] .c.md .ac i{font-style:normal;font-size:17px;line-height:1}
+html[data-game="md"] .c.md .ac b{font:900 6.5px/1.05 system-ui,sans-serif;text-align:center;margin-top:2px;max-width:44px}
+html[data-game="md"] .c.md .rc{display:flex;align-items:center;justify-content:center;width:50px;height:50px;margin:5px auto 0;border-radius:50%;border:2px solid #1c1c1c;box-shadow:inset 0 0 0 3px #fff}
+html[data-game="md"] .c.md .rc u{text-decoration:none;display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#fff;border:1.5px solid #1c1c1c;font:900 12px/1 system-ui,sans-serif}
+html[data-game="md"] .c.md .rn{font:800 6.5px/1.05 system-ui,sans-serif;text-align:center;margin:4px 3px 0;color:#333}
+html[data-game="md"] .c.mz .ht{margin-top:24px}
+/* cartas chicas (en la mesa): lo esencial */
+html[data-game="md"] .c.md.sm .vb{transform:scale(.72);transform-origin:0 0}
+html[data-game="md"] .c.md.sm .rl,html[data-game="md"] .c.md.sm .rn,html[data-game="md"] .c.md.sm .at,html[data-game="md"] .c.md.sm .ac b{display:none}
+html[data-game="md"] .c.mp.sm .ph{min-height:0;flex:1;margin:2px;padding:9px 1px 2px;font-size:6px;align-items:center}
+html[data-game="md"] .c.mw.sm .wh,html[data-game="md"] .c.mw.sm .wr{font-size:5.5px;margin:2px 2px 0;padding-top:4px}html[data-game="md"] .c.mw.sm .f{margin:0 2px 2px;padding:0 0 4px}html[data-game="md"] .c.mw.sm .wc{font-size:5.5px;padding:2px 0}
+html[data-game="md"] .c.md.sm .ac{width:30px;height:30px;border-width:3px;margin-top:14px}html[data-game="md"] .c.md.sm .ac i{font-size:13px}
+html[data-game="md"] .c.md.sm .rc{width:28px;height:28px;margin-top:15px}html[data-game="md"] .c.md.sm .rc u{width:13px;height:13px;font-size:8px}
+html[data-game="md"] .c.mz.sm .ht{margin-top:13px}
