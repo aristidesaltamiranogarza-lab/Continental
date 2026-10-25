@@ -115,6 +115,11 @@ html[data-bg="graphite"] #c3root{background:radial-gradient(ellipse at 50% 42%,#
 /* en celular la ventana se pega abajo para dejar ver la mesa arriba */
 @media (max-width:600px) and (orientation:portrait){#t3ap{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);transform:translateX(-50%);max-height:62%;animation:none}#t3ap .grid{grid-template-columns:repeat(3,1fr)}#t3ap .tab{flex:1}}
 html.c3ap #chat{display:none!important}
+/* carta del descarte en grande */
+#t3peek{left:0;top:0;z-index:20;padding:8px 8px 6px;border-radius:10px;pointer-events:none;text-align:center;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s .12s;will-change:transform}
+#t3peek.on{opacity:1;visibility:visible;transition:opacity .12s}
+#t3peek img{display:block;width:clamp(120px,32vw,150px);aspect-ratio:256/358;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.55)}
+#t3peek .nm{margin-top:4px;font-weight:700;font-size:1.05em}
 /* pantallas bajitas (celular acostado) */
 @media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}#t3view{top:50px}#t3cam{top:48px}#t3cam .pan{grid-template-columns:repeat(4,40px)}#t3cam .w7b{width:40px;height:40px}#t3cam .pan .wide{grid-column:1/5}#t3ap{max-height:calc(100% - 12px)}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
 </style>
