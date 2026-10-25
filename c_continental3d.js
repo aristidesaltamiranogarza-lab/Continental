@@ -174,9 +174,16 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
   g.fillStyle='rgba(255,235,200,.08)';for(let y=16;y<h;y+=64)for(let x=16;x<w;x+=64){g.beginPath();g.arc(x+(y%128?32:0),y,5,0,7);g.fill()}});
  const wall=(w,x,z,ry)=>{const m=std(0xffffff,.9,{map:wp.clone()});m.map.needsUpdate=true;m.map.repeat.set(w/3,WH/3);
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(w,WH),m);pl.position.set(x,FY+WH/2,z);pl.rotation.y=ry;pl.receiveShadow=true;R.add(pl);
-  const wa=new THREE.Mesh(new THREE.BoxGeometry(w,2.4,.15),std(0x3e2a1c,.55));wa.position.set(x,FY+1.2,z);wa.rotation.y=ry;wa.translateZ(.08);wa.receiveShadow=true;R.add(wa);
-  const tr=new THREE.Mesh(new THREE.BoxGeometry(w,.12,.25),std(0x2e1f14,.5));tr.position.set(x,FY+2.45,z);tr.rotation.y=ry;tr.translateZ(.12);R.add(tr)};
- wall(2*X,0,ZB,0);wall(ZF-ZB,-X,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,X,(ZF+ZB)/2,-Math.PI/2);
+  const wa=new THREE.Mesh(new THREE.PlaneGeometry(w,2.4),std(0x3e2a1c,.55));wa.position.set(x,FY+1.2,z);wa.rotation.y=ry;wa.translateZ(.03);wa.receiveShadow=true;R.add(wa);
+  const tr=new THREE.Mesh(new THREE.PlaneGeometry(w,.14),std(0x2e1f14,.5));tr.position.set(x,FY+2.45,z);tr.rotation.y=ry;tr.translateZ(.05);R.add(tr)};
+ // cuarto completo: 4 paredes y techo (todo se ve solo por dentro, así la cámara puede estar afuera sin que estorben)
+ wall(2*X,0,ZB,0);wall(ZF-ZB,-X,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,X,(ZF+ZB)/2,-Math.PI/2);wall(2*X,0,ZF,Math.PI);
+ const ceil=new THREE.Mesh(new THREE.PlaneGeometry(2*X,ZF-ZB),std(0xe9e1d0,.95));ceil.rotation.x=Math.PI/2;ceil.position.set(0,FY+WH,(ZF+ZB)/2);R.add(ceil);
+ const cl=new THREE.Mesh(new THREE.CircleGeometry(1.1,32),new THREE.MeshBasicMaterial({color:0xfff1cc}));cl.rotation.x=Math.PI/2;cl.position.set(0,FY+WH-.02,0);R.add(cl);
+ const cll=new THREE.PointLight(0xfff0d6,45,0,1.5);cll.position.set(0,FY+WH-1.2,0);R.add(cll);   // luz de techo: ilumina las 4 paredes
+ // puerta en la pared de enfrente (detrás de ti)
+ const dr=new THREE.Mesh(new THREE.PlaneGeometry(2.6,5.4),std(0x5a3a22,.5));dr.rotation.y=Math.PI;dr.position.set(X*.55,FY+2.7,ZF-.04);R.add(dr);
+ const kn=new THREE.Mesh(new THREE.SphereGeometry(.12,12,10),std(0xc9a24a,.3));kn.position.set(X*.55-1,FY+2.6,ZF-.12);R.add(kn);
  // ventana de noche en la pared del fondo
  const sky=ctex('sky',256,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0a1230');gr.addColorStop(1,'#26407a');g.fillStyle=gr;g.fillRect(0,0,w,h);
   g.fillStyle='#fff';for(let i=0;i<60;i++){g.globalAlpha=.3+(i%5)*.14;g.fillRect((i*71)%w,(i*37)%(h*.7),2,2)}g.globalAlpha=1;g.fillStyle='#f4f1d0';g.beginPath();g.arc(190,60,18,0,7);g.fill()});
@@ -185,9 +192,10 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
  // sofá contra la pared del fondo
  const sofa=std(0x2f4a5a,.85),sx=-X*.35,sz=ZB+1.3;B(5.4,.9,2,sofa,sx,FY+.75,sz);B(5.4,1.7,.55,sofa,sx,FY+1.6,sz-.75);[-1,1].forEach(s=>B(.55,1.4,2,sofa,sx+s*2.7,FY+1.1,sz));
  [-1.3,1.3].forEach(dx=>{B(2.5,.35,1.6,std(0x37566a,.9),sx+dx,FY+1.35,sz+.15);B(1.1,.9,.3,std(0xc9a24a,.8),sx+dx*1.2,FY+1.9,sz-.35).rotation.z=dx*.08});
- // mesita de centro frente al sofá: ahí está el Backgammon
- const ct=std(0x4a2c18,.5),tz=sz+2.8;B(4,.14,2.9,ct,sx,FY+1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>B(.14,.95,.14,ct,sx+a,FY+.48,tz+b));
- R.userData.bg=v3(sx,FY+1.09,tz);
+ // mesita a tus espaldas (junto a la pared de enfrente): ahí está el Backgammon, con dos puf
+ const ct=std(0x4a2c18,.5),tx=-X*.35,tz=ZF-2.6;B(4,.14,2.9,ct,tx,FY+1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>B(.14,.95,.14,ct,tx+a,FY+.48,tz+b));
+ [-1,1].forEach(s=>{C(.75,.8,.9,std(0x7a2a2a,.85),tx+s*2.9,FY+.45,tz,null,24)});
+ R.userData.bg=v3(tx,FY+1.09,tz);
  // librero en la pared izquierda, cerca del fondo
  const bw=std(0x4a2c18,.6),bz=ZB+3.6,bx=-X+.55;B(.9,7,.12,bw,bx,FY+3.5,bz-1.6);B(.9,7,.12,bw,bx,FY+3.5,bz+1.6);B(.1,7,3.3,bw,bx-.42,FY+3.5,bz);
  const BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0];
@@ -230,7 +238,7 @@ function buildC4(por,rx,rz,at){c4d.clear();c4cols.length=0;
  // columnas para tocar: invisibles, se iluminan cuando puedes tirar ahí
  for(let c=0;c<7;c++){const m=new THREE.Mesh(new THREE.PlaneGeometry(.98,6.2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
   m.position.set(c-3,3.3,.24);m.userData.hit={t:'c4',c};g.add(m);c4cols.push(m)}
- g.scale.setScalar(.4);g.rotation.x=-(por?1.12:.98)*.55;P.add(g);   // inclinado hacia atrás para que se vea desde la mesa
+ g.scale.setScalar(.4);P.add(g);   // derecho, a 90°
  // mesita de madera
  const wood=new THREE.MeshStandardMaterial({color:0x5a2f14,roughness:.55}),tp=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.12,40),wood);
  tp.scale.set(2.2,1,1.2);tp.position.y=-.07;tp.receiveShadow=true;tp.castShadow=true;P.add(tp);
@@ -260,14 +268,37 @@ function c4step(now){const lt=VT.c4?1:.4;if(C4B&&Math.abs(C4B.lit-lt)>.005)c4lig
 const c4mine=()=>{const g=c4g();return g&&g.st=='play'&&g.turn==g.p.indexOf(V.me)?g:null};
 function c4hover(c){c4cols.forEach((m,i)=>{m.material.opacity=i===c&&c4mine()?.2:0})}
 // ---------- avatares de los demás jugadores (estilo Xbox 360), sentados alrededor de la mesa ----------
-// 6 avatares ya armados; a cada jugador le toca uno distinto. La playera/sudadera es del color de su ficha.
+// 6 Miis ya armados (estilo propio, inspirado en los de Wii); a cada jugador le toca uno distinto. La ropa es del color de su ficha.
 const AVP=[
- {skin:0xf2c9a0,hair:'short',hc:0x2a1c12,eye:0x3d6fb5,top:'hoodie',bot:0x2f4f7f,shoe:0xf2f2f2},
- {skin:0x8d5a3b,hair:'long',hc:0x1a1210,eye:0x4a2f1a,top:'tee',bot:0x26262b,shoe:0x26262b,skirt:1},
- {skin:0xf5d2b0,hair:'spiky',hc:0xe8c35a,eye:0x3a8a4a,top:'tee',bot:0x3b5a8c,shoe:0xd03030},
- {skin:0x5c3a24,hair:'afro',hc:0x140e0a,eye:0x3a2414,top:'tee',bot:0xb9a078,shoe:0xf5f5f5},
- {skin:0xe0ac69,hair:'cap',hc:0x3a2414,eye:0x5a3a1a,top:'hoodie',bot:0x30343a,shoe:0x2a4a8a,cap:0xc62828},
- {skin:0xffdbac,hair:'pony',hc:0x7a4a22,eye:0x2f7fb0,top:'tank',bot:0x3b5a8c,shoe:0xf06292}];
+ {skin:'#f6d3b3',hair:'bowl',hc:'#3b2416',eyes:'dot',brow:'flat',nose:'dot',mouth:'smile',blush:1,bot:0x3b4a6b,shoe:0x2a2a2e},
+ {skin:'#e8b48a',hair:'long',hc:'#1d1410',eyes:'lash',brow:'arch',nose:'curve',mouth:'smile',blush:1,bot:0x2b2b33,shoe:0xb03a5a},
+ {skin:'#f7dcc4',hair:'spiky',hc:'#d9a640',eyes:'oval',brow:'angry',nose:'curve',mouth:'grin',bot:0x3b5a8c,shoe:0xd03030},
+ {skin:'#8a5a3c',hair:'short',hc:'#120c08',eyes:'oval',brow:'flat',nose:'wide',mouth:'smile',glasses:1,bot:0xb9a078,shoe:0xf2f2f2},
+ {skin:'#d9a273',hair:'cap',hc:'#3a2414',cap:'#c62828',eyes:'happy',brow:'arch',nose:'dot',mouth:'open',must:1,bot:0x30343a,shoe:0x2a4a8a},
+ {skin:'#ffe0c8',hair:'bun',hc:'#7a4a22',eyes:'lash',brow:'arch',nose:'dot',mouth:'small',blush:1,bot:0x3b5a8c,shoe:0xf06292}];
+// la cara del Mii se dibuja en una textura (como los de Wii: ojos, cejas, nariz y boca "pintados")
+function miiFace(A){return ctex('mii'+AVP.indexOf(A),256,256,(g,w,h)=>{const sk=new THREE.Color(A.skin),dk=`rgb(${sk.r*170|0},${sk.g*120|0},${sk.b*100|0})`;g.lineCap='round';g.lineJoin='round';
+ if(A.blush){g.fillStyle='rgba(255,120,130,.32)';[[78,158],[178,158]].forEach(([x,y])=>{g.beginPath();g.ellipse(x,y,22,13,0,0,7);g.fill()})}
+ [-1,1].forEach(s=>{const x=128+s*38,y=120;
+  if(A.eyes=='happy'){g.strokeStyle='#1a1a1a';g.lineWidth=7;g.beginPath();g.arc(x,y+6,14,Math.PI*1.12,Math.PI*1.88);g.stroke()}
+  else if(A.eyes=='dot'){g.fillStyle='#1a1a1a';g.beginPath();g.ellipse(x,y,9,14,0,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(x+3,y-5,3.5,0,7);g.fill()}
+  else{g.fillStyle='#fff';g.beginPath();g.ellipse(x,y,15,19,0,0,7);g.fill();g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=2;g.stroke();
+   g.fillStyle='#1a1a1a';g.beginPath();g.ellipse(x+s*-2,y+3,9,13,0,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(x+s*-2+3,y-3,3.5,0,7);g.fill();
+   if(A.eyes=='lash'){g.strokeStyle='#1a1a1a';g.lineWidth=4;g.beginPath();g.ellipse(x,y,15,19,0,Math.PI*1.1,Math.PI*1.9);g.stroke();[0,1].forEach(i=>{g.beginPath();g.moveTo(x+s*(10+i*5),y-15+i*5);g.lineTo(x+s*(18+i*5),y-22+i*5);g.stroke()})}}
+  // cejas
+  g.strokeStyle=A.hc;g.lineWidth=7;g.beginPath();
+  if(A.brow=='arch'){g.arc(x,y-6,20,Math.PI*1.25,Math.PI*1.75)}else if(A.brow=='angry'){g.moveTo(x-s*16,y-32);g.lineTo(x+s*14,y-24)}else{g.moveTo(x-15,y-30);g.lineTo(x+15,y-30)}g.stroke()});
+ // nariz
+ g.strokeStyle=dk;g.fillStyle=dk;g.lineWidth=5;
+ if(A.nose=='curve'){g.beginPath();g.moveTo(130,138);g.quadraticCurveTo(122,160,134,162);g.stroke()}else if(A.nose=='wide'){g.beginPath();g.ellipse(128,158,13,7,0,0,Math.PI);g.stroke()}else{g.beginPath();g.ellipse(128,156,6,4,0,0,7);g.fill()}
+ if(A.must){g.fillStyle=A.hc;g.beginPath();g.ellipse(112,174,18,7,-.25,0,7);g.ellipse(144,174,18,7,.25,0,7);g.fill()}
+ // boca
+ g.strokeStyle='#8a2a2a';g.fillStyle='#7a1f24';g.lineWidth=6;const my=186;
+ if(A.mouth=='grin'||A.mouth=='open'){g.beginPath();g.moveTo(104,my-4);g.quadraticCurveTo(128,my+(A.mouth=='open'?34:28),152,my-4);g.closePath();g.fill();
+  if(A.mouth=='grin'){g.fillStyle='#fff';g.fillRect(110,my-4,36,8)}else{g.fillStyle='#e0707a';g.beginPath();g.ellipse(128,my+12,11,6,0,0,7);g.fill()}}
+ else if(A.mouth=='small'){g.beginPath();g.arc(128,my-10,12,Math.PI*.2,Math.PI*.8);g.stroke()}
+ else{g.beginPath();g.arc(128,my-16,24,Math.PI*.2,Math.PI*.8);g.stroke()}
+ if(A.glasses){g.strokeStyle='#202024';g.lineWidth=5;[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*38,121,24,22,0,0,7);g.stroke()});g.beginPath();g.moveTo(114,118);g.lineTo(142,118);g.stroke()}})}
 const avs=new Map(),hsh=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
 const UP=new THREE.Vector3(0,1,0),avDir=new THREE.Vector3(),avTgt=new THREE.Vector3(),avA=new THREE.Vector3(),avB=new THREE.Vector3();
 // a quién le toca qué avatar: según su nombre, sin repetir en la sala
@@ -278,53 +309,37 @@ function seg(m,a,b){avDir.subVectors(b,a);const l=avDir.length();m.position.copy
 function ik(sh,hand,l1,l2,pole,out){avA.subVectors(hand,sh);const L=Math.min(avA.length(),l1+l2-.002),c=(l1*l1+L*L-l2*l2)/(2*l1*L),h=l1*Math.sqrt(Math.max(0,1-c*c));avA.normalize();
  avB.copy(pole).sub(sh);avB.addScaledVector(avA,-avB.dot(avA)).normalize();return out.copy(sh).addScaledVector(avA,c*l1).addScaledVector(avB,h)}
 function mkAvatar(k,pi){const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
- const skin=std(A.skin,.55),top=std(new THREE.Color(COL[k%10]),.75),hair=std(A.hc,.85),pants=std(A.bot,.85),shoe=std(A.shoe,.5),white=std(0xffffff,.25),ink=std(0x111111,.2),wood=std(0x3a1e0c,.6);
+ const skin=std(new THREE.Color(A.skin),.6),top=std(new THREE.Color(COL[k%10]),.7),hair=std(new THREE.Color(A.hc),.75),pants=std(A.bot,.8),shoe=std(A.shoe,.5),wood=std(0x3a1e0c,.6);
  const g=new THREE.Group(),hit={t:'seat',k},M=(geo,mat,x,y,z,par)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;(par||g).add(m);return m};
- const limb=(r,len,mat)=>{const m=M(new THREE.CapsuleGeometry(r,len,4,12),mat,0,0,0);m.userData.len=len+2*r;return m};
+ const limb=(r,len,mat,par)=>{const m=M(new THREE.CapsuleGeometry(r,len,4,12),mat,0,0,0,par);m.userData.len=len+2*r;return m};
  // silla
- M(new THREE.BoxGeometry(1.15,.12,1),wood,0,-.66,-.05);M(new THREE.BoxGeometry(1.15,1.45,.12),wood,0,.1,-.55);
- [[-.5,-.5],[.5,-.5],[-.5,.38],[.5,.38]].forEach(([x,z])=>M(new THREE.CylinderGeometry(.05,.05,.9,8),wood,x,-1.1,z));
- // piernas sentadas: cadera → rodilla → tobillo, y tenis
- const legs=[-1,1].map(s=>{const hp=v3(s*.2,-.5,.05),kn=v3(s*.22,-.5,.85),an=v3(s*.23,-1.38,.92);
-  seg(limb(.15,.55,A.skirt?skin:pants),hp,kn);seg(limb(.12,.6,A.skirt?skin:pants),kn,an);
-  const sh=M(new THREE.CapsuleGeometry(.12,.22,4,10),shoe,s*.23,-1.45,1.04);sh.rotation.x=Math.PI/2;sh.scale.set(1,1,.7);
-  M(new THREE.BoxGeometry(.24,.04,.38),white,s*.23,-1.53,1.04)});
- if(A.skirt){const sk=M(new THREE.CylinderGeometry(.42,.6,.5,20,1,true),pants,0,-.42,.32);sk.rotation.x=1.25;sk.material.side=THREE.DoubleSide}
- else M(new THREE.CapsuleGeometry(.36,.2,4,14),pants,0,-.5,0).scale.set(1.15,.7,.85);
- // cuerpo (torso torneado) con lo que se mueve: cuerpo, cabeza y brazos
+ M(new THREE.BoxGeometry(1.1,.12,1),wood,0,-.66,-.05);M(new THREE.BoxGeometry(1.1,1.35,.12),wood,0,.05,-.55);
+ [[-.48,-.5],[.48,-.5],[-.48,.38],[.48,.38]].forEach(([x,z])=>M(new THREE.CylinderGeometry(.05,.05,.9,8),wood,x,-1.1,z));
+ // piernas cortas y zapatos de bolita
+ [-1,1].forEach(s=>{const hp=v3(s*.17,-.5,.05),kn=v3(s*.19,-.5,.72),an=v3(s*.2,-1.3,.78);
+  seg(limb(.14,.45,pants),hp,kn);seg(limb(.12,.55,pants),kn,an);M(new THREE.SphereGeometry(.17,16,12),shoe,s*.2,-1.42,.86).scale.set(.85,.6,1.3)});
+ M(new THREE.CapsuleGeometry(.3,.18,4,14),pants,0,-.5,0).scale.set(1.2,.75,.9);
+ // cuerpo de Mii: torso corto y redondeado, sin cuello
  const body=new THREE.Group();g.add(body);
- const tor=M(new THREE.LatheGeometry([[0,-.55],[.4,-.55],[.43,-.3],[.4,0],[.46,.35],[.5,.58],[.42,.72],[.2,.8],[0,.82]].map(([r,y])=>new THREE.Vector2(r,y)),24),top,0,0,0,body);
- tor.scale.z=.62;tor.userData.hit=hit;
- if(A.top=='hoodie'){M(new THREE.TorusGeometry(.26,.09,8,20,Math.PI*1.3),top,0,.74,-.12,body).rotation.set(-1.2,0,-Math.PI*.15);
-  M(new THREE.BoxGeometry(.5,.2,.06),top,0,-.18,.27,body);[-1,1].forEach(s=>M(new THREE.CylinderGeometry(.012,.012,.3,6),white,s*.08,.55,.29,body))}
- else if(A.top=='tee')M(new THREE.CircleGeometry(.1,20),white,0,.3,.315,body);
- M(new THREE.CylinderGeometry(.13,.15,.25,14),skin,0,.86,0,body);
- // cabeza: cráneo, barbilla, orejas, ojos grandes con iris, cejas, nariz y boca
- const head=new THREE.Group();head.position.set(0,1.32,0);body.add(head);
- const sk=M(new THREE.SphereGeometry(.42,32,24),skin,0,0,0,head);sk.scale.set(1,1.12,1.02);sk.userData.hit=hit;
- M(new THREE.SphereGeometry(.3,24,16),skin,0,-.2,.08,head).scale.set(1,.8,.9);
- [-1,1].forEach(s=>{M(new THREE.SphereGeometry(.09,12,10),skin,s*.42,0,0,head).scale.set(.6,1,.9);
-  const sc=M(new THREE.SphereGeometry(.1,20,14),white,s*.15,.04,.33,head);sc.scale.set(1,1.15,.55);
-  M(new THREE.CircleGeometry(.058,20),std(A.eye,.3),s*.15,.035,.388,head);M(new THREE.CircleGeometry(.03,16),ink,s*.15,.035,.39,head);
-  M(new THREE.CircleGeometry(.016,10),white,s*.15+.022,.06,.392,head);
-  const br=M(new THREE.TorusGeometry(.09,.016,6,14,Math.PI*.7),hair,s*.15,.17,.37,head);br.rotation.z=Math.PI*.15});
- M(new THREE.CapsuleGeometry(.038,.08,4,8),std(A.skin,.6),0,-.06,.41,head).rotation.x=.35;
- const mouth=M(new THREE.TorusGeometry(.085,.02,8,16,Math.PI),std(0xb5524a,.5),0,-.2,.355,head);mouth.rotation.z=Math.PI;
- // peinados
- const cap=(t,rx)=>{const c=M(new THREE.SphereGeometry(.45,32,16,0,Math.PI*2,0,Math.PI*t),hair,0,.05,-.02,head);c.rotation.x=rx;c.scale.set(1,1.1,1.04);return c};
- if(A.hair=='short'){cap(.47,-.38);M(new THREE.BoxGeometry(.5,.08,.12),hair,0,.33,.3,head).rotation.x=-.5}
- if(A.hair=='spiky'){cap(.45,-.4);for(let i=0;i<9;i++){const a=i/9*Math.PI*2,c=M(new THREE.ConeGeometry(.1,.3,8),hair,Math.cos(a)*.22,.45,Math.sin(a)*.22,head);c.rotation.set(Math.sin(a)*.6,0,-Math.cos(a)*.6)}}
- if(A.hair=='long'){cap(.5,-.3);M(new THREE.CapsuleGeometry(.36,.55,4,14),hair,0,-.28,-.2,head).scale.set(1.18,1,.55);[-1,1].forEach(s=>M(new THREE.CapsuleGeometry(.08,.5,4,8),hair,s*.36,-.2,.12,head))}
- if(A.hair=='afro'){cap(.45,-.4);const af=M(new THREE.SphereGeometry(.5,24,18),hair,0,.3,-.2,head);af.scale.set(1.12,.9,.95)}
- if(A.hair=='cap'){cap(.42,-.3);const cp=M(new THREE.SphereGeometry(.47,24,12,0,Math.PI*2,0,Math.PI*.42),std(A.cap,.6),0,.08,0,head);cp.scale.y=1.05;
-  const brim=M(new THREE.CylinderGeometry(.3,.3,.03,20,1,false,-Math.PI/2,Math.PI),std(A.cap,.6),0,.2,.32,head);brim.rotation.x=.15}
- if(A.hair=='pony'){cap(.5,-.35);M(new THREE.CapsuleGeometry(.11,.45,4,10),hair,0,0,-.5,head).rotation.x=.5;M(new THREE.TorusGeometry(.08,.025,6,12),std(0xf06292,.5),0,.22,-.42,head)}
- // brazos: hombro → codo → mano (se recalculan cada cuadro)
- const arms=[-1,1].map(s=>{const sl=A.top=='hoodie'?top:skin;
-  return {s,sh:v3(s*.48,.62,0),up:limb(.11,.4,sl),fo:limb(.095,.4,A.top=='hoodie'?top:skin),hand:M(new THREE.SphereGeometry(.12,14,10),skin,0,0,0),
-   sleeve:A.top=='tee'?limb(.135,.12,top):null,el:new THREE.Vector3(),h:new THREE.Vector3()}});
- arms.forEach(a=>[a.up,a.fo,a.hand,a.sleeve].forEach(m=>{if(m){g.remove(m);body.add(m)}}));
- g.userData={k,pi,body,head,arms,reachT:0,cheerT:0};return g}
+ const tor=M(new THREE.CapsuleGeometry(.33,.32,6,18),top,0,-.05,0,body);tor.scale.set(1.12,1,.85);tor.userData.hit=hit;
+ // cabeza grande: cara pintada al frente
+ const head=new THREE.Group();head.position.set(0,.88,0);body.add(head);
+ const sk=M(new THREE.SphereGeometry(.5,36,28),skin,0,0,0,head);sk.scale.set(1,1.04,.96);sk.userData.hit=hit;
+ const face=new THREE.Mesh(new THREE.SphereGeometry(.503,36,28,Math.PI/2-.95,1.9,Math.PI/2-.85,1.7),new THREE.MeshStandardMaterial({map:miiFace(A),transparent:true,alphaTest:.05,roughness:.6}));
+ face.scale.copy(sk.scale);head.add(face);
+ [-1,1].forEach(s=>M(new THREE.SphereGeometry(.1,12,10),skin,s*.49,-.02,0,head).scale.set(.55,1,.85));
+ // peinados de Mii (en bloque, como casco)
+ const cap=(t,rx,sc)=>{const c=M(new THREE.SphereGeometry(.53,32,18,0,Math.PI*2,0,Math.PI*t),hair,0,.03,-.02,head);c.rotation.x=rx;c.scale.set(sc||1.02,1.06,1);return c};
+ if(A.hair=='bowl'){cap(.5,-.15,1.05);M(new THREE.CylinderGeometry(.5,.54,.12,32,1,true,-Math.PI*.75,Math.PI*1.5),hair,0,.12,0,head).material.side=THREE.DoubleSide}
+ if(A.hair=='short')cap(.4,-.45);
+ if(A.hair=='spiky'){cap(.45,-.35);for(let i=0;i<10;i++){const a=i/10*Math.PI*2,c=M(new THREE.ConeGeometry(.12,.32,8),hair,Math.cos(a)*.24,.46,Math.sin(a)*.24-.04,head);c.rotation.set(Math.sin(a)*.7,0,-Math.cos(a)*.7)}}
+ if(A.hair=='long'){cap(.52,-.2,1.06);M(new THREE.CapsuleGeometry(.42,.42,4,16),hair,0,-.28,-.16,head).scale.set(1.1,1,.6);[-1,1].forEach(s=>M(new THREE.CapsuleGeometry(.11,.45,4,10),hair,s*.44,-.18,.1,head))}
+ if(A.hair=='bun'){cap(.48,-.3);M(new THREE.SphereGeometry(.2,16,12),hair,0,.55,-.12,head)}
+ if(A.hair=='cap'){cap(.4,-.3);const cp=M(new THREE.SphereGeometry(.54,28,14,0,Math.PI*2,0,Math.PI*.45),std(new THREE.Color(A.cap),.55),0,.05,0,head);cp.scale.y=1.06;
+  M(new THREE.CylinderGeometry(.34,.34,.035,22,1,false,-Math.PI/2,Math.PI),std(new THREE.Color(A.cap),.55),0,.2,.36,head).rotation.x=.12}
+ // brazos cortos con manos de bolita (se recalculan cada cuadro)
+ const arms=[-1,1].map(s=>({s,sh:v3(s*.4,.15,0),up:limb(.1,.24,top,body),fo:limb(.095,.22,top,body),hand:M(new THREE.SphereGeometry(.13,14,10),skin,0,0,0,body),sleeve:null,el:new THREE.Vector3(),h:new THREE.Vector3()}));
+ g.userData={k,pi,body,head,arms,reachT:0,cheerT:0,l1:.45,l2:.43};return g}
 function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
  want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
@@ -340,9 +355,9 @@ function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
   u.head.rotation.y+=(yaw-u.head.rotation.y)*f;u.head.rotation.x+=(pitch-u.head.rotation.x)*f;
   // manos sobre la orilla de la mesa; la derecha se estira al jugar; las dos arriba al bajarse
   const rt=(now-u.reachT)/700,ct=(now-u.cheerT)/1500,reach=rt>=0&&rt<1?Math.sin(rt*Math.PI):0,cheer=ct>=0&&ct<1?Math.sin(ct*Math.PI):0;
-  u.arms.forEach(a=>{const s=a.s,r=s>0?reach:0;a.h.set(s*.38-s*.15*r,.42+.15*r,.85+.85*r);
-   if(cheer)a.h.lerp(avTgt.set(s*.75,2.05+.2*Math.sin(now/90+s),.25),cheer);
-   const pole=avDir.copy(POLE[s>0?1:0]);if(cheer)pole.y+=1.4*cheer;ik(a.sh,a.h,.52,.5,pole.clone(),a.el);
+  u.arms.forEach(a=>{const s=a.s,r=s>0?reach:0;a.h.set(s*.34-s*.12*r,.36+.15*r,.72+.8*r);
+   if(cheer)a.h.lerp(avTgt.set(s*.62,1.25+.15*Math.sin(now/90+s),.2),cheer);
+   const pole=avDir.copy(POLE[s>0?1:0]);if(cheer)pole.y+=1.4*cheer;ik(a.sh,a.h,u.l1,u.l2,pole.clone(),a.el);
    seg(a.up,a.sh,a.el);seg(a.fo,a.el,a.h);a.hand.position.copy(a.h);if(a.sleeve)seg(a.sleeve,a.sh,avB.copy(a.sh).lerp(a.el,.42))})})}
 // ---------- Backgammon: tablero 3D sobre la mesita de centro (otro juego escondido del cuarto) ----------
 const BGW=3,BGD=2.3,BGBAR=.24,BGPW=(BGW-BGBAR)/12;let BGB=null,bgSel=null,bgfound=lsGet('cont_bgf')=='1',bgopen=false,bgwas=false,bgsnap='';
@@ -436,10 +451,10 @@ window.bgo=o=>{bgopen=!!o;menu=false;if(!o&&VT.bg)home();sfx('tick');render()};
 window.bggo=()=>{bgopen=true;menu=false;bgLook();render()};
 window.bginv=k=>{bgSend({op:'inv',k});sfx('card')};
 // llevar la cámara al tablero: su centro queda en medio de la pantalla
-function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=L.el,a=C4B.P.rotation.y,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/3.7*(L.por?.78:.6);
+function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=.55,a=C4B.P.rotation.y,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/3.7*(L.por?.78:.6);
  // de frente al tablero: el punto del piso al que mira la cámara queda detrás de su centro, en la dirección de la vista
- const back=Math.cos(e)*wc.y/Math.sin(e)+(L.por?.7:0);
- Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:0,who:-1,c4:true,bg:false});clampV();sfx('card')}
+ const back=Math.cos(e)*wc.y/Math.sin(e);
+ Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:true,bg:false});clampV();sfx('card')}
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
@@ -458,7 +473,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
 // la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
  CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);CA.updateMatrixWorld()}
-function clampV(){if(!L)return;VT.k=Math.max(1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(L.rz+2,VT.z));
+function clampV(){if(!L)return;VT.k=Math.max(1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  VT.t=Math.max(.3-L.el,Math.min(1.5-L.el,VT.t));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
  if(L.d)VT.k=Math.min(VT.k,Math.max(1,Math.sin(L.el+VT.t)*L.d/3.6))}
@@ -799,7 +814,7 @@ function apUI(){const T=APT[ap.tab];
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
-function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.45):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
+function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh+(L.top||24)-20,Math.min(H-hh,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
