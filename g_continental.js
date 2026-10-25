@@ -52,6 +52,7 @@ function resolveBuy(R,i){const G=R.G,n=G.players.length;if(G.tdc||!G.disc.length
 function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),H=R.host==tok,t=m.t,own=G&&G.phase=='play'&&i>=0&&i==G.turn;
  if(t=='ready'||t=='next'){if(G.phase!='end')return;if(t=='next'){if(!H)return 'Solo el host puede forzar la siguiente ronda.'}else if(i<0)return;else G.rd[i]=true;chkReady(R,t=='next');return}
  if(t=='buy'){if(G.phase!='play'||G.tdc||i<0||i==G.turn||!G.disc.length)return 'No puedes comprar ahora (quien tiene el turno ya tomó el descarte).';if(R.cl[R.players[i].id]==G.tc)return;R.cl[R.players[i].id]=G.tc;lg(G,i,'quiere comprar el descarte');return}
+ if(t=='unbuy'){if(i<0||R.cl[R.players[i].id]!=G.tc)return 'Ya no tienes una compra que cancelar.';delete R.cl[R.players[i].id];lg(G,i,'canceló su compra');return}
  if(!own)return 'No es tu turno.';
  if(Date.now()<G.cdUntil)return 'Espera a que termine la cuenta regresiva.';
  const h=G.hands[i],has=x=>h.includes(x);

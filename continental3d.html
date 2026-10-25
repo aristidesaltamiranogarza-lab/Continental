@@ -37,7 +37,11 @@ html.c3on #app{pointer-events:none}
 .t3msg{top:calc(env(safe-area-inset-top,0px) + 84px);left:50%;transform:translateX(-50%);max-width:min(520px,calc(100% - 24px));padding:10px 14px;border:1px solid #767676;border-radius:6px;background:linear-gradient(#fff,#e4e5f0);color:#000;box-shadow:0 4px 14px rgba(0,0,0,.45);text-align:center;pointer-events:none;animation:t3fade 4.5s forwards}
 @keyframes t3fade{0%{opacity:0;transform:translate(-50%,-6px)}6%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
 /* etiquetas de los jugadores y del mazo (las coloca el JS encima de la mesa) */
-.t3seat{left:0;top:0;padding:3px 9px 4px;font-size:.86em;white-space:nowrap;text-align:center;pointer-events:none;border-radius:7px;will-change:transform}
+.t3seat{left:0;top:0;padding:3px 9px 4px;font-size:.86em;white-space:nowrap;text-align:center;cursor:pointer;border-radius:7px;will-change:transform;touch-action:manipulation}
+.t3seat.look{border-color:#ffe27a;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),0 0 14px 3px rgba(255,220,110,.85)}
+/* botón para regresar a la mesa completa después de mirar a alguien o mover la cámara */
+#t3view{top:calc(env(safe-area-inset-top,0px) + 88px);left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);border-radius:18px;box-shadow:0 3px 12px rgba(0,0,0,.5)}
+#t3view b{overflow:hidden;text-overflow:ellipsis;max-width:40vw}
 .t3seat .chip{margin-right:4px}
 .t3seat small{display:block;font-size:.85em;opacity:.95}
 .t3seat.on{border-color:#aee3ff;animation:t3turn 1.4s ease-in-out infinite}
@@ -61,8 +65,58 @@ html.c3on #app{pointer-events:none}
 #t3menu .log{color:#000;margin:4px 8px}
 #t3menu .b{background:linear-gradient(#f2f2f2 0%,#ebebeb 48%,#dddddd 52%,#cfcfcf 100%);color:#111;border:1px solid #707070;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);text-transform:none;letter-spacing:0;font:600 .95em "Segoe UI","Noto Sans",system-ui,sans-serif;text-shadow:none;padding:6px 12px;margin:3px}
 #t3menu .b.on{border-color:#3c7fb1;background:linear-gradient(#e5f4fc 0%,#c4e5f6 48%,#98d1ef 52%,#68b3db 100%)}
+/* fondo de la sala según el color de la mesa */
+html[data-bg="blue"] #c3root{background:radial-gradient(ellipse at 50% 42%,#1d3f63 0%,#0c1f36 52%,#030a14 100%)}
+html[data-bg="red"] #c3root{background:radial-gradient(ellipse at 50% 42%,#4f1a20 0%,#2a0b0f 52%,#0f0305 100%)}
+html[data-bg="orange"] #c3root{background:radial-gradient(ellipse at 50% 42%,#573113 0%,#2c1707 52%,#0f0702 100%)}
+html[data-bg="purple"] #c3root{background:radial-gradient(ellipse at 50% 42%,#3a2257 0%,#1d0f30 52%,#0a0412 100%)}
+html[data-bg="graphite"] #c3root{background:radial-gradient(ellipse at 50% 42%,#363b42 0%,#1a1d21 52%,#08090a 100%)}
+#t3view{display:inline-flex}#t3view svg{width:18px;height:18px}
+/* barra de cámara (arriba a la derecha) */
+#t3cam{top:calc(env(safe-area-inset-top,0px) + 58px);right:8px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#t3cam .w7b{width:44px;height:44px;min-width:0;padding:0}
+#t3cam .tog{border-radius:6px}
+#t3cam.open .tog{border-color:#2c628b;background:linear-gradient(#e5f4fc 0%,#c4e5f6 48%,#98d1ef 52%,#68b3db 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+#t3cam .pan{display:none;grid-template-columns:repeat(2,44px);gap:5px;padding:6px}
+#t3cam.open .pan{display:grid;animation:t3pop .16s ease-out}
+#t3cam .pan .wide{grid-column:1/3;width:auto;gap:6px;font-size:.92em}
+#t3cam .pan .wide svg{width:18px;height:18px}
+@keyframes t3pop{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:none}}
+/* globo de ayuda estilo Windows 7, con su piquito */
+#t3cam .tip{position:absolute;right:calc(100% + 12px);top:52px;width:max-content;max-width:min(260px,calc(100vw - 90px));padding:9px 12px;border:1px solid #767676;border-radius:6px;background:linear-gradient(#fff,#e4e5f0);color:#1e1e1e;text-shadow:none;font-size:.86em;line-height:1.45;box-shadow:0 4px 14px rgba(0,0,0,.45);animation:t3pop .2s ease-out;pointer-events:none}
+#t3cam .tip::after{content:"";position:absolute;right:-8px;top:14px;border:8px solid transparent;border-right:0;border-left-color:#eceef4;filter:drop-shadow(1px 0 0 #767676)}
+#t3cam .tip b{color:#1e3287}
+#t3log{max-width:calc(100% - 130px)}
+/* ventana "Cambiar apariencia": marco Aero, cuerpo gris de Windows 7 */
+#t3ap{z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100% - 20px));max-height:calc(100% - 20px);display:flex;flex-direction:column;padding:0 7px 7px;border-radius:8px;border:1px solid rgba(0,0,0,.6);
+ background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.2) 30px,rgba(255,255,255,.1) 100%),rgba(70,120,170,.55);-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 10px 40px rgba(0,0,0,.6);animation:t3win .18s ease-out}
+@keyframes t3win{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+#t3ap .wt{display:flex;align-items:center;justify-content:space-between;height:32px;padding-left:4px;color:#000;font-weight:400;text-shadow:0 0 10px #fff,0 0 6px #fff,0 0 2px #fff}
+#t3ap .wx{width:46px;height:20px;margin-top:-10px;align-self:flex-start;border:1px solid rgba(0,0,0,.55);border-top:0;border-radius:0 0 5px 5px;color:#fff;font:700 13px/1 "Segoe UI",system-ui,sans-serif;text-shadow:0 0 3px #000;cursor:pointer;
+ background:linear-gradient(#e8a493 0%,#d3725a 45%,#c0391c 50%,#d2593a 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+@media (hover:hover){#t3ap .wx:hover{background:linear-gradient(#f7b5a2 0%,#e8826a 45%,#d4441f 50%,#ec6f45 100%)}}
+#t3ap .wb{display:flex;flex-direction:column;min-height:0;background:#f0f0f0;border:1px solid #8e8f8f;border-radius:2px;padding:10px;color:#000;text-shadow:none;font-weight:400}
+#t3ap .tabs{display:flex;gap:2px;padding-left:4px;position:relative;z-index:1}
+#t3ap .tab{padding:6px 16px 7px;margin-bottom:-1px;border:1px solid #898c95;border-bottom:0;border-radius:3px 3px 0 0;background:linear-gradient(#f2f2f2,#ebebeb 50%,#dddddd 51%,#cfcfcf);color:#000;font:inherit;cursor:pointer;touch-action:manipulation}
+@media (hover:hover){#t3ap .tab:hover{background:linear-gradient(#eaf6fd,#d9f0fc 50%,#bee6fd 51%,#a7d9f5)}}
+#t3ap .tab.on{background:#fff;padding-top:8px;margin-top:-2px;border-bottom:1px solid #fff}
+#t3ap .pane{background:#fff;border:1px solid #898c95;padding:10px 10px 8px;overflow:auto;min-height:0;-webkit-overflow-scrolling:touch}
+#t3ap .hd{color:#1e3287;font-size:1.05em;margin:0 2px 8px}
+#t3ap .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+#t3ap .opt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px 7px;border:1px solid transparent;border-radius:3px;background:none;font:inherit;font-size:.92em;color:#000;cursor:pointer;touch-action:manipulation}
+#t3ap .opt img{width:100%;max-width:150px;aspect-ratio:176/124;display:block}
+@media (hover:hover){#t3ap .opt:hover{border-color:#b8d6fb;background:linear-gradient(#fafbfd,#ebf3fd)}}
+#t3ap .opt.on{border-color:#7da2ce;background:linear-gradient(#dcebfc,#c1dbfc);box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+#t3ap .nt{margin:8px 2px 0;color:#555;font-size:.85em}
+#t3ap .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+#t3ap .ft .w7b{min-width:96px;min-height:34px;font-weight:400}
+#t3ap .ft .dflt{border-color:#3c7fb1;box-shadow:inset 0 0 0 1px #8ad1f5}
+/* en celular la ventana se pega abajo para dejar ver la mesa arriba */
+@media (max-width:600px) and (orientation:portrait){#t3ap{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);transform:translateX(-50%);max-height:62%;animation:none}#t3ap .grid{grid-template-columns:repeat(3,1fr)}#t3ap .tab{flex:1}}
+html.c3ap #chat{display:none!important}
 /* pantallas bajitas (celular acostado) */
-@media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
+@media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}#t3view{top:50px}#t3cam{top:48px}#t3cam .pan{grid-template-columns:repeat(4,40px)}#t3cam .w7b{width:40px;height:40px}#t3cam .pan .wide{grid-column:1/5}#t3ap{max-height:calc(100% - 12px)}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
 </style>
 </head><body><div id="app">Cargando…</div>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>

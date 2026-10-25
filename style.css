@@ -56,6 +56,8 @@ body{background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 1px,tra
 html:root{--f1:#14573a;--f2:#0d3f2a;--f3:#062116;--t1:#176a45;--t2:#0e4a30;--panel:#0b2b20;--seatbg:rgba(4,22,15,.85)}
 html:root[data-bg="red"]{--f1:#6b1d22;--f2:#4a1217;--f3:#2a0a0d;--t1:#7d2329;--t2:#5a171c;--panel:#2e0f12;--seatbg:rgba(30,6,8,.85)}
 html:root[data-bg="blue"]{--f1:#1b4a7a;--f2:#12335a;--f3:#091c34;--t1:#1d5a94;--t2:#13406e;--panel:#0b1d33;--seatbg:rgba(5,16,30,.85)}
+html:root[data-bg="purple"]{--f1:#4b2a73;--f2:#341c52;--f3:#1c0e2e;--t1:#5a3388;--t2:#3f2361;--panel:#1f1030;--seatbg:rgba(20,8,32,.85)}
+html:root[data-bg="graphite"]{--f1:#3a3f46;--f2:#272b31;--f3:#131518;--t1:#474d55;--t2:#30353b;--panel:#1a1d21;--seatbg:rgba(12,14,16,.85)}
 html:root[data-bg="orange"]{--f1:#8a4a12;--f2:#5e3009;--f3:#331a05;--t1:#a35a17;--t2:#74410f;--panel:#2e1a07;--seatbg:rgba(30,15,3,.85)}
 body{background:repeating-linear-gradient(45deg,rgba(255,255,255,.02) 0 1px,transparent 1px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.07) 0 1px,transparent 1px 4px),radial-gradient(ellipse at 50% 25%,var(--f1) 0%,var(--f2) 55%,var(--f3) 100%) fixed}
 .felt{background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,var(--t1),var(--t2))}
@@ -82,6 +84,9 @@ html[data-cards="contrast"] .c:not(.bk){background:#fff;color:#000;font-weight:9
 html[data-cards="contrast"] .c.r{color:#d00000}html[data-cards="contrast"] .c.sm{font-size:14px}
 html[data-back="blue"] .c.bk,html[data-back="blue"] .fan u{background:repeating-linear-gradient(45deg,#1e4fa3 0 4px,#16367a 4px 8px)}
 html[data-back="gold"] .c.bk,html[data-back="gold"] .fan u{background:repeating-linear-gradient(45deg,#c9a227 0 4px,#7d6414 4px 8px);border-color:#1a1a1a}
+html[data-back="green"] .c.bk,html[data-back="green"] .fan u{background:repeating-linear-gradient(45deg,#1e7a45 0 4px,#11522d 4px 8px)}
+html[data-back="black"] .c.bk,html[data-back="black"] .fan u{background:repeating-linear-gradient(45deg,#2c2c32 0 4px,#121215 4px 8px);border-color:#c9a227}
+html[data-cards="big"] .c:not(.bk){font-size:21px;font-weight:900}html[data-cards="big"] .c.sm{font-size:16px}
 html[data-back="neon"] .c.bk,html[data-back="neon"] .fan u{background:repeating-linear-gradient(45deg,#00e5ff 0 3px,#a100ff 3px 7px);border-color:#fff}
 
 /* ===== mesa de armado ===== */
