@@ -21,6 +21,9 @@ let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,camOpen=false,camTip=fa
 let mini=false;   // barra de arriba oculta (modo minimalista)
 try{camOpen=localStorage.getItem('cont_cam')=='1';mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+// menús en modo oscuro: si nunca lo has elegido, sigue al sistema
+let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
+const setDark=d=>{dark=d;try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
 // íconos de la barra de cámara (trazos simples, toman el color del botón)
 const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/>'),
@@ -415,7 +418,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
   h+=`<div class="w7 t3pl t3sl${okSlot(g)?' ok':''}" id="t3sl${k}">${TN[g.type]}${tot>1?' '+nn:''}${okSlot(g)?' ✓':''}</div>`});
  // menú Juego
  if(menu){const op=k=>menuOpen.has(k)?' open':'';
-  h+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Sonido: apagado':'🔊 Sonido: encendido'}</button><button class="mi" onclick="c3dToggle()">🖼 Vista clásica 2D</button><button class="mi" onclick="c3dMini()">${mini?'▾ Mostrar la barra de arriba':'▴ Ocultar la barra de arriba'}</button><hr>
+  h+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Efectos de sonido: apagados':'🔊 Efectos de sonido: encendidos'}</button><button class="mi" onclick="musCyc()">${musName()=='apagada'?'🔇':'🎵'} Música: ${musName()}</button><button class="mi" onclick="c3dToggle()">🖼 Vista clásica 2D</button><button class="mi" onclick="c3dDark()">${dark?'☀️ Menús en modo claro':'🌙 Menús en modo oscuro'}</button><button class="mi" onclick="c3dMini()">${mini?'▾ Mostrar la barra de arriba':'▴ Ocultar la barra de arriba'}</button><hr>
   <button class="mi" onclick="c3dAp()">🎨 Cambiar apariencia…</button><details data-k="pl"${op('pl')}><summary class="mi">👥 Jugadores</summary>${plist()}</details>
   <details data-k="lg"${op('lg')}><summary class="mi">📜 Historial</summary>${logv()||'<div class="rt">Nada todavía.</div>'}</details>
   ${GM.continental.rules.replace('<details>',`<details data-k="rg"${op('rg')}>`).replace('<summary>Reglas</summary>','<summary class="mi">📖 Reglas</summary><div class="rt">').replace(/<\/details>$/,'</div></details>')}
@@ -424,7 +427,8 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
 // ---------- ventana "Cambiar apariencia" (como la de Solitario de Windows 7) ----------
 const APT={bg:{n:'Mesa',h:'Elige el color de la mesa:',o:[['green','Verde clásico'],['blue','Azul'],['red','Vino'],['orange','Ámbar'],['purple','Púrpura'],['graphite','Grafito']]},
  cards:{n:'Cartas',h:'Elige el diseño de las cartas:',o:[['classic','Clásicas'],['big','Grandes'],['black','Negras'],['retro','Retro'],['contrast','Contraste']]},
- back:{n:'Reverso',h:'Elige el reverso de la baraja:',o:[['red','Rojo'],['blue','Azul'],['green','Verde'],['gold','Dorado'],['black','Ónix'],['neon','Neón']]}};
+ back:{n:'Reverso',h:'Elige el reverso de la baraja:',o:[['red','Rojo'],['blue','Azul'],['green','Verde'],['gold','Dorado'],['black','Ónix'],['neon','Neón']]},
+ ui:{n:'Menús',h:'Elige cómo se ven los menús y ventanas:',o:[['light','Claro'],['dark','Oscuro']]}};
 const thumbs={};
 // miniaturas dibujadas con las mismas texturas de la mesa 3D
 function thumb(kind,v){const k=kind+v+(kind=='bg'?scards+sback:'');if(thumbs[k])return thumbs[k];const c=cnv(176,124),g=c.getContext('2d');
@@ -433,19 +437,25 @@ function thumb(kind,v){const k=kind+v+(kind=='bg'?scards+sback:'');if(thumbs[k])
   g.drawImage(feltTex(v).image,0,0,176,124);const sh=g.createRadialGradient(88,40,10,88,62,90);sh.addColorStop(0,'rgba(255,255,255,.18)');sh.addColorStop(1,'rgba(0,0,0,.3)');g.fillStyle=sh;g.fillRect(0,0,176,124);g.restore();
   g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1.5;g.beginPath();g.ellipse(88,61,83,55,0,Math.PI*1.1,Math.PI*1.9);g.stroke();
   card(backTex().image,62,62,30,-.12);card(faceTex(13).image,100,64,30,.1)}
+ else if(kind=='ui'){const d=v=='dark';   // ventanita de Windows 7 en claro u oscuro
+  const fr=g.createLinearGradient(0,0,0,124);fr.addColorStop(0,d?'#59616d':'#bcd3ea');fr.addColorStop(1,d?'#2a2f37':'#6f97c0');g.fillStyle=fr;rr(g,14,8,148,108,8);g.fill();
+  g.fillStyle=d?'#fff':'#000';g.font='11px "Segoe UI",sans-serif';g.fillText('Juego',24,22);g.fillStyle='#c94a2f';rr(g,130,8,24,12,3);g.fill();
+  g.fillStyle=d?'#2b2d31':'#f0f0f0';g.fillRect(20,28,136,82);g.fillStyle=d?'#3d6f99':'#cce4f7';g.fillRect(26,48,124,14);
+  g.fillStyle=d?'#cfd3d8':'#333';[38,55,72,89].forEach(y=>{g.fillRect(32,y,y==55?70:84,4)});
+  const bt=g.createLinearGradient(0,96,0,106);bt.addColorStop(0,d?'#5a5f66':'#f2f2f2');bt.addColorStop(1,d?'#26282b':'#cfcfcf');g.fillStyle=bt;rr(g,104,94,46,12,2);g.fill()}
  else if(kind=='cards'){[[0,-.28,56],[25,0,88],[32,.28,120]].forEach(([id,a,x])=>card(faceTex(id,v).image,x,66,52,a))}
  else{card(backTex(v).image,74,64,54,-.14);card(backTex(v).image,104,62,54,.1)}
  return thumbs[k]=c.toDataURL()}
-const apCur=k=>k=='bg'?sbg:k=='cards'?scards:sback;
+const apCur=k=>k=='ui'?(dark?'dark':'light'):k=='bg'?sbg:k=='cards'?scards:sback;
 function apUI(){const T=APT[ap.tab];
  return `<div id="t3ap" class="w7" role="dialog" aria-modal="true" aria-labelledby="t3apt"><div class="wt"><span id="t3apt">Cambiar apariencia</span><button class="wx" onclick="c3dApClose(0)" aria-label="Cerrar">✕</button></div>
  <div class="wb"><div class="tabs" role="tablist">${Object.keys(APT).map(k=>`<button role="tab" aria-selected="${ap.tab==k}" class="tab${ap.tab==k?' on':''}" onclick="c3dApTab('${k}')">${APT[k].n}</button>`).join('')}</div>
  <div class="pane" role="tabpanel"><div class="hd">${T.h}</div><div class="grid">${T.o.map(([v,n])=>`<button class="opt${apCur(ap.tab)==v?' on':''}" onclick="c3dApSet('${ap.tab}','${v}')" aria-pressed="${apCur(ap.tab)==v}"><img src="${thumb(ap.tab,v)}" alt=""><span>${n}</span></button>`).join('')}</div>
  <div class="nt">Los cambios se ven en la mesa al instante.</div></div>
  <div class="ft"><button class="w7b dflt" onclick="c3dApClose(1)">Aceptar</button><button class="w7b" onclick="c3dApClose(0)">Cancelar</button></div></div></div>`}
-function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback]};render()}
-function apSet(k,v){if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
-function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;applyStyle()}ap=null;sfx('tick');render()}
+function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
+function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
+function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
 function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,[x,y]=toPx(seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh,Math.min(H-hh,y))}px) translate(-50%,-50%)`});
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
@@ -461,7 +471,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
  viewStep(dt);step(now);pulse(now);labels();viewBtn();R.render(SC,CA)}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){document.documentElement.classList.toggle('c3ap',!!ap);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+function viewBtn(){document.documentElement.classList.toggle('c3ap',!!ap);document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
  document.querySelectorAll('#app .t3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
@@ -475,6 +485,7 @@ GM.continental.after=function(){if(origAfter)origAfter();if(!active())return;
  try{const bb=$('#t3bar .w7g');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Continental 3D:',e)}};
 window.c3dToggle=toggle;
 window.c3dMenu=()=>{menu=!menu;render()};
+window.c3dDark=()=>{setDark(!dark);menu=false;sfx('tick');render()};
 window.c3dMini=()=>{mini=!mini;menu=false;try{localStorage.setItem('cont_mini',mini?'1':'0')}catch(e){}if(L)L.top=0;sfx('tick');render()};
 window.c3dBajar=bajar3d;
 window.c3dLook=look;
