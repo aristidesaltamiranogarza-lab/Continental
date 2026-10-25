@@ -3,7 +3,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Continental 3D</title>
 <link rel="stylesheet" href="style.css">
-<!-- Prueba aparte: no reemplaza continental.html. Abre /3d en el servidor. -->
+<!-- Prueba aparte: no reemplaza continental.html. Abre /3d en el servidor (node server3d.js). -->
+<style>
+/* ---------- Vista 3D a pantalla completa, estilo juegos de Windows 7 (Aero) ---------- */
+html.c3on,html.c3on body{overflow:hidden;height:100%;overscroll-behavior:none}
+html.c3on #app{pointer-events:none}
+#c3root{position:fixed;inset:0;z-index:1;display:none;background:radial-gradient(ellipse at 50% 42%,#1e5038 0%,#0c2a1c 52%,#03100a 100%);touch-action:none;-webkit-user-select:none;user-select:none}
+#c3root canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
+.w7{pointer-events:auto;position:fixed;z-index:10;box-sizing:border-box;font:500 clamp(13px,.55vw + 10px,16px)/1.25 "Segoe UI","Noto Sans",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+/* vidrio Aero */
+.w7g{background:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.16) 46%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.18) 100%),rgba(58,104,146,.42);-webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);border:1px solid rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.75),0 6px 22px rgba(0,0,0,.5);border-radius:8px;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.85),0 1px 2px #000}
+/* botones Windows 7 */
+.w7b{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;min-width:42px;padding:0 14px;border:1px solid #707070;border-radius:4px;background:linear-gradient(#f2f2f2 0%,#ebebeb 48%,#dddddd 52%,#cfcfcf 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);color:#111;text-shadow:none;font:600 1em "Segoe UI","Noto Sans",system-ui,sans-serif;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+@media (hover:hover){.w7b:hover{border-color:#3c7fb1;background:linear-gradient(#eaf6fd 0%,#d9f0fc 48%,#bee6fd 52%,#a7d9f5 100%)}}
+.w7b:active{border-color:#2c628b;background:linear-gradient(#e5f4fc 0%,#c4e5f6 48%,#98d1ef 52%,#68b3db 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+.w7b[disabled]{opacity:.5;pointer-events:none}
+.w7b.p{border-color:#3c7fb1;animation:w7glow 1.6s ease-in-out infinite}
+@keyframes w7glow{0%,100%{box-shadow:inset 0 0 0 1px #fff,0 0 4px 1px rgba(80,180,255,.55)}50%{box-shadow:inset 0 0 0 1px #fff,0 0 12px 4px rgba(80,190,255,.95)}}
+/* barra de arriba */
+#t3top{top:calc(env(safe-area-inset-top,0px) + 6px);left:8px;right:8px;display:flex;align-items:center;gap:8px;padding:4px 5px;min-height:46px}
+#t3top.me{border-color:#aee3ff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.75),0 0 18px 3px rgba(90,190,255,.75)}
+#t3top .inf{flex:1;min-width:0;text-align:center}
+#t3top .inf b{font-weight:700}
+#t3top .l1,#t3top .l2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#t3top .l2{font-size:.88em;opacity:.95}
+#t3log{top:calc(env(safe-area-inset-top,0px) + 58px);left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);padding:2px 12px;border-radius:12px;background:rgba(0,0,0,.35);color:#fff;font-size:.82em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;text-shadow:0 1px 2px #000}
+/* barra de abajo */
+#t3bar{bottom:calc(env(safe-area-inset-bottom,0px) + 8px);left:8px;right:70px;display:flex;justify-content:center;pointer-events:none}
+#t3bar .w7g{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;padding:6px;max-width:100%}
+#t3bar .hint{padding:0 8px;font-size:.92em}
+@media (min-width:700px){#t3bar{left:70px}}
+/* globo de aviso (estilo Windows 7) */
+.t3msg{top:calc(env(safe-area-inset-top,0px) + 84px);left:50%;transform:translateX(-50%);max-width:min(520px,calc(100% - 24px));padding:10px 14px;border:1px solid #767676;border-radius:6px;background:linear-gradient(#fff,#e4e5f0);color:#000;box-shadow:0 4px 14px rgba(0,0,0,.45);text-align:center;pointer-events:none;animation:t3fade 4.5s forwards}
+@keyframes t3fade{0%{opacity:0;transform:translate(-50%,-6px)}6%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
+/* etiquetas de los jugadores y del mazo (las coloca el JS encima de la mesa) */
+.t3seat{left:0;top:0;padding:3px 9px 4px;font-size:.86em;white-space:nowrap;text-align:center;pointer-events:none;border-radius:7px;will-change:transform}
+.t3seat .chip{margin-right:4px}
+.t3seat small{display:block;font-size:.85em;opacity:.95}
+.t3seat.on{border-color:#aee3ff;animation:t3turn 1.4s ease-in-out infinite}
+.t3seat.out{opacity:.45}
+@keyframes t3turn{0%,100%{box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),0 0 6px 2px rgba(90,190,255,.6)}50%{box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),0 0 18px 6px rgba(90,190,255,.95)}}
+.t3pl{left:0;top:0;color:#fff;font-size:.8em;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:0 1px 3px #000,0 0 6px #000;will-change:transform}
+/* ayuda sobre lo seleccionado (arriba de tu mano) y nombres de las siluetas del contrato */
+#t3sel{left:0;top:0;padding:6px 14px;border-radius:16px;font-weight:600;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;will-change:transform}
+#t3sel.ok{border-color:#b9ffc8;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),0 0 16px 3px rgba(90,230,130,.8);background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,.1) 48%,rgba(255,255,255,0) 52%),rgba(40,140,70,.6)}
+#t3sel.no{background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.1) 48%,rgba(255,255,255,0) 52%),rgba(160,50,40,.6)}
+.t3sl{font-size:.85em;letter-spacing:.02em}
+.t3sl.ok{color:#b9ffc8}
+/* menú Juego */
+#t3menu{top:calc(env(safe-area-inset-top,0px) + 58px);left:8px;width:min(380px,calc(100% - 16px));max-height:calc(100% - 140px);overflow:auto;padding:4px;background:#f0f0f0;color:#000;text-shadow:none;border:1px solid #979797;border-radius:4px;box-shadow:3px 3px 10px rgba(0,0,0,.5);-webkit-overflow-scrolling:touch}
+#t3menu .mi{display:block;width:100%;text-align:left;padding:10px 12px;border:1px solid transparent;border-radius:3px;background:none;font:inherit;color:#000;cursor:pointer;list-style:none}
+#t3menu summary.mi::-webkit-details-marker{display:none}
+@media (hover:hover){#t3menu .mi:hover{border-color:#a8d8eb;background:linear-gradient(#f2f9fd,#ddeffa)}}
+#t3menu hr{border:0;border-top:1px solid #d7d7d7;margin:4px 6px}
+#t3menu .box{background:#fff;color:#000;border:1px solid #ccc;text-shadow:none;margin:4px}
+#t3menu .rt{padding:6px 12px;font-size:.9em}
+#t3menu .log{color:#000;margin:4px 8px}
+#t3menu .b{background:linear-gradient(#f2f2f2 0%,#ebebeb 48%,#dddddd 52%,#cfcfcf 100%);color:#111;border:1px solid #707070;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);text-transform:none;letter-spacing:0;font:600 .95em "Segoe UI","Noto Sans",system-ui,sans-serif;text-shadow:none;padding:6px 12px;margin:3px}
+#t3menu .b.on{border-color:#3c7fb1;background:linear-gradient(#e5f4fc 0%,#c4e5f6 48%,#98d1ef 52%,#68b3db 100%)}
+/* pantallas bajitas (celular acostado) */
+@media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
+</style>
 </head><body><div id="app">Cargando…</div>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="game.js"></script><script src="c_continental.js"></script><script src="c_uno.js"></script><script src="c_monopolydeal.js"></script>

@@ -15,6 +15,7 @@ function runOrd(cs){const L=cs.length;if(L<4)return null;const n=cs.filter(c=>!c
   if(ok&&st>=1&&st+L-1<=14)return cs}
  return null}
 // ---- reglas ----
+const CON=['TT','TC','CC','TTT','TTC','CCT','CCC'];   // contrato de cada ronda (igual que en c_continental.js)
 function pull(G){if(!G.deck.length&&G.disc.length>1){const t=G.disc.pop();G.deck=shuf(G.disc);G.disc=[t]}return G.deck.pop()}
 function nextTurn(R){const G=R.G,n=G.players.length;do{G.turn=(G.turn+1)%n}while(R.players[G.turn].out);G.tc++;G.note='';G.tdc=0;G.step='draw';R.pb=null}
 const ROUL=1/52,RMS=6500;
