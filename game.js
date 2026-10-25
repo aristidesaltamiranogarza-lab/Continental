@@ -61,7 +61,7 @@ function flyEv(e){const $=s=>document.querySelector(s),dk=()=>$('#deck2')&&Math.
  else if(t.startsWith('se bajó'))fly(seat(e.k),$('#mesa'),null)}
 function evs(n){const ln=n.ln||0;if(ln<lastN||lastN<0){lastN=ln;return}if(ln==lastN)return;
  const ev=(n.log||[]).filter(e=>e.n>lastN).slice(-3);lastN=ln;
- ev.forEach((e,i)=>setTimeout(()=>{sfx(/^(robó|tomó|compró)/.test(e.t)?'draw':/^(quiere|dijo)/.test(e.t)?'tick':'place');const gm=GM[V.game];if(gm&&gm.ev)gm.ev(e);if(!(e.k===V.me&&/^(robó|tomó|compró)/.test(e.t)))flyEv(e)},60+i*320))}
+ ev.forEach((e,i)=>setTimeout(()=>{sfx(/^(robó|tomó|compró)/.test(e.t)?'draw':/^(quiere|dijo)/.test(e.t)?'tick':'place');const gm=GM[V.game];if(gm&&gm.ev)gm.ev(e);if(gm&&gm.fx&&gm.fx(e))return;if(!(e.k===V.me&&/^(robó|tomó|compró)/.test(e.t)))flyEv(e)},60+i*320))}
 function copyT(t){const ok=()=>banner('Código copiado ✓');const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){}a.remove()};
  try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}}
 const CH=document.createElement('div');CH.id='chat';
