@@ -42,14 +42,34 @@ function swapJ(R,m,c,i){const G=R.G;if(m.type!='C')return 0;const cs=m.cards.map
   if(c.r==v&&c.s==cs[n].s){if(!G.down[i]&&!R.pb)R.pb=JSON.stringify({i,melds:G.melds,hand:G.hands[i]});
    m.cards[q]=c.id;G.hands[i]=G.hands[i].filter(x=>x!=c.id);G.hands[i].push(cs[q].id);return 1}}
  return 0}
-function kick(R,k){const p=R.players[k],G=R.G;G.deck.push(...G.hands[k]);shuf(G.deck);G.hands[k]=[];delete R.cl[p.id];
+function kick(R,k){const p=R.players[k],G=R.G;if(G.c4s)G.c4s=G.c4s.filter(x=>!x.p.includes(k));G.deck.push(...G.hands[k]);shuf(G.deck);G.hands[k]=[];delete R.cl[p.id];
  if(R.players.filter(x=>!x.out).length<2){G.phase='final';return}
  if(G.phase=='play'&&G.turn==k)nextTurn(R)}
 function resolveBuy(R,i){const G=R.G,n=G.players.length;if(G.tdc||!G.disc.length)return '';
  const b=R.players.map((p,k)=>k).filter(k=>k!=i&&!R.players[k].out&&R.cl[R.players[k].id]==G.tc).sort((p,q)=>(p-i+n)%n-(q-i+n)%n)[0];if(b===undefined)return '';
  const dc=G.disc.pop();G.hands[b].push(dc);const y=pull(G);if(y!==undefined)G.hands[b].push(y);
  lg(G,b,'compró el descarte (+1 de castigo)',dc);return G.players[b].name+' compró el descarte (+1 carta de castigo).'}
+// ---- Conecta 4: partidas de 2 jugadores aparte, se pueden jugar durante el Continental ----
+// G.c4s = [{id,p:[a,b],b:[42] (fila 0 = abajo; 0 vacío, 1/2 = ficha de p[0]/p[1]),turn:0|1,st:'inv'|'play'|'end',w:-1|0|1|2(empate),line,last,why}]
+function c4win(b,x){const r=Math.floor(x/7),c=x%7,v=b[x];
+ for(const [dr,dc] of [[0,1],[1,0],[1,1],[1,-1]]){const l=[x];
+  for(const s of [1,-1]){let rr=r+dr*s,cc=c+dc*s;while(rr>=0&&rr<6&&cc>=0&&cc<7&&b[rr*7+cc]==v){l.push(rr*7+cc);rr+=dr*s;cc+=dc*s}}
+  if(l.length>=4)return l}
+ return null}
+function c4(R,i,m){const G=R.G;if(i<0)return 'Solo los jugadores pueden jugar Conecta 4.';const L=G.c4s=G.c4s||[],op=m.op,g=L.find(x=>x.id===m.id);
+ const busy=k=>L.some(x=>x.st!='end'&&x.p.includes(k));
+ if(op=='inv'){const k=m.k;if(!(k>=0&&k<G.players.length)||k==i||R.players[k].out)return 'Ese jugador no puede jugar.';
+  if(busy(i))return 'Ya tienes una partida de Conecta 4 abierta.';if(busy(k))return G.players[k].name+' ya está en otra partida de Conecta 4.';
+  G.c4s=L.filter(x=>!x.p.includes(i)&&!x.p.includes(k));G.c4s.push({id:G.c4n=(G.c4n||0)+1,p:[i,k],b:Array(42).fill(0),turn:0,st:'inv',w:-1,line:null,last:-1});return}
+ if(!g||!g.p.includes(i))return 'Esa partida de Conecta 4 ya no existe.';const me=g.p.indexOf(i);
+ if(op=='acc'){if(g.st!='inv'||me!=1)return;g.st='play';return}
+ if(op=='end'){if(g.st=='play'){g.st='end';g.w=1-me;g.why='rindió';return}G.c4s=L.filter(x=>x!==g);return}
+ if(op=='drop'){if(g.st!='play')return 'La partida no está en juego.';if(g.turn!=me)return 'Es el turno de '+G.players[g.p[g.turn]].name+'.';
+  const c=m.c;if(!(c>=0&&c<7))return 'Columna inválida.';let x=-1;for(let r=0;r<6;r++)if(!g.b[r*7+c]){x=r*7+c;break}if(x<0)return 'Esa columna está llena.';
+  g.b[x]=me+1;g.last=x;const l=c4win(g.b,x);if(l){g.st='end';g.w=me;g.line=l}else if(g.b.every(v=>v)){g.st='end';g.w=2}else g.turn=1-me;return}
+ return 'Acción desconocida.'}
 function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),H=R.host==tok,t=m.t,own=G&&G.phase=='play'&&i>=0&&i==G.turn;
+ if(t=='c4')return c4(R,i,m);
  if(t=='ready'||t=='next'){if(G.phase!='end')return;if(t=='next'){if(!H)return 'Solo el host puede forzar la siguiente ronda.'}else if(i<0)return;else G.rd[i]=true;chkReady(R,t=='next');return}
  if(t=='buy'){if(G.phase!='play'||G.tdc||i<0||i==G.turn||!G.disc.length)return 'No puedes comprar ahora (quien tiene el turno ya tomó el descarte).';if(R.cl[R.players[i].id]==G.tc)return;R.cl[R.players[i].id]=G.tc;lg(G,i,'quiere comprar el descarte');return}
  if(t=='unbuy'){if(i<0||R.cl[R.players[i].id]!=G.tc)return 'Ya no tienes una compra que cancelar.';delete R.cl[R.players[i].id];lg(G,i,'canceló su compra');return}
