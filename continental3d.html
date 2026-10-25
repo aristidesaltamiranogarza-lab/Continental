@@ -115,6 +115,15 @@ html[data-bg="graphite"] #c3root{background:radial-gradient(ellipse at 50% 42%,#
 /* en celular la ventana se pega abajo para dejar ver la mesa arriba */
 @media (max-width:600px) and (orientation:portrait){#t3ap{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);transform:translateX(-50%);max-height:62%;animation:none}#t3ap .grid{grid-template-columns:repeat(3,1fr)}#t3ap .tab{flex:1}}
 html.c3ap #chat{display:none!important}
+/* modo minimalista: sin barra de arriba */
+#t3mini{top:calc(env(safe-area-inset-top,0px) + 6px);left:8px;display:flex;align-items:center;gap:6px;padding:4px;max-width:calc(100% - 76px);border-radius:10px}
+#t3mini .w7b{min-height:36px;min-width:38px;padding:0 10px}
+#t3mini .st{padding:0 4px;font-size:.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#t3mini.me{border-color:#aee3ff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.75),0 0 16px 3px rgba(90,190,255,.75)}
+html.c3mini #t3cam{top:calc(env(safe-area-inset-top,0px) + 6px)}
+html.c3mini #t3menu{top:calc(env(safe-area-inset-top,0px) + 54px)}
+html.c3mini #t3view{top:calc(env(safe-area-inset-top,0px) + 56px)}
+html.c3mini .t3msg{top:calc(env(safe-area-inset-top,0px) + 56px)}
 /* carta del descarte en grande */
 #t3peek{left:0;top:0;z-index:20;padding:8px 8px 6px;border-radius:10px;pointer-events:none;text-align:center;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s .12s;will-change:transform}
 #t3peek.on{opacity:1;visibility:visible;transition:opacity .12s}

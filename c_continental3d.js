@@ -18,7 +18,8 @@ const $=s=>document.querySelector(s);
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa que queda al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=3.2,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
 let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,camOpen=false,camTip=false,camRep=null,ap=null;
-try{camOpen=localStorage.getItem('cont_cam')=='1'}catch(e){}
+let mini=false;   // barra de arriba oculta (modo minimalista)
+try{camOpen=localStorage.getItem('cont_cam')=='1';mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 // íconos de la barra de cámara (trazos simples, toman el color del botón)
 const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -144,7 +145,7 @@ function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
- const tb=$('#t3top'),bb=$('#t3bar .w7g'),top=(tb?tb.getBoundingClientRect().bottom:54)+(h<500?4:24),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
+ const tb=$('#t3top'),bb=$('#t3bar .w7g'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:54)+(h<500?4:24),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(80,Math.min(h*.22,w*.34,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.1)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
  const rb=h-bar-ch*.62,rh=Math.max(120,rb-top),el=por?1.12:.98;
@@ -379,8 +380,10 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  const hint=i<0?'Mirando como host':mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
  let h=`<div id="t3top" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="c3dMenu()" aria-label="Menú">☰ Juego</button>
   <div class="inf"><div class="l1">Ronda ${G.round+1}/7 · <b>${conTxt(G.round)}</b></div><div class="l2">${mine?'<b>¡Tu turno!</b> '+hint:hint}</div></div>
-  <button class="w7b" onclick="c3dToggle()" title="Vista clásica 2D">2D</button></div>`;
- const lg=(G.log||[]).slice(-1)[0];if(lg)h+=`<div id="t3log" class="w7">${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}</div>`;
+  <button class="w7b" onclick="c3dMini()" title="Ocultar la barra" aria-label="Ocultar la barra">▴</button><button class="w7b" onclick="c3dToggle()" title="Vista clásica 2D">2D</button></div>`;
+ // modo minimalista: solo una pastilla con el menú, el contrato (o tu turno) y el botón para regresar la barra
+ if(mini)h=`<div id="t3mini" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="c3dMenu()" aria-label="Menú">☰</button><span class="st">${mine?'<b>¡Tu turno!</b>':esc(conTxt(G.round))}</span><button class="w7b" onclick="c3dMini()" title="Mostrar la barra" aria-label="Mostrar la barra">▾</button></div>`;
+ const lg=(G.log||[]).slice(-1)[0];if(lg&&!mini)h+=`<div id="t3log" class="w7">${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}</div>`;
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
  if(mt&&age<4500)h+=`<div class="w7 t3msg" style="animation-delay:-${age}ms">${msg?esc(msg):'<b>'+esc(G.note)+'</b>'}</div>`;
@@ -412,7 +415,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
   h+=`<div class="w7 t3pl t3sl${okSlot(g)?' ok':''}" id="t3sl${k}">${TN[g.type]}${tot>1?' '+nn:''}${okSlot(g)?' ✓':''}</div>`});
  // menú Juego
  if(menu){const op=k=>menuOpen.has(k)?' open':'';
-  h+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Sonido: apagado':'🔊 Sonido: encendido'}</button><button class="mi" onclick="c3dToggle()">🖼 Vista clásica 2D</button><hr>
+  h+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Sonido: apagado':'🔊 Sonido: encendido'}</button><button class="mi" onclick="c3dToggle()">🖼 Vista clásica 2D</button><button class="mi" onclick="c3dMini()">${mini?'▾ Mostrar la barra de arriba':'▴ Ocultar la barra de arriba'}</button><hr>
   <button class="mi" onclick="c3dAp()">🎨 Cambiar apariencia…</button><details data-k="pl"${op('pl')}><summary class="mi">👥 Jugadores</summary>${plist()}</details>
   <details data-k="lg"${op('lg')}><summary class="mi">📜 Historial</summary>${logv()||'<div class="rt">Nada todavía.</div>'}</details>
   ${GM.continental.rules.replace('<details>',`<details data-k="rg"${op('rg')}>`).replace('<summary>Reglas</summary>','<summary class="mi">📖 Reglas</summary><div class="rt">').replace(/<\/details>$/,'</div></details>')}
@@ -454,11 +457,11 @@ function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach
 // ---------- engancharse a la vista de siempre ----------
 function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase==='play'}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);home();VW.x=VW.z=0;VW.k=1;return}
+ if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
  viewStep(dt);step(now);pulse(now);labels();viewBtn();R.render(SC,CA)}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){document.documentElement.classList.toggle('c3ap',!!ap);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+function viewBtn(){document.documentElement.classList.toggle('c3ap',!!ap);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
  document.querySelectorAll('#app .t3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
@@ -472,6 +475,7 @@ GM.continental.after=function(){if(origAfter)origAfter();if(!active())return;
  try{const bb=$('#t3bar .w7g');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Continental 3D:',e)}};
 window.c3dToggle=toggle;
 window.c3dMenu=()=>{menu=!menu;render()};
+window.c3dMini=()=>{mini=!mini;menu=false;try{localStorage.setItem('cont_mini',mini?'1':'0')}catch(e){}if(L)L.top=0;sfx('tick');render()};
 window.c3dBajar=bajar3d;
 window.c3dLook=look;
 window.c3dHome=home;
