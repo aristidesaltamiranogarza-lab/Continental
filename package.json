@@ -2,7 +2,7 @@
   "name": "continental",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server3d.js"
   },
   "engines": {
     "node": ">=18"
