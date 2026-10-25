@@ -151,7 +151,7 @@ function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o
  // mientras no te bajes, tu lado de la mesa guarda las siluetas de tu contrato
  L.band={x0:L.rect.x0,x1:ix,z0:iz-(por?1.5:1.4),z1:iz+(por?.45:.35)};L.rectMine=Object.assign({},L.rect,{z1:L.band.z0-.15});
  const room=buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;
- buildC4(por,rx,rz,room.userData.c4)}
+ buildC4(por,rx,rz,room.userData.c4);buildBG(room.userData.bg)}
 // ---------- el cuarto: piso, paredes y muebles alrededor de la mesa (el Conecta 4 está en una esquina del fondo) ----------
 function ctex(key,w,h,draw){if(texC[key])return texC[key];const c=cnv(w,h);draw(c.getContext('2d'),w,h);const t=tx(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return texC[key]=t}
 function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(rz+7.5),ZF=rz+7,WH=10;R.userData.room={X,ZB,ZF,FY};
@@ -185,6 +185,9 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
  // sofá contra la pared del fondo
  const sofa=std(0x2f4a5a,.85),sx=-X*.35,sz=ZB+1.3;B(5.4,.9,2,sofa,sx,FY+.75,sz);B(5.4,1.7,.55,sofa,sx,FY+1.6,sz-.75);[-1,1].forEach(s=>B(.55,1.4,2,sofa,sx+s*2.7,FY+1.1,sz));
  [-1.3,1.3].forEach(dx=>{B(2.5,.35,1.6,std(0x37566a,.9),sx+dx,FY+1.35,sz+.15);B(1.1,.9,.3,std(0xc9a24a,.8),sx+dx*1.2,FY+1.9,sz-.35).rotation.z=dx*.08});
+ // mesita de centro frente al sofá: ahí está el Backgammon
+ const ct=std(0x4a2c18,.5),tz=sz+2.8;B(4,.14,2.9,ct,sx,FY+1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>B(.14,.95,.14,ct,sx+a,FY+.48,tz+b));
+ R.userData.bg=v3(sx,FY+1.09,tz);
  // librero en la pared izquierda, cerca del fondo
  const bw=std(0x4a2c18,.6),bz=ZB+3.6,bx=-X+.55;B(.9,7,.12,bw,bx,FY+3.5,bz-1.6);B(.9,7,.12,bw,bx,FY+3.5,bz+1.6);B(.1,7,3.3,bw,bx-.42,FY+3.5,bz);
  const BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0];
@@ -322,7 +325,7 @@ function mkAvatar(k,pi){const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMateria
    sleeve:A.top=='tee'?limb(.135,.12,top):null,el:new THREE.Vector3(),h:new THREE.Vector3()}});
  arms.forEach(a=>[a.up,a.fo,a.hand,a.sleeve].forEach(m=>{if(m){g.remove(m);body.add(m)}}));
  g.userData={k,pi,body,head,arms,reachT:0,cheerT:0};return g}
-function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>k!==V.me&&!V.players[k].out)),pk=avPick();
+function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
  want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
   g.position.set(Math.cos(a)*(L.rx+1.4),0,Math.sin(a)*(L.rz+1.4));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
@@ -341,11 +344,102 @@ function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
    if(cheer)a.h.lerp(avTgt.set(s*.75,2.05+.2*Math.sin(now/90+s),.25),cheer);
    const pole=avDir.copy(POLE[s>0?1:0]);if(cheer)pole.y+=1.4*cheer;ik(a.sh,a.h,.52,.5,pole.clone(),a.el);
    seg(a.up,a.sh,a.el);seg(a.fo,a.el,a.h);a.hand.position.copy(a.h);if(a.sleeve)seg(a.sleeve,a.sh,avB.copy(a.sh).lerp(a.el,.42))})})}
+// ---------- Backgammon: tablero 3D sobre la mesita de centro (otro juego escondido del cuarto) ----------
+const BGW=3,BGD=2.3,BGBAR=.24,BGPW=(BGW-BGBAR)/12;let BGB=null,bgSel=null,bgfound=lsGet('cont_bgf')=='1',bgopen=false,bgwas=false,bgsnap='';
+function bgX(i){if(i<12){const j=i;return BGW/2-(j+.5)*BGPW-(j>=6?BGBAR:0)}const j=i-12;return -BGW/2+(j+.5)*BGPW+(j>=6?BGBAR:0)}
+// caras del dado con v arriba (orden de BoxGeometry: +x,-x,+y,-y,+z,-z; las opuestas suman 7)
+function diceFaces(v){const o=[1,2,3,4,5,6].filter(x=>x!==v&&x!==7-v),a=o[0],b=o.find(x=>x!==a&&x!==7-a);return [a,7-a,v,7-v,b,7-b]}
+const bgZ=i=>i<12?BGD/2:-BGD/2,bgDir=i=>i<12?-1:1;
+function pipTex(v){return ctex('pip'+v,128,128,(g,w,h)=>{g.fillStyle='#f7f4ec';g.fillRect(0,0,w,h);g.fillStyle='#1b1b1b';const P={1:[[2,2]],2:[[1,1],[3,3]],3:[[1,1],[2,2],[3,3]],4:[[1,1],[3,1],[1,3],[3,3]],5:[[1,1],[3,1],[2,2],[1,3],[3,3]],6:[[1,1],[3,1],[1,2],[3,2],[1,3],[3,3]]}[v];
+ P.forEach(([x,y])=>{g.beginPath();g.arc(x*32,y*32,11,0,7);g.fill()})})}
+function buildBG(at){const P=new THREE.Group(),g=new THREE.Group();P.add(g);P.position.copy(at);
+ const std=(c,r,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r==null?.6:r},o||{})),M=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m};
+ const wood=std(0x5a3418,.45),felt=std(0x1f5b3a,.95),red=std(0x9e2a2a,.7),ivory=std(0xe8dcc0,.7),tray=BGW/2+.1+.17;
+ M(new THREE.BoxGeometry(BGW+.24+.4,.12,BGD+.24),wood,.2,.06,0);M(new THREE.BoxGeometry(BGW,.02,BGD),felt,0,.13,0);
+ M(new THREE.BoxGeometry(BGBAR,.08,BGD),wood,0,.16,0);M(new THREE.BoxGeometry(.34,.06,BGD),std(0x3a210f,.6),tray,.14,0);
+ [[0,BGD/2+.06,BGW+.64,.12],[0,-BGD/2-.06,BGW+.64,.12]].forEach(([x,z,w,d])=>M(new THREE.BoxGeometry(w,.1,d),wood,.2,.17,z));
+ // los 24 triángulos
+ const tri=new THREE.Shape();tri.moveTo(-BGPW*.46,0);tri.lineTo(BGPW*.46,0);tri.lineTo(0,BGD*.42);tri.closePath();const tg=new THREE.ShapeGeometry(tri);
+ for(let i=0;i<24;i++){const m=new THREE.Mesh(tg,i%2?ivory:red);m.rotation.x=-Math.PI/2;m.position.set(bgX(i),.142,bgZ(i));if(i>=12)m.rotation.z=Math.PI;m.receiveShadow=true;g.add(m)}
+ // zonas para tocar: puntos, barra y bandeja de salida (se iluminan para guiarte)
+ const hits=[],zone=(w,d,x,z,p)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.position.set(x,.16,z);m.userData.hit={t:'bg',p};g.add(m);hits.push(m);return m};
+ const zs={};for(let i=0;i<24;i++)zs[i]=zone(BGPW*.98,BGD/2,bgX(i),bgZ(i)/2,i);zs[25]=zone(BGBAR,BGD,0,0,25);zs[-1]=zone(.34,BGD,tray,0,-1);
+ // fichas (15 de cada color) y dados
+ const ck=[[],[]],cg=new THREE.CylinderGeometry(BGPW*.43,BGPW*.43,.045,24);
+ [0,1].forEach(p=>{for(let n=0;n<15;n++){const m=new THREE.Mesh(cg,new THREE.MeshPhysicalMaterial({color:p?0x26262b:0xf2ead8,roughness:.35,clearcoat:.8}));m.castShadow=true;m.position.set(tray,.2,0);g.add(m);ck[p].push(m)}});
+ const dice=[0,1].map(()=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.17,.17,.17),[1,2,3,4,5,6].map(v=>std(0xffffff,.35,{map:pipTex(v)})));m.castShadow=true;m.visible=false;g.add(m);return m});
+ tbl.add(P);P.updateMatrixWorld(true);
+ const mats=[wood,felt,red,ivory];BGB={P,g,zs,hits,ck,dice,tray,id:null,rn:-1,lit:.4,mats:mats.map(m=>({m,base:m.color.clone()}))}}
+const bgg=()=>{const L=V.G.bgs||[];return L.find(x=>x.p.includes(V.me))};
+const bgshow=()=>{const L=V.G.bgs||[];return bgg()||L.find(x=>x.st=='play')||null};
+const bgmine=()=>{const g=bgg();return g&&g.st=='play'&&g.turn==g.p.indexOf(V.me)?g:null};
+// coloca fichas y dados según la partida; las fichas se deslizan a su lugar en bgStep
+function bgSync(){if(!BGB)return;hits.push(...BGB.hits);const g=bgshow();
+ const put=(m,x,y,z)=>{m.userData.to=v3(x,y,z)};
+ [0,1].forEach(p=>{let n=0;const ck=BGB.ck[p],s=p?-1:1;
+  if(g){for(let i=0;i<24;i++){const c=g.pts[i]*s;for(let k=0;k<c;k++){const layer=Math.floor(k/5),kk=k%5;put(ck[n++],bgX(i),.17+layer*.05,bgZ(i)+bgDir(i)*(BGPW*.45+kk*BGPW*.88+layer*BGPW*.44))}}
+   for(let k=0;k<g.bar[p];k++)put(ck[n++],0,.22,(p?1:-1)*(.18+k*BGPW*.88));
+   for(let k=0;k<g.off[p];k++)put(ck[n++],BGB.tray,.19+k*.047,(p?-1:1)*BGD*.3)}
+  while(n<15)put(ck[n++],BGB.tray,.19+(n-1)*.047,(p?-1:1)*BGD*.3)});
+ // dados: se ven mientras hay partida; los que ya se usaron se oscurecen
+ BGB.dice.forEach((d,j)=>{d.visible=!!(g&&g.st=='play');if(!g)return;const v=g.dice[j]||1,dbl=g.dice[0]==g.dice[1],used=dbl?(4-g.left.length)>=2*(j+1):!g.left.includes(v);
+  diceFaces(v).forEach((f,n)=>{const m=d.material[n];m.map=pipTex(f);m.color.setScalar(used?.45:1);m.needsUpdate=true});
+  d.userData.to=v3((g.turn?-1:1)*BGW/4+(j?.12:-.12),.23,j?.1:-.1)});
+ if(g&&g.rn!==BGB.rn){BGB.rn=g.rn;BGB.dice.forEach(d=>d.userData.t0=performance.now())}
+ bgMark()}
+// guía: tus fichas que se pueden mover, la elegida (amarillo) y a dónde puede ir (verde)
+function bgMark(){if(!BGB)return;const g=bgmine(),zs=BGB.zs;Object.values(zs).forEach(z=>{z.material.opacity=0});if(!g)return;
+ if(bgSel!=null&&!g.mv.some(m=>m[0]===bgSel))bgSel=null;
+ g.mv.forEach(m=>{const z=zs[m[0]];if(z&&bgSel==null){z.material.color.set(0x8fd0ff);z.material.opacity=.22}});
+ if(bgSel!=null){zs[bgSel].material.color.set(0xffd54a);zs[bgSel].material.opacity=.35;g.mv.filter(m=>m[0]===bgSel).forEach(m=>{const z=zs[m[2]];z.material.color.set(0x6dff8a);z.material.opacity=.38})}}
+function bgLight(v){BGB.lit=v;BGB.mats.forEach(o=>o.m.color.copy(o.base).multiplyScalar(v))}
+function bgStep(now){if(!BGB)return;const lt=VT.bg?1:.45;if(Math.abs(BGB.lit-lt)>.005)bgLight(BGB.lit+(lt-BGB.lit)*.06);
+ [...BGB.ck[0],...BGB.ck[1]].forEach(m=>{const t=m.userData.to;if(t)m.position.lerp(t,RM?1:.18)});
+ BGB.dice.forEach(d=>{const t=d.userData.to;if(!t)return;const k=d.userData.t0?Math.min(1,(now-d.userData.t0)/650):1;d.position.copy(t);d.position.y+=Math.sin(k*Math.PI)*.35;
+  d.rotation.set((1-k)*9,(1-k)*7,(1-k)*5);if(k>=1)d.userData.t0=0})}
+// tocar el tablero: primero la cámara se acerca; luego eliges ficha y destino
+function bgTap(p){const g=bgmine();if(!g){if(!bgg()){bgopen=true;render()}return}
+ if(bgSel!=null){const m=g.mv.find(x=>x[0]===bgSel&&x[2]===p);if(m){bgSend({op:'move',id:g.id,from:m[0],die:m[1]});bgSel=null;sfx('place');return}}
+ if(g.mv.some(x=>x[0]===p)){bgSel=bgSel===p?null:p;sfx('card')}else if(g.bar[g.p.indexOf(V.me)]&&g.mv.length){bgSel=25;sfx('card')}else bgSel=null;bgMark()}
+// cámara: casi desde arriba, del lado de tu color
+function bgLook(){if(!BGB||!L)return;const wc=BGB.g.localToWorld(v3(.2,.15,0)),me=bgg(),a=me&&me.p.indexOf(V.me)==1?Math.PI:0,e=1.3,t=wc.y/Math.sin(e);
+ const k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/4.2*(L.por?.85:.62);
+ Object.assign(VT,{x:wc.x-Math.sin(a)*Math.cos(e)*t,z:wc.z-Math.cos(a)*Math.cos(e)*t,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:false,bg:true});clampV();sfx('card')}
+function bgdiscover(){if(bgfound)return;bgfound=true;try{localStorage.setItem('cont_bgf','1')}catch(e){}sfx('win');confetti(30);banner('🎲 ¡Encontraste un juego secreto: Backgammon!')}
+const BGIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" fill="#5a3418"/><rect x="3.5" y="5.5" width="17" height="13" fill="#1f5b3a"/><path d="M4 5.5l1.5 6 1.5-6zM7.5 5.5l1.5 6 1.5-6zM13.5 18.5l1.5-6 1.5 6zM17 18.5l1.5-6 1.5 6z" fill="#e8dcc0"/><path d="M5.8 18.5l1.5-6 1.5 6zM15.3 5.5l1.5 6 1.5-6z" fill="#9e2a2a"/><rect x="11.4" y="5.5" width="1.2" height="13" fill="#5a3418"/></svg>';
+const bgdisc=k=>`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
+function bgUI(top){const G=V.G,me=V.me;if(me<0)return '';const g=bgg(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
+ const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;if(!bgfound&&!g)return '';
+ let h=`<button id="t3bgb" class="w7 w7b t3gb${myT||inv?' p':''}" style="top:calc(env(safe-area-inset-top,0px) + ${top}px)" onclick="${bgopen&&VT.bg?'bgo(0)':'bggo()'}" title="Backgammon" aria-label="Backgammon">${BGIC}</button>`;
+ if(inv&&!bgopen)h+=`<div id="t3bgi" class="w7 w7g t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Backgammon</b><span><button class="w7b" onclick="bga('acc')">Jugar</button><button class="w7b" onclick="bga('end')">Ahora no</button></span></div>`;
+ if(!bgopen)return h;let b='';
+ if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.bgs||[]).some(x=>x.st!='end'&&x.p.includes(k));
+  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="w7b" onclick="bginv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
+   <div class="c4n">Saca tus 15 fichas antes que tu rival. Los dados se tiran solos al empezar cada turno.</div>`}
+ else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="ft"><button class="w7b" onclick="bga('end')">Cancelar</button></div>`
+  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Backgammon</div><div class="ft"><button class="w7b dflt" onclick="bga('acc')">Jugar</button><button class="w7b" onclick="bga('end')">Ahora no</button></div>`;
+ else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]} (dobles)`:g.dice.join(' y ');
+  const st=g.st=='play'?(myT?(g.mv.length?`${bgdisc(mi)} <b>¡Tu turno!</b> Dados: ${dc}. Toca una ficha y luego a dónde moverla`:`${bgdisc(mi)} Dados: ${dc}. No tienes jugadas`):`${bgdisc(1-mi)} Turno de ${nm(op)}… (dados: ${dc})`)
+   :g.w==mi?(g.why?`🏆 ${nm(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
+  b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${bgdisc(0)} ${nm(g.p[0])} (${g.off[0]}/15) &nbsp;vs&nbsp; ${bgdisc(1)} ${nm(g.p[1])} (${g.off[1]}/15)</div>
+   <div class="ft">${VT.bg?'<button class="w7b" onclick="bgo(0)">↩ Mesa</button>':'<button class="w7b dflt" onclick="bggo()">Ver tablero</button>'}${myT&&!g.mv.length?'<button class="w7b dflt" onclick="bga(\'pass\')">Pasar turno</button>':''}${g.st=='play'?`<button class="w7b" onclick="if(confirm('¿Rendirte en Backgammon?'))bga('end')">Rendirse</button>`:`<button class="w7b dflt" onclick="bginv(${op})">Revancha</button><button class="w7b" onclick="bga('end')">Nueva partida</button>`}</div>`}
+ return h+`<div id="t3bg" class="w7 w7win t3gp" role="dialog" aria-label="Backgammon"><div class="wt"><span>Backgammon</span><button class="wx" onclick="bgo(0)" aria-label="Cerrar">✕</button></div><div class="wb">${b}</div></div>`}
+function bgcheck(){const g=bgg();if(!g){bgsnap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,JSON.stringify(g.last),g.turn,g.rn,g.w].join('|');if(k===bgsnap)return;
+ const o=bgsnap.split('|');bgsnap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
+ if(o[2]!==JSON.stringify(g.last))sfx('place');if(o[4]!==String(g.rn))sfx('shuf');
+ if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('🏆 ¡Ganaste Backgammon!')}else sfx('tick')}
+ else if(g.st=='play'&&g.turn==mi&&(o[1]!='play'||+o[3]!==g.turn))setTimeout(()=>sfx('go'),400)}
+const bgSend=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'bg'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
+window.bga=op=>{const g=bgg();if(op=='acc')bgdiscover();if(g)bgSend({op,id:g.id})};
+window.bgo=o=>{bgopen=!!o;menu=false;if(!o&&VT.bg)home();sfx('tick');render()};
+window.bggo=()=>{bgopen=true;menu=false;bgLook();render()};
+window.bginv=k=>{bgSend({op:'inv',k});sfx('card')};
 // llevar la cámara al tablero: su centro queda en medio de la pantalla
 function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=L.el,a=C4B.P.rotation.y,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/3.7*(L.por?.78:.6);
  // de frente al tablero: el punto del piso al que mira la cámara queda detrás de su centro, en la dirección de la vista
  const back=Math.cos(e)*wc.y/Math.sin(e)+(L.por?.7:0);
- Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:0,who:-1,c4:true});clampV();sfx('card')}
+ Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:0,who:-1,c4:true,bg:false});clampV();sfx('card')}
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
@@ -375,7 +469,7 @@ function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
 const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // cuadrar: regresa a la vista de siempre por el camino corto
-function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,c4:false})}
+function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,c4:false,bg:false})}
 // pasos de la barra de cámara y del teclado (suaves: solo mueven el destino)
 function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:[0,-1],dn:[0,1],lf:[-1,0],rt:[1,0]}[c];
  if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;
@@ -481,7 +575,7 @@ function sync(){if(!ready||!L||!active())return;
  // ronda nueva: se recoge todo y se reparte desde el mazo
  if(G.dn!==dealN){dealing=dealN>=0;dealN=G.dn;logN=-1;meshes.forEach((m,k)=>drop(k));home()}else dealing=false;dl=0;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
- if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0||VT.c4)home();if(c4open&&W<700&&!first){c4open=false;render()}}
+ if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0||VT.c4||VT.bg)home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
  const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
  const seatW=k=>{const p=seatP(k,.84);p.y=.3;return p};
@@ -526,7 +620,7 @@ function sync(){if(!ready||!L||!active())return;
  meshes.forEach((m,key)=>{if(live.has(key)||m.userData.kill)return;const tk=m.userData.hit&&m.userData.hit.t=='disc'?Object.keys(took).find(k=>+k!==me):null;
   if(tk!=null&&!RM){m.userData.kill=1;target(m,SC,seatW(+tk),FD,.5,{ms:420})}else drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
- c4sync();
+ c4sync();bgSync();
  if(felt&&felt.material.map!==feltTex()){felt.material.map=feltTex();felt.material.needsUpdate=true}
  first=false}
 
@@ -585,6 +679,7 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
  if(h.t=='disc'){if(mine&&G.step=='draw')return draw('disc');if(pl&&sel.size==1)return discard();return}
  if(h.t=='meld'){if(pl&&sel.size)return pegar(h.k);return look(G.melds[h.k].owner)}
  if(h.t=='seat')return look(h.k);
+ if(h.t=='bg'){bgdiscover();if(!VT.bg){bgopen=true;bgLook();render();return}return bgTap(h.p)}
  if(h.t=='c4'){c4discover();if(!VT.c4){c4open=true;c4look();render();return}const g=c4mine();if(g)return c4drop(h.c);if(!c4g()){c4open=true;render()}return}
  if(h.t=='slot'){if(pl&&!dn)sel.size?addTo(h.k,[...sel]):backFrom(h.k);return}
  if(h.t=='hand'){if(pl)tog(h.id);else sfx('card')}}
@@ -627,11 +722,11 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  const tt=selTxt();if(tt)h+=`<div id="t3sel" class="w7 w7g${tt[0]=='✓'?' ok':tt[0]=='✗'?' no':''}">${tt}</div>`;
  if(pl&&!dn)staged.forEach((g,k)=>{const tot=staged.filter(x=>x.type==g.type).length,nn=staged.slice(0,k+1).filter(x=>x.type==g.type).length;
   h+=`<div class="w7 t3pl t3sl${okSlot(g)?' ok':''}" id="t3sl${k}">${TN[g.type]}${tot>1?' '+nn:''}${okSlot(g)?' ✓':''}</div>`});
- h+=c4UI();
+ h+=c4UI();h+=bgUI(V.me>=0&&(c4found||c4g())?108:58);
  // menú Juego
  if(menu){const op=k=>menuOpen.has(k)?' open':'';
   h+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Efectos de sonido: apagados':'🔊 Efectos de sonido: encendidos'}</button><button class="mi" onclick="musCyc()">${musName()=='apagada'?'🔇':'🎵'} Música: ${musName()}</button><button class="mi" onclick="c3dToggle()">🖼 Vista clásica 2D</button><button class="mi" onclick="c3dDark()">${dark?'☀️ Menús en modo claro':'🌙 Menús en modo oscuro'}</button><button class="mi" onclick="c3dMini()">${mini?'▾ Mostrar la barra de arriba':'▴ Ocultar la barra de arriba'}</button><hr>
-  <button class="mi" onclick="c3dAp()">🎨 Cambiar apariencia…</button>${V.me>=0&&(c4found||c4g())?'<button class="mi" onclick="c4go()">🔴 Conecta 4</button>':''}<details data-k="pl"${op('pl')}><summary class="mi">👥 Jugadores</summary>${plist()}</details>
+  <button class="mi" onclick="c3dAp()">🎨 Cambiar apariencia…</button>${V.me>=0&&(c4found||c4g())?'<button class="mi" onclick="c4go()">🔴 Conecta 4</button>':''}${V.me>=0&&(bgfound||bgg())?'<button class="mi" onclick="bggo()">🎲 Backgammon</button>':''}<details data-k="pl"${op('pl')}><summary class="mi">👥 Jugadores</summary>${plist()}</details>
   <details data-k="lg"${op('lg')}><summary class="mi">📜 Historial</summary>${logv()||'<div class="rt">Nada todavía.</div>'}</details>
   ${GM.continental.rules.replace('<details>',`<details data-k="rg"${op('rg')}>`).replace('<summary>Reglas</summary>','<summary class="mi">📖 Reglas</summary><div class="rt">').replace(/<\/details>$/,'</div></details>')}
   ${V.host?`<hr><button class="mi" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">✖ Cerrar sala</button>`:''}</div>`}
@@ -644,9 +739,9 @@ const c4disc=k=>`<i class="c4m ${k?'y':'r'}"></i>`;
 function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
  const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;
  if(!c4found&&!g)return '';
- let h=`<button id="t3c4b" class="w7 w7b${myT||inv?' p':''}" onclick="${c4open&&VT.c4?'c4o(0)':'c4go()'}" title="Conecta 4" aria-label="Conecta 4">${C4IC}</button>`;
+ let h=`<button id="t3c4b" class="w7 w7b t3gb${myT||inv?' p':''}" onclick="${c4open&&VT.c4?'c4o(0)':'c4go()'}" title="Conecta 4" aria-label="Conecta 4">${C4IC}</button>`;
  // te retaron: aviso con botones aunque la ventana esté cerrada
- if(inv&&!c4open)h+=`<div id="t3c4i" class="w7 w7g">${chip(op)}<b>${nm(op)}</b> te reta a <b>Conecta 4</b><span><button class="w7b" onclick="c4a('acc')">Jugar</button><button class="w7b" onclick="c4a('end')">Ahora no</button></span></div>`;
+ if(inv&&!c4open)h+=`<div id="t3c4i" class="w7 w7g t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Conecta 4</b><span><button class="w7b" onclick="c4a('acc')">Jugar</button><button class="w7b" onclick="c4a('end')">Ahora no</button></span></div>`;
  if(!c4open)return h;
  let b='';
  if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.c4s||[]).some(x=>x.st!='end'&&x.p.includes(k));
@@ -658,7 +753,7 @@ function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.ind
    :g.w==2?'Empate: el tablero se llenó':g.w==mi?(g.why?`🏆 ${nm(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
   b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${c4disc(0)} ${nm(g.p[0])} &nbsp;vs&nbsp; ${c4disc(1)} ${nm(g.p[1])}</div>
    <div class="ft">${VT.c4?'<button class="w7b" onclick="c4o(0)">↩ Mesa</button>':'<button class="w7b dflt" onclick="c4go()">Ver tablero</button>'}${g.st=='play'?`<button class="w7b" onclick="if(confirm('¿Rendirte en Conecta 4?'))c4a('end')">Rendirse</button>`:`<button class="w7b dflt" onclick="c4inv(${op})">Revancha</button><button class="w7b" onclick="c4a('end')">Nueva partida</button>`}</div>`}
- return h+`<div id="t3c4" class="w7 w7win" role="dialog" aria-label="Conecta 4"><div class="wt"><span>Conecta 4</span><button class="wx" onclick="c4o(0)" aria-label="Cerrar">✕</button></div><div class="wb">${b}</div></div>`}
+ return h+`<div id="t3c4" class="w7 w7win t3gp" role="dialog" aria-label="Conecta 4"><div class="wt"><span>Conecta 4</span><button class="wx" onclick="c4o(0)" aria-label="Cerrar">✕</button></div><div class="wb">${b}</div></div>`}
 // sonidos y avisos cuando cambia la partida (la jugada del otro, tu turno, el final)
 function c4check(){const g=c4g();if(!g){c4snap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,g.last,g.turn,g.w].join(':');if(k===c4snap)return;
  const o=c4snap.split(':');c4snap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
@@ -717,12 +812,12 @@ function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase=
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
- viewStep(dt);step(now);c4step(now);avStep(now);pulse(now);labels();viewBtn();
+ viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}document.documentElement.classList.toggle('c3c4',!!VT.c4);document.documentElement.classList.toggle('c3ap',!!ap);document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4)?String(VT.c4?'c4':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.c4?`${C4IC} Conecta 4 · ${IC.home} Volver a la mesa`:p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
+function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4||VT.bg)?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.bg?`${BGIC} Backgammon · ${IC.home} Volver a la mesa`:VT.c4?`${C4IC} Conecta 4 · ${IC.home} Volver a la mesa`:p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
  document.querySelectorAll('#app .t3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
@@ -731,7 +826,7 @@ GM.continental.body=function(){
  const m=$('#t3menu');if(m){menuScroll=m.scrollTop;menuOpen=new Set([...m.querySelectorAll('details[open]')].map(d=>d.dataset.k))}
  try{init();return hud()}catch(e){console.warn('Continental 3D:',e);on=false;return orig()}};
 GM.continental.after=function(){if(origAfter)origAfter();if(!active())return;
- try{c4check()}catch(e){}
+ try{c4check();bgcheck()}catch(e){}
  const m=$('#t3menu');if(m)m.scrollTop=menuScroll;
  try{const bb=$('#t3bar .w7g');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Continental 3D:',e)}};
 window.c3dToggle=toggle;
