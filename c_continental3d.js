@@ -159,13 +159,16 @@ function buildC4(por,rx,rz){c4d.clear();c4cols.length=0;
  // columnas para tocar: invisibles, se iluminan cuando puedes tirar ahí
  for(let c=0;c<7;c++){const m=new THREE.Mesh(new THREE.PlaneGeometry(.98,6.2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
   m.position.set(c-3,3.3,.24);m.userData.hit={t:'c4',c};g.add(m);c4cols.push(m)}
- g.scale.setScalar(.48);g.rotation.x=-(por?1.12:.98)*.55;P.add(g);   // inclinado hacia atrás para que se vea desde la mesa
+ g.scale.setScalar(.4);g.rotation.x=-(por?1.12:.98)*.55;P.add(g);   // inclinado hacia atrás para que se vea desde la mesa
  // mesita de madera
  const wood=new THREE.MeshStandardMaterial({color:0x5a2f14,roughness:.55}),tp=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.12,40),wood);
  tp.scale.set(2.2,1,1.2);tp.position.y=-.07;tp.receiveShadow=true;tp.castShadow=true;P.add(tp);
  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,1.4,16),wood);leg.position.y=-.8;P.add(leg);
  const ft=new THREE.Mesh(new THREE.CylinderGeometry(.9,1,.1,32),wood);ft.position.y=-1.5;P.add(ft);
- P.position.set(por?1.3:rx*.5,0,-(rz+(por?1.9:2)));tbl.add(P);P.updateMatrixWorld(true);C4B={P,g,id:null}}
+ P.position.set(por?2.2:rx*.55,0,-(rz+(por?3:3.2)));tbl.add(P);P.updateMatrixWorld(true);
+ // colores base para la penumbra: se ilumina cuando la cámara se acerca a jugar
+ const mats=[blue,wood];C4B={P,g,id:null,lit:.4,mats:mats.map(m=>({m,base:m.color.clone()}))};c4light(.4)}
+function c4light(v){if(!C4B)return;C4B.lit=v;C4B.mats.forEach(o=>o.m.color.copy(o.base).multiplyScalar(v));c4d.forEach(m=>m.material.color.copy(m.userData.base).multiplyScalar(v))}
 // la partida que se muestra: la tuya, o si no juegas, cualquiera que esté en curso
 function c4show(){const L4=V.G.c4s||[];return L4.find(x=>x.p.includes(V.me))||L4.find(x=>x.st=='play')||null}
 function c4sync(){if(!C4B)return;const g=c4show(),key=g?g.id:0;hits.push(...c4cols);
@@ -175,16 +178,65 @@ function c4sync(){if(!C4B)return;const g=c4show(),key=g?g.id:0;hits.push(...c4co
  for(let x=0;x<42;x++){const v=g?g.b[x]:0;let m=c4d.get(x);if(!v){rm(x);continue}
   if(!m){DISC=DISC||new THREE.CylinderGeometry(.4,.4,.2,32);
    m=new THREE.Mesh(DISC,new THREE.MeshPhysicalMaterial({color:v==1?0xe53935:0xf9c623,roughness:.3,clearcoat:1,clearcoatRoughness:.1}));m.rotation.x=Math.PI/2;m.castShadow=true;
+   m.userData.base=m.material.color.clone();m.material.color.multiplyScalar(C4B.lit);
    const y1=.7+Math.floor(x/7);m.position.set(x%7-3,y1,0);m.userData.y1=y1;if(x===g.last&&!first&&!RM){m.userData.t0=performance.now();m.position.y=7.4}C4B.g.add(m);c4d.set(x,m)}
   m.userData.win=win.has(x)}}
 // caída con rebote y brillo de la línea ganadora
 const bounce=k=>k<1/2.75?7.5625*k*k:k<2/2.75?7.5625*(k-=1.5/2.75)*k+.75:k<2.5/2.75?7.5625*(k-=2.25/2.75)*k+.9375:7.5625*(k-=2.625/2.75)*k+.984375;
-function c4step(now){c4d.forEach(m=>{const u=m.userData;if(u.t0){const k=Math.min(1,(now-u.t0)/650);m.position.y=u.y1+(7.4-u.y1)*(1-bounce(k));if(k>=1)u.t0=0}
+function c4step(now){const lt=VT.c4?1:.4;if(C4B&&Math.abs(C4B.lit-lt)>.005)c4light(C4B.lit+(lt-C4B.lit)*.06);
+ c4d.forEach(m=>{const u=m.userData;if(u.t0){const k=Math.min(1,(now-u.t0)/650);m.position.y=u.y1+(7.4-u.y1)*(1-bounce(k));if(k>=1)u.t0=0}
  m.material.emissive.setHex(u.win?0xffffff:0);m.material.emissiveIntensity=u.win?.18+.18*Math.sin(now/140):0})}
 const c4mine=()=>{const g=c4g();return g&&g.st=='play'&&g.turn==g.p.indexOf(V.me)?g:null};
 function c4hover(c){c4cols.forEach((m,i)=>{m.material.opacity=i===c&&c4mine()?.2:0})}
+// ---------- avatares de los demás jugadores (estilo Xbox 360), sentados alrededor de la mesa ----------
+const avs=new Map(),SKIN=[0xf1c27d,0xe0ac69,0xc68642,0x8d5524,0xffdbac,0xd9a066],HAIR=[0x2b1a0e,0x5a3a1a,0xd8b04a,0x141414,0x8b2e16,0x6b4a2b];
+const hsh=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+function mkAvatar(k){const p=V.G.players[k],h=hsh(p.id||p.name),std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
+ const skin=std(SKIN[h%6],.55),shirt=std(new THREE.Color(COL[k%10]),.7),hair=std(HAIR[(h>>>3)%6],.85),ink=std(0x1b1b22,.3),pants=std(0x2f3a52,.8),wood=std(0x3a1e0c,.6);
+ const g=new THREE.Group(),hit={t:'seat',k},M=(geo,mat,x,y,z,par)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;(par||g).add(m);return m};
+ // silla
+ M(new THREE.BoxGeometry(1.3,.14,1.1),wood,0,-.72,-.1);M(new THREE.BoxGeometry(1.3,1.6,.14),wood,0,.08,-.66);
+ [[-.55,-.55],[.55,-.55],[-.55,.35],[.55,.35]].forEach(([x,z])=>M(new THREE.CylinderGeometry(.05,.05,.8,8),wood,x,-1.15,z));
+ // piernas (sentado: muslos hacia adelante) y cuerpo
+ [-.22,.22].forEach(x=>{M(new THREE.CapsuleGeometry(.17,.5,4,10),pants,x,-.52,.28).rotation.x=Math.PI/2});
+ const body=new THREE.Group();g.add(body);const torso=M(new THREE.CapsuleGeometry(.42,.5,6,16),shirt,0,.02,0,body);torso.scale.set(1.1,1,.8);torso.userData.hit=hit;
+ M(new THREE.CylinderGeometry(.14,.15,.25,12),skin,0,.62,0,body);
+ // cabeza grande con ojos, cejas, nariz, sonrisa y orejas
+ const head=new THREE.Group();head.position.set(0,1.12,0);body.add(head);
+ const sk=M(new THREE.SphereGeometry(.52,32,24),skin,0,0,0,head);sk.scale.set(1,1.06,.98);sk.userData.hit=hit;
+ [-1,1].forEach(s=>{M(new THREE.SphereGeometry(.11,12,10),skin,s*.5,0,0,head);
+  const e=M(new THREE.SphereGeometry(.085,16,12),ink,s*.18,.06,.44,head);e.scale.set(.85,1.2,.5);M(new THREE.SphereGeometry(.026,8,6),std(0xffffff,.2),s*.18+.025,.11,.49,head);
+  M(new THREE.BoxGeometry(.17,.04,.05),hair,s*.18,.24,.46,head).rotation.z=-s*.12});
+ M(new THREE.SphereGeometry(.065,12,10),skin,0,-.04,.52,head);
+ const mouth=M(new THREE.TorusGeometry(.11,.024,8,18,Math.PI),std(0x7a2222,.5),0,-.16,.46,head);mouth.rotation.z=Math.PI;
+ // peinado (3 estilos)
+ const cap=M(new THREE.SphereGeometry(.56,32,16,0,Math.PI*2,0,Math.PI*.46),hair,0,.04,-.03,head);cap.rotation.x=-.42;
+ if(h%3==1)for(let i=-2;i<=2;i++)M(new THREE.ConeGeometry(.09,.22,8),hair,i*.12,.42,.33,head).rotation.x=.9;
+ if(h%3==2)M(new THREE.SphereGeometry(.2,16,12),hair,0,.22,-.5,head);
+ // brazos: pivote en el hombro, apuntan hacia la mano
+ const arms=[-1,1].map(s=>{const pv=new THREE.Group();pv.position.set(s*.5,.42,0);body.add(pv);
+  M(new THREE.CapsuleGeometry(.13,.7,4,10),shirt,0,0,.48,pv).rotation.x=Math.PI/2;M(new THREE.SphereGeometry(.15,12,10),skin,0,0,.98,pv);pv.userData.s=s;return pv});
+ g.scale.setScalar(1.55);g.userData={k,body,head,arms,reachT:0,cheerT:0,hit};return g}
+const avDir=new THREE.Vector3(),avTgt=new THREE.Vector3();
+function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>k!==V.me&&!V.players[k].out));
+ avs.forEach((g,k)=>{if(!want.has(k)){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
+ want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k);SC.add(g);avs.set(k,g)}const a=seatA(k);
+  g.position.set(Math.cos(a)*(L.rx+1.75),.15,Math.sin(a)*(L.rz+1.75));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
+  g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
+function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
+ avs.forEach(g=>{const u=g.userData,k=u.k,turn=G.turn===k,f=.08;
+  u.body.scale.y=1+.014*Math.sin(now/650+k*1.7);u.body.rotation.x+=((turn?.14:0)-u.body.rotation.x)*f;
+  // la cabeza mira a quien tiene el turno (o a sus cartas cuando le toca)
+  let yaw=0,pitch=.28;if(!turn){const tp=G.turn===V.me?v3(0,1,L.rz+1):avs.get(G.turn)?avs.get(G.turn).position.clone().setY(1.3):v3(0,1,L.rz+1);
+   avTgt.copy(tp);g.worldToLocal(avTgt);yaw=Math.max(-1.1,Math.min(1.1,Math.atan2(avTgt.x,avTgt.z)));pitch=.05}
+  u.head.rotation.y+=(yaw-u.head.rotation.y)*f;u.head.rotation.x+=(pitch-u.head.rotation.x)*f;
+  // brazos: descansando sobre la orilla; estiran uno al jugar, los dos arriba al bajarse
+  const rt=(now-u.reachT)/700,ct=(now-u.cheerT)/1500,reach=rt>=0&&rt<1?Math.sin(rt*Math.PI):0,cheer=ct>=0&&ct<1?Math.sin(ct*Math.PI):0;
+  u.arms.forEach(pv=>{const s=pv.userData.s;avTgt.set(s*.42-s*.12*reach*(s>0),-.38+.3*reach*(s>0),1.05+.9*reach*(s>0));
+   if(cheer)avTgt.lerp(avDir.set(s*.9,1.6+.25*Math.sin(now/90),.25),cheer);
+   avDir.copy(avTgt).sub(pv.position).normalize();pv.quaternion.setFromUnitVectors(Z,avDir)})})}
 // llevar la cámara al tablero: su centro queda en medio de la pantalla
-function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=L.el,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/4.4*(L.por?.78:.6);
+function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=L.el,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/3.7*(L.por?.78:.6);
  Object.assign(VT,{x:wc.x,z:wc.z-Math.cos(e)*wc.y/Math.sin(e)-(L.por?.7:0),k:Math.max(1.5,Math.min(KMAX,k)),a:0,t:0,who:-1,c4:true});clampV();sfx('card')}
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
@@ -195,6 +247,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const rb=h-bar-ch*.62,rh=Math.max(120,rb-top),el=por?1.12:.98;
  CA.clearViewOffset();CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.4])pts.push(v3(Math.cos(a)*(L.rx+.75),y,Math.sin(a)*(L.rz+.75)))}
+ if(C4B)[[-3.7,.2],[3.7,.2],[-3.7,6.4],[3.7,6.4]].forEach(([x,y])=>pts.push(C4B.g.localToWorld(v3(x,y,0))));
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
   let a=1e9,b=-1e9,c=1e9,e=-1e9;pts.forEach(p=>{const q=p.clone().project(CA);a=Math.min(a,q.x);b=Math.max(b,q.x);c=Math.min(c,q.y);e=Math.max(e,q.y)});return [a,b,c,e]};
  let lo=3,hi=120;for(let i=0;i<32;i++){const m=(lo+hi)/2,x=ext(m);((x[1]-x[0])/2<.98&&(x[3]-x[2])/2<.97)?hi=m:lo=m}
@@ -205,7 +258,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
  CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);CA.updateMatrixWorld()}
 function clampV(){if(!L)return;VT.k=Math.max(1,Math.min(KMAX,VT.k));VT.x=Math.max(-L.rx-2,Math.min(L.rx+2,VT.x));VT.z=Math.max(-L.rz-6,Math.min(L.rz,VT.z));
- VT.t=Math.max(.42-L.el,Math.min(1.5-L.el,VT.t))}
+ VT.t=Math.max(.3-L.el,Math.min(1.5-L.el,VT.t))}
 const VK=['x','z','k','a','t'];
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);cam()}
 function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
@@ -220,8 +273,9 @@ function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:
  else if(mv){VT.x+=(mv[0]*ca+mv[1]*sa)*f;VT.z+=(-mv[0]*sa+mv[1]*ca)*f}else return;VT.who=-1;clampV()}
 // ---------- ver en grande la carta de arriba del descarte (ratón encima o dedo presionado) ----------
 const peekImg={};
-function peek(onn){const id=onn&&V.G.disc.length?V.G.disc[V.G.disc.length-1]:null;if(id===peekId)return;peekId=id;if(!peekEl)return;
- if(id==null){peekEl.classList.remove('on');return}
+function peek(onn){const id=onn&&V&&V.G&&V.G.disc.length?V.G.disc[V.G.disc.length-1]:null;
+ // sin carta que mostrar: siempre se oculta (antes se quedaba pegada si el descarte quedaba vacío)
+ if(id==null){peekId=null;if(peekEl)peekEl.classList.remove('on');return}if(id===peekId)return;peekId=id;if(!peekEl)return;
  const k=id+scards;peekEl.firstChild.src=peekImg[k]||(peekImg[k]=faceTex(id).image.toDataURL());const c=C(id);
  peekEl.lastChild.textContent=c.j?'Comodín':RN[c.r-1]+SU[c.s];peekEl.classList.add('on');peekPos();sfx('card')}
 // junto a la pila, sin salirse de la pantalla
@@ -320,7 +374,7 @@ function sync(){if(!ready||!L||!active())return;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
  if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0||VT.c4)home();if(c4open&&W<700&&!first){c4open=false;render()}}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
- const from={},took={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
+ const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
  const seatW=k=>{const p=seatP(k,.84);p.y=.3;return p};
  // mazo: pila con grosor según las cartas que quedan
  const nv=G.deck?Math.min(10,Math.ceil(G.deck/5)):0;
@@ -340,6 +394,7 @@ function sync(){if(!ready||!L||!active())return;
   const can=pl&&one!=null&&dn&&fitsMeld(one,mm);
   glow('m'+k,v3(p.x+p.mw/2,.003,p.z+ML.ch/2),p.mw+.14,ML.ch+.14,can?0x55c8ff:0xffffff,can?.85:.0,{t:'meld',k});
   glow('o'+k,v3(p.x+p.mw/2,.004,p.z+ML.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
+ avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
  for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
   for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null,took[k]?L.disc:null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
@@ -374,7 +429,7 @@ function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.lef
 function pDown(e){if(!active()||ap)return;if(e.pointerType!=='mouse')peek(false);if(menu){menu=false;render();return}
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(tch.size==2){if(drag)pCancel();st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);VT.who=-1;
-   pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false};return}
+   pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.t,mode:null};return}
   if(tch.size>2)return}
  if(e.button==1)e.preventDefault();
  const rot=e.button==1||(e.button==2&&e.shiftKey),pan=e.button==2&&!rot;if(pan||rot)cv.style.cursor=rot?'move':'grabbing';
@@ -382,7 +437,11 @@ function pDown(e){if(!active()||ap)return;if(e.pointerType!=='mouse')peek(false)
  if(e.pointerType!=='mouse'&&st.hit&&st.hit.t=='disc'){const s0=st;s0.lp=setTimeout(()=>{if(st!==s0)return;s0.peek=true;peek(true);if(navigator.vibrate)navigator.vibrate(12)},380)}}
 function pMove(e){if(!active())return;
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
-  if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]);let da=wrap(ang-pin.ang);pin.ang=ang;
+  if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
+   // ¿inclinar o mover? si los dos dedos suben/bajan juntos sin abrirse ni girar, es inclinar
+   if(!pin.mode){const dy=my-pin.my,dx=mx-pin.mx;if(Math.abs(dy)>16&&Math.abs(dd)<Math.abs(dy)*.35&&Math.abs(dx)<Math.abs(dy)*.6&&Math.abs(pin.acc+da)<.1)pin.mode='tilt';else if(Math.abs(dd)>14||Math.abs(dx)>16||Math.abs(pin.acc+da)>.12)pin.mode='free'}
+   if(pin.mode=='tilt'){VT.t=pin.t+(my-pin.my)*.006;VT.who=-1;snap();return}
+   if(!pin.mode)return;
    // el giro arranca hasta pasar ~7°, para que pellizcar no rote sin querer
    pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
@@ -534,12 +593,12 @@ function apUI(){const T=APT[ap.tab];
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
-function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,[x,y]=toPx(seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
+function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(3.35):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh,Math.min(H-hh,y))}px) translate(-50%,-50%)`});
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
  const pl=(id,p)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,0)`};
- if(peekId!=null){const t=V.G.disc[V.G.disc.length-1];if(t!==peekId){peekId=null;if(t!=null)peek(true)}peekPos()}
+ if(peekId!=null){const t=V.G.disc[V.G.disc.length-1];if(t!==peekId){peekId=null;peek(t!=null)}peekPos()}
  const dz=CH*L.ps/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+dz));pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
 
 // ---------- engancharse a la vista de siempre ----------
@@ -547,7 +606,7 @@ function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase=
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
- viewStep(dt);step(now);c4step(now);pulse(now);labels();viewBtn();R.render(SC,CA)}
+ viewStep(dt);step(now);c4step(now);avStep(now);pulse(now);labels();viewBtn();R.render(SC,CA)}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
 function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}document.documentElement.classList.toggle('c3c4',!!VT.c4);document.documentElement.classList.toggle('c3ap',!!ap);document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4)?String(VT.c4?'c4':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.c4?`${C4IC} Conecta 4 · ${IC.home} Volver a la mesa`:p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
