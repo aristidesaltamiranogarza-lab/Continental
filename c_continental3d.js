@@ -309,16 +309,22 @@ function seg(m,a,b){avDir.subVectors(b,a);const l=avDir.length();m.position.copy
 // codo con cinemática inversa de dos huesos (pole = hacia dónde se dobla)
 function ik(sh,hand,l1,l2,pole,out){avA.subVectors(hand,sh);const L=Math.min(avA.length(),l1+l2-.002),c=(l1*l1+L*L-l2*l2)/(2*l1*L),h=l1*Math.sqrt(Math.max(0,1-c*c));avA.normalize();
  avB.copy(pole).sub(sh);avB.addScaledVector(avA,-avB.dot(avA)).normalize();return out.copy(sh).addScaledVector(avA,c*l1).addScaledVector(avB,h)}
-function mkAvatar(k,pi){const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
+// o.stand: de pie y sin silla (la casa de juegos); las piernas se acomodan cada cuadro con userData.legs
+function mkAvatar(k,pi,o={}){const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
  const skin=std(new THREE.Color(A.skin),.6),top=std(new THREE.Color(COL[k%10]),.7),hair=std(new THREE.Color(A.hc),.75),pants=std(A.bot,.8),shoe=std(A.shoe,.5),wood=std(0x3a1e0c,.6);
  const g=new THREE.Group(),hit={t:'seat',k},M=(geo,mat,x,y,z,par)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;(par||g).add(m);return m};
  const limb=(r,len,mat,par)=>{const m=M(new THREE.CapsuleGeometry(r,len,4,12),mat,0,0,0,par);m.userData.len=len+2*r;return m};
+ let legs=null;
+ if(!o.stand){
  // silla
  M(new THREE.BoxGeometry(1.1,.12,1),wood,0,-.66,-.05);M(new THREE.BoxGeometry(1.1,1.35,.12),wood,0,.05,-.55);
  [[-.48,-.5],[.48,-.5],[-.48,.38],[.48,.38]].forEach(([x,z])=>M(new THREE.CylinderGeometry(.05,.05,.9,8),wood,x,-1.1,z));
  // piernas cortas y zapatos de bolita
  [-1,1].forEach(s=>{const hp=v3(s*.17,-.5,.05),kn=v3(s*.19,-.5,.72),an=v3(s*.2,-1.3,.78);
-  seg(limb(.14,.45,pants),hp,kn);seg(limb(.12,.55,pants),kn,an);M(new THREE.SphereGeometry(.17,16,12),shoe,s*.2,-1.42,.86).scale.set(.85,.6,1.3)});
+  seg(limb(.14,.45,pants),hp,kn);seg(limb(.12,.55,pants),kn,an);M(new THREE.SphereGeometry(.17,16,12),shoe,s*.2,-1.42,.86).scale.set(.85,.6,1.3)})}
+ // de pie: piernas derechas (quien lo use las mueve al caminar)
+ else legs=[-1,1].map(s=>{const L={s,hp:v3(s*.17,-.5,0),up:limb(.14,.3,pants),lo:limb(.12,.3,pants),sh:M(new THREE.SphereGeometry(.17,16,12),shoe,0,0,0)};L.sh.scale.set(.85,.6,1.3);
+  seg(L.up,L.hp,v3(s*.18,-.98,.02));seg(L.lo,v3(s*.18,-.98,.02),v3(s*.18,-1.4,0));L.sh.position.set(s*.18,-1.47,.08);return L});
  M(new THREE.CapsuleGeometry(.3,.18,4,14),pants,0,-.5,0).scale.set(1.2,.75,.9);
  // cuerpo de Mii: torso corto y redondeado, sin cuello
  const body=new THREE.Group();g.add(body);
@@ -340,7 +346,7 @@ function mkAvatar(k,pi){const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMateria
   M(new THREE.CylinderGeometry(.34,.34,.035,22,1,false,-Math.PI/2,Math.PI),std(new THREE.Color(A.cap),.55),0,.2,.36,head).rotation.x=.12}
  // brazos cortos con manos de bolita (se recalculan cada cuadro)
  const arms=[-1,1].map(s=>({s,sh:v3(s*.4,.15,0),up:limb(.1,.24,top,body),fo:limb(.095,.22,top,body),hand:M(new THREE.SphereGeometry(.13,14,10),skin,0,0,0,body),sleeve:null,el:new THREE.Vector3(),h:new THREE.Vector3()}));
- g.userData={k,pi,body,head,arms,reachT:0,cheerT:0,l1:.45,l2:.43};return g}
+ g.userData={k,pi,body,head,arms,legs,reachT:0,cheerT:0,l1:.45,l2:.43};return g}
 function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
  want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
@@ -862,5 +868,5 @@ window.c3dLook=look;
 window.c3dHome=home;
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
 // el Uno 3D usa el mismo cuarto y los mismos Miis
-window.C3D={buildRoom,mkAvatar,avPick,seg,ik};
+window.C3D={buildRoom,mkAvatar,avPick,seg,ik,AVP,hsh};
 })();

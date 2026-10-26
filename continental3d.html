@@ -246,10 +246,38 @@ html.u3mini #u3win{top:calc(env(safe-area-inset-top,0px) + 56px)}
 #u3dpv .nm{margin-top:2px;font-weight:700;font-size:.85em}
 #u3dpv.new img{animation:t3dpvnew 1.2s ease-out}
 @media (max-width:699px){#u3dpv{bottom:calc(var(--t3fan,200px) + 6px)}}
+/* ===== Casa de juegos 3D (pantalla de inicio) ===== */
+html.h3on,html.h3on body{overflow:hidden;height:100%;overscroll-behavior:none}
+html.h3on #app{pointer-events:none}
+#h3root{position:fixed;inset:0;z-index:1;display:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#h3root canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
+#h3top{top:calc(env(safe-area-inset-top,0px) + 6px);left:8px;right:8px;display:flex;align-items:center;gap:8px;padding:4px 6px;min-height:46px}
+#h3top .h3t{white-space:nowrap;padding:0 6px}
+#h3top input{flex:1;min-width:0;max-width:260px;height:36px;margin-left:auto;padding:0 10px;border:1px solid #707070;border-radius:4px;font:inherit;background:#fff;color:#111;text-shadow:none}
+html.c3dark #h3top input{background:#1f2124;color:#eee;border-color:#111}
+@media (max-width:520px){#h3top .h3t b{display:none}}
+#h3hint{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%);padding:8px 14px;border-radius:18px;font-size:.92em;text-align:center;max-width:calc(100% - 24px);animation:t3pop .3s ease-out}
+.h3sign{left:0;top:0;padding:5px 12px 6px;border-radius:10px;text-align:center;white-space:nowrap;cursor:pointer;touch-action:manipulation;will-change:transform}
+.h3sign b{font-size:1.08em}.h3sign small{display:block;font-size:.78em;opacity:.95}
+.h3sign.on{border-color:#ffe27a;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),0 0 16px 4px rgba(255,220,110,.8)}
+#h3me{left:0;top:0;font-size:.85em}
+#h3inv{left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:6px 8px 6px 14px;max-width:calc(100% - 20px);white-space:nowrap}
+#h3win{z-index:25;right:14px;top:calc(env(safe-area-inset-top,0px) + 64px);width:min(360px,calc(100% - 20px));animation:t3pop .2s ease-out}
+#h3win .wb{gap:10px}
+#h3win .h3d{font-size:.95em;line-height:1.4}#h3win .h3n{color:#555}
+html.c3dark #h3win .h3n{color:#a9adb3}
+#h3win .h3b{display:flex;flex-direction:column;gap:6px}#h3win .h3b .w7b{justify-content:flex-start;min-height:40px}
+#h3win .h3j{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:8px;border-top:1px solid #d7d7d7;font-size:.9em}
+html.c3dark #h3win .h3j{border-top-color:#3c3f45}
+#h3win .h3j span{flex:1 1 100%}
+#h3win .h3j input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid #707070;border-radius:4px;font:inherit;text-transform:uppercase;letter-spacing:.12em}
+html.c3dark #h3win .h3j input{background:#1f2124;color:#eee;border-color:#111}
+#h3win .h3m{color:#b3261e;font-size:.9em}
+@media (max-width:600px){#h3win{left:8px;right:8px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}}
 /* pantallas bajitas (celular acostado) */
 @media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}#t3view{top:50px}#t3cam{top:48px}#t3cam .pan{grid-template-columns:repeat(4,40px)}#t3cam .w7b{width:40px;height:40px}#t3cam .pan .wide{grid-column:1/5}#t3ap{max-height:calc(100% - 12px)}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
 </style>
 </head><body><div id="app">Cargando…</div>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="game.js"></script><script src="music.js"></script><script src="c_continental.js"></script><script src="c_uno.js"></script><script src="c_monopolydeal.js"></script>
-<script src="c_continental3d.js"></script><script src="c_uno3d.js"></script></body></html>
+<script src="c_continental3d.js"></script><script src="c_uno3d.js"></script><script src="c_casa3d.js"></script></body></html>
