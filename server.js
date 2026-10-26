@@ -43,6 +43,11 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
  if(t=='tomato')return tomato(R,tok,i);
  if(t=='kick'){if(!H)return 'Solo el host puede expulsar.';const k=R.players.findIndex(p=>p.id==m.id);if(k<0||R.players[k].tok==tok)return 'No se puede expulsar a ese jugador.';kick(R,k);if(M.tick)M.tick(R);return}
  if(t=='opts'){if(!H)return 'Solo el host puede cambiar las reglas.';if(G)return 'Ya empezó.';const o=m.o||{};for(const k in R.opts){const x=o[k],r=M.rng&&M.rng[k];if(typeof x=='boolean'&&typeof R.opts[k]=='boolean')R.opts[k]=x;else if(typeof x=='number'&&typeof R.opts[k]=='number'&&r&&x>=r[0]&&x<=r[1])R.opts[k]=Math.floor(x)}return}
+ // la misma sala sirve para todos los juegos: entre partidas, el host elige a qué juegan
+ if(t=='game'){if(!H)return 'Solo el host elige el juego.';if(G)return 'Termina primero esta partida.';const M2=GAMES[m.g];if(!M2)return 'Ese juego no existe.';if(m.g==R.gt)return;
+  const ps=R.players.filter(p=>M2.bot||!p.bot);if(ps.length>M2.max)return 'Son demasiados para '+M2.name+' (máximo '+M2.max+').';
+  if(ps.length<R.players.length)R.chat.push({k:-1,name:'🤖',t:M2.name+' todavía no tiene bots: salieron de la sala',ts:Date.now()});
+  R.players=ps;R.gt=m.g;R.opts=Object.assign({},M2.opts);R.chat.push({k:-1,name:'🎲',t:'Ahora van a jugar '+M2.name,ts:Date.now()});return}
  if(t=='addbot'){if(!H)return 'Solo el host puede agregar bots.';if(G)return 'Ya empezó.';if(!M.bot)return 'Este juego todavía no tiene bots.';if(R.players.length>=M.max)return 'La sala está llena (máximo '+M.max+').';
   const nm=BOTN.find(x=>!R.players.some(p=>p.name==x))||'🤖 Bot';R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),{bot:true}));return}
  if(t=='start'){if(!H)return 'Solo el host puede empezar.';if(G)return 'Ya empezó.';const n=R.players.length;
