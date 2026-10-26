@@ -18,7 +18,7 @@ const FD=Qe(0,0,Math.PI),FU=Qe(0,0,0);   // boca abajo / boca arriba sobre la me
 const $=s=>document.querySelector(s);
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa que queda al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
-let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,camOpen=false,camTip=false,camRep=null,ap=null;
+let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,camOpen=false,camTip=false,camRep=null,ap=null;
 let c4found=false,mini=false,c4open=false,c4was=false,c4snap='';   // c4: ventana de Conecta 4 abierta, última ficha animada, estado anterior (para sonidos)
    // barra de arriba oculta (modo minimalista)
 try{camOpen=localStorage.getItem('cont_cam')=='1';mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
@@ -115,6 +115,7 @@ function init(){if(ready)return;ready=true;
  [hl,Ld,fill,pt].forEach(l=>l.layers.enableAll());R.autoClear=false;
  root=document.createElement('div');root.id='c3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
  peekEl=document.createElement('div');peekEl.id='t3peek';peekEl.className='w7 w7g';peekEl.innerHTML='<img alt=""><div class="nm"></div>';document.body.appendChild(peekEl);
+ dpvEl=document.createElement('div');dpvEl.id='t3dpv';dpvEl.className='w7 w7g';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pCancel);
  cv.addEventListener('pointerleave',()=>{if(!st)peek(false);if(!st&&hov!=null){hov=null;sync()}});cv.addEventListener('contextmenu',e=>e.preventDefault());
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
@@ -500,6 +501,14 @@ function peek(onn){const id=onn&&V&&V.G&&V.G.disc.length?V.G.disc[V.G.disc.lengt
 function peekPos(){if(peekId==null||!L||!L.disc)return;const [x,y]=toPx(L.disc),w=peekEl.offsetWidth,h=peekEl.offsetHeight,d=CH*L.ps*VW.k*28+20;
  // en horizontal la pila está a la orilla izquierda: la carta sale a su derecha para no tapar tu mano
  const lf=L.por?x-w/2:x+d*.7,top=!L.por?y-h/2:y<H/2?y+d:y-d-h;peekEl.style.transform=`translate(${Math.max(8,Math.min(W-w-8,lf))}px,${Math.max(8,Math.min(H-h-8,top))}px)`}
+// ---------- cartita del descarte abajo a la izquierda: solo cuando la pila no se ve (jugando Backgammon/Conecta 4 o con la cámara movida) ----------
+function dpv(){if(!dpvEl)return;const G=V&&V.G,id=G&&G.disc.length?G.disc[G.disc.length-1]:null;let show=false;
+ if(id!=null&&L&&L.disc){const q=L.disc.clone().project(CA);show=q.z>1||Math.abs(q.x)>.97||Math.abs(q.y)>.97}
+ if(show){const k=id+scards;if(dpvEl.dataset.k!==k){const was=dpvEl.dataset.k;dpvEl.dataset.k=k;
+   dpvEl.children[1].src=peekImg[k]||(peekImg[k]=faceTex(id).image.toDataURL());const c=C(id);dpvEl.lastChild.textContent=c.j?'Comodín':RN[c.r-1]+SU[c.s];
+   // carta nueva en el descarte: un brillo corto para que se note
+   if(was){dpvEl.classList.remove('new');void dpvEl.offsetWidth;dpvEl.classList.add('new')}}}
+ if(dpvEl.classList.contains('on')!==show)dpvEl.classList.toggle('on',show)}
 // punto de la mesa debajo del dedo/ratón
 function ground(cx,cy){const r=cv.getBoundingClientRect();P2.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(PL,v3(0,0,0))}
 // zoom hacia un punto de la pantalla (rueda del ratón)
@@ -825,9 +834,9 @@ function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach
 // ---------- engancharse a la vista de siempre ----------
 function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase==='play'}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
+ if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
- viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();
+ viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)

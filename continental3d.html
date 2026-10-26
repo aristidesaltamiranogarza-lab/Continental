@@ -131,6 +131,16 @@ html.c3mini .t3msg{top:calc(env(safe-area-inset-top,0px) + 56px)}
 #t3peek.on{opacity:1;visibility:visible;transition:opacity .12s}
 #t3peek img{display:block;width:clamp(120px,32vw,150px);aspect-ratio:256/358;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.55)}
 #t3peek .nm{margin-top:4px;font-weight:700;font-size:1.05em}
+/* cartita del descarte abajo a la izquierda (solo cuando la pila no se ve en pantalla) */
+#t3dpv{left:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:9;padding:4px 6px 5px;border-radius:9px;pointer-events:none;text-align:center;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .15s,transform .15s,visibility 0s .15s}
+#t3dpv.on{opacity:1;visibility:visible;transform:none;transition:opacity .15s,transform .15s}
+#t3dpv small{display:block;font-size:.72em;opacity:.95;margin-bottom:3px}
+#t3dpv img{display:block;width:clamp(56px,7vw,84px);aspect-ratio:256/358;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#t3dpv .nm{margin-top:2px;font-weight:700;font-size:.85em}
+#t3dpv.new img{animation:t3dpvnew 1.2s ease-out}
+@keyframes t3dpvnew{0%{box-shadow:0 0 0 3px #fff,0 0 18px 8px rgba(255,220,110,.95)}100%{box-shadow:0 3px 10px rgba(0,0,0,.5)}}
+/* en pantallas angostas la barra y tu mano ocupan todo lo ancho: va encima de tu mano */
+@media (max-width:699px){#t3dpv{bottom:calc(var(--t3fan,200px) + 6px)}}
 /* ===== juegos de la sala (Conecta 4, Backgammon): botón, aviso de reto y panel ===== */
 .t3gb{top:calc(env(safe-area-inset-top,0px) + 58px);left:8px;width:44px;height:44px;min-width:0;padding:0}
 html.c3mini .t3gb{top:calc(env(safe-area-inset-top,0px) + 58px)}
