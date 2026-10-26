@@ -415,7 +415,7 @@ html[data-game="md"] .c.md.sm .rc{width:28px;height:28px;margin-top:15px}html[da
 html[data-game="md"] .c.mz.sm .ht{margin-top:13px}
 
 /* 🍅 tomates */
-#tombtn{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:85;display:none;align-items:center;padding:10px 14px;border:2px solid #fff;border-radius:24px;background:linear-gradient(#ff6b5a,#c62828);color:#fff;font:800 15px system-ui,sans-serif;text-shadow:0 1px 2px #0008;box-shadow:0 4px 0 #7f1414,0 6px 14px #0008;cursor:pointer;touch-action:manipulation;animation:tomb 1.2s ease-in-out infinite}
+#tombtn{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:85;display:none;align-items:center;justify-content:center;width:56px;height:56px;padding:0;border:2px solid #fff;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a7a,#c62828);font-size:30px;line-height:1;box-shadow:0 4px 0 #7f1414,0 6px 14px #0008;cursor:pointer;touch-action:manipulation;animation:tomb 1.2s ease-in-out infinite}
 #tombtn.on{display:flex}
 #tombtn:active{transform:translateY(3px);box-shadow:0 1px 0 #7f1414}
 @keyframes tomb{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) scale(1.06)}}

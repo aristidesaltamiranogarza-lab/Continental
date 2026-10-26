@@ -112,7 +112,8 @@ function tomSync(){const G=V&&V.G;if(!G){tomN=-1;return}if(typeof V.tt=='number'
  const fx=V.fx||[],mx=fx.reduce((a,f)=>Math.max(a,f.n),0);if(tomN<0){tomN=mx;return}
  fx.filter(f=>f.n>tomN).forEach((f,i)=>setTimeout(()=>tomFly(f),i*160));tomN=Math.max(tomN,mx)}
 setInterval(()=>{const G=S&&V&&V.G,k=G?G.turn:null,p=G&&V.players[k],ok=!!(G&&G.phase=='play'&&k!=null&&k!==V.me&&p&&!p.bot&&!p.out&&Date.now()-tomT0>(V.tom||15000));
- TOMB.classList.toggle('on',ok);if(ok){const t='🍅 Lanzar tomate a '+G.players[k].name;if(TOMB.textContent!==t)TOMB.textContent=t}},400);
+ TOMB.classList.toggle('on',ok);if(ok){const t='Lanzar tomate a '+G.players[k].name;if(TOMB.title!==t){TOMB.title=t;TOMB.setAttribute('aria-label',t)}}},400);
+TOMB.textContent='🍅';
 const ctr=el=>{const r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]};
 // el tomate vuela (desde el asiento de quien lo lanzó, o desde abajo) hasta el nombre del que se tarda y se embarra
 function tomFly(f){if(f.k===V.me)return tomMe(f.from);const tg=document.querySelector(`[data-seat="${f.k}"]`);if(!tg)return;
