@@ -13,9 +13,16 @@ const mkP=(tok,name)=>({tok,id:cr.randomBytes(4).toString('hex'),name:String(nam
 const specOf=(R,tok)=>(R.spec||[]).find(s=>s.tok==tok);
 function view(R,tok){const me=R.players.findIndex(p=>p.tok==tok),now=Date.now(),M=GAMES[R.gt];
  const v={code:R.code,v:R.v,host:R.host==tok,me,game:R.gt,opts:R.opts,players:R.players.map(p=>({id:p.id,name:p.name,on:!!p.bot||now-p.seen<35000,out:!!p.out,bot:!!p.bot})),G:null,claim:false,pend:!!R.pb,chat:R.chat.slice(-40),
-  watch:!!specOf(R,tok),spec:(R.spec||[]).filter(s=>now-s.seen<35000).map(s=>s.name)};
+  watch:!!specOf(R,tok),spec:(R.spec||[]).filter(s=>now-s.seen<35000).map(s=>s.name),
+  tt:R.G?now-(R.tt||now):0,tom:TOM_MS,fx:(R.fx||[]).filter(f=>now-f.ts<6000)};   // tt: cuánto lleva el turno; fx: tomates recientes
  if(R.G)Object.assign(v,M.view(R,tok,me,now));return v}
-function bump(R){R.v++;R.ts=Date.now();const ws=R.w;R.w=[];ws.forEach(w=>{clearTimeout(w.t);out(w.res,view(R,w.tok))});botGo(R)}
+// ---- tomates 🍅: a quien se tarda más de TOM_MS en su turno se le pueden lanzar (jugadores y espectadores) ----
+const TOM_MS=15000,turnKey=G=>G?[G.phase,G.turn,G.tc,G.round].join(':'):'';
+function tomato(R,tok,i){const G=R.G,now=Date.now();if(!G||G.phase!='play'||G.turn==null)return 'No hay a quién lanzarle tomates.';const k=G.turn;
+ if(k===i)return '¡No te puedes lanzar tomates a ti!';if(R.players[k]&&R.players[k].bot)return 'Los bots no se tardan 😉';
+ if(now-(R.tt||now)<TOM_MS)return 'Todavía no se está tardando tanto.';const lt=R.lt=R.lt||{};if(now-(lt[tok]||0)<1200)return 'Más despacio.';lt[tok]=now;
+ const sp=specOf(R,tok),from=i>=0?R.players[i].name:sp?sp.name:'Host';R.fx=(R.fx||[]).concat({n:R.fxn=(R.fxn||0)+1,t:'tom',from,k,ts:now}).slice(-12)}
+function bump(R){const tk=turnKey(R.G);if(tk!==R.tk){R.tk=tk;R.tt=Date.now()}R.v++;R.ts=Date.now();const ws=R.w;R.w=[];ws.forEach(w=>{clearTimeout(w.t);out(w.res,view(R,w.tok))});botGo(R)}
 // ---- bots: el módulo del juego decide (M.bot), aquí se agenda y se manda por act() como cualquier jugador ----
 const BOTN=['🤖 Ana','🤖 Beto','🤖 Caro','🤖 Dani','🤖 Eli','🤖 Fer','🤖 Gabo','🤖 Hugo','🤖 Iris'];
 function botGo(R){clearTimeout(R.bt);R.bt=null;const M=GAMES[R.gt];if(!R.G||!M.bot||!rooms[R.code])return;
@@ -33,6 +40,7 @@ function kick(R,k){const p=R.players[k];R.kk.push(p.tok);
 function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==tok),H=R.host==tok,t=m.t;
  if(t=='chat'){const tx=String(m.text||'').trim().slice(0,300);if(!tx)return;if(Date.now()-(R.lc[tok]||0)<400)return 'Más despacio.';R.lc[tok]=Date.now();
   const sp=i<0&&specOf(R,tok);R.chat.push({k:i,name:i>=0?R.players[i].name:sp?'👁 '+sp.name:'Host',t:tx,ts:Date.now()});if(R.chat.length>60)R.chat.shift();return}
+ if(t=='tomato')return tomato(R,tok,i);
  if(t=='kick'){if(!H)return 'Solo el host puede expulsar.';const k=R.players.findIndex(p=>p.id==m.id);if(k<0||R.players[k].tok==tok)return 'No se puede expulsar a ese jugador.';kick(R,k);if(M.tick)M.tick(R);return}
  if(t=='opts'){if(!H)return 'Solo el host puede cambiar las reglas.';if(G)return 'Ya empezó.';const o=m.o||{};for(const k in R.opts){const x=o[k],r=M.rng&&M.rng[k];if(typeof x=='boolean'&&typeof R.opts[k]=='boolean')R.opts[k]=x;else if(typeof x=='number'&&typeof R.opts[k]=='number'&&r&&x>=r[0]&&x<=r[1])R.opts[k]=Math.floor(x)}return}
  if(t=='addbot'){if(!H)return 'Solo el host puede agregar bots.';if(G)return 'Ya empezó.';if(!M.bot)return 'Este juego todavía no tiene bots.';if(R.players.length>=M.max)return 'La sala está llena (máximo '+M.max+').';
@@ -76,7 +84,7 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(p=='/watch'){const tok=cr.randomBytes(12).toString('hex'),nm=String(b.name||'').trim().slice(0,14)||'Alguien';(R.spec=R.spec||[]).push({tok,name:nm,seen:Date.now()});
   R.chat.push({k:-1,name:'👁',t:nm+' está mirando la partida',ts:Date.now()});if(R.chat.length>60)R.chat.shift();bump(R);return out(res,{c:R.code,t:tok})}
  if(p=='/act'){const tok=b.t,m=b.m||{},sp=specOf(R,tok);if(R.host!=tok&&!sp&&!R.players.some(x=>x.tok==tok&&!x.out))return out(res,{err:'No estás en la sala.'});
-  if(sp&&m.t!='chat')return out(res,{err:'Estás mirando: no puedes jugar en esta partida.'});
+  if(sp&&m.t!='chat'&&m.t!='tomato')return out(res,{err:'Estás mirando: no puedes jugar en esta partida.'});
   if(m.t=='close'){if(R.host!=tok)return out(res,{err:'Solo el host puede cerrar la sala.'});delete rooms[R.code];R.w.forEach(w=>{clearTimeout(w.t);out(w.res,{gone:1})});return out(res,{ok:1})}
   const e=act(R,tok,m);if(e)return out(res,{err:e});bump(R);return out(res,{ok:1})}
  res.writeHead(404);res.end()}).listen(PORT,()=>console.log('Juegos de cartas listo en http://localhost:'+PORT));

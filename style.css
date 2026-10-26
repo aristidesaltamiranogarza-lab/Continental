@@ -413,3 +413,18 @@ html[data-game="md"] .c.mw.sm .wh,html[data-game="md"] .c.mw.sm .wr{font-size:5.
 html[data-game="md"] .c.md.sm .ac{width:30px;height:30px;border-width:3px;margin-top:14px}html[data-game="md"] .c.md.sm .ac i{font-size:13px}
 html[data-game="md"] .c.md.sm .rc{width:28px;height:28px;margin-top:15px}html[data-game="md"] .c.md.sm .rc u{width:13px;height:13px;font-size:8px}
 html[data-game="md"] .c.mz.sm .ht{margin-top:13px}
+
+/* 🍅 tomates */
+#tombtn{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:85;display:none;align-items:center;padding:10px 14px;border:2px solid #fff;border-radius:24px;background:linear-gradient(#ff6b5a,#c62828);color:#fff;font:800 15px system-ui,sans-serif;text-shadow:0 1px 2px #0008;box-shadow:0 4px 0 #7f1414,0 6px 14px #0008;cursor:pointer;touch-action:manipulation;animation:tomb 1.2s ease-in-out infinite}
+#tombtn.on{display:flex}
+#tombtn:active{transform:translateY(3px);box-shadow:0 1px 0 #7f1414}
+@keyframes tomb{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) scale(1.06)}}
+.tomfly{position:fixed;left:-21px;top:-21px;z-index:95;font-size:42px;line-height:1;pointer-events:none;will-change:transform}
+.tomsplat{position:fixed;z-index:94;width:96px;height:84px;margin:-42px 0 0 -48px;pointer-events:none;border-radius:43% 57% 38% 62%/52% 41% 59% 48%;background:radial-gradient(circle at 38% 36%,#ff8a7a 0,#e53935 40%,#a31515 100%);box-shadow:-30px 18px 0 -22px #d32f2f,34px -12px 0 -24px #d32f2f,22px 30px 0 -26px #c62828,-26px -24px 0 -28px #e53935;display:flex;align-items:center;justify-content:center;animation:tomsplat 2.7s ease-out forwards}
+.tomsplat small{color:#fff;font:800 12px system-ui,sans-serif;text-shadow:0 1px 2px #000;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes tomsplat{0%{transform:scale(.2)}12%{transform:scale(1.2,1.05)}22%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(16px) scaleY(1.1)}}
+.tomme{position:fixed;inset:0;z-index:96;pointer-events:none;display:flex;align-items:center;justify-content:center;animation:tomme 2.9s ease-out forwards}
+.tomme i{position:absolute;width:min(80vw,520px);aspect-ratio:1.15;border-radius:43% 57% 38% 62%/52% 41% 59% 48%;background:radial-gradient(circle at 38% 36%,#ff8a7a 0,#e53935 40%,#a31515 100%);opacity:.92;box-shadow:-120px 80px 0 -70px #d32f2f,140px -60px 0 -80px #c62828,90px 140px 0 -90px #e53935}
+.tomme b{position:relative;color:#fff;font:900 clamp(22px,5vw,40px)/1.2 system-ui,sans-serif;text-align:center;text-shadow:0 2px 6px #000}
+.tomme b small{font-size:.7em}
+@keyframes tomme{0%{transform:scale(.3);opacity:0}10%{transform:scale(1.1);opacity:1}18%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(40px)}}

@@ -44,7 +44,7 @@ const setBg=x=>{sbg=x;applyStyle();render()},setCards=x=>{scards=x;applyStyle();
 applyStyle();
 function styleUI(){if(gnow()=='monopolydeal')return '';if(gnow()=='uno')return `<div class="box"><b>Estilo UNO</b> (caja clásica)<br>Letra del color en cada carta (ayuda si confundes colores): <button class="b g sm2${cbl?' on':''}" onclick="setCb(${!cbl})">${cbl?'Sí':'No'}</button></div>`;return '<div class="box">Fondo: '+Object.keys(BGS).map(k=>`<button class="sw${sbg==k?' on':''}" style="background:${BGS[k]}" onclick="setBg('${k}')" aria-label="${k}"></button>`).join('')+`<br>Cartas: ${[['classic','Clásicas'],['big','Grandes'],['black','Negras'],['retro','Retro'],['contrast','Contraste']].map(([k,n])=>`<button class="b g sm2${scards==k?' on':''}" onclick="setCards('${k}')">${n}</button>`).join('')}<br>Reverso: ${Object.keys(BKS).map(k=>`<button class="sw${sback==k?' on':''}" style="background:${BKS[k]}" onclick="setBack('${k}')" aria-label="${k}"></button>`).join('')}</div>`}
 function nz(d,f,q,v,at){const n=AC.sampleRate*d|0,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);const s=AC.createBufferSource(),fl=AC.createBiquadFilter(),g=AC.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.value=f;fl.Q.value=q;g.gain.value=v;s.connect(fl);fl.connect(g);g.connect(AC.destination);s.start(AC.currentTime+(at||0))}
-function cardSfx(k){if(k=='draw'){nz(.1,3200,1,.9);nz(.07,1800,1.2,.6,.05)}else if(k=='place'){nz(.05,900,.8,1.1);nz(.08,3800,1,.7,.01)}else if(k=='shuf'){for(let i=0;i<7;i++)nz(.05,2500+Math.random()*1500,1,.7,i*.07)}else return false;return true}
+function cardSfx(k){if(k=='splat'){nz(.22,320,.6,1.8);nz(.14,1300,1,.9,.03);nz(.08,2600,1.5,.5,.06)}else if(k=='draw'){nz(.1,3200,1,.9);nz(.07,1800,1.2,.6,.05)}else if(k=='place'){nz(.05,900,.8,1.1);nz(.08,3800,1,.7,.01)}else if(k=='shuf'){for(let i=0;i<7;i++)nz(.05,2500+Math.random()*1500,1,.7,i*.07)}else return false;return true}
 function fly(a,b,id){if(RM||!a||!b)return;const r=a.getBoundingClientRect(),q=b.getBoundingClientRect(),W=46,H=64;
  const e=document.createElement('div');e.className='c fly'+(id==null?' bk':'');
  if(id!=null){const f=(GM[V.game]||GM.continental).face(id);e.innerHTML=f.h;if(f.cls)e.className+=' '+f.cls}
@@ -102,9 +102,26 @@ async function joinR(){pname=pname.trim()||'Jugador';try{enter(await api('join',
 function leave(){S=null;V=null;store();render()}
 async function loop(){const my=S;while(S===my){try{const d=await(await fetch(`poll?c=${S.c}&t=${S.t}&v=${v}`)).json();online=true;
   if(d.gone||d.kicked){msg=d.kicked?'Fuiste expulsado de la sala.':'La sala ya no existe.';S=null;V=null;store();render();return}
-  if(!d.same){const o=V&&V.G;if(!o||!d.G||o.tc!==d.G.tc||o.phase!==d.G.phase||o.round!==d.G.round){sel=new Set();staged=[];armando=false}V=d;v=d.v;onNew(o,d.G);chatUp()}render()}
+  if(!d.same){const o=V&&V.G;if(!o||!d.G||o.tc!==d.G.tc||o.phase!==d.G.phase||o.round!==d.G.round){sel=new Set();staged=[];armando=false}V=d;v=d.v;onNew(o,d.G);chatUp();tomSync()}render()}
  catch(e){online=false;render();await sleep(1500)}}}
 async function send(m){msg='';try{const d=await api('act',{c:S.c,t:S.t,m});if(d.err){bad(d.err);return false}sel=new Set();return true}catch(e){bad('Sin conexión.');return false}}
+// ---- 🍅 tomates: si alguien tarda más de V.tom ms en su turno, los demás (y quien esté mirando) se los pueden lanzar ----
+let tomT0=0,tomN=-1;const TOMB=document.createElement('button');TOMB.id='tombtn';document.body.appendChild(TOMB);
+TOMB.onclick=()=>{if(S)api('act',{c:S.c,t:S.t,m:{t:'tomato'}}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>{})};
+function tomSync(){const G=V&&V.G;if(!G){tomN=-1;return}if(typeof V.tt=='number')tomT0=Date.now()-V.tt;
+ const fx=V.fx||[],mx=fx.reduce((a,f)=>Math.max(a,f.n),0);if(tomN<0){tomN=mx;return}
+ fx.filter(f=>f.n>tomN).forEach((f,i)=>setTimeout(()=>tomFly(f),i*160));tomN=Math.max(tomN,mx)}
+setInterval(()=>{const G=S&&V&&V.G,k=G?G.turn:null,p=G&&V.players[k],ok=!!(G&&G.phase=='play'&&k!=null&&k!==V.me&&p&&!p.bot&&!p.out&&Date.now()-tomT0>(V.tom||15000));
+ TOMB.classList.toggle('on',ok);if(ok){const t='🍅 Lanzar tomate a '+G.players[k].name;if(TOMB.textContent!==t)TOMB.textContent=t}},400);
+const ctr=el=>{const r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]};
+// el tomate vuela (desde el asiento de quien lo lanzó, o desde abajo) hasta el nombre del que se tarda y se embarra
+function tomFly(f){if(f.k===V.me)return tomMe(f.from);const tg=document.querySelector(`[data-seat="${f.k}"]`);if(!tg)return;
+ const fi=V.G.players.findIndex(p=>p.name==f.from),fe=fi>=0&&fi!==V.me&&document.querySelector(`[data-seat="${fi}"]`),[x0,y0]=fe?ctr(fe):[innerWidth/2,innerHeight-70],[x1,y1]=ctr(tg);
+ const e=document.createElement('div');e.className='tomfly';e.textContent='🍅';document.body.appendChild(e);const mx=(x0+x1)/2,my=Math.min(y0,y1)-120;
+ const a=e.animate([{transform:`translate(${x0}px,${y0}px) rotate(0)`},{transform:`translate(${mx}px,${my}px) rotate(260deg)`},{transform:`translate(${x1}px,${y1}px) rotate(520deg)`}],{duration:RM?1:650,easing:'ease-in'});
+ a.onfinish=()=>{e.remove();const s=document.createElement('div');s.className='tomsplat';s.style.cssText=`left:${x1}px;top:${y1}px`;s.innerHTML=`<small>${esc(f.from)}</small>`;document.body.appendChild(s);setTimeout(()=>s.remove(),2700);sfx('splat')}}
+// a ti: tomatazo en toda la pantalla
+function tomMe(from){const e=document.createElement('div');e.className='tomme';e.innerHTML=`<i></i><b>🍅 ¡${esc(from)} te lanzó un tomate!<br><small>¡Apúrate!</small></b>`;document.body.appendChild(e);setTimeout(()=>e.remove(),2900);sfx('splat');if(navigator.vibrate)navigator.vibrate([60,40,60])}
 const kick=id=>{if(confirm('¿Expulsar a este jugador?'))send({t:'kick',id})};
 const hc=k=>{const h=V.G.hands[k];return Array.isArray(h)?h.length:h};
 const nm=i=>esc(V.G.players[i].name);
