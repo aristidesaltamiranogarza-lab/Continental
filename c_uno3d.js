@@ -100,7 +100,8 @@ function drop(key){const m=meshes.get(key);if(!m)return;m.parent&&m.parent.remov
 function target(m,par,pos,q,s,o={}){const T=m.userData.T;
  if(T&&T.par===par&&T.pos.distanceToSquared(pos)<1e-8&&T.q.angleTo(q)<1e-4&&Math.abs(T.s-s)<1e-6)return;
  m.userData.T={par,pos:pos.clone(),q:q.clone(),s};if(m.parent!==par)par.attach(m);
- const ly=par===CA?1:0;if(m.userData.ly!==ly){m.userData.ly=ly;m.traverse(o=>o.layers.set(ly))}
+ // en tu mano las cartas se dibujan en orden (renderOrder) y no por profundidad: inclinadas y tan juntas, una atravesaba a la de al lado
+ const ly=par===CA?1:0;if(m.userData.ly!==ly){m.userData.ly=ly;m.traverse(o=>o.layers.set(ly));const hd=ly==1;m.material.forEach(x=>{x.depthTest=!hd;x.depthWrite=!hd});m.material[3].visible=!hd;if(!hd)m.renderOrder=0}
  const ms=RM||(first&&!dealing)?0:(o.ms==null?430:o.ms);
  if(!ms){m.position.copy(pos);m.quaternion.copy(q);m.scale.setScalar(s);m.userData.tw=null;return}
  m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.7:.12):o.arc,spin:o.spin||0}}
@@ -285,8 +286,8 @@ function sync(){if(!ready||!L||!active())return;
   glow('t'+k,v3(c.x,.003,c.z),Math.max(1.4,cnt*.22+.8),1.2,fin?0xffd54a:0x55c8ff,(fin?G.win==k:G.turn==k)?.8:0,{t:'seat',k},ry)}
  // tu mano en abanico (la luz de la mano es fuerte: sin bajar el tono, los colores se ven deslavados)
  if(me>=0&&Array.isArray(G.hands[me])){const dr=mine&&G.step=='drawn'?G.drawn:null,F=fan(udisp().map(c=>c.id),play,dr);L.hand=F;
-  F.forEach(f=>{const key='c'+f.id,m=ens(key,f.id);live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
-   tint(m,mine&&!G.ad&&!f.ok?.22:.62);selGlow(m,f.ok||(drag&&drag.m===m),f.id===dr?0xffe27a:0x7fd8ff);if(drag&&drag.m===m)return;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
+  F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,f.id),dg=drag&&drag.m===m;live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
+   m.renderOrder=dg?999:10+i;tint(m,mine&&!G.ad&&!f.ok?.22:.62);selGlow(m,f.ok||dg,f.id===dr?0xffe27a:0x7fd8ff);if(m.userData.sg)m.userData.sg.renderOrder=m.renderOrder-.5;if(dg)return;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
  // lo que ya no está, desaparece (las cartas jugadas ya están en el descarte)
  meshes.forEach((m,key)=>{if(!live.has(key))drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});

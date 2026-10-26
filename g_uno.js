@@ -99,4 +99,27 @@ function inner(R,G,i,t,m){
   else{adv(R,1);const v=G.turn,g=give(G,v,n);lg(G,v,'robó '+g+' cartas (castigo)');adv(R,1)}}
  else adv(R,1)}
 const tick=R=>{if(settle(R)&&R.poke)R.poke()};
-module.exports={id:'uno',name:'Uno',min:2,max:10,opts:{stack:true,until:true},start,view,act,kick,tick};
+// ---- bot: qué haría el jugador k ahora. Devuelve {m: acción, ms: espera} o null. server.js lo agenda y lo manda por act() ----
+// Juega como una persona razonable: guarda los comodines, se deshace de las cartas altas, ataca si el siguiente está por ganar,
+// casi siempre dice UNO (a veces se le pasa) y a veces cobra UNO a los demás.
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function bcol(h,id){const n=[0,0,0,0];h.forEach(x=>{const c=U(x);if(x!==id&&c.c<4)n[c.c]++});const m=Math.max(...n);return m?n.indexOf(m):Math.floor(Math.random()*4)}
+function bot(R,k){const G=R.G;if(!G||G.phase!='play'||R.players[k].out)return null;
+ const now=Date.now(),h=G.hands[k],wait=Math.max(0,G.cdUntil-now),mem=R.bm=R.bm||{};
+ // ¡UNO! con 1 carta: casi siempre dentro de la gracia; 1 de cada 5 veces se le pasa y lo pueden cobrar
+ if(h.length==1&&!G.uno[k]){const key='u'+G.tc+':'+k,t0=G.vuln&&G.vuln.k==k?G.vuln.t0:now;if(mem[key]==null)mem[key]=Math.random()<.2?rnd(2300,3800):rnd(450,1150);
+  return {m:{t:'uno'},ms:Math.max(0,t0+mem[key]-now)}}
+ // cobrar UNO a otro (después de su gracia, con algo de reflejos)
+ const v=G.vuln;if(v&&v.k!==k&&v.by<0&&G.hands[v.k].length==1&&!G.uno[v.k]){const key='c'+v.t0+':'+k;if(mem[key]==null)mem[key]=Math.random()<.6?UG+rnd(250,1600):-1;
+  if(mem[key]>=0)return {m:{t:'catch'},ms:Math.max(0,v.t0+mem[key]-now)}}
+ if(G.turn!==k||G.ad)return null;
+ const ms=wait+rnd(900,1800),play=id=>({t:'play',id,col:U(id).c==4?bcol(h,id):undefined});
+ if(G.step=='drawn')return {m:ok(G,h,G.drawn)?play(G.drawn):{t:'pass'},ms:wait+rnd(600,1100)};
+ const can=h.filter(x=>ok(G,h,x));if(!can.length)return {m:{t:'draw'},ms};
+ // ¿el siguiente está por ganar? entonces conviene atacarlo
+ const n=G.players.length;let nx=G.turn;do{nx=(nx+G.dir+n)%n}while(R.players[nx].out);const danger=G.hands[nx].length<=2;
+ const cnt=[0,0,0,0];h.forEach(x=>{const c=U(x);if(c.c<4)cnt[c.c]++});
+ const score=x=>{const c=U(x);if(c.t=='w')return danger?6:-10;if(c.t=='f')return danger?14:-6;
+  return 5+cnt[c.c]*1.5+(c.t!='n'?(danger?10:2):c.n*.15)+Math.random()};
+ const best=can.map(x=>[score(x),x]).sort((a,b)=>b[0]-a[0])[0][1];return {m:play(best),ms}}
+module.exports={id:'uno',name:'Uno',min:2,max:10,opts:{stack:true,until:true},start,view,act,kick,tick,bot};
