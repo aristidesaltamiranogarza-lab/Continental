@@ -39,6 +39,16 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
  if(!G)return 'No hay partida.';
  if(t=='reset'){R.players=R.players.filter(p=>!p.out);R.G=null;return}
  return M.act(R,tok,m)}
+// ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
+const casa={},EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'];
+function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
+ return {c:R.G?null:R.code,g:R.gt,st:R.G?'play':'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name)}})}   // el código solo de las que esperan jugadores
+function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
+ if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';
+  ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;
+  if(EMO.includes(b.em)){o.em=b.em;o.emT=now}if(b.say){const s=String(b.say).trim().slice(0,80);if(s){o.say=s;o.sayT=now}}o.ts=now}
+ for(const k in casa)if(now-casa[k].ts>8000)delete casa[k];
+ return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,x:o.x,z:o.z,yaw:o.yaw,w:o.w,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas()}}
 // ---- HTTP ----
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p]){res.writeHead(200,{'Content-Type':files[p][1],'Cache-Control':'no-store'});return res.end(fs.readFileSync(path.join(__dirname,files[p][0])))}
@@ -50,6 +60,7 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
   req.on('close',()=>{clearTimeout(w.t);R.w=R.w.filter(x=>x!==w)});return}
  if(req.method!='POST'){res.writeHead(404);return res.end()}
  const b=await body(req);
+ if(p=='/casa')return out(res,casaAct(b));
  if(p=='/new'){const code=rnd(5),tok=cr.randomBytes(12).toString('hex'),gt=GAMES[b.game]?b.game:'continental',
    R=rooms[code]={code,gt,opts:Object.assign({},GAMES[gt].opts),host:tok,players:[],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
   R.poke=()=>bump(R);

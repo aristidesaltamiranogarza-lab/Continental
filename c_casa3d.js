@@ -1,22 +1,27 @@
-// Casa de juegos 3D: la pantalla de inicio es una casa donde caminas con tu Mii y eliges a qué mesa entrar.
-// Cada mesa es un juego (Continental, Uno, Monopoly Deal). Sentarte abre una ventanita para crear una sala o unirte con código;
-// de ahí en adelante todo sigue igual (mk / joinR de game.js). Usa los Miis del Continental 3D. NO cambia el servidor.
+// Casa de juegos 3D: la pantalla de inicio es una casa donde caminas con tu Mii, ves a los demás en vivo y eliges a qué mesa entrar.
+// Cada mesa es un juego (Continental, Uno, Monopoly Deal): ahí se ven sentados los que están jugando y las salas que esperan jugadores.
+// Sentarte abre una ventanita para crear una sala o unirte; de ahí en adelante todo sigue igual (mk / joinR de game.js).
+// Emotes y globitos de texto. La posición de cada quien pasa por POST /casa (server.js). Usa los Miis del Continental 3D.
 (function(){
 const K=window.C3D;
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!K){console.warn('Casa 3D: falta Three.js o los Miis del Continental 3D');return}
 const origHome=home;
 let on=true;try{on=localStorage.getItem('casa_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,ready=false,W=0,H=0,por=false,lastNow=0,me=null,meKey='',sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,zoom=1,cy=0,st=null,pin=null;
+let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,zoom=1,cy=0,st=null,pin=null,fire=null,disco=null;
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),keys=new Set(),tch=new Map(),hits=[],ray=new THREE.Raycaster(),P2=new THREE.Vector2(),FLOOR=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
-// la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente, donde está la puerta)
+// cada pestaña es una persona distinta en la casa (sessionStorage: sobrevive a recargar, no se comparte entre pestañas)
+const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
+// la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
 const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']}].filter(t=>GM[t.g]);
 TB.forEach(t=>t.r=2.2);
 const OB=[];                             // obstáculos redondos (sillas, muebles): {x,z,r}
+const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
  uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.'};
+const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
 // ---------- texturas ----------
 function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
@@ -38,16 +43,21 @@ function init(){if(ready)return;ready=true;
  const Ld=new THREE.DirectionalLight(0xfff0d8,2.2);Ld.position.set(-8,22,10);Ld.castShadow=true;Ld.shadow.mapSize.set(2048,2048);Ld.shadow.bias=-.0005;
  Object.assign(Ld.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:70});SC.add(Ld);
  root=document.createElement('div');root.id='h3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
- buildHouse();mkMe();
+ lay=document.createElement('div');lay.id='h3lay';document.body.appendChild(lay);   // nombres, globitos y avisos (fuera de #app: no se borran al redibujar)
+ buildHouse();me=newAv(pname,v3(0,0,3),Math.PI);
+ setTimeout(()=>{if(!moved){moved=true;if(active()&&!inputBusy())render()}},12000);   // la ayuda de arriba se va sola
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{tch.delete(e.pointerId);pin=null;st=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoom=Math.max(.55,Math.min(1.7,zoom*Math.exp(e.deltaY*.0012)))},{passive:false});
  const typing=e=>/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'');
  addEventListener('keydown',e=>{if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
-  else if(k=='q')cy-=.25;else if(k=='e')cy+=.25;else if(k=='escape'&&sel){closed=sel;sel=null;render()}});
+  else if(k=='q')cy-=.25;else if(k=='e')cy+=.25;else if(k=='escape'&&sel){closed=sel;sel=null;render()}
+  else if(k=='enter'){const i=$id('h3say');if(i){e.preventDefault();i.focus()}}
+  else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
  addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
  requestAnimationFrame(loop)}
+const $id=id=>document.getElementById(id);
 function std(c,r,o){return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r==null?.7:r},o||{}))}
 function box(w,h,d,mat,x,y,z,par){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(par||SC).add(m);return m}
 function cyl(rt,rb,h,mat,x,y,z,par,n){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,n||24),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(par||SC).add(m);return m}
@@ -70,7 +80,7 @@ function buildHouse(){
   const wa=new THREE.Mesh(new THREE.PlaneGeometry(w,2.4),std(0x3e2a1c,.55));wa.position.set(x,1.2,z);wa.rotation.y=ry;wa.translateZ(.03);SC.add(wa);
   const tr=new THREE.Mesh(new THREE.PlaneGeometry(w,.14),std(0x2e1f14,.5));tr.position.set(x,2.45,z);tr.rotation.y=ry;tr.translateZ(.05);SC.add(tr)};
  wall(HX*2,0,ZB,0);wall(ZF-ZB,-HX,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,HX,(ZF+ZB)/2,-Math.PI/2);
- // ventana de noche al fondo
+ // ventanas de noche al fondo
  const sky=ctex('sky',256,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0a1230');gr.addColorStop(1,'#26407a');g.fillStyle=gr;g.fillRect(0,0,w,h);
   g.fillStyle='#fff';for(let i=0;i<60;i++){g.globalAlpha=.3+(i%5)*.14;g.fillRect((i*71)%w,(i*37)%(h*.7),2,2)}g.globalAlpha=1;g.fillStyle='#f4f1d0';g.beginPath();g.arc(190,60,18,0,7);g.fill()});
  [-9,9].forEach(wx=>{const win=new THREE.Mesh(new THREE.PlaneGeometry(4.5,3.2),new THREE.MeshBasicMaterial({map:sky}));win.position.set(wx,5.4,ZB+.06);SC.add(win);
@@ -79,7 +89,7 @@ function buildHouse(){
  const logo=ctex('logo',512,128,(g,w,h)=>{g.fillStyle='#2a1a10';rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#c9a24a';g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
   g.font='bold 54px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4d58a';g.fillText('🎴 Casa de juegos',w/2,h/2+3)});
  const lg=new THREE.Mesh(new THREE.PlaneGeometry(6,1.5),std(0xffffff,.6,{map:logo}));lg.position.set(0,6.6,ZB+.08);SC.add(lg);
- // sofá a la derecha, librero a la izquierda, plantas en las esquinas, puerta enfrente
+ // sofá a la derecha, librero a la izquierda, plantas en las esquinas
  const sofa=std(0x2f4a5a,.85),sx=HX-1.4,sz=3;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=-Math.PI/2;SC.add(so);
  box(5.4,.9,2,sofa,0,.75,0,so);box(5.4,1.7,.55,sofa,0,1.6,-.75,so);[-1,1].forEach(s=>box(.55,1.4,2,sofa,s*2.7,1.1,0,so));[-1.3,1.3].forEach(dx=>box(2.5,.35,1.6,std(0x37566a,.9),dx,1.35,.15,so));
  OB.push({x:sx,z:sz-1.8,r:1.4},{x:sx,z:sz,r:1.4},{x:sx,z:sz+1.8,r:1.4});
@@ -89,6 +99,17 @@ function buildHouse(){
  OB.push({x:bx+.5,z:bz-1,r:1.2},{x:bx+.5,z:bz+1,r:1.2});
  const lf=std(0x2e7d32,.8);[[-HX+1.3,ZB+1.3],[HX-1.3,ZB+1.3],[-HX+1.3,ZF-1.5]].forEach(([px,pz])=>{cyl(.5,.38,1,std(0xb5643c,.7),px,.5,pz);
   for(let i=0;i<9;i++){const a=i/9*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.2,1.8,6),lf);l.position.set(px+Math.cos(a)*.28,1.8,pz+Math.sin(a)*.28);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);l.castShadow=true;SC.add(l)}OB.push({x:px,z:pz,r:.9})});
+ // chimenea en la pared izquierda, con fuego que parpadea
+ const fx=-HX+.75,fz=-9,stone=std(0x8a8077,.9),ch=new THREE.Group();ch.position.set(fx,0,fz);ch.rotation.y=Math.PI/2;SC.add(ch);
+ box(3.6,3.2,1.3,stone,0,1.6,0,ch);box(4.2,.3,1.6,std(0x4a2c18,.5),0,3.3,.1,ch);box(2.2,1.7,.2,std(0x120a06,.95),0,1.15,.6,ch);box(2.2,6,1,stone,0,6,-.1,ch);
+ [-.35,.35].forEach((d,i)=>{const l=cyl(.13,.13,1.5,std(0x5a3418,.8),d*.4,.45,.75,ch,10);l.rotation.z=Math.PI/2;l.rotation.y=d})
+ const flames=[[0,.75,.45,1.1,0xff7a1a],[-.3,.7,.3,.8,0xffb02e],[.32,.7,.3,.75,0xffb02e],[0,.7,.22,.55,0xfff1a8]].map(([x,y,r,h,c])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,12),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.9}));m.position.set(x,y+h/2,.75);ch.add(m);return m});
+ const fl2=new THREE.PointLight(0xff8a2a,18,14,1.6);fl2.position.set(0,1.4,1.6);ch.add(fl2);fire={flames,light:fl2};OB.push({x:fx+.5,z:fz,r:2.1});
+ // bola disco sobre el tapete: gira siempre; sus luces de colores se prenden cuando alguien baila
+ const mir=ctex('mirror',256,128,(g,w,h)=>{for(let y=0;y<h;y+=8)for(let x=0;x<w;x+=8){const v=150+Math.random()*105|0;g.fillStyle=`rgb(${v},${v},${v+10})`;g.fillRect(x,y,7,7)}});
+ const ball=new THREE.Mesh(new THREE.SphereGeometry(.6,24,16),std(0xffffff,.25,{map:mir,metalness:.9,emissive:0x222233}));ball.position.set(0,7.6,-4);SC.add(ball);
+ cyl(.015,.015,1.4,std(0x222222,.4),0,8.9,-4,SC,6);
+ const dl=[0xff2fd1,0x2fe8ff,0xffe02f].map(c=>{const l=new THREE.PointLight(c,0,16,1.4);SC.add(l);return l});disco={ball,dl,lvl:0};
  // mesas de juego
  TB.forEach(t=>buildTable(t));
  // marca donde tocaste el piso
@@ -101,54 +122,100 @@ function buildTable(t){const G=new THREE.Group();G.position.set(t.x,0,t.z);SC.ad
  // cartitas encima
  (DECO[t.g]||[]).forEach(([k,bg,fg,tx],i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(.55,.77),new THREE.MeshStandardMaterial({map:miniCard(k,bg,fg,tx),roughness:.6,transparent:true}));
   const a=i/5*Math.PI*2+.4,d=i==4?0:1.1;m.rotation.set(-Math.PI/2,0,a*1.7);m.position.set(Math.cos(a)*d,TH+.08+i*.002,Math.sin(a)*d);m.receiveShadow=true;G.add(m)});
- // sillas alrededor
- for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4,cx=Math.cos(a)*(t.r+.9),cz=Math.sin(a)*(t.r+.9),ch=new THREE.Group();ch.position.set(cx,0,cz);ch.rotation.y=Math.atan2(-cx,-cz);G.add(ch);
+ // sillas alrededor (cuando alguien está jugando en esa mesa, su Mii ocupa la silla)
+ t.chairs=[];for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4,cx=Math.cos(a)*(t.r+.9),cz=Math.sin(a)*(t.r+.9),ch=new THREE.Group();ch.position.set(cx,0,cz);ch.rotation.y=Math.atan2(-cx,-cz);G.add(ch);
   box(1,.12,1,wood,0,.9,0,ch);box(1,1.3,.12,wood,0,1.6,-.45,ch);[[-.42,-.42],[.42,-.42],[-.42,.42],[.42,.42]].forEach(([x,z])=>cyl(.05,.05,.9,wood,x,.45,z,ch,8));
-  OB.push({x:t.x+cx,z:t.z+cz,r:.6})}
+  t.chairs.push(ch);OB.push({x:t.x+cx,z:t.z+cz,r:.6})}
  // luz cálida sobre la mesa (sin lámpara: desde arriba tapaba la vista)
  const lt=new THREE.PointLight(0xffd9a0,30,12,1.6);lt.position.y=5.9;G.add(lt);
  // aro de luz en el piso: se prende cuando te acercas
  const ring=new THREE.Mesh(new THREE.RingGeometry(t.r+1.4,t.r+1.7,64),new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:0,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.03;G.add(ring);
  t.ring=ring;G.traverse(o=>{if(o.userData.hit)hits.push(o)})}
 
-// ---------- tu Mii ----------
-function myLook(){const n=(pname||'').trim()||'Tú';return [K.hsh(n)%10,K.hsh(n+'·')%K.AVP.length]}
-function mkMe(){const [k,pi]=myLook(),key=k+':'+pi;if(me&&meKey===key)return;const old=me;meKey=key;
- const g=K.mkAvatar(k,pi,{stand:true});g.traverse(o=>{if(o.isMesh)o.castShadow=true});SC.add(g);
- const u=g.userData;u.pos=old?old.userData.pos:v3(0,0,3);u.yaw=old?old.userData.yaw:Math.PI;u.ph=0;u.w=0;g.position.copy(u.pos).setY(1.57);
- if(old){SC.remove(old);old.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}me=g}
-const POLE=[v3(-1.2,-.4,-.7),v3(1.2,-.4,-.7)],tmp=new THREE.Vector3(),tmp2=new THREE.Vector3();
-// pasos: piernas y brazos se mecen al caminar (w = qué tanto camina, ph = fase del paso)
-function pose(now){const u=me.userData,w=u.w,ph=u.ph;
- u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650);u.body.rotation.x=.06*w;
- (u.legs||[]).forEach(L=>{const a=L.s*Math.sin(ph)*.55*w,b=a*.6-Math.max(0,L.s*Math.cos(ph))*.35*w,kn=tmp.set(L.hp.x+L.s*.01,L.hp.y-.48*Math.cos(a),L.hp.z+.48*Math.sin(a)),an=tmp2.set(kn.x,kn.y-.42*Math.cos(b),kn.z+.42*Math.sin(b));
+// ---------- Miis de pie (tú y los demás). Cada quien se ve igual en todas las pantallas: cara y color salen de su nombre ----------
+function lookOf(n){n=(n||'').trim()||'Tú';return [K.hsh(n)%10,K.hsh(n+'·')%K.AVP.length]}
+function disposeG(g){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+function mkG(name,seat){const [k,pi]=lookOf(name),g=K.mkAvatar(k,pi,seat?{}:{stand:true});g.traverse(o=>{if(o.isMesh)o.castShadow=true});SC.add(g);g.userData.key=k+':'+pi;return g}
+function newAv(name,pos,yaw){const g=mkG(name);const a={g,name,pos:pos.clone(),to:pos.clone(),yaw,tyaw:yaw,w:0,ph:0,waveT:-1e9,dance:null,danceT:-1e9,tag:null,bub:null,bubT:0};g.position.set(pos.x,1.57,pos.z);g.rotation.y=yaw;return a}
+function rename(a,name){a.name=name;const k=lookOf(name).join(':');if(k!==a.g.userData.key){const g=mkG(name);g.position.copy(a.g.position);g.rotation.y=a.g.rotation.y;disposeG(a.g);a.g=g}if(a.tag)a.tag.textContent=(name||'').trim()||'Tú'}
+function dropAv(a){disposeG(a.g);if(a.tag)a.tag.remove();if(a.bub)a.bub.remove()}
+const POLE=[v3(-1.2,-.4,-.7),v3(1.2,-.4,-.7)],tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),wv=new THREE.Vector3();
+// pasos: piernas y brazos se mecen al caminar (w = qué tanto camina, ph = fase del paso); con un emote, la mano derecha saluda.
+// Bailes (parado): 💃 brazos arriba y cadera de lado a lado; 🕺 de disco, señalando arriba y abajo con la otra mano en la cintura
+const dancing=(a,now)=>{const t=now-a.danceT;return a.dance&&t>=0&&t<DMS&&a.w<.3?Math.min(1,t/300,(DMS-t)/300):0};
+function pose(a,now,lookDown){const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
+ u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650)+Math.abs(Math.sin(bt))*.12*dn;u.body.rotation.x=.06*w;
+ u.body.rotation.z=Math.sin(bt)*(disco?.06:.14)*dn;u.body.rotation.y=Math.sin(bt/2)*(disco?.5:.3)*dn;u.head.rotation.z=-Math.sin(bt)*.18*dn;
+ (u.legs||[]).forEach(L=>{let q=L.s*Math.sin(ph)*.55*w,b=q*.6-Math.max(0,L.s*Math.cos(ph))*.35*w;
+  if(dn){const up=Math.max(0,L.s*Math.sin(bt))*(disco?.7:.45)*dn;q+=up;b-=up*1.3}   // pasito: sube una rodilla y luego la otra
+  const kn=tmp.set(L.hp.x+L.s*.01,L.hp.y-.48*Math.cos(q),L.hp.z+.48*Math.sin(q)),an=tmp2.set(kn.x,kn.y-.42*Math.cos(b),kn.z+.42*Math.sin(b));
   K.seg(L.up,L.hp,kn);K.seg(L.lo,kn,an);L.sh.position.set(an.x,an.y-.07,an.z+.08)});
- u.arms.forEach(a=>{const s=a.s,sw=-s*Math.sin(ph)*.38*w;a.h.set(s*.52,-.6+.08*Math.abs(sw),sw+.06);K.ik(a.sh,a.h,u.l1,u.l2,POLE[s>0?1:0].clone(),a.el);K.seg(a.up,a.sh,a.el);K.seg(a.fo,a.el,a.h);a.hand.position.copy(a.h)});
- u.head.rotation.y*=.9;u.head.rotation.x+=((sel?.25:.05)-u.head.rotation.x)*.1}
+ u.arms.forEach(m=>{const s=m.s,sw=-s*Math.sin(ph)*.38*w,pole=POLE[s>0?1:0].clone();m.h.set(s*.52,-.6+.08*Math.abs(sw),sw+.06);
+  if(s>0&&wave&&!dn){m.h.lerp(wv.set(.55,1.05+.14*Math.sin(now/85),.25),wave);pole.y+=1.4*wave}
+  if(dn){if(!disco)wv.set(s*(.42+.14*Math.sin(bt+s)),1.1+.12*Math.sin(bt*2+s),.12);
+   else if(s>0)wv.set(Math.sin(bt)>0?.75:.55,Math.sin(bt)>0?1.25:-.45,Math.sin(bt)>0?.35:.4);else wv.set(-.48,-.18,-.08);
+   m.h.lerp(wv,dn);pole.y+=(disco&&s<0?.2:1.3)*dn}
+  K.ik(m.sh,m.h,u.l1,u.l2,pole,m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)});
+ u.head.rotation.y*=.9;u.head.rotation.x+=((lookDown?.25:.05)-u.head.rotation.x)*.1}
+// Miis sentados jugando (los de las salas que ya empezaron): manos sobre la mesa, de vez en cuando tiran una carta
+function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Math.max(0,Math.sin(t*.8)),10);
+ u.body.scale.y=1+.012*Math.sin(now/650+s.seed);u.head.rotation.y=.45*Math.sin(t*.35);u.head.rotation.x=.25;
+ u.arms.forEach(m=>{const k=m.s>0?r:0;m.h.set(m.s*.34-m.s*.12*k,.36+.15*k,.72+.6*k);K.ik(m.sh,m.h,u.l1,u.l2,POLE[m.s>0?1:0].clone(),m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
+function seatSync(){const want=new Map();TB.forEach(t=>{rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))});
+ seated.forEach((s,k)=>{if(!want.has(k)){disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
+ want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1);c.visible=false;
+  g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10})})}
 function solve(p){p.x=Math.max(-HX+1,Math.min(HX-1,p.x));p.z=Math.max(ZB+1.2,Math.min(ZF-1,p.z));
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}})}
-function walk(dt,now){const u=me.userData,p=u.pos,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
+function turn(a,yaw){let d=yaw-a.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));a.g.rotation.y+=d*.18}
+function walk(dt,now){const a=me,p=a.pos,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
  if(keys.has('w')||keys.has('arrowup'))dir.add(fw);if(keys.has('s')||keys.has('arrowdown'))dir.sub(fw);if(keys.has('d')||keys.has('arrowright'))dir.add(rt);if(keys.has('a')||keys.has('arrowleft'))dir.sub(rt);
  if(!dir.lengthSq()&&tgt){dir.subVectors(tgt,p).setY(0);if(dir.length()<.12){dir.set(0,0,0);arrive()}}
  const sp=5.2*dt/1000;let mv=0;
- if(dir.lengthSq()){dir.normalize();const q=p.clone();p.addScaledVector(dir,sp);solve(p);mv=q.distanceTo(p);u.yaw=Math.atan2(dir.x,dir.z);if(!moved){moved=true;render()}
+ if(dir.lengthSq()){dir.normalize();const q=p.clone();p.addScaledVector(dir,sp);solve(p);mv=q.distanceTo(p);a.yaw=Math.atan2(dir.x,dir.z);a.danceT=-1e9;if(!moved){moved=true;render()}
   // atorado contra una silla o mueble camino a una mesa: ya llegó
   if(tgt){stuck=mv<sp*.3?stuck+1:0;if(stuck>8)arrive()}}
- u.w+=((mv>.001?1:0)-u.w)*.15;u.ph+=mv*3.1;
+ a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*3.1;
  // mirar hacia la mesa al llegar
- const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)u.yaw=Math.atan2(t.x-p.x,t.z-p.z);
- let d=u.yaw-me.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));me.rotation.y+=d*.18;me.position.set(p.x,1.57,p.z);pose(now);
+ const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);
+ turn(a,a.yaw);a.g.position.set(p.x,1.57,p.z);pose(a,now,!!sel);
  // ¿cerca de una mesa? abre su ventanita (si la cerraste, hasta que te alejes)
  let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3;if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
  if(closed&&closed!==near)closed=null;const want=near&&near!==closed?near:null;if(want!==sel){sel=want;if(sel)sfx('tick');render()}}
+// los demás: se deslizan suave hacia la última posición que mandó el servidor
+function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);
+ a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,1.57,a.pos.z);pose(a,now,false)});
+ seated.forEach(s=>poseSeated(s,now))}
 function arrive(){tgt=null;stuck=0;if(tgtG){closed=null;tgtG=null}}
-function goTable(g){const t=TB.find(x=>x.g===g);if(!t)return;const p=me.userData.pos,d=Math.hypot(p.x-t.x,p.z-t.z)||1;
- tgt=v3(t.x+(p.x-t.x)/d*(t.r+1.5),0,t.z+(p.z-t.z)/d*(t.r+1.5));tgtG=g;closed=null;stuck=0;showMark(tgt);sfx('card')}
+// llega por el hueco entre dos sillas que le quede más cerca (las sillas están a 45°, los huecos a 0°, 90°, 180° y 270°)
+function goTable(g){const t=TB.find(x=>x.g===g);if(!t)return;const p=me.pos,a=Math.round(Math.atan2(p.z-t.z,p.x-t.x)/(Math.PI/2))*(Math.PI/2);
+ tgt=v3(t.x+Math.cos(a)*(t.r+1.5),0,t.z+Math.sin(a)*(t.r+1.5));solve(tgt);tgtG=g;closed=null;stuck=0;showMark(tgt);sfx('card')}
 function showMark(p){mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mark.scale.setScalar(1)}
+
+// ---------- en vivo: mando mi posición y recibo a los demás + las salas (cada ~0.3 s) ----------
+function inputBusy(){const a=document.activeElement;return !!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.closest&&a.closest('#app'))}
+async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
+ const b={id:myId,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
+ try{const d=await api('casa',b);if(active())netSync(d)}catch(e){}netBusy=false}
+function netSync(d){const seen=new Set(),n0=others.size;
+ (d.p||[]).forEach(o=>{seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
+  if(!a){a=newAv(o.name,pos,+o.yaw||0);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
+  else if(a.name!==o.name)rename(a,o.name);
+  a.to.copy(pos);if(!o.w&&a.to.distanceTo(a.pos)<.05)a.tyaw=+o.yaw||a.tyaw;
+  if(o.em&&o.emN!==a.emN){a.emN=o.emN;bubble(a,o.em,1)}if(o.say&&o.sayN!==a.sayN){a.sayN=o.sayN;bubble(a,o.say)}});
+ others.forEach((a,id)=>{if(!seen.has(id)){if(synced)toast(`${a.name} salió`);dropAv(a);others.delete(id)}});
+ rooms=d.r||[];const k=JSON.stringify(rooms)+'|'+others.size;synced=true;
+ if(k!==roomsKey){const rk=roomsKey.split('|')[0],nk=k.split('|')[0];roomsKey=k;if(rk!==nk)seatSync();if(!inputBusy())render()}}
+// globitos (lo que dijo o su emote) y nombres arriba de cada Mii
+function bubble(a,t,emo){if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
+function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='w7 w7g h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
+function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='w7 t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
+  const [x,y,vis]=toPx(v3(a.pos.x,3.45,a.pos.z));a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
+  if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05,a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
 
 // ---------- cámara (sigue a tu Mii desde atrás y arriba) ----------
 const camP=v3(0,12,20),camT=v3(0,0,0);
-function camStep(snap){const p=me.userData.pos,d=(por?28:19)*zoom,el=por?1.08:.9,ah=por?6:5;   // ah: mira un poco adelante de tu Mii
+function camStep(snap){const p=me.pos,d=(por?28:19)*zoom,el=por?1.08:.9,ah=por?6:5;   // ah: mira un poco adelante de tu Mii
  // en celular parado, con la ventanita de la mesa abierta (abajo), la mesa y tu Mii se suben a la parte de arriba
  const t=por&&sel&&TB.find(x=>x.g===sel),c=t?v3((t.x+p.x)/2+Math.sin(cy)*6,0,(t.z+p.z)/2+Math.cos(cy)*6):null;
  const look=c?v3(c.x,1,c.z):v3(p.x-Math.sin(cy)*ah,1,p.z-Math.cos(cy)*ah),want=v3(look.x+Math.sin(cy)*Math.cos(el)*d,Math.sin(el)*d,look.z+Math.cos(cy)*Math.cos(el)*d);
@@ -159,7 +226,8 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q
 // ---------- tocar: piso = caminar ahí, mesa o letrero = ir a esa mesa; arrastrar = girar la cámara; pellizcar/rueda = zoom ----------
 function pick(e){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
  const h=ray.intersectObjects(hits,false);if(h.length)return h[0].object.userData.hit;const p=ray.ray.intersectPlane(FLOOR,v3(0,0,0));return p?{t:'floor',p}:null}
-function pDown(e){if(!active())return;if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);if(tch.size==2){const [a,b]=[...tch.values()];pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,z:zoom};st=null;return}}
+function pDown(e){if(!active())return;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+ if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);if(tch.size==2){const [a,b]=[...tch.values()];pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,z:zoom};st=null;return}}
  st={x:e.clientX,y:e.clientY,cy,pid:e.pointerId,drag:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
 function pMove(e){if(!active())return;if(tch.has(e.pointerId))tch.set(e.pointerId,[e.clientX,e.clientY]);
  if(pin&&tch.size>=2){const [a,b]=[...tch.values()];zoom=Math.max(.55,Math.min(1.7,pin.z*pin.d/(Math.hypot(a[0]-b[0],a[1]-b[1])||1)));return}
@@ -171,39 +239,50 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
  tgt=h.p.setY(0);tgtG=null;solve(tgt);showMark(tgt)}
 
 // ---------- capa de controles ----------
-function hud(){const g=sel&&GM[sel];
- let o=`<div id="h3top" class="w7 w7g"><span class="h3t">🏠 <b>Casa de juegos</b></span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">
+function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
+function hud(){const g=sel&&GM[sel],n=others.size+1;
+ let o=`<div id="h3top" class="w7 w7g"><span class="h3t">🏠 <b>Casa de juegos</b></span><span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">
   ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button></div>`;
- if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar'}</div>`;
- TB.forEach(t=>{const G=GM[t.g];o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${G.name}</b><small>${t.g===sel?'aquí':'toca para jugar'}</small></div>`});
- o+=`<div class="w7 t3pl" id="h3me">${esc((pname||'').trim()||'Tú')}</div>`;
+ if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · Enter para hablar'}</div>`;
+ TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'toca para jugar';
+  o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${G.name}</b><small>${sub}</small></div>`});
  if(msg&&!g)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="w7 w7g">Te invitaron a la sala <b>${esc(code)}</b><button class="w7b p" onclick="joinR()">Unirme</button></div>`;
- if(g)o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
-  <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.</span></div>
-  <div class="h3b"><button class="w7b dflt" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
-  <div class="h3j"><span>¿Ya tienes código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
-  ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`;
+ // emotes y para hablar (lo ven todos los que están en la casa)
+ o+=`<div id="h3bar" class="w7 w7g">${EMO.map((e,i)=>`<button class="w7b em" onclick="casaEm('${e}')" title="${e} (tecla ${i+1})" aria-label="Emote ${e}">${e}</button>`).join('')}<span class="say"><input id="h3say" maxlength="80" placeholder="Di algo…" onkeydown="if(event.key==='Enter')casaSay();else if(event.key==='Escape')this.blur()" aria-label="Decir algo"><button class="w7b" onclick="casaSay()" aria-label="Decir">💬</button></span></div>`;
+ if(g){const {pl,op}=tinfo(sel);
+  o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
+  <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.${pl?` Ahora: ${pl} jugando.`:''}</span></div>
+  ${op.length?`<div class="h3rooms"><span>Salas esperando jugadores</span>${op.slice(0,5).map(r=>`<div><span>Sala de <b>${esc(r.host)}</b></span><small>${r.n}/${r.max}</small><button class="w7b p" onclick="casaJoin('${esc(r.c)}')">Unirme</button></div>`).join('')}</div>`:''}
+  <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
+  <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
+  ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
  return o}
-// letreros, nombre y avisos: siguen a la mesa / a tu Mii en la pantalla
-function labels(){const tb=document.getElementById('h3top'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
+// letreros: siguen a su mesa en la pantalla
+function labels(){const tb=$id('h3top'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
  document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
-  el.style.display=vis?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`});   // nunca debajo de la barra de arriba
- const m=document.getElementById('h3me');if(m){const [x,y]=toPx(v3(me.userData.pos.x,3.5,me.userData.pos.z));m.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`}}
+  el.style.display=vis?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
 
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}
 function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('h3on',a);if(!a){keys.clear();return}
+ if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none'}document.documentElement.classList.toggle('h3on',a);if(!a){keys.clear();return}
  document.documentElement.classList.toggle('c3dark',dark);
  if(innerWidth!==W||innerHeight!==H){layout();camStep(true)}
- walk(dt,now);camStep(false);mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);labels();R.render(SC,CA)}
+ net(now);walk(dt,now);walkOthers(dt,now);camStep(false);mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
+ if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
+ if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
+  disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
+ labels();tags(now);R.render(SC,CA)}
 home=function(){if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}render()};
 window.casaGo=g=>{if(sel===g)return;goTable(g)};
 window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;mk(mode)};
-let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>{mkMe();const m=document.getElementById('h3me');if(m)m.textContent=(pname||'').trim()||'Tú'},350)};
+window.casaJoin=c=>{code=c;joinR()};
+window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};
+window.casaSay=()=>{const i=$id('h3say'),t=i&&i.value.trim().slice(0,80);if(!t)return;i.value='';outSay=t;bubble(me,t);sfx('tick')};
+let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>rename(me,pname),350)};
 })();
