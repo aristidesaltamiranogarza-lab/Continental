@@ -190,10 +190,66 @@ html.c3dark .w7win .opt{color:#eee}
 html.c3dark .w7win .opt.on{border-color:#4f8fcf;background:linear-gradient(#2f5680,#24476d);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
 html.c3dark .w7win .nt{color:#a9adb3}
 html.c3dark .w7win .ft .dflt{border-color:#4f8fcf;box-shadow:inset 0 0 0 1px #6aa8dc}
+/* ===== Uno 3D (usa las mismas barras y ventanas del Continental 3D) ===== */
+html.u3on,html.u3on body{overflow:hidden;height:100%;overscroll-behavior:none}
+html.u3on #app{pointer-events:none}
+#u3root{position:fixed;inset:0;z-index:1;display:none;background:radial-gradient(ellipse at 50% 42%,#3b2a1e 0%,#1c130c 52%,#080503 100%);touch-action:none;-webkit-user-select:none;user-select:none}
+#u3root canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
+html.u3mini #t3cam{top:calc(env(safe-area-inset-top,0px) + 6px)}
+html.u3mini #t3menu{top:calc(env(safe-area-inset-top,0px) + 54px)}
+html.u3mini #t3view{top:calc(env(safe-area-inset-top,0px) + 56px)}
+html.u3mini .t3msg{top:calc(env(safe-area-inset-top,0px) + 56px)}
+.u3chip{display:inline-block;width:.85em;height:.85em;border-radius:50%;vertical-align:-.08em;background:var(--c);box-shadow:0 0 0 2px #fff,0 0 8px var(--c)}
+#t3top .u3pend{color:#ffd54a}
+/* ¡UNO! (rojo, como el botón de la vista 2D) y Cobrar UNO */
+#t3bar .u3uno{border-color:#7a1010;background:linear-gradient(#ff8a80 0%,#f44336 46%,#d32f2f 52%,#b71c1c 100%);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);font-weight:800;letter-spacing:.02em}
+#t3bar .u3uno[disabled]{opacity:.45}
+#t3bar .u3uno.go{animation:u3uno 1s ease-in-out infinite;opacity:1;pointer-events:auto}
+#t3bar .u3uno.ok{opacity:.9;background:linear-gradient(#a5d6a7 0%,#43a047 46%,#2e7d32 52%,#1b5e20 100%);border-color:#1b5e20}
+@keyframes u3uno{0%,100%{transform:scale(1);box-shadow:0 0 6px 2px rgba(255,80,60,.6)}50%{transform:scale(1.1);box-shadow:0 0 22px 8px rgba(255,200,60,.95)}}
+#t3bar .u3catch{border-color:#5a2a8a;background:linear-gradient(#e1bee7 0%,#ab47bc 46%,#8e24aa 52%,#6a1b9a 100%);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);animation:w7glow 1.2s ease-in-out infinite}
+.t3seat .u3b{display:block;margin-top:2px;font-style:normal;font-weight:800;color:#ffd54a;text-shadow:0 0 6px #000,0 1px 2px #000;animation:u3b .8s ease-in-out infinite alternate}
+.t3seat.u3one{border-color:#ffd54a}
+@keyframes u3b{from{transform:scale(1)}to{transform:scale(1.12)}}
+/* ventana para elegir el color del comodín */
+#u3pick{z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 20px));animation:t3win .18s ease-out}
+.u3cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.u3col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:86px;border-radius:12px;border:3px solid #fff;cursor:pointer;touch-action:manipulation;
+ background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),var(--c);color:#fff;font:800 1.15em "Segoe UI",system-ui,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.7);box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.u3col small{font-weight:600;font-size:.72em;opacity:.95}
+.u3col.best{outline:3px solid #3c7fb1;outline-offset:2px}
+@media (hover:hover){.u3col:hover{filter:brightness(1.1)}}
+.u3col:active{transform:scale(.97)}
+@media (max-width:600px) and (orientation:portrait){#u3pick{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);transform:translateX(-50%);animation:none}}
+/* símbolo de la carta especial que salta sobre el descarte (o ¡UNO! sobre un jugador) */
+.u3fx{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-50%);text-align:center;animation:u3fx 1.5s ease-out forwards}
+.u3fx b{display:block;font:italic 900 46px/1 "Arial Black","Segoe UI",system-ui,sans-serif;color:#fff;-webkit-text-stroke:2px rgba(0,0,0,.55);text-shadow:0 0 18px var(--c),0 0 6px var(--c),0 3px 6px #000}
+.u3fx.big b{font-size:clamp(56px,11vmin,96px)}
+.u3fx small{display:block;margin-top:2px;font:800 18px "Segoe UI",system-ui,sans-serif;color:#fff;text-shadow:0 0 8px var(--c),0 1px 3px #000}
+@keyframes u3fx{0%{opacity:0;transform:translate(-50%,-30%) scale(.4)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}30%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
+/* fin de la partida: resultados arriba, la mesa con el Mii ganador festejando se sigue viendo */
+#u3win{z-index:25;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);width:min(340px,calc(100% - 20px));max-height:calc(100% - 150px);animation:t3pop .2s ease-out}
+#u3win .wb{align-items:center;gap:4px;overflow:auto}
+#u3win .u3tro{font-size:44px;line-height:1;animation:u3b .9s ease-in-out infinite alternate}
+#u3win .u3wn{font-size:1.2em;margin-bottom:4px}
+#u3win .u3res{align-self:stretch;display:flex;flex-direction:column;gap:2px;font-size:.92em}
+#u3win .u3res div{display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:3px}
+#u3win .u3res span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#u3win .u3res .w{background:linear-gradient(#fff6d6,#ffe9a6);border:1px solid #e0b94a}
+html.c3dark #u3win .u3res .w{background:linear-gradient(#5a4a1c,#47390f);border-color:#a8862a}
+html.u3mini #u3win{top:calc(env(safe-area-inset-top,0px) + 56px)}
+/* cartita del descarte (igual que la del Continental 3D) */
+#u3dpv{left:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:9;padding:4px 6px 5px;border-radius:9px;pointer-events:none;text-align:center;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .15s,transform .15s,visibility 0s .15s}
+#u3dpv.on{opacity:1;visibility:visible;transform:none;transition:opacity .15s,transform .15s}
+#u3dpv small{display:block;font-size:.72em;opacity:.95;margin-bottom:3px}
+#u3dpv img{display:block;width:clamp(56px,7vw,84px);aspect-ratio:256/384;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#u3dpv .nm{margin-top:2px;font-weight:700;font-size:.85em}
+#u3dpv.new img{animation:t3dpvnew 1.2s ease-out}
+@media (max-width:699px){#u3dpv{bottom:calc(var(--t3fan,200px) + 6px)}}
 /* pantallas bajitas (celular acostado) */
 @media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}#t3view{top:50px}#t3cam{top:48px}#t3cam .pan{grid-template-columns:repeat(4,40px)}#t3cam .w7b{width:40px;height:40px}#t3cam .pan .wide{grid-column:1/5}#t3ap{max-height:calc(100% - 12px)}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
 </style>
 </head><body><div id="app">Cargando…</div>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="game.js"></script><script src="music.js"></script><script src="c_continental.js"></script><script src="c_uno.js"></script><script src="c_monopolydeal.js"></script>
-<script src="c_continental3d.js"></script></body></html>
+<script src="c_continental3d.js"></script><script src="c_uno3d.js"></script></body></html>

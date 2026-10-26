@@ -861,4 +861,6 @@ window.c3dBajar=bajar3d;
 window.c3dLook=look;
 window.c3dHome=home;
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
+// el Uno 3D usa el mismo cuarto y los mismos Miis
+window.C3D={buildRoom,mkAvatar,avPick,seg,ik};
 })();
