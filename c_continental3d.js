@@ -716,7 +716,7 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
 
 // ---------- capa de controles (HTML encima del 3D) ----------
 function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&&G.step=='play',drw=mine&&G.step=='draw';
- const hint=i<0?'Mirando como host':mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
+ const hint=i<0?mirTxt():mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
  let h=`<div id="t3top" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="c3dMenu()" aria-label="Menú">☰ Juego</button>
   <div class="inf"><div class="l1">Ronda ${G.round+1}/7 · <b>${conTxt(G.round)}</b></div><div class="l2">${mine?'<b>¡Tu turno!</b> '+hint:hint}</div></div>
   <button class="w7b" onclick="c3dMini()" title="Ocultar la barra" aria-label="Ocultar la barra">▴</button><button class="w7b" onclick="c3dToggle()" title="Vista clásica 2D">2D</button></div>`;
@@ -733,7 +733,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  h+=`<div class="w7 t3pl" id="t3pdk">Mazo · ${G.deck}</div><div class="w7 t3pl" id="t3pds">Descarte</div>`;
  // botones de abajo
  let b='';
- if(i<0)b=`<span class="hint">Mirando como host</span>`;
+ if(i<0)b=`<span class="hint">${mirTxt()}</span>${V.watch?'<button class="w7b" onclick="leave()">🚪 Dejar de mirar</button>':''}`;
  else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="w7b${rd?' p':''}" onclick="c3dBajar()">⬇ Bajarme</button>`;if(V.pend)b+=`<button class="w7b" onclick="send({t:'undoswap'})">↶ Deshacer cambio</button>`;
    b+=`<button class="w7b${sel.size==1&&!rd?' p':''}" onclick="discard()">Descartar</button>`}
   else if(drw)b+=`<span class="hint">👆 Toca el mazo o el descarte</span>`;

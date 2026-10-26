@@ -314,10 +314,11 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="w7 w7g">Te invitaron a la sala <b>${esc(code)}</b><button class="w7b p" onclick="joinR()">Unirme</button></div>`;
  // emotes y para hablar (lo ven todos los que están en la casa)
  o+=`<div id="h3bar" class="w7 w7g">${EMO.map((e,i)=>`<button class="w7b em" onclick="casaEm('${e}')" title="${e} (tecla ${i+1})" aria-label="Emote ${e}">${e}</button>`).join('')}<span class="say"><input id="h3say" maxlength="80" placeholder="Di algo…" onkeydown="if(event.key==='Enter')casaSay();else if(event.key==='Escape')this.blur()" aria-label="Decir algo"><button class="w7b" onclick="casaSay()" aria-label="Decir">💬</button></span></div>`;
- if(g){const {pl,op}=tinfo(sel);
+ if(g){const {pl,op}=tinfo(sel),pr=rooms.filter(r=>r.g==sel&&r.st=='play'&&r.w);
   o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
   <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.${pl?` Ahora: ${pl} jugando.`:''}</span></div>
   ${op.length?`<div class="h3rooms"><span>Salas esperando jugadores</span>${op.slice(0,5).map(r=>`<div><span>Sala de <b>${esc(r.host)}</b></span><small>${r.n}/${r.max}</small><button class="w7b p" onclick="casaJoin('${esc(r.c)}')">Unirme</button></div>`).join('')}</div>`:''}
+  ${pr.length?`<div class="h3rooms h3watch"><span>Partidas en curso</span>${pr.slice(0,5).map(r=>`<div><span>${esc(r.ps.slice(0,3).join(', '))}${r.n>3?'…':''}</span><small>${r.sp?'👁 '+r.sp:''}</small><button class="w7b" onclick="casaWatch('${esc(r.w)}')" title="Mirar sin jugar">👁 Ver</button></div>`).join('')}</div>`:''}
   <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
   <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
   ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
@@ -345,6 +346,7 @@ window.casaGo=g=>{if(sel===g)return;goTable(g)};
 window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;mk(mode)};
 window.casaJoin=c=>{code=c;joinR()};
+window.casaWatch=c=>watchR(c);
 window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};
 window.casaSay=()=>{const i=$id('h3say'),t=i&&i.value.trim().slice(0,80);if(!t)return;i.value='';outSay=t;bubble(me,t);sfx('tick')};
 let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>rename(me,pname),350)};

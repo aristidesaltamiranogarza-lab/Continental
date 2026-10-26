@@ -132,7 +132,7 @@ function mdBody(){const G=V.G,i=V.me,t=G.turn,mine=i==t;
  if(mdOpen>=0&&(mdOpen==i||!V.players[mdOpen]||V.players[mdOpen].out))mdOpen=-1;
  const pl=mine&&G.step=='play'&&!G.pa,dis=mine&&G.step=='disc',left=3-G.plays,n=G.players.length,
   riv=i>=0?Array.from({length:n-1},(_,j)=>(i+1+j)%n):[...G.players.keys()];
- const st=G.pa?'Hay una acción pendiente: mira el aviso de arriba.':i<0?'Mirando como host.':dis?`Descarta ${h.length-7} carta${h.length-7>1?'s':''} para quedarte con 7.`:mine?`Te ${left==1?'queda':'quedan'} <b>${left}</b> jugada${left==1?'':'s'}. Toca una carta de tu mano.`:'Esperando a '+nm(t)+'…';
+ const st=G.pa?'Hay una acción pendiente: mira el aviso de arriba.':i<0?mirTxt():dis?`Descarta ${h.length-7} carta${h.length-7>1?'s':''} para quedarte con 7.`:mine?`Te ${left==1?'queda':'quedan'} <b>${left}</b> jugada${left==1?'':'s'}. Toca una carta de tu mano.`:'Esperando a '+nm(t)+'…';
  const msgH=msg?`<div class="msg">${msg}</div>`:'';
  let o=`<div class="mdw${mdFold?' fold':''}"><div class="mdtop top${mine?' myturn':''}">Turno de <b>${nm(t)}</b>${mine?' (¡tú!)':''} · Jugadas ${G.plays}/3 · Gana quien junte <b>${G.opts.sets}</b> sets${G.note?'<br><b>'+esc(G.note)+'</b>':''}${mdPA()}</div>
  <div class="mdrs">${riv.map(mdStrip).join('')}${mdOpen<0&&riv.length?'<div class="top mdhint">Toca un rival para ver su mesa.</div>':''}</div>

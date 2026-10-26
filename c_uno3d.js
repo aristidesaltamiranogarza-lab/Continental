@@ -357,7 +357,7 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
 const chipC=k=>`<i class="u3chip" style="--c:${UC[k]}"></i>`;
 function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fin&&i==t,drawn=mine&&G.step=='drawn',pend=!fin&&G.pend>0,h=i>=0&&Array.isArray(G.hands[i])?G.hands[i]:[];
  if(!mine)upick=null;if(!fin)winHide=false;
- const hint=fin?(w>=0&&w==i?'¡Te quedaste sin cartas! 🎉':'Se quedó sin cartas. ¿Otra partida?'):G.ad>0?(mine?'Robando… ':esc(G.players[t].name)+' está robando… ')+'('+G.ad+')':i<0?'Mirando como host':!mine?'Esperando a '+nm(t)+'…':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con un ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:'Toca una carta para jugarla, o el mazo para robar';
+ const hint=fin?(w>=0&&w==i?'¡Te quedaste sin cartas! 🎉':'Se quedó sin cartas. ¿Otra partida?'):G.ad>0?(mine?'Robando… ':esc(G.players[t].name)+' está robando… ')+'('+G.ad+')':i<0?mirTxt():!mine?'Esperando a '+nm(t)+'…':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con un ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:'Toca una carta para jugarla, o el mazo para robar';
  const inf=fin?`🏆 <b>${w>=0?nm(w):'—'}</b> gana`:`${chipC(G.color)} <b>${UCN[G.color]}</b> · ${G.dir>0?'↻':'↺'}${pend?` · <b class="u3pend">+${G.pend} acumulado</b>`:''}`;
  let o=`<div id="t3top" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="u3dMenu()" aria-label="Menú">☰ Juego</button>
   <div class="inf"><div class="l1">${inf}</div><div class="l2">${mine?'<b>¡Tu turno!</b> '+hint:hint}</div></div>
@@ -378,7 +378,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   if(!winHide)o+=`<div id="u3win" class="w7 w7win" role="dialog" aria-labelledby="u3wt"><div class="wt"><span id="u3wt">Fin de la partida</span><button class="wx" onclick="u3dWin()" aria-label="Cerrar">✕</button></div>
    <div class="wb"><div class="u3tro">🏆</div><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
    <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${V.players[k].out?'expulsado':k==w?'🏆':hc(k)+(hc(k)==1?' carta':' cartas')}</b></div>`).join('')}</div></div></div>`}
- else if(i<0)b=`<span class="hint">Mirando como host</span>`;
+ else if(i<0)b=`<span class="hint">${mirTxt()}</span>${V.watch?'<button class="w7b" onclick="leave()">🚪 Dejar de mirar</button>':''}`;
  else{const vk=G.vuln&&G.vuln.k!=i&&hc(G.vuln.k)==1&&!G.uno[G.vuln.k]?G.vuln.k:-1,my1=h.length==1&&!G.uno[i],said=h.length==1&&!!G.uno[i];
   if(mine&&G.step=='play'&&pend&&!G.ad)b+=`<button class="w7b p" onclick="udraw()">Robar ${G.pend}</button>`;
   if(drawn)b+=`<button class="w7b p" onclick="upass()">Pasar</button>`;
