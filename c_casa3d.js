@@ -18,12 +18,14 @@ let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-c
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
-const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']}].filter(t=>GM[t.g]);
+const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},
+ {g:'c4',x:-9,z:5.5,felt:['#3a4f8a','#151f3d']},{g:'bg',x:9,z:5.5,felt:['#8a5a2e','#3a2210']}].filter(t=>GM[t.g]);
 TB.forEach(t=>t.r=2.2);
 const OB=[];                             // obstáculos redondos (sillas, muebles): {x,z,r}
 const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
- uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.'};
+ uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',
+ c4:'Junta 4 fichas de tu color en línea. De 2, o contra un bot.',bg:'Saca tus 15 fichas antes que tu rival. De 2, o contra un bot.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
 // ---------- texturas ----------
@@ -36,7 +38,9 @@ function miniCard(key,bg,fg,txt,border){return ctex('mc'+key,128,180,(g,w,h)=>{g
  g.fillStyle=fg;g.font='bold 64px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,w/2,h/2+4)})}
 const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','♥'],['c3','#fff','#c62828','♦'],['c4','#fff','#151515','♣'],['c5','#c0302f','#fff','♠']],
  uno:[['u1','#e53935','#fff','7'],['u2','#fbc02d','#fff','+2'],['u3','#43a047','#fff','⊘'],['u4','#1e88e5','#fff','4'],['u5','#1c1c1c','#fdd835','UNO']],
- monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']]};
+ monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']],
+ c4:[['k1','#2f6fe0','#e53935','●'],['k2','#2f6fe0','#f9c623','●'],['k3','#2f6fe0','#e53935','●'],['k4','#2f6fe0','#f9c623','●'],['k5','#1d4fb0','#fff','4']],
+ bg:[['g1','#1f5b3a','#fff','⚃'],['g2','#1f5b3a','#fff','⚅'],['g3','#e8dcc0','#26262b','●'],['g4','#26262b','#e8dcc0','●'],['g5','#5a3418','#fff','🎲']]};
 
 // ---------- escena ----------
 function init(){if(ready)return;ready=true;
