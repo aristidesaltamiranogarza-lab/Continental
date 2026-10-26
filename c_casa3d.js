@@ -7,10 +7,13 @@ const K=window.C3D;
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!K){console.warn('Casa 3D: falta Three.js o los Miis del Continental 3D');return}
 const origHome=home;
 let on=true;try{on=localStorage.getItem('casa_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,zoom=1,cy=0,st=null,pin=null,fire=null,disco=null;
+let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,st=null,pin=null,fire=null,disco=null,camRep=null;
+// cámara libre (como en el Continental 3D): VT = adónde va, VW = dónde está. ox,oz = qué tanto la moviste lejos de tu Mii,
+// k = zoom (más = más cerca), a = giro, t = inclinación. Cuadrar regresa todo a 0 (y k a 1)
+const VW={ox:0,oz:0,k:1,a:0,t:0},VT={ox:0,oz:0,k:1,a:0,t:0},VK=['ox','oz','k','a','t'],KMIN=.45,KMAX=2.6;
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),keys=new Set(),tch=new Map(),hits=[],ray=new THREE.Raycaster(),P2=new THREE.Vector2(),FLOOR=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
-let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
+let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches,camOpen=lsGet('cont_cam')=='1';
 // cada pestaña es una persona distinta en la casa (sessionStorage: sobrevive a recargar, no se comparte entre pestañas)
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
@@ -48,14 +51,24 @@ function init(){if(ready)return;ready=true;
  setTimeout(()=>{if(!moved){moved=true;if(active()&&!inputBusy())render()}},12000);   // la ayuda de arriba se va sola
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{tch.delete(e.pointerId);pin=null;st=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());
- cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoom=Math.max(.55,Math.min(1.7,zoom*Math.exp(e.deltaY*.0012)))},{passive:false});
+ cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  const typing=e=>/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'');
+ // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = emotes; Enter = hablar
  addEventListener('keydown',e=>{if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
-  else if(k=='q')cy-=.25;else if(k=='e')cy+=.25;else if(k=='escape'&&sel){closed=sel;sel=null;render()}
+  else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
+  else if(k=='home'){e.preventDefault();camHome()}
+  else if(k=='escape'){if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){const i=$id('h3say');if(i){e.preventDefault();i.focus()}}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
  addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
+ // barra de cámara: dejar presionado repite
+ const stopRep=()=>{if(camRep){clearTimeout(camRep.t);clearInterval(camRep.i);camRep=null}};
+ document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-cam]');if(!b||!active())return;e.preventDefault();stopRep();const c=b.dataset.cam;
+  if(c=='tog'){camOpen=!camOpen;try{localStorage.setItem('cont_cam',camOpen?'1':'0')}catch(_){}sfx('tick');render();return}
+  if(c=='home'){camHome();sfx('tick');return}
+  camBtn(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camBtn(c),90)},320)}});
+ ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
  requestAnimationFrame(loop)}
 const $id=id=>document.getElementById(id);
 function std(c,r,o){return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r==null?.7:r},o||{}))}
@@ -168,11 +181,12 @@ function seatSync(){const want=new Map();TB.forEach(t=>{rooms.filter(r=>r.g==t.g
 function solve(p){p.x=Math.max(-HX+1,Math.min(HX-1,p.x));p.z=Math.max(ZB+1.2,Math.min(ZF-1,p.z));
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}})}
 function turn(a,yaw){let d=yaw-a.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));a.g.rotation.y+=d*.18}
-function walk(dt,now){const a=me,p=a.pos,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
- if(keys.has('w')||keys.has('arrowup'))dir.add(fw);if(keys.has('s')||keys.has('arrowdown'))dir.sub(fw);if(keys.has('d')||keys.has('arrowright'))dir.add(rt);if(keys.has('a')||keys.has('arrowleft'))dir.sub(rt);
- if(!dir.lengthSq()&&tgt){dir.subVectors(tgt,p).setY(0);if(dir.length()<.12){dir.set(0,0,0);arrive()}}
+function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
+ if(keys.has('w')||keys.has('arrowup'))dir.add(fw);if(keys.has('s')||keys.has('arrowdown'))dir.sub(fw);if(keys.has('d')||keys.has('arrowright'))dir.add(rt);if(keys.has('a')||keys.has('arrowleft'))dir.sub(rt); if(!dir.lengthSq()&&tgt){dir.subVectors(tgt,p).setY(0);if(dir.length()<.12){dir.set(0,0,0);arrive()}}
  const sp=5.2*dt/1000;let mv=0;
- if(dir.lengthSq()){dir.normalize();const q=p.clone();p.addScaledVector(dir,sp);solve(p);mv=q.distanceTo(p);a.yaw=Math.atan2(dir.x,dir.z);a.danceT=-1e9;if(!moved){moved=true;render()}
+ if(dir.lengthSq()){dir.normalize();const q=p.clone();p.addScaledVector(dir,sp);solve(p);mv=q.distanceTo(p);
+  // si moviste la cámara, se queda donde la dejaste (no sigue a tu Mii) hasta que toques Cuadrar
+  if(panned()){const dx=p.x-q.x,dz=p.z-q.z;VT.ox-=dx;VT.oz-=dz;VW.ox-=dx;VW.oz-=dz}a.yaw=Math.atan2(dir.x,dir.z);a.danceT=-1e9;if(!moved){moved=true;render()}
   // atorado contra una silla o mueble camino a una mesa: ya llegó
   if(tgt){stuck=mv<sp*.3?stuck+1:0;if(stuck>8)arrive()}}
  a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*3.1;
@@ -213,37 +227,86 @@ function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){
   const [x,y,vis]=toPx(v3(a.pos.x,3.45,a.pos.z));a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
   if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05,a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
 
-// ---------- cámara (sigue a tu Mii desde atrás y arriba) ----------
-const camP=v3(0,12,20),camT=v3(0,0,0);
-function camStep(snap){const p=me.pos,d=(por?28:19)*zoom,el=por?1.08:.9,ah=por?6:5;   // ah: mira un poco adelante de tu Mii
- // en celular parado, con la ventanita de la mesa abierta (abajo), la mesa y tu Mii se suben a la parte de arriba
- const t=por&&sel&&TB.find(x=>x.g===sel),c=t?v3((t.x+p.x)/2+Math.sin(cy)*6,0,(t.z+p.z)/2+Math.cos(cy)*6):null;
- const look=c?v3(c.x,1,c.z):v3(p.x-Math.sin(cy)*ah,1,p.z-Math.cos(cy)*ah),want=v3(look.x+Math.sin(cy)*Math.cos(el)*d,Math.sin(el)*d,look.z+Math.cos(cy)*Math.cos(el)*d);
- if(snap){camP.copy(want);camT.copy(look)}else{camP.lerp(want,.08);camT.lerp(look,.12)}CA.position.copy(camP);CA.lookAt(camT)}
+// ---------- cámara: sigue a tu Mii desde atrás y arriba; la puedes mover, girar, inclinar y acercar libremente ----------
+const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>por?6:5;   // AH: la cámara mira un poco adelante de tu Mii
+const EL=()=>por?1.08:.9,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+// punto de la casa al centro de la pantalla
+function center(V){const p=me.pos;return v3(p.x+V.ox-Math.sin(V.a)*AH(),0,p.z+V.oz-Math.cos(V.a)*AH())}
+function applyCam(){const c=center(VW).add(selOff),a=VW.a,d=(por?28:19)/VW.k,el=EL()+VW.t;
+ CA.position.set(c.x+Math.sin(a)*Math.cos(el)*d,Math.sin(el)*d+1,c.z+Math.cos(a)*Math.cos(el)*d);CA.lookAt(c.x,1,c.z);CA.updateMatrixWorld()}
+function clampV(){VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.32-EL(),Math.min(1.45-EL(),VT.t));
+ // que el centro no se salga de la casa
+ const c=center(VT),cx=Math.max(-HX,Math.min(HX,c.x)),cz=Math.max(ZB,Math.min(ZF,c.z));VT.ox+=cx-c.x;VT.oz+=cz-c.z}
+function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);applyCam()}
+function camStep(dt,snapNow){if(snapNow){VK.forEach(q=>VW[q]=VT[q])}else{const f=RM?1:1-Math.exp(-dt/110);VK.forEach(q=>{VW[q]+=(VT[q]-VW[q])*f})}
+ // en celular parado, con la ventanita de la mesa abierta (abajo), la mesa y tu Mii se suben a la parte de arriba (si no moviste la cámara)
+ const t=por&&sel&&!viewed()&&TB.find(x=>x.g===sel),p=me.pos;
+ if(t)selT.set((t.x+p.x)/2+Math.sin(VW.a)*6,0,(t.z+p.z)/2+Math.cos(VW.a)*6).sub(center(VW));else selT.set(0,0,0);selOff.lerp(selT,snapNow?1:.1);applyCam()}
+const panned=()=>Math.abs(VT.ox)>.3||Math.abs(VT.oz)>.3,viewed=()=>panned()||Math.abs(VT.k-1)>.03||Math.abs(wrap(VT.a))>.02||Math.abs(VT.t)>.02;
+function camHome(){VW.a=wrap(VW.a);Object.assign(VT,{ox:0,oz:0,k:1,a:0,t:0})}
+function camBtn(c){if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;else return;clampV()}
+// punto del piso debajo del dedo/ratón
+function ground(x,y){const r=cv.getBoundingClientRect();P2.set((x-r.left)/r.width*2-1,-(y-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(FLOOR,v3(0,0,0))}
+// zoom hacia donde apuntas (rueda del ratón)
+function zoomAt(x,y,k){const p=ground(x,y);k=Math.max(KMIN,Math.min(KMAX,k));if(!p){VT.k=k;return clampV()}const c=center(VT),f=VT.k/k;
+ VT.ox+=(p.x-c.x)*(1-f);VT.oz+=(p.z-c.z)*(1-f);VT.k=k;clampV()}
 function layout(){W=innerWidth;H=innerHeight;por=W/H<.95;R.setSize(W,H,false);CA.aspect=W/H;CA.fov=por?52:42;CA.updateProjectionMatrix()}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q.z<1]}
 
-// ---------- tocar: piso = caminar ahí, mesa o letrero = ir a esa mesa; arrastrar = girar la cámara; pellizcar/rueda = zoom ----------
+// ---------- tocar: piso = caminar ahí, mesa o letrero = ir a esa mesa ----------
+// Ratón: arrastrar (izquierdo o derecho) = mover la cámara; clic de rueda o Shift + clic derecho = girar e inclinar; rueda = zoom.
+// Dedo: arrastrar = mover; dos dedos = pellizcar para zoom, girarlos para rotar, subirlos o bajarlos juntos para inclinar
 function pick(e){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
  const h=ray.intersectObjects(hits,false);if(h.length)return h[0].object.userData.hit;const p=ray.ray.intersectPlane(FLOOR,v3(0,0,0));return p?{t:'floor',p}:null}
 function pDown(e){if(!active())return;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
- if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);if(tch.size==2){const [a,b]=[...tch.values()];pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,z:zoom};st=null;return}}
- st={x:e.clientX,y:e.clientY,cy,pid:e.pointerId,drag:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
-function pMove(e){if(!active())return;if(tch.has(e.pointerId))tch.set(e.pointerId,[e.clientX,e.clientY]);
- if(pin&&tch.size>=2){const [a,b]=[...tch.values()];zoom=Math.max(.55,Math.min(1.7,pin.z*pin.d/(Math.hypot(a[0]-b[0],a[1]-b[1])||1)));return}
+ if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
+  if(tch.size==2){st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);
+   pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.t,mode:null};return}
+  if(tch.size>2)return}
+ if(e.button==1)e.preventDefault();
+ const rot=e.button==1||(e.button==2&&e.shiftKey),pan=e.button==2&&!rot;if(pan||rot)cv.style.cursor=rot?'move':'grabbing';
+ st={x:e.clientX,y:e.clientY,pid:e.pointerId,pan,rot,a0:VW.a,t0:VW.t,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
+function pMove(e){if(!active())return;
+ if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
+   // ¿inclinar o mover? si los dos dedos suben/bajan juntos sin abrirse ni girar, es inclinar
+   if(!pin.mode){const dy=my-pin.my,dx=mx-pin.mx;if(Math.abs(dy)>16&&Math.abs(dd)<Math.abs(dy)*.35&&Math.abs(dx)<Math.abs(dy)*.6&&Math.abs(pin.acc+da)<.1)pin.mode='tilt';else if(Math.abs(dd)>14||Math.abs(dx)>16||Math.abs(pin.acc+da)>.12)pin.mode='free'}
+   if(pin.mode=='tilt'){VT.t=pin.t+(my-pin.my)*.006;snap();return}
+   if(!pin.mode)return;
+   pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
+   VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
+   const p=ground(mx,my);if(p&&pin.g){VT.ox+=pin.g.x-p.x;VT.oz+=pin.g.z-p.z;snap()}return}}
  if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&h.t=='table'?'pointer':'default'}return}
- if(e.pointerId!==st.pid)return;if(!st.drag&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10)st.drag=true;if(st.drag)cy=st.cy-(e.clientX-st.x)*.006}
+ if(e.pointerId!==st.pid)return;
+ if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;snap();return}
+ // mover la cámara: el punto que agarraste se queda bajo el dedo
+ if(st.g||st.pan||Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){if(!st.g){st.g=ground(st.x,st.y);if(!st.pan)cv.style.cursor='grabbing'}
+  const p=ground(e.clientX,e.clientY);if(st.g&&p){VT.ox=VW.ox+st.g.x-p.x;VT.oz=VW.oz+st.g.z-p.z;VT.k=VW.k;snap()}}}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
- if(s.drag)return;const h=pick(e);if(!h)return;
+ if(s.pan||s.rot||s.g){cv.style.cursor='default';return}const h=pick(e);if(!h)return;
  if(h.t=='table')return goTable(h.g);
  tgt=h.p.setY(0);tgtG=null;solve(tgt);showMark(tgt)}
+// botón Cuadrar: aparece solo si moviste la cámara
+function viewBtn(){const el=$id('t3view');if(!el)return;const k=viewed()?'1':'';if(el.dataset.k===k)return;el.dataset.k=k;el.style.display=k?'':'none'}
 
 // ---------- capa de controles ----------
+const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/>'),
+ rl:ic('<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 3v5h5"/>'),rr:ic('<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 3v5h-5"/>'),
+ zi:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/>'),zo:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/>'),
+ tu:ic('<path d="M3 18h18M6 18l3-6h6l3 6"/><path d="M12 9V3M9 6l3-3 3 3"/>'),td:ic('<path d="M2 16l5-6h10l5 6z"/><path d="M12 7V2M9 5l3 2 3-2"/>'),
+ home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
+function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t}" aria-label="${t}">${IC[c]}</button>`;
+ return `<button id="t3view" class="w7 w7b" onclick="casaHome()" style="display:none" title="Regresar la cámara a tu Mii (Inicio)">${IC.home} Cuadrar</button>
+ <div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>
+ <div class="w7g pan">${cb('rl','Girar a la izquierda (Q)')}${cb('rr','Girar a la derecha (E)')}${cb('zi','Acercar (+)')}${cb('zo','Alejar (−)')}${cb('tu','Ver más desde arriba (R)')}${cb('td','Ver más de lado (F)')}
+ <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
  let o=`<div id="h3top" class="w7 w7g"><span class="h3t">🏠 <b>Casa de juegos</b></span><span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">
   ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button></div>`;
- if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · Enter para hablar'}</div>`;
+ if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar · arrastra para mover la cámara, dos dedos para girar y acercar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · arrastra para mover la cámara · rueda para acercar · Q E para girar'}</div>`;
+ o+=camUI();
  TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'toca para jugar';
   o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${G.name}</b><small>${sub}</small></div>`});
  if(msg&&!g)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
@@ -269,8 +332,8 @@ function active(){return on&&!S}
 function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none'}document.documentElement.classList.toggle('h3on',a);if(!a){keys.clear();return}
  document.documentElement.classList.toggle('c3dark',dark);
- if(innerWidth!==W||innerHeight!==H){layout();camStep(true)}
- net(now);walk(dt,now);walkOthers(dt,now);camStep(false);mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
+ if(innerWidth!==W||innerHeight!==H){layout();camStep(dt,true)}
+ net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
@@ -279,7 +342,7 @@ home=function(){if(!active())return origHome()+(on?'':`<button class="b g" oncli
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}render()};
 window.casaGo=g=>{if(sel===g)return;goTable(g)};
-window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
+window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;mk(mode)};
 window.casaJoin=c=>{code=c;joinR()};
 window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};

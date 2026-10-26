@@ -257,12 +257,12 @@ html.h3on #app{pointer-events:none}
 html.c3dark #h3top input{background:#1f2124;color:#eee;border-color:#111}
 @media (max-width:520px){#h3top .h3t b{display:none}}
 #h3hint{left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);padding:8px 14px;border-radius:18px;font-size:.92em;text-align:center;max-width:calc(100% - 24px);animation:t3pop .3s ease-out}
-.h3sign{left:0;top:0;padding:5px 12px 6px;border-radius:10px;text-align:center;white-space:nowrap;cursor:pointer;touch-action:manipulation;will-change:transform}
+.h3sign{z-index:9;left:0;top:0;padding:5px 12px 6px;border-radius:10px;text-align:center;white-space:nowrap;cursor:pointer;touch-action:manipulation;will-change:transform}
 .h3sign b{font-size:1.08em}.h3sign small{display:block;font-size:.78em;opacity:.95}
 .h3sign.on{border-color:#ffe27a;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),0 0 16px 4px rgba(255,220,110,.8)}
 #h3me{left:0;top:0;font-size:.85em}
 #h3inv{left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:6px 8px 6px 14px;max-width:calc(100% - 20px);white-space:nowrap}
-#h3win{z-index:25;right:14px;top:calc(env(safe-area-inset-top,0px) + 64px);width:min(360px,calc(100% - 20px));animation:t3pop .2s ease-out}
+#h3win{z-index:25;right:62px;top:calc(env(safe-area-inset-top,0px) + 64px);width:min(360px,calc(100% - 20px));animation:t3pop .2s ease-out}
 #h3win .wb{gap:10px}
 #h3win .h3d{font-size:.95em;line-height:1.4}#h3win .h3n{color:#555}
 html.c3dark #h3win .h3n{color:#a9adb3}
