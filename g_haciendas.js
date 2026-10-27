@@ -20,7 +20,8 @@ function start(R){const o=Object.assign({},OPTS,R.opts),n=R.players.length,b=D.b
   vo:Array(g.V.length).fill(-1),vl:Array(g.V.length).fill(0),eo:Array(g.E.length).fill(-1),out:Array(n).fill(0),
   res:R.players.map(()=>[0,0,0,0,0]),dev:R.players.map(()=>[]),gu:Array(n).fill(0),pl:Array(n).fill(0),deck:shuf(D.deck()),
   st:'setup',sq,si:0,sv:-1,dice:[0,0],rn:0,played:false,dis:null,cand:null,ret:null,free:0,offers:[],oc:0,ac:0,
-  lr:-1,ll:Array(n).fill(0),ga:-1,prot:[],win:-1};
+  lr:-1,ll:Array(n).fill(0),ga:-1,prot:[],win:-1,
+  stats:{prod:Array(n).fill(0),tr:Array(n).fill(0),bk:Array(n).fill(0),rob:Array(n).fill(0),lost:Array(n).fill(0),dice:Array(13).fill(0),h:0}};   // para el resumen final
  R.hz={nd:{},ato:{},need:[]};lg(R.G,t0,'empieza la partida: cada quien pone rancho y sacbé');arm(R)}
 // ---- piezas, lugares válidos, puertos y puntos ----
 const {left,okV,okE,spots,rate}=D;
@@ -58,15 +59,15 @@ function setup(G,i,m){if(m.t!='build')return 'Primero pon tu rancho y tu sacbé.
 // ---- tirar, producir y huracán ----
 function produce(G,n){const g=geo(G),got=G.players.map(()=>[0,0,0,0,0]);
  G.hx.forEach((h,i)=>{if(h.n!==n||i===G.hur)return;g.H[i].v.forEach(v=>{if(G.vo[v]>=0)got[G.vo[v]][h.t]+=G.vl[v]})});
- got.forEach((a,k)=>{if(tot(a)){add(G.res[k],a);lg(G,k,'recibe '+txt(a))}});G.prod={rn:G.rn,got}}
-function roll(G,k){const a=1+Math.random()*6|0,b=1+Math.random()*6|0,s=a+b;G.dice=[a,b];G.rn++;lg(G,k,'tiró '+a+' y '+b+' ('+s+')');
+ got.forEach((a,k)=>{if(tot(a)){add(G.res[k],a);G.stats.prod[k]+=tot(a);lg(G,k,'recibe '+txt(a))}});G.prod={rn:G.rn,got}}
+function roll(G,k){const a=1+Math.random()*6|0,b=1+Math.random()*6|0,s=a+b;G.dice=[a,b];G.rn++;G.stats.dice[s]++;if(s==7)G.stats.h++;lg(G,k,'tiró '+a+' y '+b+' ('+s+')');
  if(s!==7){produce(G,s);G.st='main';return}
  const dis={};G.res.forEach((r,j)=>{const t=tot(r);if(!G.out[j]&&t>G.o.hl)dis[j]=Math.floor(t/2)});
  lg(G,k,'¡Huracán!'+(Object.keys(dis).length?' Los que tienen más de '+G.o.hl+' cartas descartan la mitad':''));
  G.ret='main';if(Object.keys(dis).length){G.dis=dis;G.st='discard'}else G.st='move'}
 const back=G=>{G.st=G.ret||'main';G.ret=null};
 function steal(G,a,b){const r=G.res[b],n=tot(r);if(!n)return;let x=Math.random()*n|0,j=0;while(x>=r[j]){x-=r[j];j++}
- r[j]--;G.res[a][j]++;G.sl={a,b,r:j,n:(G.sln=(G.sln||0)+1)};lg(G,a,'le roba una carta a '+pn(G,b))}
+ r[j]--;G.res[a][j]++;G.stats.rob[a]++;G.stats.lost[b]++;G.sl={a,b,r:j,n:(G.sln=(G.sln||0)+1)};lg(G,a,'le roba una carta a '+pn(G,b))}
 function moveH(G,i,h){const g=geo(G);if(!Number.isInteger(h)||!g.H[h])return 'Ese lugar no existe.';if(h===G.hur)return 'El huracán tiene que irse a otro lugar.';
  if(G.prot.some(p=>p.h===h))return 'Ese lugar está protegido por la Guardia maya.';G.hur=h;lg(G,i,'manda el huracán a '+hn(G,h));
  const c=[...new Set(g.H[h].v.map(v=>G.vo[v]).filter(o=>o>=0&&o!==i&&tot(G.res[o])>0))];
@@ -106,7 +107,7 @@ function build(G,i,m){const w=m.w,road=G.st=='road',lf=left(G,i);
  if(w=='h'){G.vl[x]=2;lg(G,i,'convierte un rancho en hacienda')}}
 function bank(G,i,m){if(G.st!='main')return 'Solo en tu turno, después de tirar.';const a=m.give,b=m.get;
  if(!isR(a)||!isR(b)||a===b)return 'Elige qué das y qué recibes.';const n=rate(G,i,a);if(G.res[i][a]<n)return 'Necesitas '+n+' de '+RN[a]+'.';
- G.res[i][a]-=n;G.res[i][b]++;lg(G,i,'cambia '+n+' '+RN[a]+' por 1 '+RN[b]+(n<4?' en el puerto':' con el banco'))}
+ G.res[i][a]-=n;G.res[i][b]++;G.stats.bk[i]++;lg(G,i,'cambia '+n+' '+RN[a]+' por 1 '+RN[b]+(n<4?' en el puerto':' con el banco'))}
 // ---- comercio: el jugador en turno ofrece a todos (to -1) o a uno; los demás aceptan, rechazan o contraofertan (solo al jugador en turno) ----
 function canTake(G,o,i){return i!==o.from&&!G.out[i]&&(o.from===G.turn?(o.to<0||o.to===i)&&!o.no.includes(i):i===G.turn)}
 const drop=(G,o)=>{G.offers=G.offers.filter(x=>x!==o)};
@@ -126,7 +127,7 @@ function trade(G,i,t,m){if(G.st!='main')return 'Solo se comercia después de tir
  if(!has(G.res[o.from],o.give)){drop(G,o);return pn(G,o.from)+' ya no tiene lo que ofrecía.'}if(!has(G.res[i],o.want))return 'No tienes lo que te piden.';
  sub(G.res[o.from],o.give);add(G.res[i],o.give);sub(G.res[i],o.want);add(G.res[o.from],o.want);drop(G,o);
  G.offers=G.offers.filter(x=>has(G.res[x.from],x.give));   // las que ya no se pueden pagar se caen
- G.tr={a:o.from,b:i,give:o.give,want:o.want,n:(G.trn=(G.trn||0)+1)};lg(G,i,'acepta: '+pn(G,o.from)+' da '+txt(o.give)+' por '+txt(o.want))}
+ G.stats.tr[o.from]++;G.stats.tr[i]++;G.tr={a:o.from,b:i,give:o.give,want:o.want,n:(G.trn=(G.trn||0)+1)};lg(G,i,'acepta: '+pn(G,o.from)+' da '+txt(o.give)+' por '+txt(o.want))}
 function nextTurn(G){const n=G.players.length,pos=t=>(t-G.first+n)%n;let t=G.turn;do t=(t+1)%n;while(G.out[t]&&t!==G.turn);
  if(pos(t)<=pos(G.turn))G.round++;G.turn=t;G.tc++;G.st='roll';G.played=false;G.offers=[];G.oc=0;G.ac=0;G.cand=null;G.dis=null;G.free=0;G.ret=null;
  G.prot=G.prot.filter(p=>p.k!==t)}  // la protección dura hasta el siguiente turno de quien la puso

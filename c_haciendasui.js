@@ -47,7 +47,7 @@ const ST={setup:G=>G.sv<0?'pone su rancho':'pone su sacbé',roll:()=>'va a tirar
  move:()=>'mueve el huracán 🌀',steal:()=>'elige a quién robarle',road:()=>'pone sacbés gratis'};
 function dock(){const G=V.G,m=me();
  if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">🏆</span><div class="mu-f1"><b class="mu-h">${nm(G.win)} gana</b><div class="mu-s">${G.stall?'Nadie sumó puntos en 10 rondas: ganó quien tenía más.':'Llegó a '+G.vp[G.win]+' puntos en su turno.'}</div>
-  <div class="mu-s">${G.players.map((_,k)=>tok(k,'xs')+' '+G.vp[k]).join(' · ')}</div></div></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
+  <div class="mu-s">${G.players.map((_,k)=>tok(k,'xs')+' '+G.vp[k]).join(' · ')}</div></div></div><div class="mu-acts"><button class="mu-b" onclick="HZX.sum(1)">📊 Ver resumen</button></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
  const au=m>=0&&G.auto&&G.auto[m]?`<div class="mu-note">🤖 Un bot está jugando por ti. <button class="mu-lk" onclick="HZU.a({t:'back'})">Volver a jugar</button></div>`:'';
  if(G.st=='discard'&&G.dis&&G.dis[m]!=null)return au+discardDock();
  const o=offersToMe()[0];if(o)return au+offerDock(o);
@@ -95,7 +95,7 @@ function menuBox(){const seg=L=>`<div class="mu-seg">${L.map(([o,c,t])=>`<button
   <div class="mu-opt"><span>Tema</span>${seg([[theme=='claro',"HZU.theme('claro')",'☀️ Claro'],[theme=='oscuro',"HZU.theme('oscuro')",'🌙 Oscuro']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
-  <div class="mu-acts"><button class="mu-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button></div></div>`}
+  <div class="mu-acts"><button class="mu-b" onclick="HZU.menu(0);HZX.guide(1)">📖 Cómo se juega</button><button class="mu-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button></div></div>`}
 // ---- pestañas (contenido en c_haciendastabs.js) ----
 const TABS=[['jug','Jugadores','pl'],['cartas','Mis cartas','card'],['com','Comercio','deal'],['hist','Historial','log']];
 const curTab=()=>wide()?tab||'jug':tab,playing=()=>me()>=0&&!V.G.out[me()];
@@ -108,12 +108,12 @@ function hud(){const w=wide();syncClock();if(msg!==msgSeen){msgSeen=msg;msgT=Dat
  const toast=msg&&Date.now()-msgT<4500?`<div class="mu-toast" onclick="msg='';render()">${esc(String(msg).replace(/^✋ No puedes hacer eso\. /,''))}</div>`:'';
  return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">⚠ Reconectando… tu lugar se conserva</div>'}${topBar()}
   <div class="mu-bot">${w?'':sheet()}<div class="mu-dockw" id="mudock">${dock()}${w?'':tabs()}</div>${w?tabs()+sheet():''}</div>${toast}
-  ${pick&&myTurn()?modal(pickBox(),'HZU.pick(null)'):''}${menu?modal(menuBox(),'HZU.menu(0)'):''}</div>`}
+  ${pick&&myTurn()?modal(pickBox(),'HZU.pick(null)'):''}${menu?modal(menuBox(),'HZU.menu(0)'):''}${window.HZX?HZX.hud():''}</div>`}
 // ---- espacio que le queda al tablero ----
 function layout(){const t=document.querySelector('.mu-top'),dk=document.getElementById('mudock'),bt=document.querySelector('.mu-bot'),sh=document.querySelector('.mu-sheet'),w=wide(),rs=document.documentElement.style;
  let T=t?t.getBoundingClientRect().bottom:0,b=0,r=0,cb=0;if(w&&bt)r=innerWidth-bt.getBoundingClientRect().left;else if(dk){b=innerHeight-dk.getBoundingClientRect().top;cb=sh?b+sh.offsetHeight-14:b}
  if(!w)bMax=Math.max(bMax,b);const bs=w?0:Math.min(Math.max(b,bMax),innerHeight*.45);ins={t:T+6,r,b:bs+6,l:0};
- rs.setProperty('--mu-b',b+'px');rs.setProperty('--mu-cb',(cb||b)+'px');rs.setProperty('--mu-r',r+'px');
+ rs.setProperty('--mu-b',b+'px');rs.setProperty('--hz-tt',T+'px');rs.setProperty('--mu-cb',(cb||b)+'px');rs.setProperty('--mu-r',r+'px');
  const st=stage(),o=st===H2?window.H3:H2;if(o)o.show(false);
  try{st.show(true);st.theme(theme);st.layout(ins);st.sync(V.G,hl())}catch(e){console.warn('Haciendas tablero:',e);if(st!==H2){H3.fail();render()}}}
 // ---- efectos: recursos que flotan, "¡Te toca!", ganador ----
@@ -155,11 +155,11 @@ window.HZU={get me(){return me()},D,tok,rc,chips,nm,pc,has,mine,myTurn,playable,
 GM.haciendas.body=function(){if(!active())return origBody();const sc=document.getElementById('musc');keep.sc=sc?sc.scrollTop:keep.sc;
  try{ok=true;return hud()}catch(e){console.warn('Haciendas UI:',e);ok=false;return origBody()}};
 GM.haciendas.after=function(){if(!active()||!ok){off();return}
- on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',!!pick||menu);r.dataset.mrt=theme=='oscuro'?'oscuro':'menta';
+ on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',!!pick||menu||!!(window.HZX&&HZX.open()));r.dataset.mrt=theme=='oscuro'?'oscuro':'menta';
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;
  const st=V.G.st;if(!myTurn()||(bm=='prot'?V.G.played||(st!='roll'&&st!='main'):st!='main'))bm=null;   // el modo de construir se apaga solo
- tickClock();layout();effects()};
-function off(){if(!on)return;on=false;document.documentElement.classList.remove('mrui','mumodal');H2.show(false);if(window.H3)H3.show(false);prev=null;tab=null;menu=false;bm=null;pick=null}
+ tickClock();layout();effects();if(window.HZX)HZX.after(V.G,me())};
+function off(){if(!on)return;on=false;document.documentElement.classList.remove('mrui','mumodal');H2.show(false);if(window.H3)H3.show(false);if(window.HZX)HZX.reset();prev=null;tab=null;menu=false;bm=null;pick=null}
 setInterval(()=>{if(on&&!active())off()},400);
 let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=setTimeout(()=>{bMax=0;if(active())render()},120)});
 // ---- estilos propios (lo demás viene de c_meridaui.js) ----

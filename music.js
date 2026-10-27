@@ -86,7 +86,29 @@ const SONGS={
    if(s==0)play(o,t,'pno',bar.r,.42,sd*3);if(s==8)play(o,t,'pno',bar.f,.38,sd*3);
    if(s==4||s==12)bar.c.forEach(m=>play(o,t,'pno',m,.14,sd*2));
    mel(bar.m,s,n=>{play(o,t,'pno',n[1]+(pass?12:0),pass?.17:.22,sd*n[2]);if(!pass&&n[2]>=4)play(o,t,'pno',n[1]-12,.1,sd*n[2])});
-   if(s==4||s==12)brush(o,t,.07);if(s%4==0)hat(o,t,.035,.08)}}};
+   if(s==4||s==12)brush(o,t,.07);if(s%4==0)hat(o,t,.035,.08)}},
+ // Mérida en Venta: trova yucateca en Re, bolero con requinto, guitarra arpegiada, bongó y maracas
+ merida:{bpm:92,sw:.08,bars:[
+  {c:[62,66,69],r:38,m:[[0,74,3],[4,73,2],[6,74,2],[8,78,6]]},{c:[59,62,66],r:35,m:[[2,76,2],[4,74,2],[6,73,2],[8,71,6]]},
+  {c:[64,67,71],r:40,m:[[0,71,3],[4,73,2],[6,74,2],[8,76,6]]},{c:[61,64,67,69],r:45,m:[[0,76,2],[2,78,2],[4,76,2],[6,73,2],[8,69,6]]},
+  {c:[62,66,69],r:38,m:[[0,74,3],[4,78,2],[6,81,2],[8,79,4],[12,78,2]]},{c:[62,67,71],r:43,m:[[0,79,3],[4,78,2],[6,76,2],[8,74,6]]},
+  {c:[61,64,67],r:45,m:[[0,76,2],[2,74,2],[4,73,2],[6,71,2],[8,73,6]]},{c:[62,66,69],r:38,m:[[0,74,8],[10,69,2],[12,73,2],[14,76,2]]}],
+  step(o,i,t,sd){const B=this.bars,k=Math.floor(i/16),s=i%16,bar=B[k%8],pass=Math.floor(k/8)%2;
+   if(s%2==0)play(o,t,'gtr',bar.c[(s/2)%bar.c.length]-(s%4?0:12),s==0?.22:.14);
+   if(s==0)play(o,t,'bass',bar.r,.4,sd*7);if(s==8)play(o,t,'bass',bar.r+7,.3,sd*5);
+   mel(bar.m,s,n=>{if(pass==0)play(o,t,'gtr',n[1],.3);else{play(o,t,'ep',n[1],.16,sd*n[2]);play(o,t,'ep',n[1]-12,.08,sd*n[2])}});
+   if(s==0)kick(o,t,.14);if(s==4||s==6)bongo(o,t,.1,1);if(s==10||s==12)bongo(o,t,.09);if(s%2==0)shaker(o,t,s%4?.025:.04)}},
+ // Haciendas de Yucatán: jarana en Sol (seis por ocho contra tres por cuatro), marimba, metales, guitarras, güiro y timbal
+ haciendas:{bpm:126,sw:0,bars:[
+  {c:[67,71,74],r:43,m:[[0,79,3],[3,78,2],[5,79,3],[8,83,3],[11,81,2],[13,79,3]]},{c:[66,69,72],r:38,m:[[0,78,3],[3,76,2],[5,74,3],[8,72,3],[11,74,2],[13,76,3]]},
+  {c:[67,71,74],r:43,m:[[0,74,3],[3,79,2],[5,83,3],[8,86,5],[13,83,3]]},{c:[64,67,72],r:36,m:[[0,84,3],[3,83,2],[5,81,3],[8,79,3],[11,76,2],[13,79,3]]},
+  {c:[67,71,74],r:43,m:[[0,79,3],[3,81,2],[5,83,3],[8,84,3],[11,83,2],[13,81,3]]},{c:[64,67,71],r:40,m:[[0,79,3],[3,76,2],[5,79,3],[8,83,5],[13,81,3]]},
+  {c:[66,69,72],r:38,m:[[0,81,3],[3,79,2],[5,78,3],[8,76,3],[11,78,2],[13,74,3]]},{c:[67,71,74],r:43,m:[[0,79,5],[5,74,3],[8,79,8]]}],
+  step(o,i,t,sd){const B=this.bars,k=Math.floor(i/16),s=i%16,bar=B[k%8],pass=Math.floor(k/8)%2,g6=[0,3,5,8,11,13].includes(s);
+   if(s==3||s==5||s==11||s==13)bar.c.forEach((m,j)=>play(o,t+j*.008,'gtr',m-12,.1));
+   if(s==0)play(o,t,'bass',bar.r,.42,sd*5);if(s==8)play(o,t,'bass',bar.r+7,.34,sd*5);
+   mel(bar.m,s,n=>{play(o,t,'mal',n[1],.22,sd*n[2]);if(pass)osc(o,t,'sawtooth',n[1]-12,.035,sd*n[2]*.9,1600)});
+   if(g6)shaker(o,t,s==0||s==8?.05:.03);if(s==0)kick(o,t,.18);if(s==8)bongo(o,t,.11,1);if(s==5||s==13)rim(o,t,.07)}}};
 
 // ---------- reproducción ----------
 function init(){if(ctx)return true;if(typeof AC=='undefined'||!AC)return false;ctx=AC;

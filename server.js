@@ -7,7 +7,7 @@ const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['
  '/merida_data.js':['merida_data.js','text/javascript; charset=utf-8'],'/c_merida.js':['c_merida.js','text/javascript; charset=utf-8'],
  '/haciendas_data.js':['haciendas_data.js','text/javascript; charset=utf-8'],'/c_haciendas.js':['c_haciendas.js','text/javascript; charset=utf-8'],
  '/c_haciendas2d.js':['c_haciendas2d.js','text/javascript; charset=utf-8'],'/c_haciendasui.js':['c_haciendasui.js','text/javascript; charset=utf-8'],'/c_haciendastabs.js':['c_haciendastabs.js','text/javascript; charset=utf-8'],
- '/c_haciendas3d.js':['c_haciendas3d.js','text/javascript; charset=utf-8'],'/c_haciendas3dm.js':['c_haciendas3dm.js','text/javascript; charset=utf-8']};
+ '/c_haciendas3d.js':['c_haciendas3d.js','text/javascript; charset=utf-8'],'/c_haciendas3dm.js':['c_haciendas3dm.js','text/javascript; charset=utf-8'],'/c_haciendasfx.js':['c_haciendasfx.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
