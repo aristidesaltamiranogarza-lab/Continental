@@ -140,4 +140,5 @@ function start(R,m){const r0=Math.max(0,Math.min(6,Math.floor(+m.round)||0));
 function view(R,tok,me,now){const G=R.G;
  return {G:{...G,cd:Math.max(0,(G.cdUntil||0)-now),rc:Math.max(0,(G.rlUntil||0)-now),deck:G.deck?G.deck.length:0,hands:(G.hands||[]).map((h,i)=>i==me?h:h.length)},
   claim:me>=0&&R.cl[R.players[me].id]==G.tc,pend:!!R.pb}}
-module.exports={id:'continental',name:'Continental',min:2,max:5,opts:{},start,view,act,kick,tick:chkReady};
+module.exports={id:'continental',name:'Continental',min:2,max:5,opts:{},start,view,act,kick,tick:chkReady,
+ c4win,bgStart,bgApply,bgLegal,bgRoll};   // las reglas de Conecta 4 y Backgammon también las usan g_c4.js y g_bg.js

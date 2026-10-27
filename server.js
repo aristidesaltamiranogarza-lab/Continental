@@ -1,9 +1,10 @@
 // Servidor de juegos de cartas (Continental, Uno, Monopoly Deal...). Sin dependencias.  Uso: node server.js  (PORT=8080 node server.js para otro puerto)
 // Núcleo: salas, polling, chat, expulsar, reconexión. Cada juego es un módulo g_*.js con: id,name,min,max,opts,start,view,act,kick,tick
 const http=require('http'),fs=require('fs'),path=require('path'),cr=require('crypto'),PORT=process.env.PORT||3000;
-const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
+const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js'),c4:require('./g_c4.js'),bg:require('./g_bg.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
 const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/game.js':['game.js','text/javascript; charset=utf-8'],
- '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8'],'/c_monopolydeal.js':['c_monopolydeal.js','text/javascript; charset=utf-8']};
+ '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8'],'/c_monopolydeal.js':['c_monopolydeal.js','text/javascript; charset=utf-8'],
+ '/c_c4.js':['c_c4.js','text/javascript; charset=utf-8'],'/c_bg.js':['c_bg.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
@@ -56,6 +57,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
  if(t=='reset'){R.players=R.players.filter(p=>!p.out);R.G=null;return}
  return M.act(R,tok,m)}
 // ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
+const CUB=require('./g_cubilete.js');   // Cubilete de la esquina (sin salas)
 const casa={},EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'];
 function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
  // c: código para unirse (solo si espera jugadores); w: código para ir a mirar (si ya empezó)
@@ -64,8 +66,10 @@ function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
  if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';
   ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;
   if(EMO.includes(b.em)){o.em=b.em;o.emT=now}if(b.say){const s=String(b.say).trim().slice(0,80);if(s){o.say=s;o.sayT=now}}o.ts=now}
+ if(id&&b.cub)CUB.act(id,casa[id].name,b.cub);
  for(const k in casa)if(now-casa[k].ts>8000)delete casa[k];
- return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,x:o.x,z:o.z,yaw:o.yaw,w:o.w,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas()}}
+ CUB.tick(k=>!!casa[k]);
+ return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,x:o.x,z:o.z,yaw:o.yaw,w:o.w,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view()}}
 // ---- HTTP ----
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p]){res.writeHead(200,{'Content-Type':files[p][1],'Cache-Control':'no-store'});return res.end(fs.readFileSync(path.join(__dirname,files[p][0])))}
