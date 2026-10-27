@@ -1,10 +1,12 @@
 // Servidor de juegos de cartas (Continental, Uno, Monopoly Deal...). Sin dependencias.  Uso: node server.js  (PORT=8080 node server.js para otro puerto)
 // Núcleo: salas, polling, chat, expulsar, reconexión. Cada juego es un módulo g_*.js con: id,name,min,max,opts,start,view,act,kick,tick
 const http=require('http'),fs=require('fs'),path=require('path'),cr=require('crypto'),PORT=process.env.PORT||3000;
-const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js'),merida:require('./g_merida.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
+const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js'),merida:require('./g_merida.js'),haciendas:require('./g_haciendas.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
 const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/game.js':['game.js','text/javascript; charset=utf-8'],
  '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8'],'/c_monopolydeal.js':['c_monopolydeal.js','text/javascript; charset=utf-8'],
- '/merida_data.js':['merida_data.js','text/javascript; charset=utf-8'],'/c_merida.js':['c_merida.js','text/javascript; charset=utf-8']};
+ '/merida_data.js':['merida_data.js','text/javascript; charset=utf-8'],'/c_merida.js':['c_merida.js','text/javascript; charset=utf-8'],
+ '/haciendas_data.js':['haciendas_data.js','text/javascript; charset=utf-8'],'/c_haciendas.js':['c_haciendas.js','text/javascript; charset=utf-8'],
+ '/c_haciendas2d.js':['c_haciendas2d.js','text/javascript; charset=utf-8'],'/c_haciendasui.js':['c_haciendasui.js','text/javascript; charset=utf-8'],'/c_haciendastabs.js':['c_haciendastabs.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
@@ -25,10 +27,11 @@ function tomato(R,tok,i){const G=R.G,now=Date.now();if(!G||G.phase!='play'||G.tu
  const sp=specOf(R,tok),from=i>=0?R.players[i].name:sp?sp.name:'Host';R.fx=(R.fx||[]).concat({n:R.fxn=(R.fxn||0)+1,t:'tom',from,k,ts:now}).slice(-40)}
 function bump(R){const tk=turnKey(R.G);if(tk!==R.tk){R.tk=tk;R.tt=Date.now()}R.v++;R.ts=Date.now();const ws=R.w;R.w=[];ws.forEach(w=>{clearTimeout(w.t);out(w.res,view(R,w.tok))});botGo(R)}
 // ---- bots: el módulo del juego decide (M.bot), aquí se agenda y se manda por act() como cualquier jugador ----
+// M.auto(R,k), si existe, decide quién juega en automático (bots, y personas ausentes o desconectadas); M.botn: nombres de sus bots
 const BOTN=['🤖 Ana','🤖 Beto','🤖 Caro','🤖 Dani','🤖 Eli','🤖 Fer','🤖 Gabo','🤖 Hugo','🤖 Iris'];
 function botGo(R){clearTimeout(R.bt);R.bt=null;const M=GAMES[R.gt];if(!R.G||!M.bot||!rooms[R.code])return;
  // de todos los bots, la jugada que toca primero
- let best=null;R.players.forEach((p,k)=>{if(!p.bot||p.out)return;const d=M.bot(R,k);if(d&&(!best||d.ms<best.ms))best=Object.assign({p},d)});if(!best)return;
+ let best=null;R.players.forEach((p,k)=>{if(M.auto?!M.auto(R,k):!p.bot||p.out)return;const d=M.bot(R,k);if(d&&(!best||d.ms<best.ms))best=Object.assign({p},d)});if(!best)return;
  R.bt=setTimeout(()=>{R.bt=null;if(!rooms[R.code]||!R.G)return;let e=act(R,best.p.tok,best.m);
   // si algo falla: roba para no trabar la partida, o lo vuelve a pensar en un rato
   if(e){console.log('bot',best.p.name,e);if(best.m.t=='play')e=act(R,best.p.tok,{t:'draw'});if(e){R.bt=setTimeout(()=>botGo(R),3000);return}}
@@ -50,7 +53,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
   if(ps.length<R.players.length)R.chat.push({k:-1,name:'🤖',t:M2.name+' todavía no tiene bots: salieron de la sala',ts:Date.now()});
   R.players=ps;R.gt=m.g;R.opts=Object.assign({},M2.opts);R.chat.push({k:-1,name:'🎲',t:'Ahora van a jugar '+M2.name,ts:Date.now()});return}
  if(t=='addbot'){if(!H)return 'Solo el host puede agregar bots.';if(G)return 'Ya empezó.';if(!M.bot)return 'Este juego todavía no tiene bots.';if(R.players.length>=M.max)return 'La sala está llena (máximo '+M.max+').';
-  const nm=BOTN.find(x=>!R.players.some(p=>p.name==x))||'🤖 Bot';R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),{bot:true}));return}
+  const nm=(M.botn||BOTN).find(x=>!R.players.some(p=>p.name==x))||'🤖 Bot';R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),{bot:true}));return}
  if(t=='start'){if(!H)return 'Solo el host puede empezar.';if(G)return 'Ya empezó.';const n=R.players.length;
   if(n<M.min||n>M.max)return 'Se necesitan de '+M.min+' a '+M.max+' jugadores.';M.start(R,m);return}
  if(!G)return 'No hay partida.';
