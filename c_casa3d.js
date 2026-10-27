@@ -18,12 +18,12 @@ let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-c
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
-const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']}].filter(t=>GM[t.g]);
+const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:0,z:-2,felt:['#79a96a','#2f5a2a']}].filter(t=>GM[t.g]);
 TB.forEach(t=>t.r=2.2);
 const OB=[];                             // obstáculos redondos (sillas, muebles): {x,z,r}
 const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
- uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.'};
+ uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.',haciendas:'Pon ranchos y sacbés, cosecha y comercia en Yucatán. Gana quien llegue primero a los puntos.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
 // ---------- texturas ----------
@@ -37,7 +37,8 @@ function miniCard(key,bg,fg,txt,border){return ctex('mc'+key,128,180,(g,w,h)=>{g
 const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','♥'],['c3','#fff','#c62828','♦'],['c4','#fff','#151515','♣'],['c5','#c0302f','#fff','♠']],
  uno:[['u1','#e53935','#fff','7'],['u2','#fbc02d','#fff','+2'],['u3','#43a047','#fff','⊘'],['u4','#1e88e5','#fff','4'],['u5','#1c1c1c','#fdd835','UNO']],
  monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']],
- merida:[['r1','#d63a3a','#fff','🏠'],['r2','#f4f1e8','#333','$400'],['r3','#22b3c4','#fff','🚌'],['r4','#f2c230','#333','🎲'],['r5','#2e9e57','#fff','🏨']]};
+ merida:[['r1','#d63a3a','#fff','🏠'],['r2','#f4f1e8','#333','$400'],['r3','#22b3c4','#fff','🚌'],['r4','#f2c230','#333','🎲'],['r5','#2e9e57','#fff','🏨']],
+ haciendas:[['h1','#79a96a','#fff','🌿'],['h2','#e8c24a','#333','🌽'],['h3','#a7a49a','#fff','🪨'],['h4','#df9234','#fff','🍯'],['h5','#eef1ee','#333','🧂']]};
 
 // ---------- escena ----------
 function init(){if(ready)return;ready=true;

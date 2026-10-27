@@ -5,7 +5,8 @@
 const D=window.HACD;if(typeof GM==='undefined'||!GM.haciendas||!D||!window.H2||!window.MRU){console.warn('Haciendas UI: falta c_haciendas.js, c_haciendas2d.js o c_meridaui.js');return}
 const origBody=GM.haciendas.body,TK=['🐆','🦩','🦜','🐢','🦎','🦌'],IDLE=60000,WARN=15000;
 const lsg=(k,d)=>{try{const x=localStorage.getItem(k);return x==null?d:x}catch(e){return d}},lss=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
-let theme=lsg('hz_theme','claro')=='oscuro'?'oscuro':'claro',tab=null,menu=false,bm=null,pick=null,prev=null,keep={},on=false,ok=true,msgSeen='',msgT=0,ins={t:0,r:0,b:0,l:0},bMax=0,since=0,needK='',clkT=0;
+// vista: 2D en celular y 3D en compu, salvo que la persona elija otra
+let mode=lsg('hz_view',matchMedia('(pointer:coarse)').matches||Math.min(innerWidth,innerHeight)<600?'2d':'3d'),theme=lsg('hz_theme','claro')=='oscuro'?'oscuro':'claro',tab=null,menu=false,bm=null,pick=null,prev=null,keep={},on=false,ok=true,msgSeen='',msgT=0,ins={t:0,r:0,b:0,l:0},bMax=0,since=0,needK='',clkT=0;
 const land=()=>innerWidth>innerHeight,wide=()=>innerWidth>=900&&innerHeight>=520||land()&&innerWidth>=600;
 const active=()=>!!S&&!!V&&V.game==='haciendas'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final');
 const me=()=>V.me,nm=k=>k>=0&&V.G.players[k]?esc(V.G.players[k].name):'',pc=k=>D.PCOL[k%D.PCOL.length];
@@ -22,7 +23,8 @@ const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke=
 const SV={menu:ic('<path d="M4 7h16M4 12h16M4 17h16"/>'),x:ic('<path d="M6 6l12 12M18 6 6 18"/>'),home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>'),
  zi:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/>'),zo:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/>'),
  pl:ic('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.8 3.4-5.5 6.5-5.5s5.7 1.7 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14c2.4 0 4 1.4 4.6 4.5"/>'),
- card:ic('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6"/>'),deal:ic('<path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/>'),log:ic('<path d="M6 3.5h12v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/>')};
+ card:ic('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6"/>'),deal:ic('<path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/>'),log:ic('<path d="M6 3.5h12v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/>'),rot:ic('<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 3v5h-5"/>')};
+const is3=()=>mode=='3d'&&!!window.H3&&H3.ok(),stage=()=>is3()?window.H3:H2;
 const PIPS={1:[[12,12]],2:[[7,7],[17,17]],3:[[6.5,6.5],[12,12],[17.5,17.5]],4:[[7,7],[17,7],[7,17],[17,17]],5:[[6.5,6.5],[17.5,6.5],[12,12],[6.5,17.5],[17.5,17.5]],6:[[7,6],[17,6],[7,12],[17,12],[7,18],[17,18]]};
 const die=n=>`<svg class="mu-die" viewBox="0 0 24 24" aria-label="${n}"><rect x="1.2" y="1.2" width="21.6" height="21.6" rx="5"/>${(PIPS[n]||[]).map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.3"/>`).join('')}</svg>`;
 const dice=()=>{const G=V.G;return G.dice[0]?`<div class="mu-dice" title="Sacó ${G.dice[0]+G.dice[1]}">${die(G.dice[0])}${die(G.dice[1])}</div>`:''};
@@ -39,7 +41,7 @@ function topBar(){const G=V.G,m=me();
   return `<button class="mu-pl${t?' on':''}${k===m?' me':''}${G.out[k]?' x':''}" data-seat="${k}" style="--pc:${pc(k)}" onclick="HZU.tab('jug')" aria-label="${esc(p.name)}: ${G.vp[k]} puntos">
    ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.auto&&G.auto[k]?' 🤖':''}</span><b>★ ${G.vp[k]} · 🂠 ${G.nres[k]}${G.lr===k?' 🛤️':''}${G.ga===k?' 🛡️':''}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div></div>
   <div class="mu-cam"><button class="mu-cb mu-ib" onclick="HZU.menu(1)" aria-label="Opciones">${SV.menu}</button><span class="mu-sp"></span>
-  <button class="mu-cb" onclick="HZU.cam('home')" aria-label="Recentrar">${SV.home}</button><button class="mu-cb" onclick="HZU.cam('zi')" aria-label="Acercar">${SV.zi}</button><button class="mu-cb" onclick="HZU.cam('zo')" aria-label="Alejar">${SV.zo}</button></div></div>`}
+  <button class="mu-cb" onclick="HZU.mode()" aria-label="Cambiar a vista ${is3()?'2D':'3D'}"><b>${is3()?'2D':'3D'}</b></button><button class="mu-cb" onclick="HZU.cam('home')" aria-label="Recentrar">${SV.home}</button><button class="mu-cb" onclick="HZU.cam('zi')" aria-label="Acercar">${SV.zi}</button><button class="mu-cb" onclick="HZU.cam('zo')" aria-label="Alejar">${SV.zo}</button>${is3()?`<button class="mu-cb" onclick="HZU.cam('rr')" aria-label="Girar">${SV.rot}</button>`:''}</div></div>`}
 // ---- tarjeta de acciones ----
 const ST={setup:G=>G.sv<0?'pone su rancho':'pone su sacbé',roll:()=>'va a tirar los dados',main:()=>'comercia y construye',discard:G=>'huracán: esperando que descarten ('+Object.keys(G.dis||{}).length+')',
  move:()=>'mueve el huracán 🌀',steal:()=>'elige a quién robarle',road:()=>'pone sacbés gratis'};
@@ -89,6 +91,7 @@ function pickBox(){const p=pick,G=V.G,res=(f,L)=>`<div class="hz-pk">${[0,1,2,3,
  const c=D.DEV[p.c];return `<div class="mu-card"><header><b class="mu-h">${c.ico} ${c.nm}</b><button class="mu-x" onclick="HZU.pick(null)" aria-label="Cerrar">${SV.x}</button></header><div class="mu-s">${c.tx}</div>${h}</div>`}
 function menuBox(){const seg=L=>`<div class="mu-seg">${L.map(([o,c,t])=>`<button class="${o?'on':''}" onclick="${c}">${t}</button>`).join('')}</div>`;
  return `<div class="mu-card mu-menu"><header><b class="mu-h">Opciones</b><button class="mu-x" onclick="HZU.menu(0)" aria-label="Cerrar">${SV.x}</button></header>
+  <div class="mu-opt"><span>Vista</span>${seg([[is3(),"HZU.mode('3d')",'🎲 3D'],[!is3(),"HZU.mode('2d')",'🗺️ 2D']])}</div>
   <div class="mu-opt"><span>Tema</span>${seg([[theme=='claro',"HZU.theme('claro')",'☀️ Claro'],[theme=='oscuro',"HZU.theme('oscuro')",'🌙 Oscuro']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
@@ -111,7 +114,8 @@ function layout(){const t=document.querySelector('.mu-top'),dk=document.getEleme
  let T=t?t.getBoundingClientRect().bottom:0,b=0,r=0,cb=0;if(w&&bt)r=innerWidth-bt.getBoundingClientRect().left;else if(dk){b=innerHeight-dk.getBoundingClientRect().top;cb=sh?b+sh.offsetHeight-14:b}
  if(!w)bMax=Math.max(bMax,b);const bs=w?0:Math.min(Math.max(b,bMax),innerHeight*.45);ins={t:T+6,r,b:bs+6,l:0};
  rs.setProperty('--mu-b',b+'px');rs.setProperty('--mu-cb',(cb||b)+'px');rs.setProperty('--mu-r',r+'px');
- try{H2.show(true);H2.theme(theme);H2.layout(ins);H2.sync(V.G,hl())}catch(e){console.warn('Haciendas tablero:',e)}}
+ const st=stage(),o=st===H2?window.H3:H2;if(o)o.show(false);
+ try{st.show(true);st.theme(theme);st.layout(ins);st.sync(V.G,hl())}catch(e){console.warn('Haciendas tablero:',e);if(st!==H2){H3.fail();render()}}}
 // ---- efectos: recursos que flotan, "¡Te toca!", ganador ----
 function float(k,txt,dn){const el=document.querySelector(`.mu-pl[data-seat="${k}"]`);if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('div');
  f.className='mu-mf hz-mf '+(dn?'dn':'up');f.innerHTML=txt;f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),2200)}
@@ -140,7 +144,8 @@ window.HZU={get me(){return me()},D,tok,rc,chips,nm,pc,has,mine,myTurn,playable,
  tab:t=>{tab=wide()?t||'jug':t&&t!==tab?t:null;keep.sc=0;sfx('tick');render()},
  menu:o=>{menu=!!o;sfx('tick');render()},
  theme:t=>{theme=t=='oscuro'?'oscuro':'claro';lss('hz_theme',theme);sfx('tick');render()},
- cam:c=>{H2.cam(c);sfx('tick')},
+ cam:c=>{stage().cam(c);sfx('tick')},
+ mode:x=>{mode=x||(is3()?'2d':'3d');lss('hz_view',mode);menu=false;sfx('tick');render()},
  dis:(i,d)=>{keep.dis[i]=Math.max(0,keep.dis[i]+d);render()},
  pick:c=>{pick=c?{c,r:[]}:null;if(pick&&!wide())tab=null;sfx('tick');render()},
  pf:i=>HZU.a({t:'dev',c:'f',r:i}),pm:i=>HZU.a({t:'dev',c:'m',r:i}),pco:i=>{if(pick.r.length<2)pick.r.push(i);else pick.r=[i];render()},
@@ -154,7 +159,7 @@ GM.haciendas.after=function(){if(!active()||!ok){off();return}
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;
  const st=V.G.st;if(!myTurn()||(bm=='prot'?V.G.played||(st!='roll'&&st!='main'):st!='main'))bm=null;   // el modo de construir se apaga solo
  tickClock();layout();effects()};
-function off(){if(!on)return;on=false;document.documentElement.classList.remove('mrui','mumodal');H2.show(false);prev=null;tab=null;menu=false;bm=null;pick=null}
+function off(){if(!on)return;on=false;document.documentElement.classList.remove('mrui','mumodal');H2.show(false);if(window.H3)H3.show(false);prev=null;tab=null;menu=false;bm=null;pick=null}
 setInterval(()=>{if(on&&!active())off()},400);
 let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=setTimeout(()=>{bMax=0;if(active())render()},120)});
 // ---- estilos propios (lo demás viene de c_meridaui.js) ----
