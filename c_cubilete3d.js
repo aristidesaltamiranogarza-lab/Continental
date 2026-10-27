@@ -49,5 +49,5 @@ function hud(busy){ if(!open||busy||!S)return '';const c=S,mine=c.p.find(p=>p.id
   <div class="h3b">${!mine?`<button class="w7b dflt" onclick="CUB3.a('join')">Sentarme a jugar</button>`:c.st!='play'?`${c.p.length>=2?`<button class="w7b dflt" onclick="CUB3.a('start')">▶ ${c.rn?'Otra ronda':'Empezar'} (${c.ante} fichas)</button>`:''}<button class="w7b" onclick="CUB3.a('leave')">Levantarme</button>`:''}</div>
  </div></div>`;return h}
 window.CUB3={X,Z,build,sync,step,out,hud,a:(op,i)=>{send(op,i!=null?{i}:null);if(op=='leave')open=false},
- open:()=>{open=true;if(typeof casaClose=='function')casaClose();else render()},close:()=>{open=false;sfx('tick');render()},isOpen:()=>open};
+ open:()=>{open=true;if(window.JG3)JG3.close(1);if(typeof casaClose=='function')casaClose();else render()},close:()=>{open=false;sfx('tick');render()},isOpen:()=>open};
 })();

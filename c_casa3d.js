@@ -18,14 +18,12 @@ let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-c
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
-const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},
- {g:'c4',x:-9,z:5.5,felt:['#3a4f8a','#151f3d']},{g:'bg',x:9,z:5.5,felt:['#8a5a2e','#3a2210']}].filter(t=>GM[t.g]);
+const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']}].filter(t=>GM[t.g]);
 TB.forEach(t=>t.r=2.2);
 const OB=[];                             // obstáculos redondos (sillas, muebles): {x,z,r}
 const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
- uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',
- c4:'Junta 4 fichas de tu color en línea. De 2, o contra un bot.',bg:'Saca tus 15 fichas antes que tu rival. De 2, o contra un bot.'};
+ uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
 // ---------- texturas ----------
@@ -38,9 +36,7 @@ function miniCard(key,bg,fg,txt,border){return ctex('mc'+key,128,180,(g,w,h)=>{g
  g.fillStyle=fg;g.font='bold 64px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,w/2,h/2+4)})}
 const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','♥'],['c3','#fff','#c62828','♦'],['c4','#fff','#151515','♣'],['c5','#c0302f','#fff','♠']],
  uno:[['u1','#e53935','#fff','7'],['u2','#fbc02d','#fff','+2'],['u3','#43a047','#fff','⊘'],['u4','#1e88e5','#fff','4'],['u5','#1c1c1c','#fdd835','UNO']],
- monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']],
- c4:[['k1','#2f6fe0','#e53935','●'],['k2','#2f6fe0','#f9c623','●'],['k3','#2f6fe0','#e53935','●'],['k4','#2f6fe0','#f9c623','●'],['k5','#1d4fb0','#fff','4']],
- bg:[['g1','#1f5b3a','#fff','⚃'],['g2','#1f5b3a','#fff','⚅'],['g3','#e8dcc0','#26262b','●'],['g4','#26262b','#e8dcc0','●'],['g5','#5a3418','#fff','🎲']]};
+ monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']]};
 
 // ---------- escena ----------
 function init(){if(ready)return;ready=true;
@@ -128,7 +124,7 @@ function buildHouse(){
  cyl(.015,.015,1.4,std(0x222222,.4),0,8.9,-4,SC,6);
  const dl=[0xff2fd1,0x2fe8ff,0xffe02f].map(c=>{const l=new THREE.PointLight(c,0,16,1.4);SC.add(l);return l});disco={ball,dl,lvl:0};
  // mesas de juego
- TB.forEach(t=>buildTable(t));if(window.CUB3)CUB3.build({THREE,SC,hits,OB,std,cyl,ctex,TH});   // Cubilete en la esquina
+ TB.forEach(t=>buildTable(t));if(window.CUB3)CUB3.build({THREE,SC,hits,OB,std,cyl,ctex,TH});if(window.JG3)JG3.build({THREE,SC,hits,OB,std,cyl,box});   // Cubilete en la esquina
  // marca donde tocaste el piso
  mark=new THREE.Mesh(new THREE.RingGeometry(.25,.4,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.position.y=.03;SC.add(mark)}
 function buildTable(t){const G=new THREE.Group();G.position.set(t.x,0,t.z);SC.add(G);const hit={t:'table',g:t.g},wood=std(0x4a2814,.45);
@@ -214,8 +210,8 @@ function showMark(p){mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mar
 function inputBusy(){const a=document.activeElement;return !!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.closest&&a.closest('#app'))}
 async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
  const b={id:myId,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
- if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}
- try{const d=await api('casa',b);if(active()){netSync(d);if(window.CUB3&&CUB3.sync(d.cub,myId)&&!inputBusy())render()}}catch(e){}netBusy=false}
+ if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}if(window.JG3){const j=JG3.out();if(j)b.jg=j}
+ try{const d=await api('casa',b);if(active()){netSync(d);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
   if(!a){a=newAv(o.name,pos,+o.yaw||0);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
@@ -281,7 +277,7 @@ function pMove(e){if(!active())return;
    pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
    const p=ground(mx,my);if(p&&pin.g){VT.ox+=pin.g.x-p.x;VT.oz+=pin.g.z-p.z;snap()}return}}
- if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='cub')?'pointer':'default'}return}
+ if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default'}return}
  if(e.pointerId!==st.pid)return;
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;snap();return}
  // mover la cámara: el punto que agarraste se queda bajo el dedo
@@ -290,6 +286,7 @@ function pMove(e){if(!active())return;
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}const h=pick(e);if(!h)return;
  if(h.t=='table')return goTable(h.g);
+ if(h.t=='c4'||h.t=='bg')return JG3.tap(h);
  if(h.t=='cub'){tgt=v3(CUB3.X-1.6,0,CUB3.Z+1.6);tgtG=null;solve(tgt);showMark(tgt);return CUB3.open()}
  tgt=h.p.setY(0);tgtG=null;solve(tgt);showMark(tgt)}
 // botón Cuadrar: aparece solo si moviste la cámara
@@ -328,7 +325,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
   <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
   <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
   ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
- if(window.CUB3)o+=CUB3.hud(!!g);
+ if(window.CUB3)o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g);
  return o}
 // letreros: siguen a su mesa en la pantalla
 function labels(){const tb=$id('h3top'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
@@ -345,11 +342,11 @@ function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W);labels();tags(now);R.render(SC,CA)}
+ if(window.CUB3)CUB3.step(now,toPx,W);if(window.JG3)JG3.step(now,toPx,W);labels();tags(now);R.render(SC,CA)}
 home=function(){if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}render()};
-window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(sel===g)return;goTable(g)};
+window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g)return;goTable(g)};
 window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;mk(mode)};
 window.casaJoin=c=>{code=c;joinR()};

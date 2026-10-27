@@ -229,7 +229,7 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
  return R}
 // ---------- tablero 3D de Conecta 4: en una mesita al fondo de la sala, detrás de la mesa ----------
 let C4B=null,DISC=null;const c4d=new Map(),c4cols=[];
-function buildC4(por,rx,rz,at){c4d.clear();c4cols.length=0;
+function mkC4(par,at,cols){   // el modelo solo (también lo usa la Casa 3D)
  const P=new THREE.Group(),g=new THREE.Group(),blue=new THREE.MeshPhysicalMaterial({color:0x2260d0,roughness:.28,clearcoat:1,clearcoatRoughness:.15});
  // marco con 42 hoyos (se ve a través, como el de verdad)
  const sh=new THREE.Shape();sh.moveTo(-3.7,.2);sh.lineTo(3.7,.2);sh.lineTo(3.7,6.4);sh.lineTo(-3.7,6.4);sh.closePath();
@@ -238,16 +238,16 @@ function buildC4(por,rx,rz,at){c4d.clear();c4cols.length=0;
  [-3.4,3.4].forEach(x=>{const f=new THREE.Mesh(new THREE.BoxGeometry(.5,.25,1.6),blue);f.position.set(x,.08,0);f.castShadow=true;g.add(f)});
  // columnas para tocar: invisibles, se iluminan cuando puedes tirar ahí
  for(let c=0;c<7;c++){const m=new THREE.Mesh(new THREE.PlaneGeometry(.98,6.2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
-  m.position.set(c-3,3.3,.24);m.userData.hit={t:'c4',c};g.add(m);c4cols.push(m)}
+  m.position.set(c-3,3.3,.24);m.userData.hit={t:'c4',c};g.add(m);cols.push(m)}
  g.scale.setScalar(.4);P.add(g);   // derecho, a 90°
  // mesita de madera
  const wood=new THREE.MeshStandardMaterial({color:0x5a2f14,roughness:.55}),tp=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.12,40),wood);
  tp.scale.set(2.2,1,1.2);tp.position.y=-.07;tp.receiveShadow=true;tp.castShadow=true;P.add(tp);
  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,1.4,16),wood);leg.position.y=-.8;P.add(leg);
  const ft=new THREE.Mesh(new THREE.CylinderGeometry(.9,1,.1,32),wood);ft.position.y=-1.5;P.add(ft);
- P.position.copy(at);P.rotation.y=-.5;tbl.add(P);P.updateMatrixWorld(true);
- // colores base para la penumbra: se ilumina cuando la cámara se acerca a jugar
- const mats=[blue,wood];C4B={P,g,id:null,lit:.4,mats:mats.map(m=>({m,base:m.color.clone()}))};c4light(.4)}
+ P.position.copy(at);P.rotation.y=-.5;par.add(P);P.updateMatrixWorld(true);return {P,g,mats:[blue,wood]}}
+// colores base para la penumbra: se ilumina cuando la cámara se acerca a jugar
+function buildC4(por,rx,rz,at){c4d.clear();c4cols.length=0;const o=mkC4(tbl,at,c4cols);C4B={P:o.P,g:o.g,id:null,lit:.4,mats:o.mats.map(m=>({m,base:m.color.clone()}))};c4light(.4)}
 function c4light(v){if(!C4B)return;C4B.lit=v;C4B.mats.forEach(o=>o.m.color.copy(o.base).multiplyScalar(v));c4d.forEach(m=>m.material.color.copy(m.userData.base).multiplyScalar(v))}
 // la partida que se muestra: la tuya, o si no juegas, cualquiera que esté en curso
 function c4show(){const L4=V.G.c4s||[];return L4.find(x=>x.p.includes(V.me))||L4.find(x=>x.st=='play')||null}
@@ -374,7 +374,7 @@ function diceFaces(v){const o=[1,2,3,4,5,6].filter(x=>x!==v&&x!==7-v),a=o[0],b=o
 const bgZ=i=>i<12?BGD/2:-BGD/2,bgDir=i=>i<12?-1:1;
 function pipTex(v){return ctex('pip'+v,128,128,(g,w,h)=>{g.fillStyle='#f7f4ec';g.fillRect(0,0,w,h);g.fillStyle='#1b1b1b';const P={1:[[2,2]],2:[[1,1],[3,3]],3:[[1,1],[2,2],[3,3]],4:[[1,1],[3,1],[1,3],[3,3]],5:[[1,1],[3,1],[2,2],[1,3],[3,3]],6:[[1,1],[3,1],[1,2],[3,2],[1,3],[3,3]]}[v];
  P.forEach(([x,y])=>{g.beginPath();g.arc(x*32,y*32,11,0,7);g.fill()})})}
-function buildBG(at){const P=new THREE.Group(),g=new THREE.Group();P.add(g);P.position.copy(at);
+function mkBG(par,at){const P=new THREE.Group(),g=new THREE.Group();P.add(g);P.position.copy(at);
  const std=(c,r,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r==null?.6:r},o||{})),M=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m};
  const wood=std(0x5a3418,.45),felt=std(0x1f5b3a,.95),red=std(0x9e2a2a,.7),ivory=std(0xe8dcc0,.7),tray=BGW/2+.1+.17;
  M(new THREE.BoxGeometry(BGW+.24+.4,.12,BGD+.24),wood,.2,.06,0);M(new THREE.BoxGeometry(BGW,.02,BGD),felt,0,.13,0);
@@ -391,8 +391,8 @@ function buildBG(at){const P=new THREE.Group(),g=new THREE.Group();P.add(g);P.po
  const ck=[[],[]],cg=new THREE.CylinderGeometry(BGPW*.43,BGPW*.43,.045,24);
  [0,1].forEach(p=>{for(let n=0;n<15;n++){const m=new THREE.Mesh(cg,new THREE.MeshPhysicalMaterial({color:p?0x26262b:0xf2ead8,roughness:.35,clearcoat:.8}));m.castShadow=true;m.position.set(tray,.2,0);g.add(m);ck[p].push(m)}});
  const dice=[0,1].map(()=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.17,.17,.17),[1,2,3,4,5,6].map(v=>std(0xffffff,.35,{map:pipTex(v)})));m.castShadow=true;m.visible=false;g.add(m);return m});
- tbl.add(P);P.updateMatrixWorld(true);
- const mats=[wood,felt,red,ivory];BGB={P,g,zs,hits,ck,dice,tray,id:null,rn:-1,lit:.4,mats:mats.map(m=>({m,base:m.color.clone()}))}}
+ par.add(P);P.updateMatrixWorld(true);return {P,g,zs,hits,ck,dice,tray,mats:[wood,felt,red,ivory]}}
+function buildBG(at){const o=mkBG(tbl,at);BGB=Object.assign(o,{id:null,rn:-1,lit:.4,mats:o.mats.map(m=>({m,base:m.color.clone()}))})}
 const bgg=()=>{const L=V.G.bgs||[];return L.find(x=>x.p.includes(V.me))};
 const bgshow=()=>{const L=V.G.bgs||[];return bgg()||L.find(x=>x.st=='play')||null};
 const bgmine=()=>{const g=bgg();return g&&g.st=='play'&&g.turn==g.p.indexOf(V.me)?g:null};
@@ -868,5 +868,5 @@ window.c3dLook=look;
 window.c3dHome=home;
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
 // el Uno 3D usa el mismo cuarto y los mismos Miis
-window.C3D={buildRoom,mkAvatar,avPick,seg,ik,AVP,hsh};
+window.C3D={buildRoom,mkAvatar,avPick,seg,ik,AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};
 })();
