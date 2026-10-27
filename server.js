@@ -21,8 +21,8 @@ function view(R,tok){const me=R.players.findIndex(p=>p.tok==tok),now=Date.now(),
 const TOM_MS=15000,turnKey=G=>G?[G.phase,G.turn,G.tc,G.round].join(':'):'';
 function tomato(R,tok,i){const G=R.G,now=Date.now();if(!G||G.phase!='play'||G.turn==null)return 'No hay a quién lanzarle tomates.';const k=G.turn;
  if(k===i)return '¡No te puedes lanzar tomates a ti!';if(R.players[k]&&R.players[k].bot)return 'Los bots no se tardan 😉';
- if(now-(R.tt||now)<TOM_MS)return 'Todavía no se está tardando tanto.';const lt=R.lt=R.lt||{};if(now-(lt[tok]||0)<1200)return 'Más despacio.';lt[tok]=now;
- const sp=specOf(R,tok),from=i>=0?R.players[i].name:sp?sp.name:'Host';R.fx=(R.fx||[]).concat({n:R.fxn=(R.fxn||0)+1,t:'tom',from,k,ts:now}).slice(-12)}
+ if(now-(R.tt||now)<TOM_MS)return 'Todavía no se está tardando tanto.';const lt=R.lt=R.lt||{};if(now-(lt[tok]||0)<120)return 'Más despacio.';lt[tok]=now;
+ const sp=specOf(R,tok),from=i>=0?R.players[i].name:sp?sp.name:'Host';R.fx=(R.fx||[]).concat({n:R.fxn=(R.fxn||0)+1,t:'tom',from,k,ts:now}).slice(-40)}
 function bump(R){const tk=turnKey(R.G);if(tk!==R.tk){R.tk=tk;R.tt=Date.now()}R.v++;R.ts=Date.now();const ws=R.w;R.w=[];ws.forEach(w=>{clearTimeout(w.t);out(w.res,view(R,w.tok))});botGo(R)}
 // ---- bots: el módulo del juego decide (M.bot), aquí se agenda y se manda por act() como cualquier jugador ----
 const BOTN=['🤖 Ana','🤖 Beto','🤖 Caro','🤖 Dani','🤖 Eli','🤖 Fer','🤖 Gabo','🤖 Hugo','🤖 Iris'];

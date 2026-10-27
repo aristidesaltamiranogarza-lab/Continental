@@ -107,7 +107,7 @@ async function loop(){const my=S;while(S===my){try{const d=await(await fetch(`po
 async function send(m){msg='';try{const d=await api('act',{c:S.c,t:S.t,m});if(d.err){bad(d.err);return false}sel=new Set();return true}catch(e){bad('Sin conexión.');return false}}
 // ---- 🍅 tomates: si alguien tarda más de V.tom ms en su turno, los demás (y quien esté mirando) se los pueden lanzar ----
 let tomT0=0,tomN=-1;const TOMB=document.createElement('button');TOMB.id='tombtn';document.body.appendChild(TOMB);
-TOMB.onclick=()=>{if(S)api('act',{c:S.c,t:S.t,m:{t:'tomato'}}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>{})};
+TOMB.onclick=()=>{if(S)api('act',{c:S.c,t:S.t,m:{t:'tomato'}}).then(d=>{if(d&&d.err&&d.err!=='Más despacio.')bad(d.err)}).catch(()=>{})};   // se puede spamear
 function tomSync(){const G=V&&V.G;if(!G){tomN=-1;return}if(typeof V.tt=='number')tomT0=Date.now()-V.tt;
  const fx=V.fx||[],mx=fx.reduce((a,f)=>Math.max(a,f.n),0);if(tomN<0){tomN=mx;return}
  fx.filter(f=>f.n>tomN).forEach((f,i)=>setTimeout(()=>tomFly(f),i*160));tomN=Math.max(tomN,mx)}
@@ -121,8 +121,8 @@ function tomFly(f){if(f.k===V.me)return tomMe(f.from);const tg=document.querySel
  const e=document.createElement('div');e.className='tomfly';e.textContent='🍅';document.body.appendChild(e);const mx=(x0+x1)/2,my=Math.min(y0,y1)-120;
  const a=e.animate([{transform:`translate(${x0}px,${y0}px) rotate(0)`},{transform:`translate(${mx}px,${my}px) rotate(260deg)`},{transform:`translate(${x1}px,${y1}px) rotate(520deg)`}],{duration:RM?1:650,easing:'ease-in'});
  a.onfinish=()=>{e.remove();const s=document.createElement('div');s.className='tomsplat';s.style.cssText=`left:${x1}px;top:${y1}px`;s.innerHTML=`<small>${esc(f.from)}</small>`;document.body.appendChild(s);setTimeout(()=>s.remove(),2700);sfx('splat')}}
-// a ti: tomatazo en toda la pantalla
-function tomMe(from){const e=document.createElement('div');e.className='tomme';e.innerHTML=`<i></i><b>🍅 ¡${esc(from)} te lanzó un tomate!<br><small>¡Apúrate!</small></b>`;document.body.appendChild(e);setTimeout(()=>e.remove(),2900);sfx('splat');if(navigator.vibrate)navigator.vibrate([60,40,60])}
+// a ti: tomatazo en la pantalla, sin texto (si te llueven varios, cada uno cae en otro lugar)
+function tomMe(from){const e=document.createElement('div');e.className='tomme';e.innerHTML='<i></i>';e.firstChild.style.transform=`translate(${(Math.random()-.5)*36}vw,${(Math.random()-.5)*36}vh) rotate(${Math.random()*360|0}deg) scale(${(.65+Math.random()*.5).toFixed(2)})`;document.body.appendChild(e);setTimeout(()=>e.remove(),2900);sfx('splat');if(navigator.vibrate)navigator.vibrate([60,40,60])}
 const kick=id=>{if(confirm('¿Expulsar a este jugador?'))send({t:'kick',id})};
 const hc=k=>{const h=V.G.hands[k];return Array.isArray(h)?h.length:h};
 const nm=i=>esc(V.G.players[i].name);
