@@ -1,9 +1,10 @@
 // Servidor de juegos de cartas (Continental, Uno, Monopoly Deal...). Sin dependencias.  Uso: node server.js  (PORT=8080 node server.js para otro puerto)
 // Núcleo: salas, polling, chat, expulsar, reconexión. Cada juego es un módulo g_*.js con: id,name,min,max,opts,start,view,act,kick,tick
 const http=require('http'),fs=require('fs'),path=require('path'),cr=require('crypto'),PORT=process.env.PORT||3000;
-const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
+const GAMES={continental:require('./g_continental.js'),uno:require('./g_uno.js'),monopolydeal:require('./g_monopolydeal.js'),merida:require('./g_merida.js')},ALF='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rooms={};
 const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/game.js':['game.js','text/javascript; charset=utf-8'],
- '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8'],'/c_monopolydeal.js':['c_monopolydeal.js','text/javascript; charset=utf-8']};
+ '/c_continental.js':['c_continental.js','text/javascript; charset=utf-8'],'/c_uno.js':['c_uno.js','text/javascript; charset=utf-8'],'/c_monopolydeal.js':['c_monopolydeal.js','text/javascript; charset=utf-8'],
+ '/merida_data.js':['merida_data.js','text/javascript; charset=utf-8'],'/c_merida.js':['c_merida.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
