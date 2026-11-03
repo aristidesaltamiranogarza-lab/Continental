@@ -24,7 +24,8 @@ const OB=[];                             // obstáculos redondos (sillas, mueble
 const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
  uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.',haciendas:'Pon ranchos y sacbés, cosecha y comercia en Yucatán. Gana quien llegue primero a los puntos.',
- ruleta:'Baja al sótano: un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.'};
+ ruleta:'Baja al sótano: un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.',
+ rummy:'Sal a la terraza con los abuelos: arma series y escaleras con fichas de madera y reacomoda la mesa. Gana quien se quede sin fichas.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
 // ---------- texturas ----------
