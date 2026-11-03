@@ -1,12 +1,12 @@
 // Rummy: interfaz del juego (HUD mínimo y estado local del turno). Envuelve GM.rummy.body/after; NO cambia reglas ni servidor.
-// El tablero lo dibuja c_rummy2d.js (R2) o, cuando exista, el 3D (R3) con la misma API. En tu turno se arma una mesa de trabajo local con Deshacer:
+// El tablero lo dibuja la terraza 3D (R3, c_rummy3d.js) o la mesa 2D (R2, c_rummy2d.js), con la misma API; se cambia en el menú. En tu turno se arma una mesa de trabajo local con Deshacer:
 // cada cambio se manda como mesa temporal (t:'tmp', para que los demás la vean en vivo) y al terminar se valida aquí con RUMMY.check antes de mandarla (t:'end').
 (function(){
 const RU=window.RUMMY;if(!RU||typeof GM==='undefined'||!GM.rummy||!window.R2){console.warn('Rummy UI: faltan rummy_reglas.js, c_rummy.js o c_rummy2d.js');return}
 const origBody=GM.rummy.body,es=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])),cp=m=>m.map(g=>g.slice());
 const coarse=matchMedia('(pointer:coarse)').matches,LOCK='Antes de tu primera bajada no puedes tocar las fichas de la mesa.';
 // key: turno que se está armando (G.tc:G.turn) · base: la mesa al empezar el turno · work: la mesa de trabajo · placed: fichas del atril puestas en work · hist: para Deshacer
-let on=false,ok=true,menu=false,key='',base=[],work=[],placed=new Set(),hist=[],sel=null,order=[],porNum=false,aviso='',avT=0,logN=-1,say='',sayT=0,dl=0,lastV=null,tmpT=0,tmpK='',busy=false,big=false,mode='2d';
+let on=false,ok=true,menu=false,key='',base=[],work=[],placed=new Set(),hist=[],sel=null,order=[],porNum=false,aviso='',avT=0,logN=-1,say='',sayT=0,dl=0,lastV=null,tmpT=0,tmpK='',busy=false,big=false,mode=(()=>{try{return localStorage.getItem('rm_view')||'3d'}catch(e){return '3d'}})();
 const active=()=>!!S&&!!V&&V.game==='rummy'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final');
 const me=()=>V.me,mine=()=>V.G.mio||[],nm=k=>k>=0&&V.G.players[k]?es(V.G.players[k].name):'',baseSet=()=>new Set(base.flat());
 const myTurn=()=>V.G.phase==='play'&&me()>=0&&!!V.G.players[me()]&&!V.G.out[me()]&&V.G.turn===me();
@@ -21,7 +21,7 @@ function syncOrder(){const M=mine();if(!order.length&&M.length){order=RU.ordena(
 function view(){const G=V.G,my=myTurn(),live=G.phase=='play'&&!my&&G.tmp,mesa=my?work:live?G.tmp:G.mesa,A=new Set(G.mesa.flat());
  const bad=new Set(),lock=new Set();mesa.forEach((g,k)=>{if(!RU.grp(g))bad.add(k);if(my&&!G.down[me()]&&g.some(x=>A.has(x)))lock.add(k)});
  const nuevas=new Set(my?placed:live?G.tmp.flat().filter(x=>!A.has(x)):[]);
- return {mesa,atril:me()>=0?order.filter(x=>!placed.has(x)):null,sel,bad,nuevas,lock,my}}
+ return {mesa,atril:me()>=0?order.filter(x=>!placed.has(x)):null,sel,bad,nuevas,lock,my,G,me:me(),dl,cnt:G.players.map((_,k)=>cnt(k))}}   // G, me, dl y cnt los usa el 3D
 function cnt(k){const G=V.G;if(G.phase!='play')return G.nr[k];if(k===me()&&myTurn())return mine().length-placed.size;
  if(k===G.turn&&G.tmp){const A=new Set(G.mesa.flat());return G.nr[k]-G.tmp.flat().filter(x=>!A.has(x)).length}return G.nr[k]}
 function why(id){return !myTurn()?'Espera tu turno.':placed.has(id)||V.G.down[me()]?'':LOCK}
@@ -50,7 +50,7 @@ window.RMU={
   if(!okk&&typeof msg=='string'&&msg)tell(msg.replace(/^✋ No puedes hacer eso\. /,''));render()},
  async again(){if(await send({t:'reset'}))await send({t:'start'});render()},
  menu(o){menu=!!o;render()},
- mode(x){mode=x||(is3()?'2d':'3d');menu=false;render()},
+ mode(x){stage().cam('home');big=false;mode=x||(is3()?'2d':'3d');try{localStorage.setItem('rm_view',mode)}catch(e){}menu=false;render()},
  vista(){stage().cam('vista')}};
 // ---- HUD: barra de arriba, narración, botones del turno, resumen y menú ----
 function txt(){const n=Date.now();return aviso&&n-avT<4500?aviso:say&&n-sayT<5500?say:''}
@@ -75,7 +75,9 @@ function ins(){const t=document.querySelector('.rm-top'),b=document.querySelecto
 GM.rummy.body=function(){if(!active())return origBody();try{ok=true;return hud()}catch(e){console.warn('Rummy UI:',e);ok=false;return origBody()}};
 GM.rummy.after=function(){if(!active()||!ok){off();return}
  if(!on){on=true;document.documentElement.classList.add('rmui')}if(V!==lastV){lastV=V;dl=Date.now()+(V.G.left||0)}
- const s=stage();if(s!==R2)R2.show(false);s.show(true);s.layout(ins());s.sync(view())};
+ const s=stage();if(s!==R2)R2.show(false);if(window.R3&&s!==R3)R3.show(false);s.show(true);
+ if(s!==R2&&!s.ok())return render();   // el 3D no pudo arrancar: queda el 2D
+ s.layout(ins());s.sync(view())};
 function off(){if(!on)return;on=false;document.documentElement.classList.remove('rmui');R2.cam('home');R2.show(false);if(window.R3)R3.show(false);menu=false;key='';order=[];sel=null;big=false;hist=[];logN=-1;aviso='';say=''}
 // reloj y narración sin volver a dibujar todo
 setInterval(()=>{if(on&&!active())return off();if(!on)return;const G=V.G,c=document.getElementById('rmclk');

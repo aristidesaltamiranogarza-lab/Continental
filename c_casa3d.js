@@ -18,8 +18,9 @@ let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-c
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
-const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:0,z:-2,felt:['#79a96a','#2f5a2a']},{g:'ruleta',x:HX-.2,z:-8,door:1}].filter(t=>GM[t.g]);
-TB.forEach(t=>t.r=t.door?1:2.2);         // door: en vez de mesa es una puerta en la pared derecha (la Ruleta Rusa, en el sótano)
+const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:0,z:-2,felt:['#79a96a','#2f5a2a']},{g:'ruleta',x:HX-.2,z:-8,door:1},
+ {g:'rummy',x:HX-.2,z:3,door:1,sign:['🀄 Terraza · Rummy','#3a2412','#e07a10','#ffe2b0',0xffb35a]}].filter(t=>GM[t.g]);
+TB.forEach(t=>t.r=t.door?1:2.2);         // door: en vez de mesa es una puerta en la pared derecha (la Ruleta Rusa al sótano, el Rummy a la terraza)
 const OB=[];                             // obstáculos redondos (sillas, muebles): {x,z,r}
 const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
@@ -136,10 +137,12 @@ function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotat
  box(1.9,3.6,.12,wd,0,1.8,.06,G).userData.hit=hit;[[-.45,2.55],[.45,2.55],[-.45,1],[.45,1]].forEach(([x,y])=>box(.7,y>2?1.5:1.2,.05,dk,x,y,.14,G).userData.hit=hit);
  box(.22,3.9,.3,fr,-1.06,1.95,.12,G);box(.22,3.9,.3,fr,1.06,1.95,.12,G);box(2.34,.25,.34,fr,0,3.92,.14,G);
  const kb=new THREE.Mesh(new THREE.SphereGeometry(.09,12,8),std(0xc9a24a,.3,{metalness:.8}));kb.position.set(.7,1.6,.22);G.add(kb);
- const sg=ctex('rrsign',512,128,(g,w,h)=>{g.fillStyle='#1a0c0a';rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#a3302a';g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
-  g.font='bold 50px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#e9c9a0';g.fillText('🔫 Ruleta Rusa',w/2,h/2+3)});
+ // letrero sobre la puerta (sign: texto, fondo, borde, letra y color de la luz; si no, el del sótano)
+ const S=t.sign||['🔫 Ruleta Rusa','#1a0c0a','#a3302a','#e9c9a0',0xff4a2a];
+ const sg=ctex('sign-'+t.g,512,128,(g,w,h)=>{g.fillStyle=S[1];rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle=S[2];g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
+  g.font='bold '+(S[0].length>16?42:50)+'px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=S[3];g.fillText(S[0],w/2,h/2+3)});
  const s=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.65),std(0xffffff,.6,{map:sg}));s.position.set(0,4.55,.1);G.add(s);
- const lt=new THREE.PointLight(0xff4a2a,8,6,1.6);lt.position.set(0,4.3,.9);G.add(lt);
+ const lt=new THREE.PointLight(S[4],8,6,1.6);lt.position.set(0,4.3,.9);G.add(lt);
  const ring=new THREE.Mesh(new THREE.RingGeometry(t.r+1.4,t.r+1.7,64),new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:0,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.03;G.add(ring);
  t.ring=ring;t.chairs=[];G.traverse(o=>{if(o.userData.hit)hits.push(o)})}
 function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G.position.set(t.x,0,t.z);SC.add(G);const hit={t:'table',g:t.g},wood=std(0x4a2814,.45);
