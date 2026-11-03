@@ -87,10 +87,10 @@ function mesa(){const g=new THREE.Group();G0.add(g);
  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.4;tube(v3(0,.55,0),pol(a,.75,.02),.025,fe,g);add(new THREE.SphereGeometry(.04,8,6),fe,Math.cos(a)*.75,.03,Math.sin(a)*.75,g)}}
 // silla de herrería blanca con cojín (en su grupo, +z mira a la mesa)
 function silla(){const g=new THREE.Group(),fe=std(0xf2efe8,.35,{metalness:.4}),coj=std([0xc84b3a,0x2e7d4f,0xe0a030][CHAIRS.length%3],.85);
- add(new THREE.CylinderGeometry(.34,.34,.035,24),fe,0,.92,0,g);add(new THREE.CylinderGeometry(.31,.31,.07,24),coj,0,.97,0,g);
- [[-.24,-.24],[.24,-.24],[-.24,.24],[.24,.24]].forEach(([x,z])=>tube(v3(x,.9,z),v3(x*1.15,0,z*1.15),.018,fe,g));
- [-.26,.26].forEach(x=>tube(v3(x,.92,-.27),v3(x*1.05,1.85,-.34),.02,fe,g));add(new THREE.TorusGeometry(.27,.02,6,24,Math.PI),fe,0,1.82,-.335,g);
- for(let i=-2;i<=2;i++)tube(v3(i*.09,.96,-.29),v3(i*.095,1.78,-.33),.011,fe,g);[-.13,.13].forEach(x=>add(new THREE.TorusGeometry(.06,.01,6,16),fe,x,1.42,-.31,g));return g}
+ add(new THREE.CylinderGeometry(.34,.34,.035,24),fe,0,.8,0,g);add(new THREE.CylinderGeometry(.31,.31,.07,24),coj,0,.85,0,g);   // el asiento a la altura del Mii sentado
+ [[-.24,-.24],[.24,-.24],[-.24,.24],[.24,.24]].forEach(([x,z])=>tube(v3(x,.78,z),v3(x*1.15,0,z*1.15),.018,fe,g));
+ [-.26,.26].forEach(x=>tube(v3(x,.8,-.27),v3(x*1.05,1.73,-.34),.02,fe,g));add(new THREE.TorusGeometry(.27,.02,6,24,Math.PI),fe,0,1.7,-.335,g);
+ for(let i=-2;i<=2;i++)tube(v3(i*.09,.84,-.29),v3(i*.095,1.66,-.33),.011,fe,g);[-.13,.13].forEach(x=>add(new THREE.TorusGeometry(.06,.01,6,16),fe,x,1.3,-.31,g));return g}
 // ---------- sobre la mesa: radio vieja, tazas de barro con café y vasos de agua de jamaica ----------
 function radio(){const g=new THREE.Group(),wd=std(0x6e3b1c,.5);
  const gr=tex('rejilla',64,64,(c,w,h)=>{c.fillStyle='#c9b48a';c.fillRect(0,0,w,h);c.strokeStyle='rgba(90,60,30,.45)';for(let i=0;i<w;i+=3){c.beginPath();c.moveTo(i,0);c.lineTo(i,h);c.stroke();c.beginPath();c.moveTo(0,i);c.lineTo(w,i);c.stroke()}},3,2);

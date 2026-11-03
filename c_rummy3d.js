@@ -1,10 +1,10 @@
 // Rummy 3D: la terraza en primera persona, sentado en tu silla. Escenario en c_rummyesc.js (RME) y modelos en c_rummy3dm.js (RM3M); reusa materiales de la casa (CASA3D).
-// Lo maneja c_rummyui.js como window.R3, con la misma API que R2 (ok, show, layout, sync, cam, sort) y los mismos avisos a RMU (can, pick, put, rack).
+// Los abuelos y el confeti en c_rummyabuelos.js (RMA). Lo maneja c_rummyui.js como window.R3, con la misma API que R2 (ok, show, layout, sync, cam, sort) y los mismos avisos a RMU (can, pick, put, rack).
 // Cámara: sentado (arrastrar para voltear, doble clic al frente) o cenital (cam('vista')); cam('atril') acerca tu atril. Cada ficha se desliza sola a su lugar.
 (function(){
 const OK3=typeof THREE!=='undefined'&&!!window.RME&&!!window.RM3M&&!!window.RUMMY;
 let R,SC,CA,root,cv,lay,E,K,BAG,RELOJ,ready=false,failed=false,shown=false,raf=0,tPrev=0,Wd=0,Hd=0,vo='',st=null,ins={t:0,b:0},vista='sen',big=false,camE=null,camA=null;
-let drag=null,hov=null,hop=0,primed=false,lastTc=null,lastTurn=-1,lastFx=-1,bagT=0,flipT=-1e9,seatKey='',seatK=[],L=null,RK=null;
+let drag=null,hov=null,hop=0,primed=false,lastTc=null,lastTn=null,lastTurn=-1,lastFx=-1,bagT=0,flipT=-1e9,seatKey='',seatK=[],L=null,RK=null,AV=false;   // AV: hay abuelos (c_rummyabuelos.js)
 const look={y:0,p:0},T=new Map(),BK=[],UL=[],tags=[],racks=[];   // T: fichas con número (id → mesh) · BK: fichas de espaldas en cada atril ajeno · UL: marcas bajo cada grupo
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),cl=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=x=>x<0?0:x>1?1:x*x*(3-2*x),es=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const TV=OK3?v3(0,0,0):null,Q0=OK3?new THREE.Quaternion():null,ray=OK3?new THREE.Raycaster():null,P2=OK3?new THREE.Vector2():null,PL=OK3?new THREE.Plane(v3(0,1,0),-1.52):null;
@@ -17,7 +17,7 @@ window.R3={ok:()=>OK3&&!failed,
  sort(){hop=performance.now()}};
 function fail(e){console.warn('Rummy 3D:',e);failed=true;R3.show(false);if(typeof render=='function')render()}
 // al volver a entrar: sin fichas viejas; la primera vista las pone directo en su lugar
-function reset(){T.forEach(m=>SC.remove(m));T.clear();BK.forEach(a=>a&&a.forEach(m=>SC.remove(m)));BK.length=0;seatKey='';primed=false;lastTc=null;lastFx=-1;lastTurn=-1;camE=null;big=false;look.y=look.p=0}
+function reset(){T.forEach(m=>SC.remove(m));T.clear();BK.forEach(a=>a&&a.forEach(m=>SC.remove(m)));BK.length=0;seatKey='';primed=false;lastTc=null;lastTn=null;lastFx=-1;lastTurn=-1;camE=null;big=false;look.y=look.p=0;if(AV)RMA.reset()}
 // ---------- dónde se sienta cada quien: tú en la silla 0 y los demás en orden de turno ----------
 const seatOf=(G,k,me)=>{const n=G.players.length,o=G.ord;return me>=0?(o.indexOf(k)-o.indexOf(me)+n)%n:o.indexOf(k)};
 function buildRacks(n,mine){racks.forEach(r=>SC.remove(r));racks.length=0;BK.forEach(a=>a&&a.forEach(m=>SC.remove(m)));BK.length=0;
@@ -37,7 +37,7 @@ function rackSlot(rk,i,n,o){const row=i<o.per?0:1,j=row?i-o.per:i,cnt=row?n-o.pe
 // ---------- cada vez que cambia algo: a dónde va cada ficha ----------
 function apply(){const s=st,G=s.G,n=G.players.length,me=s.me,now=performance.now();
  const key=n+':'+(s.atril?1:0);if(key!==seatKey){seatKey=key;E.seats(n);buildRacks(n,!!s.atril)}
- seatK=[];G.ord.forEach(k=>{seatK[seatOf(G,k,me)]=k});
+ seatK=[];G.ord.forEach(k=>{seatK[seatOf(G,k,me)]=k});if(AV)RMA.seats(G,seatK,me,E);
  L=layout(s.mesa,s.my);const want=new Map(),y0=K.TH+RM3M.TT*L.sc/2+.003;
  s.mesa.forEach((g,gi)=>g.forEach((id,j)=>{const t=L.pos[gi][j];want.set(id,{p:v3(t.x,y0+(s.sel===id?.05:0),t.z),q:Q0,s:L.sc})}));
  RK=null;if(s.atril&&racks[0]){const o=rowsOf(s.atril.length,racks[0]);RK={list:s.atril.map((id,i)=>Object.assign({id},rackSlot(racks[0],i,s.atril.length,o))),ids:new Set(s.atril)};
@@ -52,7 +52,10 @@ function apply(){const s=st,G=s.G,n=G.players.length,me=s.me,now=performance.now
  seatK.forEach((k,c)=>{if(!(c===0&&s.atril))backs(c,s.cnt[k]||0)});
  underlays();
  if(G.tc!==lastTc){if(lastTc!=null&&G.phase=='play')flipT=now;lastTc=G.tc}
- const F=G.fx||[];if(lastFx<0)lastFx=F.length?F[F.length-1].n:0;else F.forEach(f=>{if(f.n<=lastFx)return;lastFx=f.n;if(f.t=='roba'||f.t=='mez')bagT=now+(f.t=='mez'?1400:650)});
+ const F=G.fx||[];if(lastFx<0)lastFx=F.filter(f=>(f.ago||0)>2500).reduce((m,f)=>Math.max(m,f.n),0);F.forEach(f=>{if(f.n<=lastFx)return;lastFx=f.n;if(f.t=='roba'||f.t=='mez')bagT=now+(f.t=='mez'?1400:650);
+  if(AV)RMA.fx(f,{bag:K.BAG,table:v3(0,K.TH,0),cam:CA.position})});
+ // quien está jugando estira la mano cada vez que mueve fichas en la mesa
+ if(G.tn!==lastTn){if(lastTn!=null&&AV&&G.turn!==me)RMA.poke(G.turn,v3(0,K.TH,0));lastTn=G.tn}
  lastTurn=G.phase=='play'?G.turn:-1;primed=true}
 // fichas de espaldas en el atril de otro: las nuevas salen de la bolsa
 function backs(c,n){const a=BK[c]||(BK[c]=[]),rk=racks[c];if(!rk)return;
@@ -84,14 +87,14 @@ function camStep(now,dt){const a=CA.aspect,port=a<1,vf=CA.fov*Math.PI/180,hf=2*M
 // nombre y fichas sobre cada silla ajena
 function labels(){const s=st,G=s.G;for(let c=0;c<5;c++){let t=tags[c];if(!t){t=tags[c]=document.createElement('div');t.className='rm3-tag';lay.appendChild(t)}
  const k=seatK[c];if(k==null||c===0&&s.me>=0||c>=G.players.length){t.style.display='none';continue}
- const p=E.seat(c).setY(K.TH+1.35).project(CA),vis=p.z<1&&Math.abs(p.x)<1.05&&Math.abs(p.y)<1.05;t.style.display=vis?'':'none';if(!vis)continue;
+ const h=AV&&RMA.head(c),p=(h?h.clone().setY(h.y+.78):E.seat(c).setY(K.TH+1.35)).project(CA),vis=p.z<1&&Math.abs(p.x)<1.05&&Math.abs(p.y)<1.05;t.style.display=vis?'':'none';if(!vis)continue;
  const tx=es(G.players[k].name)+' <b>'+(s.cnt[k]||0)+'</b>';if(t._t!==tx){t._t=tx;t.innerHTML=tx}t.classList.toggle('turn',G.phase=='play'&&G.turn===k);t.classList.toggle('out',!!G.out[k]);
  t.style.transform=`translate(${((p.x+1)/2*Wd).toFixed(1)}px,${((1-p.y)/2*Hd).toFixed(1)}px) translate(-50%,-100%)`}}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  const b=root.getBoundingClientRect();if(b.width!==Wd||b.height!==Hd){Wd=b.width;Hd=b.height;R.setSize(Wd,Hd,false);CA.aspect=Wd/Math.max(1,Hd);CA.fov=Wd<Hd?72:56;vo=''}
  // la barra de abajo tapa parte de la pantalla: se recorre la imagen para que tu atril quede a la vista
  const sh=Math.round((ins.b||0)-(ins.t||0)),vk=Wd+'x'+Hd+':'+sh;if(vk!==vo){vo=vk;if(Math.abs(sh)>2)CA.setViewOffset(Wd,Hd+Math.abs(sh),0,sh>0?sh:0,Wd,Hd);else CA.clearViewOffset();CA.updateProjectionMatrix()}
- try{E.step(now,dt);if(st&&primed){stepTiles(now,dt);camStep(now,dt);labels()}R.render(SC,CA)}catch(e){fail(e)}}
+ try{E.step(now,dt);if(st&&primed){stepTiles(now,dt);camStep(now,dt);if(AV)RMA.step(now,dt,{G:st.G,me:st.me,cam:CA.position,left:st.dl-Date.now(),tap:()=>{if(window.RMS)RMS.snd('tap')}});labels()}R.render(SC,CA)}catch(e){fail(e)}}
 // ---------- tocar y arrastrar: los mismos avisos que el 2D ----------
 function ptr(e){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA)}
 function tileAt(e){ptr(e);const ms=[];T.forEach(m=>{if(!m.userData.die)ms.push(m)});const h=ray.intersectObjects(ms,false)[0];return h?h.object.userData.id:null}
@@ -103,13 +106,14 @@ function target(e,id){const lp=onRack(e);if(lp){const row=lp.y>.15?0:1;return {r
  for(let k=0;k<L.box.length;k++){const b=L.box[k];if(b&&p.x>b.x0-.045*L.sc&&p.x<b.x1+.045*L.sc&&p.z>b.z0&&p.z<b.z1){if(L.nuevo&&k===L.box.length-1)return {g:-1};return {g:k,at:st.mesa[k].filter((x,j)=>x!==id&&L.pos[k][j].x<p.x).length}}}
  return Math.hypot(p.x,p.z)<K.TBR-.15?{g:-1}:null}
 function tap(e,id){const s=st.sel;
+ if(id==null&&s==null&&E.radio){ptr(e);if(ray.intersectObject(E.radio,true).length)return RMU.radio()}   // tocar la radio la prende o la apaga
  if(id!=null){if(s==null||s===id)return RMU.pick(s===id?null:id);if(st.atril&&st.atril.includes(s)&&st.atril.includes(id))return RMU.pick(id)}
  if(s!=null){const a=target(e,s);if(a)return RMU.put(s,a)}
  if(onRack(e))RMU.rack(!big);else if(big)RMU.rack(false)}
 function init(){const CH=window.CASA3D;if(!CH)throw new Error('falta c_casa3d.js');const mob=matchMedia('(pointer:coarse)').matches;
  R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;
  SC=new THREE.Scene();SC.fog=new THREE.Fog(0xe9a382,16,60);CA=new THREE.PerspectiveCamera(56,1,.03,160);SC.add(CA);
- RM3M.init(CH);E=RME.build(SC,CH,mob);K=E.K;PL.constant=-(K.TH+.02);BAG=RM3M.bag();BAG.position.copy(K.BAG);SC.add(BAG);RELOJ=RM3M.reloj();RELOJ.position.copy(K.RELOJ);SC.add(RELOJ);
+ RM3M.init(CH);E=RME.build(SC,CH,mob);K=E.K;AV=!!window.RMA&&RMA.init(SC,K,CH);PL.constant=-(K.TH+.02);BAG=RM3M.bag();BAG.position.copy(K.BAG);SC.add(BAG);RELOJ=RM3M.reloj();RELOJ.position.copy(K.RELOJ);SC.add(RELOJ);
  root=document.createElement('div');root.id='rm3root';cv=R.domElement;root.appendChild(cv);lay=document.createElement('div');lay.id='rm3lay';root.appendChild(lay);document.body.appendChild(root);
  cv.addEventListener('pointerdown',e=>{if(!st||!primed)return;drag={pid:e.pointerId,x:e.clientX,y:e.clientY,id:tileAt(e),on:false,mv:false,ly:look.y,lp:look.p,p:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
  cv.addEventListener('pointermove',e=>{const d=drag;if(!d||e.pointerId!==d.pid)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;

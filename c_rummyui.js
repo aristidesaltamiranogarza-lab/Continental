@@ -13,6 +13,16 @@ const myTurn=()=>V.G.phase==='play'&&me()>=0&&!!V.G.players[me()]&&!V.G.out[me()
 const is3=()=>mode=='3d'&&!!window.R3&&R3.ok(),stage=()=>is3()?window.R3:R2;
 const inRack=id=>mine().includes(id)&&!placed.has(id),onTable=id=>work.some(g=>g.includes(id));
 const tell=t=>{aviso=t;avT=Date.now()};
+// ---- sonidos (c_rummysfx.js): lo que manda el servidor (G.fx) y las fichas que mueve quien está jugando ----
+let lastF=-1,lastTn=null;const SFX=(n,v)=>{if(window.RMS)RMS.snd(n,v)},VOZ=t=>{if(window.RMS)RMS.voz(t)},una=a=>a[Math.random()*a.length|0];
+function fxSnd(){const G=V.G,F=G.fx||[];if(G.tn!==lastTn){if(lastTn!=null&&!myTurn())SFX('clac',.6);lastTn=G.tn}
+ if(lastF<0)lastF=F.filter(f=>(f.ago||0)>2500).reduce((m,f)=>Math.max(m,f.n),0);   // al llegar solo suena lo recién pasado (como revolver la bolsa al empezar)
+ F.forEach(f=>{if(f.n<=lastF)return;lastF=f.n;const yo=f.k===me();
+  if(f.t=='mez')SFX('mez');
+  else if(f.t=='roba'){SFX('roce');if(Math.random()<.35)VOZ(una(yo?['¡Ja, ja! ¡A robar!','¡Otra más!']:['¡Uy!','¡Ay, nanita!','¡Otra más!']))}
+  else if(f.t=='juega'){for(let i=0;i<Math.min(f.to||1,6);i++)setTimeout(()=>SFX('clac',.8),i*90);if((f.to||0)>=3)VOZ(una(yo?['¡Eso!','¡Muy bien, mijo!']:['¡Ándale!','¡Mira nomás!','¡Qué bárbaro!']))}
+  else if(f.t=='tiempo'||f.t=='mal'){SFX('mal');VOZ(una(yo?['¡Te tardaste!','¡Ándale, pues!']:['¡Ay, no!','¡Uy!']))}
+  else if(f.t=='gana'){SFX('gana');setTimeout(()=>SFX('aplauso'),350);VOZ(yo?'¡Felicidades!':una(['¡Bravo!','¡Felicidades!','¡Qué suerte!']))}})}
 // ---- estado local: se reinicia en cada turno; si recargas a media jugada se recupera de G.tmp ----
 function syncTurn(){const G=V.G,k=G.tc+':'+G.turn;if(k===key)return;key=k;base=cp(G.mesa);hist=[];sel=null;placed=new Set();tmpK='';work=cp(base);
  if(myTurn()){if(G.tmp){const A=baseSet(),M=new Set(mine());work=cp(G.tmp);work.flat().forEach(x=>{if(!A.has(x)&&M.has(x))placed.add(x)})}tell('¡Te toca!')}}
@@ -40,16 +50,17 @@ window.RMU={
   if(a.g>=0&&!G.down[me()]&&work[a.g]&&work[a.g].some(x=>baseSet().has(x)))return no(LOCK);
   save();const W=cp(work);for(const g of W){const p=g.indexOf(id);if(p>=0){g.splice(p,1);break}}
   if(a.g<0||!W[a.g])W.push([id]);else{W[a.g].splice(Math.min(a.at,W[a.g].length),0,id);W[a.g]=RU.arregla(W[a.g])}
-  work=W.filter(g=>g.length);if(fromRack)placed.add(id);sel=null;changed()},
+  work=W.filter(g=>g.length);if(fromRack)placed.add(id);sel=null;SFX('clac');changed()},
  rack(o){if(o&&!coarse)return;big=!!o;stage().cam(big?'atril':'home');render()},
  undo(){if(!myTurn()||!hist.length)return;const h=hist.pop();work=h.w;placed=new Set(h.p);sel=null;changed()},
- sort(){porNum=!porNum;order=RU.ordena(order,porNum);stage().sort(porNum);tell(porNum?'Atril ordenado por número.':'Atril ordenado por color.');render()},
+ sort(){porNum=!porNum;order=RU.ordena(order,porNum);stage().sort(porNum);[0,70,150].forEach(d=>setTimeout(()=>SFX('clac',.5),d));tell(porNum?'Atril ordenado por número.':'Atril ordenado por color.');render()},
  async end(){if(!myTurn()||busy)return;const G=V.G,r=RU.check(base,mine(),work,G.down[me()]);
   if(r.err)return no(r.err+(r.bad?' Corrígelas o usa Deshacer.':''));
   busy=true;clearTimeout(tmpT);render();const okk=await send(r.pass?{t:'end'}:{t:'end',mesa:work});busy=false;
   if(!okk&&typeof msg=='string'&&msg)tell(msg.replace(/^✋ No puedes hacer eso\. /,''));render()},
  async again(){if(await send({t:'reset'}))await send({t:'start'});render()},
  menu(o){menu=!!o;render()},
+ radio(){if(!window.RMS)return;const v=RMS.radio();tell(v?'📻 Radio prendida.':'📻 Radio apagada.');render()},
  mode(x){stage().cam('home');big=false;mode=x||(is3()?'2d':'3d');try{localStorage.setItem('rm_view',mode)}catch(e){}menu=false;render()},
  vista(){stage().cam('vista')}};
 // ---- HUD: barra de arriba, narración, botones del turno, resumen y menú ----
@@ -67,18 +78,18 @@ function hud(){syncTurn();syncOrder();const G=V.G,m=me(),fin=G.phase!='play',my=
  if(fin){const rows=G.ord.slice().sort((a,b)=>(b===G.win)-(a===G.win)||G.pts[a]-G.pts[b]).map(k=>`<tr class="${k===G.win?'w':''}"><td>${k===G.win?'🏆 ':''}${nm(k)}${G.out[k]?' <small>(se fue)</small>':''}</td><td>${G.racks[k].length} ${G.racks[k].length==1?'ficha':'fichas'}</td><td><b>${G.pts[k]}</b> pts</td></tr>`).join('');
   h+=`<div class="rm-fin"><div class="rm-big">${G.win==null?'Nadie ganó':G.win===m?'🏆 ¡Ganaste!':'🏆 Ganó '+nm(G.win)}</div><table>${rows}</table><div class="rm-s">Puntos que quedaron en mano (el comodín vale ${RU.JV}).</div>`
    +`<div class="rm-acts">${V.host?'<button class="rm-b pri" onclick="RMU.again()">🔁 Jugar otra vez</button>':'<span class="rm-s">El host puede empezar otra.</span>'}<button class="rm-b" onclick="leave()">🏠 Volver a la casa</button></div></div>`}
- if(menu)h+=`<div class="rm-menu"><div class="rm-mt">🀄 Rummy</div>${GM.rummy.rules}${window.R3?`<button class="rm-b" onclick="RMU.mode()">${is3()?'Ver en 2D':'Ver en 3D'}</button>`:''}`
+ if(menu)h+=`<div class="rm-menu"><div class="rm-mt">🀄 Rummy</div>${GM.rummy.rules}${window.RMS?`<button class="rm-b" onclick="RMU.radio()">📻 ${RMS.radioOn?'Apagar':'Prender'} la radio</button> `:''}${window.R3?`<button class="rm-b" onclick="RMU.mode()">${is3()?'Ver en 2D':'Ver en 3D'}</button>`:''}`
   +`<div class="rm-acts"><button class="rm-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button><button class="rm-b" onclick="RMU.menu(0)">Cerrar</button></div></div>`;
  return h+'</div>'}
 function ins(){const t=document.querySelector('.rm-top'),b=document.querySelector('.rm-bot');return {t:t?Math.round(t.getBoundingClientRect().bottom+6):0,b:b?Math.round(innerHeight-b.getBoundingClientRect().top+4):0}}
 // ---- enganche con game.js ----
 GM.rummy.body=function(){if(!active())return origBody();try{ok=true;return hud()}catch(e){console.warn('Rummy UI:',e);ok=false;return origBody()}};
 GM.rummy.after=function(){if(!active()||!ok){off();return}
- if(!on){on=true;document.documentElement.classList.add('rmui')}if(V!==lastV){lastV=V;dl=Date.now()+(V.G.left||0)}
+ if(!on){on=true;document.documentElement.classList.add('rmui');if(window.RMS)RMS.amb(true)}if(V!==lastV){lastV=V;dl=Date.now()+(V.G.left||0);fxSnd()}
  const s=stage();if(s!==R2)R2.show(false);if(window.R3&&s!==R3)R3.show(false);s.show(true);
  if(s!==R2&&!s.ok())return render();   // el 3D no pudo arrancar: queda el 2D
  s.layout(ins());s.sync(view())};
-function off(){if(!on)return;on=false;document.documentElement.classList.remove('rmui');R2.cam('home');R2.show(false);if(window.R3)R3.show(false);menu=false;key='';order=[];sel=null;big=false;hist=[];logN=-1;aviso='';say=''}
+function off(){if(!on)return;on=false;document.documentElement.classList.remove('rmui');R2.cam('home');R2.show(false);if(window.R3)R3.show(false);menu=false;key='';order=[];sel=null;big=false;hist=[];logN=-1;aviso='';say='';lastF=-1;lastTn=null;if(window.RMS)RMS.amb(false)}
 // reloj y narración sin volver a dibujar todo
 setInterval(()=>{if(on&&!active())return off();if(!on)return;const G=V.G,c=document.getElementById('rmclk');
  if(c&&G.phase=='play'){const t=Math.max(0,dl-Date.now());c.style.width=(t/(G.o.t*10)).toFixed(1)+'%';c.className=t<10000?'w':''}
