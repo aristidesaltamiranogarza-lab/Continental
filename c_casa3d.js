@@ -79,7 +79,7 @@ function init(){if(ready)return;ready=true;
  lay=document.createElement('div');lay.id='h3lay';document.body.appendChild(lay);   // nombres, globitos y avisos (fuera de #app: no se borran al redibujar)
  // llegada por el zaguán: la cámara entra desde afuera y tu Mii camina hasta su lugar (c_casa_cam.js)
  const zg=window.CCAM&&!CCAM.RM;
- buildHouse();me=newAv(pname,v3(0,0,zg?ZF-1.2:3),Math.PI);if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(v3(0,2.1,ZF+9),v3(0,2.6,ZF-6)),2800,'inOut')}applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
+ buildHouse();me=newAv(pname,v3(0,0,zg?ZF+6.2:3),Math.PI);if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(v3(0,2.4,ZF+7.6),v3(0,2.6,ZF-6)),2800,'inOut')}   // llegas por el zaguán (c_casa_pb.js)applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
  setTimeout(()=>{if(!moved){moved=true;if(active()&&!inputBusy())render()}},12000);   // la ayuda de arriba se va sola
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{tch.delete(e.pointerId);pin=null;st=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('pointerleave',()=>{if(window.ETQ)ETQ.hov(null)});
@@ -121,19 +121,8 @@ function buildHouse(){
  const rug=ctex('rug',512,512,(g,w,h)=>{g.fillStyle='#5a1a1e';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=12;g.strokeRect(20,20,w-40,h-40);g.lineWidth=4;g.strokeRect(46,46,w-92,h-92);
   g.fillStyle='rgba(201,162,74,.35)';for(let i=0;i<6;i++)for(let j=0;j<6;j++){g.beginPath();g.arc(100+i*62,100+j*62,8,0,7);g.fill()}});
  const rg=new THREE.Mesh(new THREE.PlaneGeometry(20,13),std(0xffffff,.95,{map:rug}));rg.rotation.x=-Math.PI/2;rg.position.set(0,.01,-4);rg.receiveShadow=true;SC.add(rg);
- // paredes con lambrín (la de enfrente no, para que la cámara vea)
- const wp=ctex('wall',256,256,(g,w,h)=>{g.fillStyle='#6d5a48';g.fillRect(0,0,w,h);for(let x=0;x<w;x+=32){g.fillStyle='rgba(255,235,200,.06)';g.fillRect(x,0,14,h)}
-  g.fillStyle='rgba(255,235,200,.08)';for(let y=16;y<h;y+=64)for(let x=16;x<w;x+=64){g.beginPath();g.arc(x+(y%128?32:0),y,5,0,7);g.fill()}},1);
- const WH=9,wall=(w,x,z,ry)=>{const m=std(0xffffff,.9,{map:wp.clone()});m.map.needsUpdate=true;m.map.repeat.set(w/3,WH/3);
-  const pl=new THREE.Mesh(new THREE.PlaneGeometry(w,WH),m);pl.position.set(x,WH/2,z);pl.rotation.y=ry;pl.receiveShadow=true;SC.add(pl);
-  const wa=new THREE.Mesh(new THREE.PlaneGeometry(w,2.4),std(0x3e2a1c,.55));wa.position.set(x,1.2,z);wa.rotation.y=ry;wa.translateZ(.03);SC.add(wa);
-  const tr=new THREE.Mesh(new THREE.PlaneGeometry(w,.14),std(0x2e1f14,.5));tr.position.set(x,2.45,z);tr.rotation.y=ry;tr.translateZ(.05);SC.add(tr)};
- wall(HX*2,0,ZB,0);wall(ZF-ZB,-HX,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,HX,(ZF+ZB)/2,-Math.PI/2);
- // ventanas de noche al fondo
- const sky=ctex('sky',256,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0a1230');gr.addColorStop(1,'#26407a');g.fillStyle=gr;g.fillRect(0,0,w,h);
-  g.fillStyle='#fff';for(let i=0;i<60;i++){g.globalAlpha=.3+(i%5)*.14;g.fillRect((i*71)%w,(i*37)%(h*.7),2,2)}g.globalAlpha=1;g.fillStyle='#f4f1d0';g.beginPath();g.arc(190,60,18,0,7);g.fill()});
- [-9,9].forEach(wx=>{const win=new THREE.Mesh(new THREE.PlaneGeometry(4.5,3.2),new THREE.MeshBasicMaterial({map:sky}));win.position.set(wx,5.4,ZB+.06);SC.add(win);
-  const fr=std(0xe9e2d0,.5);box(4.8,.18,.3,fr,wx,7.1,ZB+.12);box(4.8,.25,.45,fr,wx,3.7,ZB+.2);box(.18,3.4,.3,fr,wx-2.33,5.4,ZB+.12);box(.18,3.4,.3,fr,wx+2.33,5.4,ZB+.12);box(.1,3.2,.2,fr,wx,5.4,ZB+.1)});
+ // paredes con arcos y puertas, techo, zaguán, comedor, cocina y baño (c_casa_pb.js)
+ if(window.CPB)CPB.build({SC,OB,hits,std,box,cyl,ctex,HX,ZB,ZF,PB});
  // letrero de la casa en la pared del fondo
  const logo=ctex('logo',512,128,(g,w,h)=>{g.fillStyle='#2a1a10';rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#c9a24a';g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
   g.font='bold 54px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4d58a';g.fillText('🎴 Casa de juegos',w/2,h/2+3)});
@@ -232,7 +221,9 @@ function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?T
  want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1),fs=w.t.fl===FL?SC:w.t.fl.SC;if(fs)fs.add(g);c.visible=false;
   g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10})})}
 function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.max(b[2],Math.min(b[3],p.z));
- TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}})}
+ TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}});
+ // muros (FL.WL: segmentos [ax,az,bx,bz,r] sin los vanos, de c_casa_pb.js)
+ (FL.WL||[]).forEach(([ax,az,bx,bz,r])=>{const vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((p.x-ax)*vx+(p.z-az)*vz)/(vx*vx+vz*vz||1))),qx=ax+vx*t,qz=az+vz*t,dx=p.x-qx,dz=p.z-qz,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=qx+dx/d*r;p.z=qz+dz/d*r}})}
 function turn(a,yaw){let d=yaw-a.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));a.g.rotation.y+=d*.18}
 let wp=[],wpFor=null;   // ruta (c_casa_ruta.js) hacia tgt, punto por punto
 function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
@@ -424,7 +415,7 @@ function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
 // mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)
 function mesaEn(t,S,h,O){const k=[SC,hits,OB];SC=S;hits=h;OB=O;try{t.r=t.r||2.2;buildTable(t)}finally{[SC,hits,OB]=k}}
-window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo};
+window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>me&&me.pos};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g){if(window.CMESA)CMESA.abrir();return}goTable(g)};

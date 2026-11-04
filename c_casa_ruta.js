@@ -5,9 +5,12 @@
 if(typeof THREE==='undefined')return;
 const CS=.4,PAD=.42;   // CS: tamaño de cada cuadro; PAD: distancia extra al borde de cada obstáculo (medio cuerpo del Mii)
 function find(a,b,FL,obs){const bx=FL.bx,x0=bx[0],z0=bx[2],nx=Math.max(1,Math.ceil((bx[1]-x0)/CS)+1),nz=Math.max(1,Math.ceil((bx[3]-z0)/CS)+1);
- const R=obs.map(o=>({x:o.x,z:o.z,r:(o.g?o.r+.45:o.r)+.35})),free=(x,z)=>x>=bx[0]&&x<=bx[1]&&z>=bx[2]&&z<=bx[3]&&R.every(o=>Math.hypot(x-o.x,z-o.z)>=o.r+PAD*.5);
+ // muros (FL.WL de c_casa_pb.js): segmentos [ax,az,bx,bz,r]
+ const WL=FL.WL||[],dw=(x,z,[ax,az,bx,bz])=>{const vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*vx+(z-az)*vz)/(vx*vx+vz*vz||1)));return Math.hypot(x-ax-vx*t,z-az-vz*t)},
+  muro=(x,z)=>WL.some(s=>dw(x,z,s)<s[4]+.05);
+ const R=obs.map(o=>({x:o.x,z:o.z,r:(o.g?o.r+.45:o.r)+.35})),free=(x,z)=>x>=bx[0]&&x<=bx[1]&&z>=bx[2]&&z<=bx[3]&&R.every(o=>Math.hypot(x-o.x,z-o.z)>=o.r+PAD*.5)&&!muro(x,z);
  const blk=new Uint8Array(nx*nz),X=i=>x0+i*CS,Z=j=>z0+j*CS;
- for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const x=X(i),z=Z(j);blk[j*nx+i]=R.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+PAD*.5)?1:0}
+ for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const x=X(i),z=Z(j);blk[j*nx+i]=R.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+PAD*.5)||muro(x,z)?1:0}
  const cell=p=>[Math.max(0,Math.min(nx-1,Math.round((p.x-x0)/CS))),Math.max(0,Math.min(nz-1,Math.round((p.z-z0)/CS)))];
  // si el inicio o el final caen dentro de un obstáculo, se toma el cuadro libre más cercano
  const near=([i,j])=>{if(!blk[j*nx+i])return [i,j];for(let r=1;r<Math.max(nx,nz);r++)for(let dj=-r;dj<=r;dj++)for(let di=-r;di<=r;di++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const ii=i+di,jj=j+dj;if(ii>=0&&jj>=0&&ii<nx&&jj<nz&&!blk[jj*nx+ii])return [ii,jj]}return [i,j]};

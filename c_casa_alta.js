@@ -38,10 +38,11 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(w,CEIL),m);pl.position.set(x,CEIL/2,z);pl.rotation.y=ry;pl.receiveShadow=true;S.add(pl);
   const wa=new THREE.Mesh(new THREE.PlaneGeometry(w,2.2),std(0x5a3418,.55));wa.position.set(x,1.1,z);wa.rotation.y=ry;wa.translateZ(.03);S.add(wa);
   const tr=new THREE.Mesh(new THREE.PlaneGeometry(w,.12),std(0x2e1f14,.5));tr.position.set(x,2.26,z);tr.rotation.y=ry;tr.translateZ(.05);S.add(tr)};
- wall(XW*2,0,ZB,0);wall(ZF-ZB,-XW,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,XW,(ZF+ZB)/2,-Math.PI/2);
- // techo con vigas: solo se ve en primera persona (desde arriba taparía todo)
+ // las cuatro paredes: planos de una cara, desde afuera no tapan a la cámara
+ wall(XW*2,0,ZB,0);wall(ZF-ZB,-XW,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,XW,(ZF+ZB)/2,-Math.PI/2);wall(XW*2,0,ZF,Math.PI);
+ // techo: el plano mira hacia abajo (desde arriba no se ve); vigas y ventilador solo con la cámara debajo del techo (step)
  const top=new THREE.Group();top.visible=false;S.add(top);
- const cl=new THREE.Mesh(new THREE.PlaneGeometry(XW*2,ZF-ZB),std(0xe9dcc4,.9));cl.rotation.x=Math.PI/2;cl.position.set(0,CEIL,(ZF+ZB)/2);top.add(cl);
+ const cl=new THREE.Mesh(new THREE.PlaneGeometry(XW*2,ZF-ZB),std(0xe9dcc4,.9));cl.rotation.x=Math.PI/2;cl.position.set(0,CEIL,(ZF+ZB)/2);S.add(cl);
  for(let x=-XW+1.5;x<XW;x+=2.5)box(.35,.45,ZF-ZB,std(0x4a2c18,.6),x,CEIL-.22,(ZF+ZB)/2,top);
 
  // ---------- los arcos entre el estudio y el corredor ----------
@@ -115,7 +116,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
 
  // ---------- el piso para c_casa3d.js ----------
  let q=null;const qual=()=>{const l=lo();if(l===q)return;q=l;hl.intensity=l?2.1:1.5;Ld.castShadow=!l};
- const step=now=>{qual();const d=new Date(),m=d.getMinutes()+d.getSeconds()/60;ck.m.rotation.z=-m/60*Math.PI*2;ck.h.rotation.z=-((d.getHours()%12)+m/60)/12*Math.PI*2;
+ const step=now=>{qual();const cm=CASA3D.cam();top.visible=!!cm&&cm.position.y<CEIL-.25;const d=new Date(),m=d.getMinutes()+d.getSeconds()/60;ck.m.rotation.z=-m/60*Math.PI*2;ck.h.rotation.z=-((d.getHours()%12)+m/60)/12*Math.PI*2;
   if(!lo()){ck.pe.rotation.z=Math.sin(now/1000*Math.PI)*.16;if(top.visible)fan.rotation.y+=.025}
   const on=typeof musName=='function'&&musName()!='apagada';dial.emissive.setHex(on?0xffb04a:0);dial.emissiveIntensity=on?.9:0};
  F={id:'alta',SC:S,TB,OB,hits,links:[dn.lk,up],bx:[-XW+1,XW-1,ZB+1.2,ZF-1],cb:[-XW,XW,ZB,ZF],k:1,
