@@ -305,12 +305,14 @@ const UP=new THREE.Vector3(0,1,0),avDir=new THREE.Vector3(),avTgt=new THREE.Vect
 // a quién le toca qué avatar: según su nombre, sin repetir en la sala
 function avPick(){const G=V.G,used=new Set(),out={};G.players.forEach((p,k)=>{let i=hsh(p.id||p.name)%AVP.length;while(used.has(i)&&used.size<AVP.length)i=(i+1)%AVP.length;used.add(i);out[k]=i});return out}
 // cápsula estirada entre dos puntos (brazos y piernas)
-function seg(m,a,b){avDir.subVectors(b,a);const l=avDir.length();m.position.copy(a).addScaledVector(avDir,.5);m.quaternion.setFromUnitVectors(UP,avDir.normalize());m.scale.y=l/m.userData.len}
+function seg(m,a,b){if(m.userData.limb)return m.userData.limb(a,b);   // brazo/pierna de una pieza (c_mii.js): rehace el tubo
+ avDir.subVectors(b,a);const l=avDir.length();m.position.copy(a).addScaledVector(avDir,.5);m.quaternion.setFromUnitVectors(UP,avDir.normalize());m.scale.y=l/m.userData.len}
 // codo con cinemática inversa de dos huesos (pole = hacia dónde se dobla)
 function ik(sh,hand,l1,l2,pole,out){avA.subVectors(hand,sh);const L=Math.min(avA.length(),l1+l2-.002),c=(l1*l1+L*L-l2*l2)/(2*l1*L),h=l1*Math.sqrt(Math.max(0,1-c*c));avA.normalize();
  avB.copy(pole).sub(sh);avB.addScaledVector(avA,-avB.dot(avA)).normalize();return out.copy(sh).addScaledVector(avA,c*l1).addScaledVector(avB,h)}
 // o.stand: de pie y sin silla (la casa de juegos); las piernas se acomodan cada cuadro con userData.legs
-function mkAvatar(k,pi,o={}){const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
+function mkAvatar(k,pi,o={}){if(window.MII)return MII.mk(k,pi,o,COL[k%10],AVP[pi]);   // avatares "Caricatura"; lo de abajo es el Mii viejo de respaldo
+ const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
  const skin=std(new THREE.Color(A.skin),.6),top=std(new THREE.Color(COL[k%10]),.7),hair=std(new THREE.Color(A.hc),.75),pants=std(A.bot,.8),shoe=std(A.shoe,.5),wood=std(0x3a1e0c,.6);
  const g=new THREE.Group(),hit={t:'seat',k},M=(geo,mat,x,y,z,par)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;(par||g).add(m);return m};
  const limb=(r,len,mat,par)=>{const m=M(new THREE.CapsuleGeometry(r,len,4,12),mat,0,0,0,par);m.userData.len=len+2*r;return m};
@@ -868,5 +870,5 @@ window.c3dLook=look;
 window.c3dHome=home;
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
 // el Uno 3D usa el mismo cuarto y los mismos Miis
-window.C3D={buildRoom,mkAvatar,avPick,seg,ik,AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};
+window.C3D={buildRoom,mkAvatar,avPick,seg,ik,setFace:(g,ex)=>window.MII&&MII.setFace(g,ex),AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};
 })();

@@ -18,12 +18,12 @@ let SC,K,CH,C=null,P=[],key='',POLE=null,CF=null,cfT=0;const TV=v3(0,0,0),O3=new
 function init(sc,k,ch){SC=sc;K=k;CH=ch;C=window.C3D&&C3D.mkAvatar&&C3D.ik&&C3D.seg?C3D:null;POLE=[v3(-1.2,-.4,-.7),v3(1.2,-.4,-.7)];return !!C}
 const rebTex=c=>CH.ctex('rm-rebozo-'+c.join(''),64,64,(g,w,h)=>{g.fillStyle=c[0];g.fillRect(0,0,w,h);g.fillStyle=c[1];for(let x=0;x<w;x+=8){g.fillRect(x,0,2,h)}g.globalAlpha=.35;for(let y=0;y<h;y+=6)g.fillRect(0,y,w,1);g.globalAlpha=1},true);
 // un abuelo sentado; su silla de madera se esconde (se sientan en las de herrería)
-function mk(ai){const B=AB[ai%AB.length],base=C.AVP.length;let g;C.AVP.push(...AB.map(x=>x.A));try{g=C.mkAvatar(B.top,base+ai%AB.length,{})}finally{C.AVP.length=base}
+function mk(ai){const B=AB[ai%AB.length],base=C.AVP.length;let g;C.AVP.push(...AB.map(x=>x.bigote?Object.assign({must:1},x.A):x.A));try{g=C.mkAvatar(B.top,base+ai%AB.length,{})}finally{C.AVP.length=base}
  g.children.forEach(o=>{if(o.isMesh&&(o.geometry.type=='BoxGeometry'||o.geometry.type=='CylinderGeometry'))o.visible=false});g.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true});
  const u=g.userData,hair=new THREE.MeshStandardMaterial({color:B.A.hc,roughness:.8});let cup=null;
- if(B.rebozo){const m=new THREE.MeshStandardMaterial({map:rebTex(B.rebozo),roughness:.95,side:THREE.DoubleSide}),r=new THREE.Mesh(new THREE.CylinderGeometry(.37,.45,.36,24,1,true),m);r.position.y=.2;r.scale.set(1.12,1,.9);u.body.add(r);
-  const f=new THREE.Mesh(new THREE.PlaneGeometry(.22,.42),m);f.position.set(.12,-.05,.31);f.rotation.set(-.15,0,.12);u.body.add(f)}
- if(B.bigote){const b=new THREE.Mesh(new THREE.CapsuleGeometry(.035,.16,4,8),hair);b.rotation.z=Math.PI/2;b.position.set(0,-.13,.47);u.head.add(b)}
+ if(B.rebozo){const m=new THREE.MeshStandardMaterial({map:rebTex(B.rebozo),roughness:.95,side:THREE.DoubleSide}),r=new THREE.Mesh(new THREE.CylinderGeometry(.25,.42,.3,24,1,true),m);r.position.y=-.05;r.scale.set(1,1,.85);u.body.add(r);   // sobre los hombros del avatar nuevo
+  const f=new THREE.Mesh(new THREE.PlaneGeometry(.22,.42),m);f.position.set(.12,-.22,.34);f.rotation.set(-.15,0,.12);u.body.add(f)}
+ if(B.bigote&&!window.MII){const b=new THREE.Mesh(new THREE.CapsuleGeometry(.035,.16,4,8),hair);b.rotation.z=Math.PI/2;b.position.set(0,-.13,.47);u.head.add(b)}
  if(B.taza){cup=new THREE.Group();const cm=new THREE.MeshStandardMaterial({color:0xa65a35,roughness:.8});const b=new THREE.Mesh(new THREE.CylinderGeometry(.1,.08,.17,16),cm);cup.add(b);
   const hd=new THREE.Mesh(new THREE.TorusGeometry(.05,.015,6,12),cm);hd.position.x=.11;cup.add(hd);const cf=new THREE.Mesh(new THREE.CircleGeometry(.09,14),new THREE.MeshStandardMaterial({color:0x2a160c,roughness:.3}));cf.rotation.x=-Math.PI/2;cf.position.y=.086;cup.add(cf);
   cup.position.set(0,.08,.1);u.arms.find(m=>m.s>0).hand.add(cup)}
