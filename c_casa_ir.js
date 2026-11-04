@@ -5,8 +5,9 @@
 let open=false;
 // g: juego de GM (mesa o puerta), o 'cub' / 'c4' / 'bg' (Cubilete, Conecta 4 y Backgammon, sin salas)
 const PISOS=[
- {id:'pb',n:'🏠 Planta baja',g:['continental','uno','monopolydeal','merida','haciendas','c4','bg']},
- {id:'pb',n:'🌅 Terraza',g:['rummy']},
+ {id:'ter',n:'🌅 Terraza',g:['rummy','c4']},
+ {id:'alta',n:'📚 Planta alta',g:['merida','haciendas','bg']},
+ {id:'pb',n:'🏠 Planta baja',g:['continental','uno','monopolydeal']},
  {id:'sot',n:'🕯️ Sótano',g:['ruleta','cub']}];
 const SUELTOS={cub:['🎲','Cubilete'],c4:['🔴','Conecta 4'],bg:['🎯','Backgammon']};
 const es=s=>typeof esc=='function'?esc(s):String(s);
@@ -19,9 +20,9 @@ function btn(){return `<button class="w7b${open?' on':''}" onclick="CIR.tog()" t
 function hud(busy){if(busy)open=false;if(!open||!window.CASA3D)return '';const H=window.CASA3D,here=H.piso();
  const sec=PISOS.map(p=>{if(!H.can(p.id))return '';const it=p.g.map(g=>{const i=info(g);if(!i)return '';
    return `<button class="w7b cirb${i.on?' on':''}" onclick="CIR.go('${p.id}','${g}')"><span>${i.e} ${es(i.t)}</span><small>${es(i.s)}</small></button>`}).join('');
-  return it?`<div class="cirp"><span>${p.n}${p.id===here&&p.g[0]!=='rummy'?' <small>(aquí)</small>':''}</span>${it}</div>`:''}).join('');
+  return it?`<div class="cirp"><span>${p.n}${p.id===here?' <small>(aquí)</small>':''}</span>${it}</div>`:''}).join('');
  return `<div id="h3win" class="w7 w7win cirw" role="dialog" aria-labelledby="cirt"><div class="wt"><span id="cirt">🧭 Ir a…</span><button class="wx" onclick="CIR.tog()" aria-label="Cerrar">✕</button></div><div class="wb">${sec}</div></div>`}
-window.CIR={btn,hud,
+window.CIR={btn,hud,show:()=>{if(!open)window.CIR.tog()},   // show: el plano junto a cada escalera (c_casa_esc.js)
  tog:()=>{open=!open;if(open){if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(typeof casaClose=='function')return casaClose()}if(typeof sfx=='function')sfx('tick');render()},
  go:(id,g)=>{open=false;window.CASA3D.ir(id,g);render()}};
 const css=document.createElement('style');css.textContent=`.cirw .wb{display:flex;flex-direction:column;gap:10px}.cirp{display:flex;flex-direction:column;gap:4px}.cirp>span{font-weight:700;opacity:.85}

@@ -18,17 +18,17 @@ let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-c
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
-let TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:0,z:-2,felt:['#79a96a','#2f5a2a']},{g:'ruleta',x:HX-.2,z:-8,door:1,to:'sot'},
- {g:'rummy',x:HX-.2,z:3,door:1,sign:['🀄 Terraza · Rummy','#3a2412','#e07a10','#ffe2b0',0xffb35a]}].filter(t=>GM[t.g]);
-TB.forEach(t=>t.r=t.door?1:2.2);         // door: en vez de mesa es una puerta en la pared derecha (la Ruleta Rusa al sótano, el Rummy a la terraza)
+let TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'ruleta',x:HX-.2,z:-8,door:1,to:'sot'}].filter(t=>GM[t.g]);
+TB.forEach(t=>t.r=t.door?1:2.2);         // door: en vez de mesa es una puerta en la pared derecha (la Ruleta Rusa, al sótano). Monopoly, YuCATÁN y Backgammon: planta alta; Rummy y Conecta 4: terraza
 let OB=[];                               // obstáculos redondos (sillas, muebles): {x,z,r}
-// pisos (c_sotano.js): cada piso trae su escena (SC), mesas (TB), obstáculos (OB), cosas que se tocan (hits), límites para caminar (bx) y para la cámara (cb)
+// pisos (c_sotano.js, c_casa_alta.js, c_casa_terraza.js): cada piso trae su escena (SC), mesas (TB), obstáculos (OB), cosas que se tocan (hits), límites para caminar (bx) y para la cámara (cb)
 // y escaleras (links). Solo se dibuja el piso donde estás; el sótano se arma la primera vez que bajas. to: la puerta te lleva a ese piso
-const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:()=>({x:HX-2.6,z:-8,yaw:-Math.PI/2})};let FL=PB,LK=[],fBusy=false;
-const canGo=id=>id==='pb'||!!(window.SOT&&SOT.ok()),fpOn=()=>!!(window.CAV&&CAV.on());
+const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:f=>f==='alta'||f==='ter'?{x:HX-11.4,z:2.8,yaw:-Math.PI/2}:{x:HX-2.6,z:-8,yaw:-Math.PI/2}};let FL=PB,LK=[],fBusy=false;
+const FM={sot:'SOT',alta:'ALTA',ter:'TERR'},fmod=id=>window[FM[id]],FLS={pb:PB};   // módulo de cada piso y los que ya se armaron
+const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&CAV.on());
 function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
- const sw=()=>{const nf=id==='pb'?PB:SOT.piso();if(!nf)return render();const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];
+ const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];
   [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,1.57,me.pos.z);
   Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
@@ -60,7 +60,8 @@ const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','�
  uno:[['u1','#e53935','#fff','7'],['u2','#fbc02d','#fff','+2'],['u3','#43a047','#fff','⊘'],['u4','#1e88e5','#fff','4'],['u5','#1c1c1c','#fdd835','UNO']],
  monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']],
  merida:[['r1','#d63a3a','#fff','🏠'],['r2','#f4f1e8','#333','$400'],['r3','#22b3c4','#fff','🚌'],['r4','#f2c230','#333','🎲'],['r5','#2e9e57','#fff','🏨']],
- haciendas:[['h1','#79a96a','#fff','🌿'],['h2','#e8c24a','#333','🌽'],['h3','#a7a49a','#fff','🪨'],['h4','#df9234','#fff','🍯'],['h5','#eef1ee','#333','🧂']]};
+ haciendas:[['h1','#79a96a','#fff','🌿'],['h2','#e8c24a','#333','🌽'],['h3','#a7a49a','#fff','🪨'],['h4','#df9234','#fff','🍯'],['h5','#eef1ee','#333','🧂']],
+ rummy:[['k1','#f3ead2','#c62828','7'],['k2','#f3ead2','#1e5aa8','12'],['k3','#f3ead2','#1a1a1a','3'],['k4','#f3ead2','#e07a10','9'],['k5','#f3ead2','#2e7d32','★']]};
 
 // ---------- escena ----------
 // calidad (c_bienvenida.js). Medio: sin sombras, pixelRatio 1 y sin luces puntuales (menos la chimenea)
@@ -136,7 +137,7 @@ function buildHouse(){
   g.font='bold 54px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4d58a';g.fillText('🎴 Casa de juegos',w/2,h/2+3)});
  const lg=new THREE.Mesh(new THREE.PlaneGeometry(6,1.5),std(0xffffff,.6,{map:logo}));lg.position.set(0,6.6,ZB+.08);SC.add(lg);
  // sofá a la derecha, librero a la izquierda, plantas en las esquinas
- const sofa=std(0x2f4a5a,.85),sx=HX-1.4,sz=3;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=-Math.PI/2;SC.add(so);
+ const sofa=std(0x2f4a5a,.85),sx=HX-1.4,sz=8.2;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=-Math.PI/2;SC.add(so);
  box(5.4,.9,2,sofa,0,.75,0,so);box(5.4,1.7,.55,sofa,0,1.6,-.75,so);[-1,1].forEach(s=>box(.55,1.4,2,sofa,s*2.7,1.1,0,so));[-1.3,1.3].forEach(dx=>box(2.5,.35,1.6,std(0x37566a,.9),dx,1.35,.15,so));
  OB.push({x:sx,z:sz-1.8,r:1.4},{x:sx,z:sz,r:1.4},{x:sx,z:sz+1.8,r:1.4});
  const bw=std(0x4a2c18,.6),bx=-HX+.55,bz=4,BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0];let rs=7;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280;
@@ -157,7 +158,10 @@ function buildHouse(){
  cyl(.015,.015,1.4,std(0x222222,.4),0,8.9,-4,SC,6);
  const dl=[0xff2fd1,0x2fe8ff,0xffe02f].map(c=>{const l=new THREE.PointLight(c,0,16,1.4);SC.add(l);return l});disco={ball,dl,lvl:0};
  // mesas de juego
- TB.forEach(t=>buildTable(t));if(window.JG3)JG3.build({THREE,SC,hits,OB,std,cyl,box});   // el Cubilete está en el sótano (c_sotano.js)
+ TB.forEach(t=>buildTable(t));   // el Cubilete está en el sótano (c_sotano.js); Conecta 4 y Backgammon arriba (c_casa_terraza.js, c_casa_alta.js)
+ // escalera a la planta alta contra la pared derecha y un plano junto a cada escalera (c_casa_esc.js)
+ if(window.ESC){PB.links=[ESC.up({S:SC,hits,OB,x:HX-8.4,z:2.8,dir:[1,0],to:'alta',key:'pb-alta',sign:['⬆ Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070],n:10,land:2.2,rail:[-1,1]})];LK=PB.links;
+  ESC.plano({S:SC,hits,OB,x:HX-9.2,z:.6,ry:.3,here:'pb'});ESC.plano({S:SC,hits,OB,x:HX-1.2,z:-5.6,ry:-.6,here:'pb'})}
  if(window.CAMB)CAMB.build({THREE,SC,OB,std,box,cyl,ctex,TB,TH,HX,ZB,ZF});   // lámparas, ventiladores, reloj, hamaca y gato (c_casa_amb.js)
  // marca donde tocaste el piso
  mark=new THREE.Mesh(new THREE.RingGeometry(.25,.4,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.position.y=.03;SC.add(mark)}
@@ -221,9 +225,9 @@ function pose(a,now,lookDown){const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT
 function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Math.max(0,Math.sin(t*.8)),10);
  u.body.scale.y=1+.012*Math.sin(now/650+s.seed);u.head.rotation.y=.45*Math.sin(t*.35);u.head.rotation.x=.25;
  u.arms.forEach(m=>{const k=m.s>0?r:0;m.h.set(m.s*.34-m.s*.12*k,.36+.15*k,.72+.6*k);K.ik(m.sh,m.h,u.l1,u.l2,POLE[m.s>0?1:0].clone(),m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
-function seatSync(){const want=new Map();(PB.TB||TB).forEach(t=>{rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))});
+function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))}));
  seated.forEach((s,k)=>{if(!want.has(k)){disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
- want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1);if(PB.SC)PB.SC.add(g);c.visible=false;
+ want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1),fs=w.t.fl===FL?SC:w.t.fl.SC;if(fs)fs.add(g);c.visible=false;
   g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10})})}
 function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.max(b[2],Math.min(b[3],p.z));
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}})}
@@ -330,7 +334,7 @@ function pMove(e){if(!active())return;
    pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
    const p=ground(mx,my);if(p&&pin.g){VT.ox+=pin.g.x-p.x;VT.oz+=pin.g.z-p.z;snap()}return}}
- if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='link'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default';if(window.ETQ)ETQ.hov(hk(h))}return}
+ if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='link'||h.t=='fn'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default';if(window.ETQ)ETQ.hov(hk(h))}return}
  if(e.pointerId!==st.pid)return;
  // primera persona: arrastrar = mirar alrededor
  if(fpOn()){if(st.g||Math.hypot(e.clientX-st.x,e.clientY-st.y)>6){st.g=1;VT.a=st.a0+(e.clientX-st.x)*.006;VT.t=st.t0+(e.clientY-st.y)*.004;snap()}return}
@@ -345,6 +349,7 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
  if(h.t=='table')return goTable(h.g);
  if(h.t=='link'){tgt=v3(h.l.ax,0,h.l.az);tgtL=h.l;tgtG=null;solve(tgt);showMark(tgt);sfx('card');return}   // la escalera
  if(h.t=='c4'||h.t=='bg')return JG3.tap(h);
+ if(h.t=='fn')return h.f();   // el plano junto a la escalera (abre el 🧭) o la radio
  if(h.t=='cub'){tgt=v3(CUB3.X-1.6,0,CUB3.Z+1.6);tgtG=null;solve(tgt);showMark(tgt);return CUB3.open()}
  tgt=h.p.setY(0);tgtG=null;tgtL=null;solve(tgt);showMark(tgt)}
 // botón Cuadrar: aparece solo si moviste la cámara
@@ -364,7 +369,7 @@ function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t
  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
- let o=`<div id="h3top" class="w7 w7g"><span class="h3t">${FL===PB?'🏠 <b>Casa de juegos</b>':'🕯️ <b>Sótano</b>'}</span>${FL===PB?'':`<button class="w7b" onclick="casaPiso('pb')" title="Subir a la casa" aria-label="Subir a la casa">⬆️</button>`}${window.CIR?CIR.btn():''}<span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
+ let o=`<div id="h3top" class="w7 w7g"><span class="h3t">${{pb:'🏠 <b>Casa de juegos</b>',sot:'🕯️ <b>Sótano</b>',alta:'📚 <b>Planta alta</b>',ter:'🌅 <b>Terraza</b>'}[FL.id]}</span>${FL===PB?'':((u,t)=>`<button class="w7b" onclick="casaPiso('pb')" title="${t}" aria-label="${t}">${u}</button>`)(...(FL.id==='sot'?['⬆️','Subir a la casa']:['⬇️','Bajar a la planta baja']))}${window.CIR?CIR.btn():''}<span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
   ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}${window.BIEN?'':'<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button>'}</div>`;
  if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar · arrastra para mover la cámara, dos dedos para girar y acercar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · arrastra para mover la cámara · rueda para acercar · Q E para girar'}</div>`;
  o+=camUI();
@@ -383,7 +388,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
   <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
   <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
   ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
- if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(!!g);if(FL===PB&&window.JG3)o+=JG3.hud(!!g);   // el cubilete en el sótano, los juegos sueltos en la planta baja
+ if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
  if(window.CIR)o+=CIR.hud(!!g);
  if(window.SOT)o+=SOT.seatHud();
  return o}
@@ -407,7 +412,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(FL===PB){if(window.JG3)JG3.step(now,toPx,W);if(window.CAMB)CAMB.step(now,dt)}if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();R.render(SC,CA)}
+ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();R.render(SC,CA)}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
@@ -416,7 +421,9 @@ function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB
   const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,1.57,p.z);
   Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
-window.CASA3D={std,box,cyl,ctex,rr,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo};
+// mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)
+function mesaEn(t,S,h,O){const k=[SC,hits,OB];SC=S;hits=h;OB=O;try{t.r=t.r||2.2;buildTable(t)}finally{[SC,hits,OB]=k}}
+window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g)return;goTable(g)};

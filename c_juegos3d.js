@@ -2,21 +2,26 @@
 // Reglas en g_casajuegos.js (viajan en /casa como b.jg). c_casa3d.js llama a JG3.build / out / sync / tap / hud / step / close.
 (function(){
 const K=window.C3D,C4P={x:-9.5,z:6},BGP={x:8.5,z:6.5};
-let E=null,J=null,snap='',q=null,err='',open=null,C4=null,BG=null,sel=null,first=true;const disc=new Map(),signs={};
+const FLG={};let E=null,J=null,snap='',q=null,err='',open=null,C4=null,BG=null,sel=null,first=true;const disc=new Map(),signs={};
 const v3=(x,y,z)=>new E.THREE.Vector3(x,y,z),nmk=k=>{const p=J&&J.pl.find(p=>p.k===k);return esc(p?p.n:'Alguien')};
 const mine=t=>J&&J[t+'s'].find(x=>x.p.includes(J.me)&&x.st!='gone')||null;
 const shown=t=>mine(t)||J&&J[t+'s'].find(x=>x.st=='play')||null;
 const myTurn=t=>{const g=mine(t);return g&&g.st=='play'&&g.turn==g.p.indexOf(J.me)?g:null};
-function build(e){E=e;if(!K||!K.mkC4)return;const {THREE,SC,hits,OB,std,cyl,box}=e;
+// e.only: arma solo 'c4' o 'bg' (cada uno vive en su piso, e.fl: el Conecta 4 en la terraza y el Backgammon en la planta alta); e.at: dónde
+function build(e){if(!K||!K.mkC4)return;if(!E)E=e;const {SC,hits,OB,std}=e,cyl=(a,b,h,m,x,y,z,p,n)=>e.cyl(a,b,h,m,x,y,z,p||SC,n),box=(w,h,d,m,x,y,z,p)=>e.box(w,h,d,m,x,y,z,p||SC),o=e.only;
+ if(e.at)Object.assign(o=='bg'?BGP:C4P,e.at);
+ if(o!='bg'&&!C4){FLG.c4=e.fl||'pb';
  // Conecta 4: su mesita con dos banquitos, como en el cuarto
  const cols=[];C4=K.mkC4(SC,v3(C4P.x,1.55,C4P.z),cols);C4.P.rotation.y=0;C4.cols=cols;hits.push(...cols);
  const pole=std(0x2a2a2e,.4);[-1,1].forEach(s=>{cyl(.45,.45,.12,std(0x7a2a2a,.8),C4P.x+s*1.5,1.05,C4P.z+1.3);cyl(.06,.08,1,pole,C4P.x+s*1.5,.5,C4P.z+1.3)});
- OB.push({x:C4P.x,z:C4P.z,r:2.3});
+ OB.push({x:C4P.x,z:C4P.z,r:2.3})}
+ if(o!='c4'&&!BG){FLG.bg=e.fl||'pb';
  // Backgammon: mesita baja con dos puf
  const ct=std(0x4a2c18,.5),{x:tx,z:tz}=BGP;box(4,.14,2.9,ct,tx,1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>box(.14,.95,.14,ct,tx+a,.48,tz+b));
  [-1,1].forEach(s=>{cyl(.75,.8,.9,std(0x7a2a2a,.85),tx+s*2.9,.45,tz,null,24);OB.push({x:tx+s*2.9,z:tz,r:.9})});
- BG=K.mkBG(SC,v3(tx,1.09,tz));hits.push(...BG.hits);OB.push({x:tx-1,z:tz,r:1.7},{x:tx+1,z:tz,r:1.7});
- [['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='w7 w7g h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s})}
+ BG=K.mkBG(SC,v3(tx,1.09,tz));hits.push(...BG.hits);OB.push({x:tx-1,z:tz,r:1.7},{x:tx+1,z:tz,r:1.7})}
+ if(!signs.c4)[['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='w7 w7g h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s});
+ if(J){c4sync();bgSync()}}
 // ---------- estado ----------
 function sync(j,e){if(e)err=e;if(!j)return false;const k=JSON.stringify(j);if(k===snap)return !!e;const o=J;J=j;snap=k;
  if(o){['c4','bg'].forEach(t=>{const a=mine(t),b=o[t+'s'].find(x=>a&&x.id===a.id);
@@ -67,13 +72,14 @@ function hud(busy){if(!open||busy||!J)return '';const t=open,N=t=='c4'?'Conecta 
  return `<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="jgt"><div class="wt"><span id="jgt">${t=='c4'?'🔴':'🎲'} ${N}</span><button class="wx" onclick="JG3.close()" aria-label="Cerrar">✕</button></div>
   <div class="wb">${b}${err?`<div class="h3m">${esc(err)}</div>`:''}</div></div>`}
 // ---------- animación y letreros ----------
-function step(now,toPx,W){if(!C4)return;
- disc.forEach(m=>{const u=m.userData;if(u.t0){const k=Math.min(1,(now-u.t0)/650);m.position.y=u.y1+(7.4-u.y1)*(1-K.bounce(k));if(k>=1)u.t0=0}
+// fl: el piso donde estás (solo se anima y se ve el letrero del juego de ese piso)
+function step(now,toPx,W,fl){const here=t=>(t=='c4'?C4:BG)&&FLG[t]===(fl||'pb');
+ if(here('c4')){disc.forEach(m=>{const u=m.userData;if(u.t0){const k=Math.min(1,(now-u.t0)/650);m.position.y=u.y1+(7.4-u.y1)*(1-K.bounce(k));if(k>=1)u.t0=0}
   m.material.emissive.setHex(u.win?0xffffff:0);m.material.emissiveIntensity=u.win?.18+.18*Math.sin(now/140):0});
- const hv=myTurn('c4');C4.cols.forEach(m=>{m.material.opacity=hv?.06:0});
- [...BG.ck[0],...BG.ck[1]].forEach(m=>{const t=m.userData.to;if(t)m.position.lerp(t,.18)});
- BG.dice.forEach(d=>{const t=d.userData.to;if(!t)return;const k=d.userData.t0?Math.min(1,(now-d.userData.t0)/650):1;d.position.copy(t);d.position.y+=Math.sin(k*Math.PI)*.35;d.rotation.set((1-k)*9,(1-k)*7,(1-k)*5);if(k>=1)d.userData.t0=0});
- [['c4',C4P,4.6],['bg',BGP,2.6]].forEach(([t,p,y])=>{const s=signs[t];if(!s.isConnected){const app=document.getElementById('app');if(!app)return;app.appendChild(s)}
+ const hv=myTurn('c4');C4.cols.forEach(m=>{m.material.opacity=hv?.06:0})}
+ if(here('bg')){[...BG.ck[0],...BG.ck[1]].forEach(m=>{const t=m.userData.to;if(t)m.position.lerp(t,.18)});
+ BG.dice.forEach(d=>{const t=d.userData.to;if(!t)return;const k=d.userData.t0?Math.min(1,(now-d.userData.t0)/650):1;d.position.copy(t);d.position.y+=Math.sin(k*Math.PI)*.35;d.rotation.set((1-k)*9,(1-k)*7,(1-k)*5);if(k>=1)d.userData.t0=0})}
+ [['c4',C4P,4.6],['bg',BGP,2.6]].forEach(([t,p,y])=>{const s=signs[t];if(!s)return;if(!here(t)){s.style.display='none';return}if(!s.isConnected){const app=document.getElementById('app');if(!app)return;app.appendChild(s)}
   const [x,yy,vis]=toPx(v3(p.x,y,p.z));s.style.display=vis?'':'none';s.style.transform=`translate(${Math.max(70,Math.min(W-70,x))}px,${yy}px) translate(-50%,-100%)`;
   const g=J&&shown(t),sub=g&&g.st=='play'?nmk(g.p[0])+' vs '+nmk(g.p[1]):'sin partidas',sm=s.querySelector('small');if(sm.textContent!==sub)sm.textContent=sub})}
 window.JG3={P:{c4:C4P,bg:BGP},build,sync,tap,hud,step,out:()=>{const o=q;q=null;return o},
