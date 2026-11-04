@@ -13,6 +13,7 @@ El estilo Windows 7 / Aero (degradados grises, vidrio azul, clases `w7…`) ya n
 - `ui_casa.css`: HUD de la casa y reestilo de avisos, letreros de mesas, nombres y globitos.
 - `c_casa_hud.js` (CHUD): pastilla del piso, gente, ajustes, controles, chat y rueda de gestos.
 - `c_casa_mesa.js` (CMESA): aviso "Jugar … · N jugando" (tecla E) y panel de la mesa.
+- `c_juegos_hud.js` (GHUD) + `ui_juegos.css`: interfaz de dentro de los juegos 3D. `GHUD.top` (pastillas de estado y turno, cámara y ☰), `GHUD.hint`, `GHUD.toast`, `GHUD.bar` (botones `.ui-btn` abajo), `GHUD.cam`/`camTog`, `GHUD.view` (Cuadrar), `GHUD.sheet` (un solo panel con pestañas) y `GHUD.ajustes` (tema, música, sonidos + filas del juego). Nombres en la mesa: `.gj-seat`, `.gj-pl`; tarjetas: `.gj-win`; ventanas modales: `.ui-sheet.mid`.
 - Archivo nuevo = registrarlo en el mapa `files` de `server.js` y en `continental3d.html`.
 
 ## Tokens (usar siempre `var(--ui-…)`, nunca colores sueltos)
@@ -53,4 +54,4 @@ Radios: paneles `var(--ui-r)` (22px); botones y pastillas 999px. Letra: `var(--u
 9. Código nuevo en módulos pequeños (como `c_casa_hud.js`), no en los archivos grandes.
 
 ## Pendiente
-Pasar las pantallas de dentro de cada juego (menús, ventanas `w7win`, barras `#t3…`) al estilo Cálida, una por una.
+Pasar las pantallas de dentro de cada juego (menús, ventanas `w7win`, barras `#t3…`) al estilo Cálida con GHUD, una por una. Hecho: Uno 3D. Faltan: Continental 3D, Conecta 4, Backgammon, Cubilete, Mérida, YuCATÁN, Rummy 3D, Ruleta y sobras (c_casa_ir.js, c_bienvenida.js, camUI/IC en c_casa3d.js).

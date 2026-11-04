@@ -6,7 +6,7 @@ if(typeof THREE==='undefined'||typeof GM==='undefined'||!GM.uno){console.warn('U
 const orig=GM.uno.body,origAfter=GM.uno.after,K3=window.C3D||null;   // K3: cuarto y Miis del Continental 3D (si no está, mesa sola)
 let on=true;try{on=localStorage.getItem('uno_3d')!=='0'}catch(e){}
 let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',felt=null,tbl=null,ringG=null,ringM=null,dpvEl=null;
-let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,menuOpen=new Set(),menuScroll=0,myTc=null,lastNow=0,pin=null,camRep=null;
+let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,myTc=null,lastNow=0,pin=null,camRep=null;
 let pile=[],ringBoost=0,ringDir=1,winHide=false;       // pile: las últimas cartas del descarte (el servidor solo manda la de arriba)
 const meshes=new Map(),texC={},glows=new Map(),hits=[],avs=new Map();
 const CW=1,CH=1.5,CT=.012,D=3;           // carta base (unidades del mundo) y distancia de tu mano a la cámara
@@ -131,7 +131,7 @@ function init(){if(ready)return;ready=true;
  const pt=new THREE.PointLight(0xffffff,1.6,0,1.4);pt.position.set(0,1.2,1);CA.add(pt);   // luz suave para tu mano
  [hl,Ld,fill,pt].forEach(l=>l.layers.enableAll());R.autoClear=false;
  root=document.createElement('div');root.id='u3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
- dpvEl=document.createElement('div');dpvEl.id='u3dpv';dpvEl.className='w7 w7g';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
+ dpvEl=document.createElement('div');dpvEl.id='u3dpv';dpvEl.className='ui gj-dpv';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pCancel);
  cv.addEventListener('pointerleave',()=>{if(!st&&hov!=null){hov=null;sync()}});cv.addEventListener('contextmenu',e=>e.preventDefault());
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
@@ -179,7 +179,7 @@ function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
 // ---------- cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
- const tb=$('#t3top'),bb=$('#t3bar .w7g'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:54)+(h<500?4:24),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
+ const tb=$('#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(80,Math.min(h*.22,w*.3,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.15)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
  const rb=h-bar-ch*.62,rh=Math.max(120,rb-top),el=por?1.12:.98;
@@ -354,67 +354,60 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
  if(h.t=='hand'){if(mine)uplay(h.id);else sfx('card')}}
 
 // ---------- capa de controles (HTML encima del 3D) ----------
-const chipC=k=>`<i class="u3chip" style="--c:${UC[k]}"></i>`;
+const chipC=k=>`<i class="u3chip" style="--c:${UC[k]}"></i>`,uic=n=>UI.ico(n);   // piezas de la interfaz: c_juegos_hud.js (GHUD)
 function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fin&&i==t,drawn=mine&&G.step=='drawn',pend=!fin&&G.pend>0,h=i>=0&&Array.isArray(G.hands[i])?G.hands[i]:[];
  if(!mine)upick=null;if(!fin)winHide=false;
  const hint=fin?(w>=0&&w==i?'¡Te quedaste sin cartas! 🎉':'Se quedó sin cartas. ¿Otra partida?'):G.ad>0?(mine?'Robando… ':esc(G.players[t].name)+' está robando… ')+'('+G.ad+')':i<0?mirTxt():!mine?'Esperando a '+nm(t)+'…':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con un ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:'Toca una carta para jugarla, o el mazo para robar';
- const inf=fin?`🏆 <b>${w>=0?nm(w):'—'}</b> gana`:`${chipC(G.color)} <b>${UCN[G.color]}</b> · ${G.dir>0?'↻':'↺'}${pend?` · <b class="u3pend">+${G.pend} acumulado</b>`:''}`;
- let o=`<div id="t3top" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="u3dMenu()" aria-label="Menú">☰ Juego</button>
-  <div class="inf"><div class="l1">${inf}</div><div class="l2">${mine?'<b>¡Tu turno!</b> '+hint:hint}</div></div>
-  <button class="w7b" onclick="u3dMini()" title="Ocultar la barra" aria-label="Ocultar la barra">▴</button><button class="w7b" onclick="u3dToggle()" title="Vista clásica 2D">2D</button></div>`;
- if(mini)o=`<div id="t3mini" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="u3dMenu()" aria-label="Menú">☰</button><span class="st">${fin?inf:(mine?'<b>¡Tu turno!</b> ':'')+chipC(G.color)+' '+UCN[G.color]+(pend?' · +'+G.pend:'')}</span><button class="w7b" onclick="u3dMini()" title="Mostrar la barra" aria-label="Mostrar la barra">▾</button></div>`;
- const lg=(G.log||[]).slice(-1)[0];if(lg&&!mini)o+=`<div id="t3log" class="w7">${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}</div>`;
+ // arriba: estado (color y sentido) y turno a la izquierda; cámara y ☰ a la derecha; abajo de ellas la ayuda o la última jugada
+ const inf=fin?`🏆 <b>${w>=0?nm(w):'—'}</b> gana`:`${chipC(G.color)}<b>${UCN[G.color]}</b> ${G.dir>0?'↻':'↺'}${pend?` <b class="gj-tag">+${G.pend}</b>`:''}`;
+ const trn=fin?'Fin de la partida':G.ad>0?(mine?'Robando…':nm(t)+' roba…'):mine?'¡Tu turno!':'Turno de '+nm(t);
+ const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
+ let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:GHUD.camTog(camOpen)});
+ if(!mini)o+=GHUD.hint(mine||fin||!lgT?hint:lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
- if(mt&&age<4500)o+=`<div class="w7 t3msg" style="animation-delay:-${age}ms">${msg?esc(msg):'<b>'+esc(G.note)+'</b>'}</div>`;
+ if(mt&&age<4500)o+=GHUD.toast(msg?esc(msg):'<b>'+esc(G.note)+'</b>',age,mini);
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const pl=V.players[k],on=!fin&&G.turn==k,n=hc(k),u1=fin?w==k:G.uno[k]&&n==1;
-  o+=`<div class="w7 w7g t3seat${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${pl.on?' on':''}"></i><small>${pl.out?'expulsado':(n+(n==1?' carta':' cartas')+(on?(G.ad?' · robando…':' · jugando…'):''))}</small>${u1?`<em class="u3b">${fin?'🏆 ¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
- o+=`<div class="w7 t3pl" id="t3pdk">Mazo · ${G.deck}</div><div class="w7 t3pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;
+  o+=`<div class="ui gj-seat${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${pl.on?' on':''}"></i><small>${pl.out?'expulsado':(n+(n==1?' carta':' cartas')+(on?(G.ad?' · robando…':' · jugando…'):''))}</small>${u1?`<em class="u3b">${fin?'🏆 ¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
+ o+=`<div class="ui gj-pl" id="t3pdk">Mazo · ${G.deck}</div><div class="ui gj-pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;
  // botones de abajo: robar el acumulado, pasar, ¡UNO!, cobrar UNO y ordenar
  let b='';
- if(fin){b=`<button class="w7b p" onclick="send({t:'reset'})">🔄 Nueva partida</button><button class="w7b" onclick="leave()">Salir</button>`;
-  // resultados en una ventanita (se puede cerrar para ver la mesa)
-  if(!winHide)o+=`<div id="u3win" class="w7 w7win" role="dialog" aria-labelledby="u3wt"><div class="wt"><span id="u3wt">Fin de la partida</span><button class="wx" onclick="u3dWin()" aria-label="Cerrar">✕</button></div>
-   <div class="wb"><div class="u3tro">🏆</div><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
+ if(fin){b=`<button class="ui-btn" onclick="send({t:'reset'})">${uic('nuevo')}Nueva partida</button><button class="ui-btn sec" onclick="leave()">${uic('salir')}Salir</button>`;
+  // resultados en una tarjeta arriba (se puede cerrar para ver la mesa)
+  if(!winHide)o+=`<div id="u3win" class="ui ui-card gj-win" role="dialog" aria-labelledby="u3wt"><div class="ui-hd"><h2 class="ui-h" id="u3wt">Fin de la partida</h2><button class="ui-x" onclick="u3dWin()" aria-label="Cerrar">${uic('x')}</button></div>
+   <div class="ui-bd"><div class="u3tro">🏆</div><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
    <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${V.players[k].out?'expulsado':k==w?'🏆':hc(k)+(hc(k)==1?' carta':' cartas')}</b></div>`).join('')}</div></div></div>`}
- else if(i<0)b=`<span class="hint">${mirTxt()}</span>${V.watch?'<button class="w7b" onclick="leave()">🚪 Dejar de mirar</button>':''}`;
+ else if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${uic('salir')}Dejar de mirar</button>`:''}`;
  else{const vk=G.vuln&&G.vuln.k!=i&&hc(G.vuln.k)==1&&!G.uno[G.vuln.k]?G.vuln.k:-1,my1=h.length==1&&!G.uno[i],said=h.length==1&&!!G.uno[i];
-  if(mine&&G.step=='play'&&pend&&!G.ad)b+=`<button class="w7b p" onclick="udraw()">Robar ${G.pend}</button>`;
-  if(drawn)b+=`<button class="w7b p" onclick="upass()">Pasar</button>`;
-  b+=`<button class="w7b u3uno${my1?' go':''}${said?' ok':''}" ${my1?'':'disabled'} onclick="uuno()" title="Tecla U">${said?'¡UNO! ✔':'¡UNO!'}</button>`;
-  if(vk>=0)b+=`<button class="w7b u3catch" onclick="ucatch()">😈 Cobrar UNO a ${nm(vk)}</button>`;
-  b+=`<button class="w7b" onclick="cyc()" title="Ordenar">⇅ ${manual?'Mi orden':sortS?'Por número':'Por color'}</button>`}
- o+=`<div id="t3bar" class="w7"><div class="w7g">${b}</div></div>`;
- o+=`<button id="t3view" class="w7 w7b" onclick="u3dHome()" style="display:none" title="Regresar a la vista de siempre (Esc)">${IC.home} Cuadrar</button>`;
- const cb=(c,tt)=>`<button class="w7b" data-cam="${c}" title="${tt}" aria-label="${tt}">${IC[c]}</button>`;
- o+=`<div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>
-  <div class="w7g pan">${cb('rl','Girar a la izquierda (Q)')}${cb('rr','Girar a la derecha (E)')}${cb('zi','Acercar (+)')}${cb('zo','Alejar (−)')}${cb('tu','Ver más desde arriba (R)')}${cb('td','Ver más de lado (F)')}
-  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Esc)">${IC.home} Cuadrar</button></div></div>`;
+  if(mine&&G.step=='play'&&pend&&!G.ad)b+=`<button class="ui-btn go" onclick="udraw()">Robar ${G.pend}</button>`;
+  if(drawn)b+=`<button class="ui-btn go" onclick="upass()">Pasar</button>`;
+  b+=`<button class="ui-btn${my1?' go':''}${said?' sec u3ok':''}" ${my1?'':'disabled'} onclick="uuno()" title="Tecla U">${said?uic('ok'):''}¡UNO!</button>`;
+  if(vk>=0)b+=`<button class="ui-btn go" onclick="ucatch()">Cobrar UNO a ${nm(vk)}</button>`;
+  b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${uic('ordenar')}${manual?'Mi orden':sortS?'Por número':'Por color'}</button>`}
+ o+=GHUD.bar(b)+GHUD.view('u3dHome()',mini)+GHUD.cam(IC,camOpen,mini);
  // ventana para elegir el color del comodín (sugiere el color que más tienes)
  if(upick!=null&&mine){const cnt=[0,0,0,0];h.forEach(x=>{const c=U(x);if(x!==upick&&c.c<4)cnt[c.c]++});const best=cnt.indexOf(Math.max(...cnt));
-  o+=`<div id="u3pick" class="w7 w7win" role="dialog" aria-modal="true" aria-labelledby="u3pt"><div class="wt"><span id="u3pt">Elige el color</span><button class="wx" onclick="upick=null;render()" aria-label="Cancelar">✕</button></div>
-  <div class="wb"><div class="u3cols">${[0,1,2,3].map(k=>`<button class="u3col${k==best&&cnt[k]?' best':''}" style="--c:${UC[k]}" onclick="ucol(${k})"><b>${UCN[k]}</b><small>${cnt[k]?(cnt[k]==1?'tienes 1':'tienes '+cnt[k]):'no tienes'}</small></button>`).join('')}</div>
-  <div class="ft"><button class="w7b" onclick="upick=null;render()">Cancelar</button></div></div></div>`}
- // menú Juego
- if(menu){const op=k=>menuOpen.has(k)?' open':'';
-  o+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Efectos de sonido: apagados':'🔊 Efectos de sonido: encendidos'}</button>${typeof musCyc=='function'?`<button class="mi" onclick="musCyc()">${musName()=='apagada'?'🔇':'🎵'} Música: ${musName()}</button>`:''}<button class="mi" onclick="u3dToggle()">🖼 Vista clásica 2D</button><button class="mi" onclick="u3dDark()">${dark?'☀️ Menús en modo claro':'🌙 Menús en modo oscuro'}</button><button class="mi" onclick="u3dMini()">${mini?'▾ Mostrar la barra de arriba':'▴ Ocultar la barra de arriba'}</button><hr>
-  <button class="mi" onclick="setCb(${!cbl})">${cbl?'🔤 Letra del color en las cartas: sí':'🔤 Letra del color en las cartas: no'}</button><details data-k="pl"${op('pl')}><summary class="mi">👥 Jugadores</summary>${plist()}</details>
-  <details data-k="lg"${op('lg')}><summary class="mi">📜 Historial</summary>${logv()||'<div class="rt">Nada todavía.</div>'}</details>
-  ${GM.uno.rules.replace('<details>',`<details data-k="rg"${op('rg')}>`).replace('<summary>Reglas</summary>','<summary class="mi">📖 Reglas</summary><div class="rt">').replace(/<\/details>$/,'</div></details>')}
-  ${V.host?`<hr><button class="mi" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">✖ Cerrar sala</button>`:''}</div>`}
+  o+=`<div class="ui-scrim" onclick="upick=null;render()"></div><div id="u3pick" class="ui ui-sheet mid" role="dialog" aria-modal="true" aria-labelledby="u3pt"><div class="ui-hd"><h2 class="ui-h" id="u3pt">Elige el color</h2><button class="ui-x" onclick="upick=null;render()" aria-label="Cancelar">${uic('x')}</button></div>
+  <div class="ui-bd"><div class="u3cols">${[0,1,2,3].map(k=>`<button class="u3col${k==best&&cnt[k]?' best':''}" style="--c:${UC[k]}" onclick="ucol(${k})"><b>${UCN[k]}</b><small>${cnt[k]?(cnt[k]==1?'tienes 1':'tienes '+cnt[k]):'no tienes'}</small></button>`).join('')}</div>
+  <div class="gj-btns"><button class="ui-btn sec full" onclick="upick=null;render()">Cancelar</button></div></div></div>`}
+ // menú ☰: un solo panel con pestañas (ajustes, jugadores, historial y reglas)
+ if(menu){const rg=String(GM.uno.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
+  const aj=GHUD.ajustes(GHUD.row('','Letra del color en las cartas',GHUD.sw(cbl,'setCb(this.checked)','Letra del color en las cartas'))+GHUD.row('','Ayuda arriba',GHUD.sw(!mini,'u3dMini()','Ayuda arriba')),
+   `<button class="ui-btn sec full" onclick="u3dToggle()">${uic('pantalla')}Vista clásica 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${uic('x')}Cerrar sala</button>`:''}`);
+  o+=GHUD.sheet('Uno',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<p class="gj-rt">${rg}</p>`]],'u3dMenu()')}
  return o}
-function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('t3top'),bot('t3mini'),bot('t3log'))+2;
- document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
+function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
+ document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh2+y0,Math.min(H-hh2,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
  // nombres de las pilas: abajo de cada una (en celular parado, el del mazo va arriba de él)
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
  const dz=CH*L.ps*1.1/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+(L.por?-dz:dz)),L.por);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
 // botón Cuadrar y clases de la página
 function viewBtn(){const r=document.documentElement;if(window.UI)dark=UI.noche();r.classList.toggle('c3dark',dark);r.classList.toggle('u3mini',mini);
- const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
- document.querySelectorAll('#app .t3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
+ const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=p?`${uic('ojo')}<b>${esc(p.name)}</b> · Cuadrar`:`${uic('cuadrar')}Cuadrar`;
+ document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 // cartita del descarte abajo a la izquierda: solo cuando la pila no se ve (cámara movida o mirando a alguien)
 function dpv(){if(!dpvEl)return;const G=V&&V.G,id=G&&G.disc.length?G.disc[G.disc.length-1]:null;let show=false;
  if(id!=null&&L&&L.disc){const q=L.disc.clone().project(CA);show=q.z>1||Math.abs(q.x)>.97||Math.abs(q.y)>.97}
@@ -436,15 +429,15 @@ function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0'
 GM.uno.body=function(){
  if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?`<button class="b g sm2" onclick="u3dToggle()">${on?'🖼 Vista clásica 2D':'🎲 Vista 3D'}</button>`:'')+orig()}
  // guardo lo abierto y el scroll del menú para que no se pierda al redibujar
- const m=$('#t3menu');if(m){menuScroll=m.scrollTop;menuOpen=new Set([...m.querySelectorAll('details[open]')].map(d=>d.dataset.k))}
+ GHUD.save();
  try{init();return hud()}catch(e){console.warn('Uno 3D:',e);on=false;return orig()}};
 GM.uno.after=function(){if(origAfter)origAfter();if(!active())return;
- const m=$('#t3menu');if(m)m.scrollTop=menuScroll;
- try{const bb=$('#t3bar .w7g');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Uno 3D:',e)}};
+ GHUD.restore();
+ try{const bb=$('#gjBar .gj-bb');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Uno 3D:',e)}};
 window.u3dToggle=toggle;
 window.u3dMenu=()=>{menu=!menu;render()};
 window.u3dDark=()=>{setDark(!dark);menu=false;sfx('tick');render()};
-window.u3dMini=()=>{mini=!mini;menu=false;try{localStorage.setItem('cont_mini',mini?'1':'0')}catch(e){}if(L)L.top=0;sfx('tick');render()};
+window.u3dMini=()=>{mini=!mini;try{localStorage.setItem('cont_mini',mini?'1':'0')}catch(e){}if(L)L.top=0;sfx('tick');render()};
 window.u3dLook=look;
 window.u3dHome=home;
 window.u3dWin=()=>{winHide=true;sfx('tick');render()};
