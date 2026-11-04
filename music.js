@@ -124,7 +124,7 @@ function start(id){if(cur&&cur.id===id)return;const now=ctx.currentTime;
  if(!id){cur=null;return}const g=ctx.createGain();g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+1.6);g.connect(bus);
  cur={id,g,i:0,next:now+.1};if(!timer)timer=setInterval(tick,30)}
 function want(){if(!mlvl||document.hidden)return null;if(typeof S=='undefined'||!S||!V||!V.G)return 'menu';return SONGS[V.game]?V.game:'menu'}
-window.musSync=function(){if(!init())return;start(want())};
+window.musSync=function(){if(!init())return;let w=want();if(window.MP3)try{if(MP3.sync(w==='menu',ctx,master))w=null}catch(e){}start(w)};   // MP3: canciones mp3 de la casa (music_mp3.js)
 window.musCyc=function(){mlvl=(mlvl+1)%4;try{localStorage.setItem('cont_mus',mlvl)}catch(e){}if(init()){master.gain.setTargetAtTime(LV[mlvl],ctx.currentTime,.1);musSync()}render()};
 window.musName=()=>LN[mlvl];
 window.musUI=()=>`<button class="b g sm2" onclick="musCyc()">${mlvl?'🎵':'🔇'} Música: ${LN[mlvl]}</button>`;
