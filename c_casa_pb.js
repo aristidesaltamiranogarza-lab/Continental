@@ -83,8 +83,6 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  ext('z',-17,1,-15,11,S);ext('z',17,-1,-15,11,S);
  tabique('x',-15.15,1,[[-17,17,S]],[[-17,-1,CO],[-1,17,K]],[{at:-9.5,w:4,h:5.8,arco:1},{at:6,w:2.2,h:3.6}]);
  tabique('x',11.15,-1,[[-17,17,S]],[[-4.5,4.5,Z]],[{at:0,w:4.2,h:6.4,arco:1}]);
- // el salón se parte en dos con un arco grande: al frente la sala de recibir, atrás las mesas
- tabique('x',5.9,1,[[-17,17,S]],[[-17,17,S]],[{at:0,w:9.6,h:7.9,arco:1}]);
  ext('z',-4.5,1,11.3,19,Z);ext('z',4.5,-1,11.3,19,Z);if(!window.CCALLE)ext('x',19,-1,-4.5,4.5,Z);   // con la calle, el muro del frente (y su fachada) lo pone c_casa_calle.js
  ext('z',-17,1,-25,-15.3,CO);if(!window.CPAT){ext('x',-25,1,-17,-1.15,CO);ext('x',-25,1,-.85,12,K);ext('x',-25,1,12.3,17,BA)}ext('z',17,-1,-25,-19.65,BA);ext('z',17,-1,-19.35,-15.3,K);
  tabique('z',-1,-1,[[-25,-15.3,CO]],[[-25,-15.3,K]],[{at:-19.5,w:2.2,h:3.6}]);

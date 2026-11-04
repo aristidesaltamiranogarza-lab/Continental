@@ -128,9 +128,9 @@ function buildHouse(){
   g.font='bold 54px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4d58a';g.fillText('🎴 Casa de juegos',w/2,h/2+3)});
  const lg=new THREE.Mesh(new THREE.PlaneGeometry(6,1.5),std(0xffffff,.6,{map:logo}));lg.position.set(0,6.6,ZB+.08);SC.add(lg);
  // sofá a la derecha, librero a la izquierda, plantas en las esquinas
- const sofa=std(0x2f4a5a,.85),pb=!!window.CPB,sx=pb?11.6:HX-1.4,sz=pb?9.85:8.2;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=pb?Math.PI:-Math.PI/2;SC.add(so);   // con el arco, contra el muro del frente
+ const sofa=std(0x2f4a5a,.85),sx=HX-1.4,sz=8.2;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=-Math.PI/2;SC.add(so);
  box(5.4,.9,2,sofa,0,.75,0,so);box(5.4,1.7,.55,sofa,0,1.6,-.75,so);[-1,1].forEach(s=>box(.55,1.4,2,sofa,s*2.7,1.1,0,so));[-1.3,1.3].forEach(dx=>box(2.5,.35,1.6,std(0x37566a,.9),dx,1.35,.15,so));
- if(pb)OB.push({x:sx-1.8,z:sz,r:1.4},{x:sx,z:sz,r:1.4},{x:sx+1.8,z:sz,r:1.4});else OB.push({x:sx,z:sz-1.8,r:1.4},{x:sx,z:sz,r:1.4},{x:sx,z:sz+1.8,r:1.4});
+ OB.push({x:sx,z:sz-1.8,r:1.4},{x:sx,z:sz,r:1.4},{x:sx,z:sz+1.8,r:1.4});
  const bw=std(0x4a2c18,.6),bx=-HX+.55,bz=4,BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0];let rs=7;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280;
  box(.9,7,.12,bw,bx,3.5,bz-1.6);box(.9,7,.12,bw,bx,3.5,bz+1.6);box(.1,7,3.3,bw,bx-.42,3.5,bz);
  for(let s=0;s<6;s++){const y=.1+s*1.38;box(.9,.1,3.3,bw,bx,y,bz);if(s==5)break;let z=bz-1.5;while(z<bz+1.4){const t=.12+rnd()*.14,hh=.75+rnd()*.45;box(.62,hh,t,std(BC[(rnd()*BC.length)|0],.7),bx+.05,y+.06+hh/2,z+t/2);z+=t+.02}}
