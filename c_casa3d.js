@@ -28,7 +28,7 @@ const FM={sot:'SOT',alta:'ALTA',ter:'TERR'},fmod=id=>window[FM[id]],FLS={pb:PB};
 const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&CAV.on());
 function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
- const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];
+ const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];if(window.CGLB)CGLB.piso(nf.id);
   [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,1.57,me.pos.z);
   Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
@@ -66,7 +66,7 @@ const DECO={continental:[['c1','#fff','#151515','â™ '],['c2','#fff','#c62828','â
 // ---------- escena ----------
 // calidad (c_bienvenida.js). Medio: sin sombras, pixelRatio 1 y sin luces puntuales (menos la chimenea)
 let QL=null;
-function applyQ(q){if(!R||!QL)return;const lo=q==='medio';
+function applyQ(q){if(window.CGLB)CGLB.calidad();if(!R||!QL)return;const lo=q==='medio';
  R.setPixelRatio(Math.min(devicePixelRatio||1,lo?1:2));R.shadowMap.enabled=!lo;QL.Ld.castShadow=!lo;QL.hl.intensity=lo?2.1:1.5;
  SC.traverse(o=>{if(o.isPointLight&&!(fire&&o===fire.light)&&!o.userData.keep)o.visible=!lo;if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
 function init(){if(ready)return;ready=true;
