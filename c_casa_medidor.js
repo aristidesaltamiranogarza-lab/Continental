@@ -21,7 +21,7 @@ const nav=()=>{const e=performance.getEntriesByType&&performance.getEntriesByTyp
 function pinta(fps){const R=window.CASA3D&&CASA3D.R&&CASA3D.R(),I=R&&R.info,M=performance.memory,G=window.CGLB&&CGLB.info();
  let h='<div><b class="'+(fps<30?'m-mal':'')+'">'+fps+'</b> <i>fps · peor</i> '+Math.round(peor)+' <i>ms</i></div>';
  if(I)h+='<div>'+I.render.calls+' <i>llamadas ·</i> '+k(I.render.triangles)+' <i>triáng.</i></div><div>'+I.memory.geometries+' <i>geom. ·</i> '+I.memory.textures+' <i>texturas</i></div>';
- if(R){const X=window.RES&&RES.info();h+='<div>'+R.getPixelRatio()+' <i>px ·</i> '+R.domElement.width+'×'+R.domElement.height+(X&&X.tope?' <i>(auto)</i>':'')+'</div><div><i>'+gpu(R)+'</i></div>'}
+ if(R){const X=window.RES&&RES.info();h+='<div>'+R.getPixelRatio()+' <i>px ·</i> '+R.domElement.width+'×'+R.domElement.height+(X&&X.tope?' <i>(auto)</i>':'')+(window.LUZ&&LUZ.info().total?' <i>· luces</i> '+LUZ.info().on+'<i>/</i>'+LUZ.info().total:'')+'</div><div><i>'+gpu(R)+'</i></div>'}
  if(M)h+='<div>'+Math.round(M.usedJSHeapSize/1048576)+' <i>de</i> '+Math.round(M.jsHeapSizeLimit/1048576)+' <i>MB de JS</i></div>';
  if(G)h+='<div>'+G.puestos+' <i>modelos ('+G.hd+' HD) ·</i> '+f1(G.mb)+' <i>MB</i></div><div><i>'+G.calidad+' · '+G.origen+(G.cargando?' · bajando '+G.cargando:'')+(G.errores?' · '+G.errores+' errores':'')+'</i></div>';
  h+='<div>'+seg(nav())+' <i>s página ·</i> '+seg(t1)+' <i>s 1ª imagen</i></div>';
