@@ -7,7 +7,7 @@ const K=window.C3D;
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!K){console.warn('Casa 3D: falta Three.js o los Miis del Continental 3D');return}
 const origHome=home;
 let on=true;try{on=localStorage.getItem('casa_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,st=null,pin=null,fire=null,disco=null,camRep=null,hits=[],tgtL=null;
+let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,picked=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,st=null,pin=null,fire=null,disco=null,camRep=null,hits=[],tgtL=null;
 // cámara libre (como en el Continental 3D): VT = adónde va, VW = dónde está. ox,oz = qué tanto la moviste lejos de tu Mii,
 // k = zoom (más = más cerca), a = giro, t = inclinación. Cuadrar regresa todo a 0 (y k a 1)
 const VW={ox:0,oz:0,k:1,a:0,t:0},VT={ox:0,oz:0,k:1,a:0,t:0},VK=['ox','oz','k','a','t'],KMIN=.45,KMAX=2.6;
@@ -244,11 +244,11 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
  // mirar hacia la mesa al llegar
  const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);if(fpOn()&&!mv)a.yaw=VW.a+Math.PI;   // en primera persona miras hacia donde ve la cámara
  turn(a,a.yaw);a.g.position.set(p.x,1.57,p.z);pose(a,now,!!sel);
- // ¿cerca de una mesa? abre su ventanita (si la cerraste, hasta que te alejes)
+ // ¿cerca de la mesa que picaste? abre su ventanita (solo si la elegiste con clic o Ir a…; si te alejas se olvida)
  let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3&&!(x.to&&canGo(x.to));if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
  // caminar hasta una puerta que lleva a otro piso (o a la escalera) = cambiar de piso
  if(mv>.001&&!fBusy){const d=TB.find(x=>x.to&&canGo(x.to)&&Math.hypot(p.x-x.x,p.z-x.z)<x.r+1.05)||LK.find(l=>Math.hypot(p.x-l.x,p.z-l.z)<l.r);if(d&&goFloor(d.to))return}
- if(closed&&closed!==near)closed=null;const want=near&&near!==closed?near:null;if(want!==sel){sel=want;if(sel)sfx('tick');render()}}
+ if(closed&&closed!==near)closed=null;if(picked&&!tgtG&&near!==picked)picked=null;const want=near&&near===picked&&near!==closed?near:null;if(want!==sel){sel=want;if(sel)sfx('tick');render()}}
 // los demás: se deslizan suave hacia la última posición que mandó el servidor
 function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{a.g.visible=(a.f||'pb')===FL.id;const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
  a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,1.57,a.pos.z);pose(a,now,false)});
@@ -257,7 +257,7 @@ function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;
  if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}
 // llega por el hueco entre dos sillas que le quede más cerca (las sillas están a 45°, los huecos a 0°, 90°, 180° y 270°)
 function goTable(g){const t=TB.find(x=>x.g===g);if(!t)return;const p=me.pos,a=Math.round(Math.atan2(p.z-t.z,p.x-t.x)/(Math.PI/2))*(Math.PI/2);
- tgt=t.door?v3(t.x-2.3,0,t.z):v3(t.x+Math.cos(a)*(t.r+1.5),0,t.z+Math.sin(a)*(t.r+1.5));solve(tgt);tgtG=g;tgtL=null;closed=null;stuck=0;showMark(tgt);sfx('card')}
+ tgt=t.door?v3(t.x-2.3,0,t.z):v3(t.x+Math.cos(a)*(t.r+1.5),0,t.z+Math.sin(a)*(t.r+1.5));solve(tgt);tgtG=g;picked=g;tgtL=null;closed=null;stuck=0;showMark(tgt);sfx('card')}
 function showMark(p){mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mark.scale.setScalar(1)}
 
 // ---------- en vivo: mando mi posición y recibo a los demás + las salas (cada ~0.3 s) ----------
@@ -385,7 +385,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
   <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.${pl?` Ahora: ${pl} jugando.`:''}</span></div>
   ${op.length?`<div class="h3rooms"><span>Salas esperando jugadores</span>${op.slice(0,5).map(r=>`<div><span>Sala de <b>${esc(r.host)}</b></span><small>${r.n}/${r.max}</small><button class="w7b p" onclick="casaJoin('${esc(r.c)}')">Unirme</button></div>`).join('')}</div>`:''}
   ${pr.length?`<div class="h3rooms h3watch"><span>Partidas en curso</span>${pr.slice(0,5).map(r=>`<div><span>${esc(r.ps.slice(0,3).join(', '))}${r.n>3?'…':''}</span><small>${r.sp?'👁 '+r.sp:''}</small><button class="w7b" onclick="casaWatch('${esc(r.w)}')" title="Mirar sin jugar">👁 Ver</button></div>`).join('')}</div>`:''}
-  <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
+  <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button></div>
   <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
   ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
  if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
@@ -418,7 +418,7 @@ home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la b
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 // "Ir a…" (c_casa_ir.js): fundido y apareces junto a esa mesa (o el Cubilete / los juegos sueltos), cambiando de piso si hace falta
 function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:1.15}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1});if(!t)return;
-  const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,1.57,p.z);
+  const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;picked=t.door?null:g;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,1.57,p.z);
   Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
 // mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)

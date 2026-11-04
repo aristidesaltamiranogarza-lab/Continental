@@ -3,7 +3,7 @@
 (function(){
 if(typeof THREE==='undefined'||!window.RUMMY)return;const RU=window.RUMMY;
 // ficha acostada: TW de ancho (x), TL de largo (z), TT de grueso; en el atril se para inclinada TILT hacia atrás
-const TW=.13,TL=.17,TT=.036,TILT=.24,INK=['#c0392b','#1f5fa8','#2b2b2b','#e07a10'];
+const TW=.13,TL=.17,TT=.036,TILT=.24,INK=['#b3122e','#1f5fa8','#2b2b2b','#f29a0c'];
 let CH=null,GEO=null,SIDE=null;const FM={};   // FM: material de la cara de cada ficha (por id, para iluminarla sola)
 const rnd=(a,b)=>a+Math.random()*(b-a),v3=(x,y,z)=>new THREE.Vector3(x,y,z);
 function wood(g,w,h){const gr=g.createLinearGradient(0,0,w*.4,h);gr.addColorStop(0,'#f7e9c8');gr.addColorStop(1,'#e4c793');g.fillStyle=gr;g.fillRect(0,0,w,h);
