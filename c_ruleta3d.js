@@ -13,8 +13,10 @@ const body0=()=>`<div class="box"><b>🔫 Ruleta Rusa</b><p>Esperando la partida
 GM.ruleta={name:'Ruleta Rusa',emoji:'🔫',max:6,rules,lobby,body:body0,face:()=>({h:''})};
 const K=window.C3D,OK3=typeof THREE!=='undefined'&&!!K;let CH=null;   // CH: CASA3D, lo pone c_casa3d.js (carga después de este archivo)
 // cuarto ±W y techo HT; mesa de radio TBR a la altura TH (la de las mesas de la casa); 6 sillas a CR del centro
+// el sótano sigue a la izquierda hasta XL: ahí está la cantina (c_sotano.js) con la barra y las mesas que vienen (Poker y Blackjack)
+const XL=-14,RW=5.2-XL,CX=(5.2+XL)/2;
 const W=5.2,HT=3.9,TH=1.5,TBR=1.7,CR=2.35,NS=6,POLE=OK3?[new THREE.Vector3(-1.2,-.4,-.7),new THREE.Vector3(1.2,-.4,-.7)]:null;
-let R,SC,CA,root,cv,lay,fxv,dv,ready=false,failed=false,shown=false,raf=0,tPrev=0,Wd=0,Hd=0;
+let R,SC,CA,root,cv,lay,fxv,dv,shR=false,hand=null,swT=-1e9,ready=false,failed=false,shown=false,raf=0,tPrev=0,Wd=0,Hd=0;
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),rnd=(a,b)=>a+Math.random()*(b-a),cl=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=x=>x<0?0:x>1?1:x*x*(3-2*x);
 // ángulo de cada silla (la 0 queda hacia el frente del cuarto)
 const ang=c=>c/NS*Math.PI*2+Math.PI/2,spos=(c,r)=>v3(Math.cos(ang(c))*(r||CR),0,Math.sin(ang(c))*(r||CR)),face=c=>{const p=spos(c);return Math.atan2(-p.x,-p.z)};
@@ -64,16 +66,17 @@ const std=(c,r,o)=>CH.std(c,r,o),box=(w,h,d,m,x,y,z,p)=>CH.box(w,h,d,m,x,y,z,p||
 // tubo recto de a a b
 function tube(a,b,r,m,p){const d=b.clone().sub(a),me=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),12),m);me.position.copy(a).addScaledVector(d,.5);me.quaternion.setFromUnitVectors(v3(0,1,0),d.normalize());me.castShadow=me.receiveShadow=true;(p||SC).add(me);return me}
 function buildRoom(){
- const fl=new THREE.Mesh(new THREE.PlaneGeometry(W*2,W*2),std(0xffffff,.93,{map:rep(T.floor,3,3),bumpMap:rep(T.floor,3,3),bumpScale:.02}));fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;SC.add(fl);
- [[0,-W,0],[0,W,Math.PI],[-W,0,Math.PI/2],[W,0,-Math.PI/2]].forEach(([x,z,ry],i)=>{const t=rep(T.wall,2,1,i*.37),m=new THREE.Mesh(new THREE.PlaneGeometry(W*2,HT),std(0xffffff,.96,{map:t,bumpMap:t,bumpScale:.035}));
+ const fx=RW/(W*2),fl=new THREE.Mesh(new THREE.PlaneGeometry(RW,W*2),std(0xffffff,.93,{map:rep(T.floor,3*fx,3),bumpMap:rep(T.floor,3*fx,3),bumpScale:.02}));fl.rotation.x=-Math.PI/2;fl.position.x=CX;fl.receiveShadow=true;SC.add(fl);
+ [[CX,-W,0,RW],[CX,W,Math.PI,RW],[XL,0,Math.PI/2,W*2],[W,0,-Math.PI/2,W*2]].forEach(([x,z,ry,w],i)=>{const t=rep(T.wall,2*w/(W*2),1,i*.37),m=new THREE.Mesh(new THREE.PlaneGeometry(w,HT),std(0xffffff,.96,{map:t,bumpMap:t,bumpScale:.035}));
   m.position.set(x,HT/2,z);m.rotation.y=ry;m.receiveShadow=true;SC.add(m)});
- const ce=new THREE.Mesh(new THREE.PlaneGeometry(W*2,W*2),std(0xffffff,.95,{map:rep(T.ceil,4,4)}));ce.rotation.x=Math.PI/2;ce.position.y=HT;SC.add(ce);
- const jw=std(0x2c1e12,.9);for(let i=-2;i<=2;i++)box(W*2,.22,.28,jw,0,HT-.11,i*2.1);
+ // techo: se esconde cuando caminas en la casa con la cámara de arriba (modo 'casa')
+ const ce=new THREE.Mesh(new THREE.PlaneGeometry(RW,W*2),std(0xffffff,.95,{map:rep(T.ceil,4*fx,4)}));ce.rotation.x=Math.PI/2;ce.position.set(CX,HT,0);SC.add(ce);techo.push(ce);
+ const jw=std(0x2c1e12,.9);for(let i=-2;i<=2;i++)techo.push(box(RW,.22,.28,jw,CX,HT-.11,i*2.1));
  // tuberías oxidadas: por la pared del fondo, bajando en la esquina (con su llave) y otra delgada cruzando el techo
  const ru=std(0xffffff,.75,{map:T.rust,metalness:.55}),ru2=std(0x6b6255,.5,{metalness:.7});
- const a=v3(-W,HT-.45,-W+.2),b=v3(W-.2,HT-.45,-W+.2),c=v3(W-.2,0,-W+.2);tube(a,b,.09,ru);tube(b,c,.09,ru);const el=new THREE.Mesh(new THREE.SphereGeometry(.12,12,8),ru);el.position.copy(b);SC.add(el);
- for(let x=-W+.8;x<W;x+=1.8)box(.06,.26,.12,ru2,x,HT-.45,-W+.08);const vw=new THREE.Mesh(new THREE.TorusGeometry(.16,.025,8,20),std(0x7a1d12,.6,{metalness:.4}));vw.position.set(W-.38,1.5,-W+.2);vw.rotation.y=Math.PI/2;SC.add(vw);
- tube(v3(-W,HT-.2,1.3),v3(W,HT-.2,1.3),.05,ru);tube(v3(-W+.15,HT,3.2),v3(-W+.15,0,3.2),.06,ru);
+ const a=v3(XL,HT-.45,-W+.2),b=v3(W-.2,HT-.45,-W+.2),c=v3(W-.2,0,-W+.2);tube(a,b,.09,ru);tube(b,c,.09,ru);const el=new THREE.Mesh(new THREE.SphereGeometry(.12,12,8),ru);el.position.copy(b);SC.add(el);
+ for(let x=XL+.8;x<W;x+=1.8)box(.06,.26,.12,ru2,x,HT-.45,-W+.08);const vw=new THREE.Mesh(new THREE.TorusGeometry(.16,.025,8,20),std(0x7a1d12,.6,{metalness:.4}));vw.position.set(W-.38,1.5,-W+.2);vw.rotation.y=Math.PI/2;SC.add(vw);
+ techo.push(tube(v3(XL,HT-.2,1.3),v3(W,HT-.2,1.3),.05,ru));tube(v3(XL+.15,HT,3.2),v3(XL+.15,0,3.2),.06,ru);
  // puerta de la escalera, con una rayita de luz por abajo
  const dw=std(0x2a1a0f,.8);box(1.15,2.25,.08,dw,W-.05,1.12,-2.4).rotation.y=Math.PI/2;box(1.35,.12,.14,dw,W-.06,2.3,-2.4).rotation.y=Math.PI/2;
  const sl=new THREE.Mesh(new THREE.PlaneGeometry(1.05,.03),new THREE.MeshBasicMaterial({color:0xffb46a}));sl.position.set(W-.1,.015,-2.4);sl.rotation.set(-Math.PI/2,0,Math.PI/2);SC.add(sl);
@@ -87,9 +90,9 @@ function buildRoom(){
  box(.7,.45,.55,std(0x7a6040,.95),-W+1.6,.22,W-.6).rotation.y=.5}
 
 // ---------- la mesa: madera gastada, una pata chueca ----------
-const chairs=[];let bulb=null,ember=null,smoke=[],gunW=null,gunV=null;
+const chairs=[],techo=[];let tbl=null,bulb=null,ember=null,smoke=[],gunW=null,gunV=null;
 function buildTable(){const tw=std(0xffffff,.78,{map:T.table,bumpMap:T.table,bumpScale:.012}),sd=std(0x3a2414,.85);
- const top=new THREE.Mesh(new THREE.CylinderGeometry(TBR,TBR,.09,56),[sd,tw,sd]);top.position.y=TH-.045;top.castShadow=top.receiveShadow=true;SC.add(top);
+ const top=new THREE.Mesh(new THREE.CylinderGeometry(TBR,TBR,.09,56),[sd,tw,sd]);top.position.y=TH-.045;top.castShadow=top.receiveShadow=true;SC.add(top);tbl=top;
  const rim=new THREE.Mesh(new THREE.TorusGeometry(TBR,.05,8,56),sd);rim.rotation.x=Math.PI/2;rim.position.y=TH-.05;SC.add(rim);cyl(TBR-.18,TBR-.18,.16,sd,0,TH-.17,0);
  [0,1,2,3].forEach(i=>{const a=i/4*Math.PI*2+.4,l=box(.12,TH-.2,.12,sd,Math.cos(a)*1.05,(TH-.2)/2,Math.sin(a)*1.05);if(i==2){l.rotation.z=.07;l.rotation.x=-.04;l.position.x+=.04}})}
 // seis sillas viejas que no combinan (en su grupo, +z mira a la mesa; el asiento a la altura de las de la casa)
@@ -151,7 +154,7 @@ function buildMyHand(p){myHand=new THREE.Group();gunV.add(myHand);const am=p.u.a
  tube(v3(0,-.05,-.06),v3(.07,-.3,-.5),.045,am.fo.material,myHand)}
 // alguien muere: sangre y se cae de la silla. quiet: ya estaba muerto al llegar (sin animación ni sonido)
 function death(p,quiet){if(p.fall)return;p.dead=1;const now=performance.now();p.fall={t:quiet?-1e9:now,ch:chairs[p.c]};p.g.visible=true;
- const h=p.eye,o=p.out,tx=Math.abs(o.x)>1e-4?(W*Math.sign(o.x)-h.x)/o.x:1e9,tz=Math.abs(o.z)>1e-4?(W*Math.sign(o.z)-h.z)/o.z:1e9,t=Math.min(tx,tz);
+ const h=p.eye,o=p.out,tx=Math.abs(o.x)>1e-4?((o.x<0?XL:W)-h.x)/o.x:1e9,tz=Math.abs(o.z)>1e-4?(W*Math.sign(o.z)-h.z)/o.z:1e9,t=Math.min(tx,tz);
  const wall={p:h.clone().addScaledVector(o,t),n:tx<tz?v3(-Math.sign(o.x),0,0):v3(0,0,-Math.sign(o.z))};
  RRG.kill({head:h.clone(),out:o.clone(),wall,tableY:TH,tableR:TBR,center:v3(0,0,0),floor:p.pv.position.clone().addScaledVector(p.d,h.y*.9),quiet});
  if(quiet)return;setTimeout(()=>RRS.snd('caida'),480);
@@ -213,8 +216,8 @@ function camStep(now,dt){const s=stg,alive=me>=0&&P[me]&&!P[me].dead;let eye,at;
   if(s&&s.sh===me&&(s.st=='fire'||s.st=='res')&&P[s.tg]&&s.tg!==me)at.lerp(P[s.tg].eye,.75*ease((now-s.t0)/600));   // apuntas: la mirada se va al blanco
   else if(s&&s.sh!==me&&P[s.sh]&&!P[s.sh].dead)at.lerp(P[s.sh].eye,s.tg===me&&s.st=='fire'?.85:.4)}                // miras a quien tiene el arma
  else{const c=me>=0&&P[me]?spos(P[me].c,CR+1.4):v3(3.3,0,3.3);eye=c.setY(3.3);at=v3(0,TH,0)}
- if(!camE){camE=eye.clone();camA=at.clone()}
- camE.lerp(eye,1-Math.exp(-dt/(alive?120:700)));camA.lerp(at,1-Math.exp(-dt/260));
+ if(!camE){if(hand){camE=hand.p;camA=hand.a;swT=now}else{camE=eye.clone();camA=at.clone()}hand=null}
+ const sw=now-swT<1500;camE.lerp(eye,1-Math.exp(-dt/(sw?330:alive?120:700)));camA.lerp(at,1-Math.exp(-dt/(sw?330:260)));
  CA.position.copy(camE);CA.lookAt(camA);CA.rotateY(look.y);CA.rotateX(look.p);
  // nervios cuando te apuntas tú: la cámara tiembla cada vez más, se nubla y se cierra la viñeta
  const mineN=alive&&s&&s.st=='nerv'&&s.sh===me,pr=mineN?cl((now-s.t0)/Math.max(1,s.t1-s.t0),0,1):0;nv=mineN?Math.max(nv,pr):nv*Math.exp(-dt/450);
@@ -249,19 +252,29 @@ function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const 
 function tap(e){const G=G0;if(!G||G.phase!='play'||G.turn!==me||G.st!='aim')return;const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
  let best=null;P.forEach((p,k)=>{if(k===me||p.dead||!p.pv.visible)return;const h=ray.intersectObject(p.g,true)[0];if(h&&(!best||h.distance<best.d))best={k,d:h.distance}});if(best)RRU.shoot(best.k)}
 function init(){if(ready)return;CH=window.CASA3D;if(!CH||!RRG)throw new Error('falta c_casa3d.js o c_ruletagore.js');ready=true;
- R=new THREE.WebGLRenderer({antialias:true});const mob=matchMedia('(pointer:coarse)').matches;R.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
- R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.1;
+ // un solo WebGL: si la casa ya tiene renderer se usa el mismo y su lienzo pasa de un cuarto al otro (show); el estado lo pone rstate()
+ shR=!!(CH.R&&CH.R());R=shR?CH.R():new THREE.WebGLRenderer({antialias:true});if(!shR)rstate();
  SC=new THREE.Scene();SC.background=new THREE.Color(0x030202);SC.fog=new THREE.FogExp2(0x050403,.075);CA=new THREE.PerspectiveCamera(70,1,.03,60);SC.add(CA);
  SC.add(new THREE.HemisphereLight(0x39404c,0x0b0806,.22));
- root=document.createElement('div');root.id='rr3root';cv=R.domElement;root.appendChild(cv);fxv=document.createElement('div');fxv.id='rrvig';lay=document.createElement('div');lay.id='rrlay';
+ root=document.createElement('div');root.id='rr3root';cv=R.domElement;if(!shR)root.appendChild(cv);fxv=document.createElement('div');fxv.id='rrvig';lay=document.createElement('div');lay.id='rrlay';
  dv=document.createElement('div');dv.id='rrdead';dv.textContent='💀 Moriste';root.append(fxv,lay,dv);document.body.appendChild(root);
  textures();buildRoom();buildTable();for(let c=0;c<NS;c++)buildChair(c);buildProps();buildBulb();
+ // las luces de la Ruleta se quedan prendidas en calidad Media (c_casa3d.js applyQ); luego la cantina (c_sotano.js)
+ SC.traverse(o=>{if(o.isPointLight)o.userData.keep=true});if(window.SOT)SOT.cantina(SC,{XL,W,HT,TH});
  gunW=mkGun();SC.add(gunW);gunV=mkGun();gunV.scale.setScalar(.8);gunV.traverse(o=>{o.castShadow=false});CA.add(gunV);RRG.init(THREE,SC,W);
- cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY,ly:look.y,lp:look.p,mv:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+ cv.addEventListener('pointerdown',e=>{if(!shown)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,ly:look.y,lp:look.p,mv:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>6)drag.mv=true;if(drag.mv){look.y=cl(drag.ly-dx*.004,-1.3,1.3);look.p=cl(drag.lp-dy*.003,-.55,.45)}});
- cv.addEventListener('pointerup',e=>{const d=drag;drag=null;if(d&&!d.mv)tap(e)});cv.addEventListener('pointercancel',()=>drag=null);cv.addEventListener('dblclick',()=>{look.y=0;look.p=0})}
+ cv.addEventListener('pointerup',e=>{const d=drag;drag=null;if(d&&!d.mv)tap(e)});cv.addEventListener('pointercancel',()=>drag=null);cv.addEventListener('dblclick',()=>{if(shown){look.y=0;look.p=0}})}
+function rstate(){const mob=matchMedia('(pointer:coarse)').matches;R.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+ R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.1}
+// modos del sótano: 'juego' (la partida: techo y niebla espesa), 'casa' (caminando con la cámara de arriba: sin techo) y '1p' (caminando en primera persona)
+function modo(m){if(!ready)return;techo.forEach(o=>o.visible=m!=='casa');SC.fog.density=m=='juego'?.075:m=='1p'?.045:.02;CA.visible=m=='juego';if(window.SOT)SOT.modo(m);
+ if(m!=='juego'&&!G0){gunW.visible=true;gunW.scale.setScalar(1);gunW.position.set(.4,TH+.04,.3);gunW.rotation.set(0,2.2,Math.PI/2)}}
 function show(on){if(on&&!ready)init();if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';
- if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{RRS.hum(false);if(brStop){brStop();brStop=null}}}
+ if(on){if(shR){root.prepend(cv);rstate();Wd=0}modo('juego');
+  // venías caminando en el sótano: la cámara arranca donde estaba la de la casa y vuela a tu silla
+  hand=null;if(CH.piso&&CH.piso()==='sot'){const c=CH.cam();hand={p:c.position.clone(),a:c.position.clone().add(c.getWorldDirection(v3(0,0,0)).multiplyScalar(3))}}
+  tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{RRS.hum(false);if(brStop){brStop();brStop=null}}}
 const RRG=window.RRG,RRS=window.RRS||{snd(){},breath:()=>()=>{},hum(){},flick(){}},es=typeof esc=='function'?esc:x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 
 // ---------- interfaz (HTML encima del 3D; sin 3D se ve la lista de jugadores) ----------
@@ -272,7 +285,7 @@ function stTxt(G,m){const n=k=>es(G.players[k].name),sh=G.sh,r=G.res;
  if(G.st=='fire')return sh===m?'Le apuntas a '+n(G.tg)+'…':n(sh)+' le apunta a '+(G.tg===m?'<b>ti</b>':n(G.tg))+'…';
  if(G.st=='nerv')return sh===m?'Te pones el revólver en la sien'+(G.forced?' (no salió: ahora te toca a ti)':'')+'…':n(sh)+' se pone el revólver en la sien'+(G.forced?' (obligado)':'')+'…';
  if(G.st=='res'&&r)return r.r=='click'?'Clic. '+(r.v===m?'Sigues vivo.':n(r.v)+' sigue vivo.'):'💥 ¡BANG! '+(r.v===m?'Te moriste.':n(r.v)+' está muerto.');return ''}
-function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=m>=0&&!fin&&!dead&&G.turn===m,al=G.players.map((_,k)=>k).filter(k=>!G.dead[k]),nm=k=>es(G.players[k].name),left=6-G.fired;
+function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=m>=0&&!fin&&!dead&&G.turn===m,seatd=m>=0&&!fin&&!dead&&!V.watch,casa=!!(window.CASA3D&&CASA3D.on()),al=G.players.map((_,k)=>k).filter(k=>!G.dead[k]),nm=k=>es(G.players[k].name),left=6-G.fired;
  const ch=Array.from({length:6},(_,i)=>`<i class="${i<G.fired?'e':''}"></i>`).join('');let card='';
  if(fin)card=`<div class="rr-big">${G.win==null?'Nadie quedó vivo':G.win===m?'🏆 ¡Sobreviviste! Ganaste':'🏆 '+nm(G.win)+' es el último en pie'}</div><div class="rr-acts">${V.host?`<button class="rr-b pri" onclick="send({t:'reset'})">Otra partida</button>`:''}<button class="rr-b" onclick="leave()">🚪 Salir</button></div>`;
  else if(my&&G.st=='spin')card=`<div class="rr-q">¿Giras el tambor?</div><div class="rr-acts"><button class="rr-b pri" onclick="RRU.spin(1)">🔄 Girar</button><button class="rr-b" onclick="RRU.spin(0)">➡️ No girar</button></div>
@@ -283,10 +296,17 @@ function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=
  if(my&&G.el>25000)card+=`<div class="rr-s rr-w">⏳ Si no decides pronto, un bot juega por ti.</div>`;
  const list=G.players.map((p,k)=>`<div class="${G.dead[k]?'d':''}">${G.dead[k]===1?'💀':G.dead[k]===2?'🚪':!fin&&G.sh===k?'🔫':'🙂'} ${nm(k)}${k===m?' (tú)':''}${G.kills[k]?' · '+G.kills[k]+' 🎯':''}</div>`).join('');
  return `<div class="rr-hud"><div class="rr-top">🔫 <b>Ruleta Rusa</b><span>👥 ${al.length}/${G.players.length}</span><span class="rr-cyl" title="Recámaras: las apagadas ya hicieron clic">${ch}</span><span title="Si no se gira el tambor">💀 1 en ${left}</span><button class="rr-mb" onclick="RRU.menu()" aria-label="Menú">☰</button></div>
- ${menu?`<div class="rr-menu">${rules}<div class="rr-acts"><button class="rr-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button><button class="rr-b" onclick="RRU.menu()">Cerrar</button></div></div>`:''}
+ ${menu?`<div class="rr-menu">${rules}${seatd?`<div class="rr-s">${casa?'Si te levantas, un bot juega por ti y tienes 2 minutos para volver a tu lugar. ':''}Si abandonas, un bot se queda con tu asiento.</div>`:''}<div class="rr-acts">${seatd&&casa?`<button class="rr-b" onclick="RRU.stand()">🧍 Levantarme</button>`:`<button class="rr-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`}${seatd?`<button class="rr-b dan" onclick="RRU.quit()">🏳️ Abandonar</button>`:''}<button class="rr-b" onclick="RRU.menu()">Cerrar</button></div></div>`:''}
  <div class="rr-log">${G.log.slice(-4).map(l=>`<div>${es(l.t)}</div>`).join('')}</div><div class="rr-list">${list}</div><div class="rr-card">${card}</div></div>`}
 const tick=()=>{if(typeof sfx=='function')sfx('tick')};
-window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'shoot',to:k})},menu:()=>{menu=!menu;tick();render()}};
+const seatLS=v=>{try{v?localStorage.setItem('casa_seat',JSON.stringify(v)):localStorage.removeItem('casa_seat')}catch(e){}};
+window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'shoot',to:k})},menu:()=>{menu=!menu;tick();render()},
+ // levantarse: un bot juega por ti y guardas el lugar 2 min (c_sotano.js enseña "Volver a mi lugar"); abandonar: el bot se queda con el asiento
+ stand:async()=>{tick();const s=S&&{g:'ruleta',c:S.c,t:S.t,ts:Date.now()};if(s&&await send({t:'stand'})){seatLS(s);menu=false;leave()}},
+ quit:async()=>{tick();if(await send({t:'leave'})){seatLS(null);menu=false;leave()}},
+ // el sótano como piso de la casa (c_sotano.js): la misma escena, el mismo foco y la misma mesa
+ piso(){if(!OK3||!RRG||failed)return null;try{if(!ready)init()}catch(e){console.warn('Ruleta 3D:',e);failed=true;return null}
+  return {SC,XL,W,HT,TH,TBR,CR,NS,spos,top:tbl,chairs,modo,step:(now,dt)=>{if(!shown)stepRoom(now,dt)}}}};
 // ---- enganche con game.js ----
 GM.ruleta.body=function(){if(!active())return body0();try{return hud()}catch(e){console.warn('Ruleta:',e);return body0()}};
 GM.ruleta.after=function(){if(!active()){off();return}on=true;const r=document.documentElement;r.classList.add('rrui');

@@ -11,7 +11,7 @@ const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['
  '/c_ruleta3d.js':['c_ruleta3d.js','text/javascript; charset=utf-8'],'/c_ruletagore.js':['c_ruletagore.js','text/javascript; charset=utf-8'],'/c_ruletasonido.js':['c_ruletasonido.js','text/javascript; charset=utf-8'],
  '/rummy_reglas.js':['rummy_reglas.js','text/javascript; charset=utf-8'],'/c_rummy.js':['c_rummy.js','text/javascript; charset=utf-8'],
  '/c_rummy2d.js':['c_rummy2d.js','text/javascript; charset=utf-8'],'/c_rummyui.js':['c_rummyui.js','text/javascript; charset=utf-8'],
- '/c_rummyesc.js':['c_rummyesc.js','text/javascript; charset=utf-8'],'/c_rummy3dm.js':['c_rummy3dm.js','text/javascript; charset=utf-8'],'/c_rummy3d.js':['c_rummy3d.js','text/javascript; charset=utf-8'],'/c_bienvenida.js':['c_bienvenida.js','text/javascript; charset=utf-8'],'/c_etiquetas.js':['c_etiquetas.js','text/javascript; charset=utf-8'],'/c_casa_cam.js':['c_casa_cam.js','text/javascript; charset=utf-8'],'/c_casa_hover.js':['c_casa_hover.js','text/javascript; charset=utf-8'],
+ '/c_rummyesc.js':['c_rummyesc.js','text/javascript; charset=utf-8'],'/c_rummy3dm.js':['c_rummy3dm.js','text/javascript; charset=utf-8'],'/c_rummy3d.js':['c_rummy3d.js','text/javascript; charset=utf-8'],'/c_bienvenida.js':['c_bienvenida.js','text/javascript; charset=utf-8'],'/c_etiquetas.js':['c_etiquetas.js','text/javascript; charset=utf-8'],'/c_casa_cam.js':['c_casa_cam.js','text/javascript; charset=utf-8'],'/c_casa_hover.js':['c_casa_hover.js','text/javascript; charset=utf-8'],'/c_sotano.js':['c_sotano.js','text/javascript; charset=utf-8'],'/c_casa_avatar.js':['c_casa_avatar.js','text/javascript; charset=utf-8'],
  '/c_mii.js':['c_mii.js','text/javascript; charset=utf-8'],'/c_rummyabuelos.js':['c_rummyabuelos.js','text/javascript; charset=utf-8'],'/c_rummysfx.js':['c_rummysfx.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
@@ -35,9 +35,11 @@ function bump(R){const tk=turnKey(R.G);if(tk!==R.tk){R.tk=tk;R.tt=Date.now()}R.v
 // ---- bots: el módulo del juego decide (M.bot), aquí se agenda y se manda por act() como cualquier jugador ----
 // M.auto(R,k), si existe, decide quién juega en automático (bots, y personas ausentes o desconectadas); M.botn: nombres de sus bots
 const BOTN=['🤖 Ana','🤖 Beto','🤖 Caro','🤖 Dani','🤖 Eli','🤖 Fer','🤖 Gabo','🤖 Hugo','🤖 Iris'];
+// el asiento se queda con un bot (abandonó, o se levantó y no volvió en 2 min): token nuevo para que ya nadie lo use; si era el host, pasa a otra persona
+function botSeat(R,p){const old=p.tok;p.bot=true;p.away=0;p.tok=cr.randomBytes(12).toString('hex');if(R.host==old){const h=R.players.find(x=>!x.bot&&!x.out);if(h)R.host=h.tok}}
 function botGo(R){clearTimeout(R.bt);R.bt=null;const M=GAMES[R.gt];if(!R.G||!M.bot||!rooms[R.code])return;
  // de todos los bots, la jugada que toca primero
- let best=null;R.players.forEach((p,k)=>{if(M.auto?!M.auto(R,k):!p.bot||p.out)return;const d=M.bot(R,k);if(d&&(!best||d.ms<best.ms))best=Object.assign({p},d)});if(!best)return;
+ let best=null;R.players.forEach((p,k)=>{if(M.auto?!M.auto(R,k):!(p.bot||p.away)||p.out)return;const d=M.bot(R,k);if(d&&(!best||d.ms<best.ms))best=Object.assign({p},d)});if(!best)return;
  R.bt=setTimeout(()=>{R.bt=null;if(!rooms[R.code]||!R.G)return;let e=act(R,best.p.tok,best.m);
   // si algo falla: roba para no trabar la partida, o lo vuelve a pensar en un rato
   if(e){console.log('bot',best.p.name,e);if(best.m.t=='play')e=act(R,best.p.tok,{t:'draw'});if(e){R.bt=setTimeout(()=>botGo(R),3000);return}}
@@ -64,6 +66,10 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
   if(n<M.min||n>M.max)return 'Se necesitan de '+M.min+' a '+M.max+' jugadores.';M.start(R,m);return}
  if(!G)return 'No hay partida.';
  if(t=='reset'){R.players=R.players.filter(p=>!p.out);R.G=null;return}
+ // levantarse (stand): el automático juega por ti y guardas el lugar 2 min (sit = volver). abandonar (leave): un bot se queda con tu asiento
+ if(t=='stand'||t=='sit'||t=='leave'){const p=R.players[i];if(!p||p.bot||p.out)return 'No tienes lugar en esta mesa.';
+  if(t=='sit'){p.away=0;return}if(t=='stand'){p.away=Date.now();if(M.tick)M.tick(R);return}
+  botSeat(R,p);if(M.tick)M.tick(R);return}
  return M.act(R,tok,m)}
 // ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
 const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
@@ -74,13 +80,13 @@ function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.pl
  return {c:R.G?null:R.code,w:R.G?R.code:null,g:R.gt,st:R.G?'play':'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
 function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
  if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';
-  ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;
+  ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;o.f=b.f==='sot'?'sot':'pb';   // f: piso (planta baja o sótano)
   if(EMO.includes(b.em)){o.em=b.em;o.emT=now}if(b.say){const s=String(b.say).trim().slice(0,80);if(s){o.say=s;o.sayT=now}}o.ts=now}
  if(id&&b.cub)CUB.act(id,casa[id].name,b.cub);
  let jerr=id&&b.jg?JG.act(id,casa[id].name,b.jg):null;if(id)JG.act(id,casa[id].name,null);
  for(const k in casa)if(now-casa[k].ts>8000)delete casa[k];
  CUB.tick(k=>!!casa[k]);JG.tick(k=>!!casa[k]);
- return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,x:o.x,z:o.z,yaw:o.yaw,w:o.w,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view(),jg:JG.view(id),jerr}}
+ return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view(),jg:JG.view(id),jerr}}
 // ---- HTTP ----
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p]){res.writeHead(200,{'Content-Type':files[p][1],'Cache-Control':'no-store'});return res.end(fs.readFileSync(path.join(__dirname,files[p][0])))}
@@ -108,4 +114,4 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
   if(m.t=='close'){if(R.host!=tok)return out(res,{err:'Solo el host puede cerrar la sala.'});delete rooms[R.code];R.w.forEach(w=>{clearTimeout(w.t);out(w.res,{gone:1})});return out(res,{ok:1})}
   const e=act(R,tok,m);if(e)return out(res,{err:e});bump(R);return out(res,{ok:1})}
  res.writeHead(404);res.end()}).listen(PORT,()=>console.log('Juegos de cartas listo en http://localhost:'+PORT));
-setInterval(()=>{for(const c in rooms){const R=rooms[c],M=GAMES[R.gt],s=R.players.map(p=>p.bot||Date.now()-p.seen<35000?1:0).join('');const ph=R.G&&R.G.round+':'+R.G.phase;if(M.tick)M.tick(R);if(R.spec)R.spec=R.spec.filter(x=>Date.now()-x.seen<120000);if(s!==R.sig||(R.G&&R.G.round+':'+R.G.phase)!==ph){R.sig=s;bump(R)}if(Date.now()-R.ts>432e5)delete rooms[c]}},10000);
+setInterval(()=>{for(const c in rooms){const R=rooms[c],M=GAMES[R.gt],s=R.players.map(p=>p.bot||Date.now()-p.seen<35000?1:0).join('');const ph=R.G&&R.G.round+':'+R.G.phase;if(M.tick)M.tick(R);R.players.forEach(p=>{if(p.away&&Date.now()-p.away>120000){botSeat(R,p);bump(R)}});if(R.spec)R.spec=R.spec.filter(x=>Date.now()-x.seen<120000);if(s!==R.sig||(R.G&&R.G.round+':'+R.G.phase)!==ph){R.sig=s;bump(R)}if(Date.now()-R.ts>432e5)delete rooms[c]}},10000);

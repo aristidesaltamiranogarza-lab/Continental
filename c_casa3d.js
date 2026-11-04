@@ -7,25 +7,44 @@ const K=window.C3D;
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!K){console.warn('Casa 3D: falta Three.js o los Miis del Continental 3D');return}
 const origHome=home;
 let on=true;try{on=localStorage.getItem('casa_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,st=null,pin=null,fire=null,disco=null,camRep=null;
+let R,SC,CA,root,cv,lay,ready=false,W=0,H=0,por=false,lastNow=0,me=null,sel=null,closed=null,tgt=null,tgtG=null,stuck=0,moved=false,mark=null,st=null,pin=null,fire=null,disco=null,camRep=null,hits=[],tgtL=null;
 // cámara libre (como en el Continental 3D): VT = adónde va, VW = dónde está. ox,oz = qué tanto la moviste lejos de tu Mii,
 // k = zoom (más = más cerca), a = giro, t = inclinación. Cuadrar regresa todo a 0 (y k a 1)
 const VW={ox:0,oz:0,k:1,a:0,t:0},VT={ox:0,oz:0,k:1,a:0,t:0},VK=['ox','oz','k','a','t'],KMIN=.45,KMAX=2.6;
-const v3=(x,y,z)=>new THREE.Vector3(x,y,z),keys=new Set(),tch=new Map(),hits=[],ray=new THREE.Raycaster(),P2=new THREE.Vector2(),FLOOR=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const v3=(x,y,z)=>new THREE.Vector3(x,y,z),keys=new Set(),tch=new Map(),ray=new THREE.Raycaster(),P2=new THREE.Vector2(),FLOOR=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches,camOpen=lsGet('cont_cam')=='1';
 // cada pestaña es una persona distinta en la casa (sessionStorage: sobrevive a recargar, no se comparte entre pestañas)
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
 const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
-const TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:0,z:-2,felt:['#79a96a','#2f5a2a']},{g:'ruleta',x:HX-.2,z:-8,door:1},
+let TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'merida',x:0,z:5.6,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:0,z:-2,felt:['#79a96a','#2f5a2a']},{g:'ruleta',x:HX-.2,z:-8,door:1,to:'sot'},
  {g:'rummy',x:HX-.2,z:3,door:1,sign:['🀄 Terraza · Rummy','#3a2412','#e07a10','#ffe2b0',0xffb35a]}].filter(t=>GM[t.g]);
 TB.forEach(t=>t.r=t.door?1:2.2);         // door: en vez de mesa es una puerta en la pared derecha (la Ruleta Rusa al sótano, el Rummy a la terraza)
-const OB=[];                             // obstáculos redondos (sillas, muebles): {x,z,r}
+let OB=[];                               // obstáculos redondos (sillas, muebles): {x,z,r}
+// pisos (c_sotano.js): cada piso trae su escena (SC), mesas (TB), obstáculos (OB), cosas que se tocan (hits), límites para caminar (bx) y para la cámara (cb)
+// y escaleras (links). Solo se dibuja el piso donde estás; el sótano se arma la primera vez que bajas. to: la puerta te lleva a ese piso
+const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:()=>({x:HX-2.6,z:-8,yaw:-Math.PI/2})};let FL=PB,LK=[],fBusy=false;
+const canGo=id=>id==='pb'||!!(window.SOT&&SOT.ok()),fpOn=()=>!!(window.CAV&&CAV.on());
+function goFloor(id){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
+ // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
+ const sw=()=>{const nf=id==='pb'?PB:SOT.piso();if(!nf)return render();const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];
+  [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,1.57,me.pos.z);
+  Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);render()};
+ if(!window.CCAM){sw();fBusy=false;return true}
+ CCAM.fade(1,380).then(()=>{sw();return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
+// estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
+// full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
+function rstate(full){R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;if(full!==false)applyQ(window.CALIDAD);else{R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true}if(FL.enter)FL.enter(fpOn())}
+function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv.style.filter='';rstate(window.CALIDAD==='medio');me.g.visible=!fpOn()}
+// primera persona (c_casa_avatar.js): tecla V o el botón del ojo
+function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.pose(CA),f=!CAV.on();CAV.set(f);
+ Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=!f;if(FL.enter)FL.enter(f);
+ if(P)CCAM.blendIn(CA,P,600);sfx('tick');render()}
 const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
  uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.',haciendas:'Pon ranchos y sacbés, cosecha y comercia en Yucatán. Gana quien llegue primero a los puntos.',
- ruleta:'Baja al sótano: un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.',
+ ruleta:'Un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.',
  rummy:'Sal a la terraza con los abuelos: arma series y escaleras con fichas de madera y reacomoda la mesa. Gana quien se quede sin fichas.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
@@ -48,7 +67,7 @@ const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','�
 let QL=null;
 function applyQ(q){if(!R||!QL)return;const lo=q==='medio';
  R.setPixelRatio(Math.min(devicePixelRatio||1,lo?1:2));R.shadowMap.enabled=!lo;QL.Ld.castShadow=!lo;QL.hl.intensity=lo?2.1:1.5;
- SC.traverse(o=>{if(o.isPointLight&&!(fire&&o===fire.light))o.visible=!lo;if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
+ SC.traverse(o=>{if(o.isPointLight&&!(fire&&o===fire.light)&&!o.userData.keep)o.visible=!lo;if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
 function init(){if(ready)return;ready=true;
  R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
  SC=new THREE.Scene();SC.background=new THREE.Color(0x1a120c);CA=new THREE.PerspectiveCamera(42,1,.1,200);
@@ -70,6 +89,7 @@ function init(){if(ready)return;ready=true;
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
+  else if(k=='v'){e.preventDefault();fpTog()}
   else if(k=='escape'){if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){const i=$id('h3say');if(i){e.preventDefault();i.focus()}}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
@@ -79,6 +99,7 @@ function init(){if(ready)return;ready=true;
  document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-cam]');if(!b||!active())return;e.preventDefault();stopRep();const c=b.dataset.cam;
   if(c=='tog'){camOpen=!camOpen;try{localStorage.setItem('cont_cam',camOpen?'1':'0')}catch(_){}sfx('tick');render();return}
   if(c=='home'){camHome();sfx('tick');return}
+  if(c=='fp'){fpTog();return}
   camBtn(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camBtn(c),90)},320)}});
  ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
  requestAnimationFrame(loop)}
@@ -145,7 +166,7 @@ function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotat
  box(.22,3.9,.3,fr,-1.06,1.95,.12,G);box(.22,3.9,.3,fr,1.06,1.95,.12,G);box(2.34,.25,.34,fr,0,3.92,.14,G);
  const kb=new THREE.Mesh(new THREE.SphereGeometry(.09,12,8),std(0xc9a24a,.3,{metalness:.8}));kb.position.set(.7,1.6,.22);G.add(kb);
  // letrero sobre la puerta (sign: texto, fondo, borde, letra y color de la luz; si no, el del sótano)
- const S=t.sign||['🔫 Ruleta Rusa','#1a0c0a','#a3302a','#e9c9a0',0xff4a2a];
+ const S=t.sign||['⬇ Sótano · Ruleta','#1a0c0a','#a3302a','#e9c9a0',0xff4a2a];
  const sg=ctex('sign-'+t.g,512,128,(g,w,h)=>{g.fillStyle=S[1];rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle=S[2];g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
   g.font='bold '+(S[0].length>16?42:50)+'px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=S[3];g.fillText(S[0],w/2,h/2+3)});
  const s=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.65),std(0xffffff,.6,{map:sg}));s.position.set(0,4.55,.1);G.add(s);
@@ -172,7 +193,7 @@ function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G
 
 // ---------- Miis de pie (tú y los demás). Cada quien se ve igual en todas las pantallas: cara y color salen de su nombre ----------
 function lookOf(n){n=(n||'').trim()||'Tú';return [K.hsh(n)%10,K.hsh(n+'·')%K.AVP.length]}
-function disposeG(g){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+function disposeG(g){if(g.parent)g.parent.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
 function mkG(name,seat){const [k,pi]=lookOf(name),g=K.mkAvatar(k,pi,seat?{}:{stand:true});g.traverse(o=>{if(o.isMesh)o.castShadow=true});SC.add(g);g.userData.key=k+':'+pi;return g}
 function newAv(name,pos,yaw){const g=mkG(name);const a={g,name,pos:pos.clone(),to:pos.clone(),yaw,tyaw:yaw,w:0,ph:0,waveT:-1e9,dance:null,danceT:-1e9,tag:null,bub:null,bubT:0};g.position.set(pos.x,1.57,pos.z);g.rotation.y=yaw;return a}
 function rename(a,name){a.name=name;const k=lookOf(name).join(':');if(k!==a.g.userData.key){const g=mkG(name);g.position.copy(a.g.position);g.rotation.y=a.g.rotation.y;disposeG(a.g);a.g=g}if(a.tag)a.tag.textContent=(name||'').trim()||'Tú'}
@@ -199,11 +220,11 @@ function pose(a,now,lookDown){const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT
 function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Math.max(0,Math.sin(t*.8)),10);
  u.body.scale.y=1+.012*Math.sin(now/650+s.seed);u.head.rotation.y=.45*Math.sin(t*.35);u.head.rotation.x=.25;
  u.arms.forEach(m=>{const k=m.s>0?r:0;m.h.set(m.s*.34-m.s*.12*k,.36+.15*k,.72+.6*k);K.ik(m.sh,m.h,u.l1,u.l2,POLE[m.s>0?1:0].clone(),m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
-function seatSync(){const want=new Map();TB.forEach(t=>{rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))});
+function seatSync(){const want=new Map();(PB.TB||TB).forEach(t=>{rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))});
  seated.forEach((s,k)=>{if(!want.has(k)){disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
- want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1);c.visible=false;
+ want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1);if(PB.SC)PB.SC.add(g);c.visible=false;
   g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10})})}
-function solve(p){p.x=Math.max(-HX+1,Math.min(HX-1,p.x));p.z=Math.max(ZB+1.2,Math.min(ZF-1,p.z));
+function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.max(b[2],Math.min(b[3],p.z));
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}})}
 function turn(a,yaw){let d=yaw-a.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));a.g.rotation.y+=d*.18}
 function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
@@ -216,32 +237,35 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
   if(tgt){stuck=mv<sp*.3?stuck+1:0;if(stuck>8)arrive()}}
  a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*3.1;
  // mirar hacia la mesa al llegar
- const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);
+ const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);if(fpOn()&&!mv)a.yaw=VW.a+Math.PI;   // en primera persona miras hacia donde ve la cámara
  turn(a,a.yaw);a.g.position.set(p.x,1.57,p.z);pose(a,now,!!sel);
  // ¿cerca de una mesa? abre su ventanita (si la cerraste, hasta que te alejes)
- let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3;if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
+ let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3&&!(x.to&&canGo(x.to));if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
+ // caminar hasta una puerta que lleva a otro piso (o a la escalera) = cambiar de piso
+ if(mv>.001&&!fBusy){const d=TB.find(x=>x.to&&canGo(x.to)&&Math.hypot(p.x-x.x,p.z-x.z)<x.r+1.05)||LK.find(l=>Math.hypot(p.x-l.x,p.z-l.z)<l.r);if(d&&goFloor(d.to))return}
  if(closed&&closed!==near)closed=null;const want=near&&near!==closed?near:null;if(want!==sel){sel=want;if(sel)sfx('tick');render()}}
 // los demás: se deslizan suave hacia la última posición que mandó el servidor
-function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);
+function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{a.g.visible=(a.f||'pb')===FL.id;const q=a.pos.clone();   // solo se ven los de tu pisoa.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);
  a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,1.57,a.pos.z);pose(a,now,false)});
  seated.forEach(s=>poseSeated(s,now))}
-function arrive(){tgt=null;stuck=0;if(tgtG){closed=null;tgtG=null}}
+function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}
+ if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}
 // llega por el hueco entre dos sillas que le quede más cerca (las sillas están a 45°, los huecos a 0°, 90°, 180° y 270°)
 function goTable(g){const t=TB.find(x=>x.g===g);if(!t)return;const p=me.pos,a=Math.round(Math.atan2(p.z-t.z,p.x-t.x)/(Math.PI/2))*(Math.PI/2);
- tgt=t.door?v3(t.x-2.3,0,t.z):v3(t.x+Math.cos(a)*(t.r+1.5),0,t.z+Math.sin(a)*(t.r+1.5));solve(tgt);tgtG=g;closed=null;stuck=0;showMark(tgt);sfx('card')}
+ tgt=t.door?v3(t.x-2.3,0,t.z):v3(t.x+Math.cos(a)*(t.r+1.5),0,t.z+Math.sin(a)*(t.r+1.5));solve(tgt);tgtG=g;tgtL=null;closed=null;stuck=0;showMark(tgt);sfx('card')}
 function showMark(p){mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mark.scale.setScalar(1)}
 
 // ---------- en vivo: mando mi posición y recibo a los demás + las salas (cada ~0.3 s) ----------
 function inputBusy(){const a=document.activeElement;return !!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.closest&&a.closest('#app'))}
 async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
- const b={id:myId,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
+ const b={id:myId,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0,f:FL.id};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
  if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}if(window.JG3){const j=JG3.out();if(j)b.jg=j}
  try{const d=await api('casa',b);if(active()){netSync(d);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
   if(!a){a=newAv(o.name,pos,+o.yaw||0);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
   else if(a.name!==o.name)rename(a,o.name);
-  a.to.copy(pos);if(!o.w&&a.to.distanceTo(a.pos)<.05)a.tyaw=+o.yaw||a.tyaw;
+  a.f=o.f||'pb';a.to.copy(pos);if(!o.w&&a.to.distanceTo(a.pos)<.05)a.tyaw=+o.yaw||a.tyaw;
   if(o.em&&o.emN!==a.emN){a.emN=o.emN;bubble(a,o.em,1)}if(o.say&&o.sayN!==a.sayN){a.sayN=o.sayN;bubble(a,o.say)}});
  others.forEach((a,id)=>{if(!seen.has(id)){if(synced)toast(`${a.name} salió`);dropAv(a);others.delete(id)}});
  rooms=d.r||[];const k=JSON.stringify(rooms)+'|'+others.size;synced=true;
@@ -250,7 +274,7 @@ function netSync(d){const seen=new Set(),n0=others.size;
 function bubble(a,t,emo){if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
 function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='w7 w7g h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
 function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='w7 t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
-  const [x,y,vis]=toPx(v3(a.pos.x,3.45,a.pos.z));a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
+  const [x,y,v0]=toPx(v3(a.pos.x,3.45,a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
   if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05,a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
 
 // ---------- cámara: sigue a tu Mii desde atrás y arriba; la puedes mover, girar, inclinar y acercar libremente ----------
@@ -258,26 +282,26 @@ const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>por?6:5;   // AH: la cámara mira u
 const EL=()=>por?1.08:.9,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // punto de la casa al centro de la pantalla
 function center(V){const p=me.pos;return v3(p.x+V.ox-Math.sin(V.a)*AH(),0,p.z+V.oz-Math.cos(V.a)*AH())}
-function applyCam(){const c=center(VW).add(selOff),a=VW.a,d=(por?28:19)/VW.k,el=EL()+VW.t;
+function applyCam(){if(fpOn())return CAV.apply(CA,me.pos,VW);const c=center(VW).add(selOff),a=VW.a,d=(por?28:19)/VW.k,el=EL()+VW.t;
  CA.position.set(c.x+Math.sin(a)*Math.cos(el)*d,Math.sin(el)*d+1,c.z+Math.cos(a)*Math.cos(el)*d);CA.lookAt(c.x,1,c.z);CA.updateMatrixWorld()}
-function clampV(){VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.32-EL(),Math.min(1.45-EL(),VT.t));
+function clampV(){if(fpOn())return CAV.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.32-EL(),Math.min(1.45-EL(),VT.t));
  // que el centro no se salga de la casa
- const c=center(VT),cx=Math.max(-HX,Math.min(HX,c.x)),cz=Math.max(ZB,Math.min(ZF,c.z));VT.ox+=cx-c.x;VT.oz+=cz-c.z}
+ const c=center(VT),b=FL.cb,cx=Math.max(b[0],Math.min(b[1],c.x)),cz=Math.max(b[2],Math.min(b[3],c.z));VT.ox+=cx-c.x;VT.oz+=cz-c.z}
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);applyCam()}
 function camStep(dt,snapNow){if(snapNow){VK.forEach(q=>VW[q]=VT[q])}else{const f=RM?1:1-Math.exp(-dt/110);VK.forEach(q=>{VW[q]+=(VT[q]-VW[q])*f})}
  // en celular parado, con la ventanita de la mesa abierta (abajo), la mesa y tu Mii se suben a la parte de arriba (si no moviste la cámara)
  const t=por&&sel&&!viewed()&&TB.find(x=>x.g===sel),p=me.pos;
  if(t)selT.set((t.x+p.x)/2+Math.sin(VW.a)*6,0,(t.z+p.z)/2+Math.cos(VW.a)*6).sub(center(VW));else selT.set(0,0,0);selOff.lerp(selT,snapNow?1:.1);applyCam()}
-const panned=()=>Math.abs(VT.ox)>.3||Math.abs(VT.oz)>.3,viewed=()=>panned()||Math.abs(VT.k-1)>.03||Math.abs(wrap(VT.a))>.02||Math.abs(VT.t)>.02;
+const panned=()=>Math.abs(VT.ox)>.3||Math.abs(VT.oz)>.3,viewed=()=>fpOn()?Math.abs(VT.t)>.02:panned()||Math.abs(VT.k-(FL.k||1))>.03||Math.abs(wrap(VT.a))>.02||Math.abs(VT.t)>.02;
 // Cuadrar: llega con easing (c_casa_cam.js) en vez de deslizarse
-function camHome(){const P=window.CCAM&&ready&&!CCAM.busy()&&CCAM.pose(CA);VW.a=wrap(VW.a);Object.assign(VT,{ox:0,oz:0,k:1,a:0,t:0});if(P){snap();CCAM.blendIn(CA,P,700)}}
+function camHome(){const P=window.CCAM&&ready&&!CCAM.busy()&&CCAM.pose(CA);VW.a=wrap(VW.a);Object.assign(VT,fpOn()?{t:0}:{ox:0,oz:0,k:FL.k||1,a:0,t:0});if(P){snap();CCAM.blendIn(CA,P,700)}}
 function camBtn(c){if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;else return;clampV()}
 // punto del piso debajo del dedo/ratón
 function ground(x,y){const r=cv.getBoundingClientRect();P2.set((x-r.left)/r.width*2-1,-(y-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(FLOOR,v3(0,0,0))}
 // zoom hacia donde apuntas (rueda del ratón)
-function zoomAt(x,y,k){const p=ground(x,y);k=Math.max(KMIN,Math.min(KMAX,k));if(!p){VT.k=k;return clampV()}const c=center(VT),f=VT.k/k;
+function zoomAt(x,y,k){if(fpOn())return;const p=ground(x,y);k=Math.max(KMIN,Math.min(KMAX,k));if(!p){VT.k=k;return clampV()}const c=center(VT),f=VT.k/k;
  VT.ox+=(p.x-c.x)*(1-f);VT.oz+=(p.z-c.z)*(1-f);VT.k=k;clampV()}
-function layout(){W=innerWidth;H=innerHeight;por=W/H<.95;R.setSize(W,H,false);CA.aspect=W/H;CA.fov=por?52:42;CA.updateProjectionMatrix()}
+function layout(){W=innerWidth;H=innerHeight;por=W/H<.95;R.setSize(W,H,false);CA.aspect=W/H;CA.fov=fpOn()?CAV.fov(por):por?52:42;CA.updateProjectionMatrix()}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q.z<1]}
 
 // ---------- tocar: piso = caminar ahí, mesa o letrero = ir a esa mesa ----------
@@ -297,7 +321,7 @@ function pDown(e){if(!active())return;if(window.CCAM)CCAM.cut();if(document.acti
  st={x:e.clientX,y:e.clientY,pid:e.pointerId,pan,rot,a0:VW.a,t0:VW.t,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
 function pMove(e){if(!active())return;
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
-  if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
+  if(pin&&tch.size>=2){if(fpOn())return;const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
    // ¿inclinar o mover? si los dos dedos suben/bajan juntos sin abrirse ni girar, es inclinar
    if(!pin.mode){const dy=my-pin.my,dx=mx-pin.mx;if(Math.abs(dy)>16&&Math.abs(dd)<Math.abs(dy)*.35&&Math.abs(dx)<Math.abs(dy)*.6&&Math.abs(pin.acc+da)<.1)pin.mode='tilt';else if(Math.abs(dd)>14||Math.abs(dx)>16||Math.abs(pin.acc+da)>.12)pin.mode='free'}
    if(pin.mode=='tilt'){VT.t=pin.t+(my-pin.my)*.006;snap();return}
@@ -305,8 +329,10 @@ function pMove(e){if(!active())return;
    pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
    const p=ground(mx,my);if(p&&pin.g){VT.ox+=pin.g.x-p.x;VT.oz+=pin.g.z-p.z;snap()}return}}
- if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default';if(window.ETQ)ETQ.hov(hk(h))}return}
+ if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='link'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default';if(window.ETQ)ETQ.hov(hk(h))}return}
  if(e.pointerId!==st.pid)return;
+ // primera persona: arrastrar = mirar alrededor
+ if(fpOn()){if(st.g||Math.hypot(e.clientX-st.x,e.clientY-st.y)>6){st.g=1;VT.a=st.a0+(e.clientX-st.x)*.006;VT.t=st.t0+(e.clientY-st.y)*.004;snap()}return}
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;snap();return}
  // mover la cámara: el punto que agarraste se queda bajo el dedo
  if(st.g||st.pan||Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){if(!st.g){st.g=ground(st.x,st.y);if(!st.pan)cv.style.cursor='grabbing'}
@@ -316,9 +342,10 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
  // en el celular el primer toque solo enseña el detalle de la etiqueta; el segundo entra
  const hg=hk(h);if(hg&&e.pointerType==='touch'&&window.ETQ&&!ETQ.tap(hg))return;
  if(h.t=='table')return goTable(h.g);
+ if(h.t=='link'){tgt=v3(h.l.ax,0,h.l.az);tgtL=h.l;tgtG=null;solve(tgt);showMark(tgt);sfx('card');return}   // la escalera
  if(h.t=='c4'||h.t=='bg')return JG3.tap(h);
  if(h.t=='cub'){tgt=v3(CUB3.X-1.6,0,CUB3.Z+1.6);tgtG=null;solve(tgt);showMark(tgt);return CUB3.open()}
- tgt=h.p.setY(0);tgtG=null;solve(tgt);showMark(tgt)}
+ tgt=h.p.setY(0);tgtG=null;tgtL=null;solve(tgt);showMark(tgt)}
 // botón Cuadrar: aparece solo si moviste la cámara
 function viewBtn(){const el=$id('t3view');if(!el)return;const k=viewed()?'1':'';if(el.dataset.k===k)return;el.dataset.k=k;el.style.display=k?'':'none'}
 
@@ -328,14 +355,15 @@ const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r=
  rl:ic('<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 3v5h5"/>'),rr:ic('<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 3v5h-5"/>'),
  zi:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/>'),zo:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/>'),
  tu:ic('<path d="M3 18h18M6 18l3-6h6l3 6"/><path d="M12 9V3M9 6l3-3 3 3"/>'),td:ic('<path d="M2 16l5-6h10l5 6z"/><path d="M12 7V2M9 5l3 2 3-2"/>'),
+ fp:ic('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
  home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
 function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t}" aria-label="${t}">${IC[c]}</button>`;
- return ` <div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>
+ return ` <div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>${window.CAV?`<button class="w7b tog${CAV.on()?' on':''}" data-cam="fp" title="${CAV.on()?'Volver a la cámara de arriba':'Primera persona'} (V)" aria-label="Primera persona" aria-pressed="${CAV.on()}">${IC.fp}</button>`:''}
  <div class="w7g pan">${cb('rl','Girar a la izquierda (Q)')}${cb('rr','Girar a la derecha (E)')}${cb('zi','Acercar (+)')}${cb('zo','Alejar (−)')}${cb('tu','Ver más desde arriba (R)')}${cb('td','Ver más de lado (F)')}
  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
- let o=`<div id="h3top" class="w7 w7g"><span class="h3t">🏠 <b>Casa de juegos</b></span><span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
+ let o=`<div id="h3top" class="w7 w7g"><span class="h3t">${FL===PB?'🏠 <b>Casa de juegos</b>':'🕯️ <b>Sótano</b>'}</span>${FL===PB?'':`<button class="w7b" onclick="casaPiso('pb')" title="Subir a la casa" aria-label="Subir a la casa">⬆️</button>`}<span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
   ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}${window.BIEN?'':'<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button>'}</div>`;
  if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar · arrastra para mover la cámara, dos dedos para girar y acercar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · arrastra para mover la cámara · rueda para acercar · Q E para girar'}</div>`;
  o+=camUI();
@@ -354,7 +382,8 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
   <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
   <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
   ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
- if(window.CUB3)o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g);
+ if(FL===PB){if(window.CUB3)o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g)}   // el cubilete y los juegos sueltos están en la planta baja
+ if(window.SOT)o+=SOT.seatHud();
  return o}
 // letreros: siguen a su mesa en la pantalla
 function labels(){const tb=$id('h3top'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
@@ -367,18 +396,21 @@ function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(cent
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}
 function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none';if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}}document.documentElement.classList.toggle('h3on',a);if(!a){keys.clear();return}
+ if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none';if(a)back();if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}}document.documentElement.classList.toggle('h3on',a);
+ // en una partida del sótano la escena es la misma: los Miis que caminan se esconden (la Ruleta pone a los suyos en las sillas)
+ if(!a){keys.clear();if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
  document.documentElement.classList.toggle('c3dark',dark);
  if(innerWidth!==W||innerHeight!==H){layout();camStep(dt,true)}
  net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);if(window.CCAM)CCAM.apply(CA,now);if(window.CHOV)CHOV.step(dt,TB,window.ETQ&&ETQ.act(),CA);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W);if(window.JG3)JG3.step(now,toPx,W);labels();tags(now);etq();R.render(SC,CA)}
+ if(FL===PB){if(window.CUB3)CUB3.step(now,toPx,W);if(window.JG3)JG3.step(now,toPx,W)}if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();R.render(SC,CA)}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
-window.CASA3D={std,box,cyl,ctex,rr,look:lookOf,on:()=>on,calidad:applyQ};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
+window.CASA3D={std,box,cyl,ctex,rr,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id};
+window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g)return;goTable(g)};
 window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};

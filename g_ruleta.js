@@ -52,7 +52,7 @@ function arm(R){const G=R.G;clearTimeout(R.rrT);if(!G||G.phase!='play')return;le
  if(!at&&!R.players[G.turn].bot)at=G.t0+IDLE_MS;if(!at)return;
  R.rrT=setTimeout(()=>{if(R.G!==G)return;step(R);if(R.poke)R.poke()},Math.max(0,at-Date.now())+30);if(R.rrT.unref)R.rrT.unref()}
 function auto(R,k){const G=R.G,p=R.players[k];if(!G||G.phase!='play'||!p||p.out||G.dead[k]||G.turn!==k||(G.st!='spin'&&G.st!='aim'))return false;
- if(p.bot)return true;const now=Date.now();return now-p.seen>OFF_MS||now-G.t0>=IDLE_MS}
+ if(p.bot||p.away)return true;const now=Date.now();return now-p.seen>OFF_MS||now-G.t0>=IDLE_MS}   // away: se levantó (server.js)
 function tick(R){const G=R.G;if(!G||G.phase!='play'||!R.poke)return;if(G.at&&Date.now()>=G.at+500){step(R);R.poke()}else if(!R.bt&&!R.players[G.turn].bot&&auto(R,G.turn))R.poke()}
 function kick(R,k){const G=R.G;if(!G||G.phase!='play'||G.dead[k])return;G.dead[k]=2;lg(G,pn(G,k)+' se levantó de la mesa.');
  if(G.st=='res'&&G.nx=='dead')reload(G);
