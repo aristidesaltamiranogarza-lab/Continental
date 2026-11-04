@@ -22,7 +22,7 @@ const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THR
 // mismas preferencias que el Continental 3D (barra de cámara, barra de arriba, modo oscuro)
 let camOpen=lsGet('cont_cam')=='1',mini=lsGet('cont_mini')=='1';
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
-const setDark=d=>{dark=d;try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
+const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
 // colores de las cartas (más vivos que en la vista 2D) y su sombra
 const UC=['#e53935','#fbc02d','#43a047','#1e88e5'],UCD=['#9e1b1b','#c47f00','#1b6b2a','#0d4a9c'];
 const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -411,7 +411,7 @@ function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
  const dz=CH*L.ps*1.1/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+(L.por?-dz:dz)),L.por);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
 // botón Cuadrar y clases de la página
-function viewBtn(){const r=document.documentElement;r.classList.toggle('c3dark',dark);r.classList.toggle('u3mini',mini);
+function viewBtn(){const r=document.documentElement;if(window.UI)dark=UI.noche();r.classList.toggle('c3dark',dark);r.classList.toggle('u3mini',mini);
  const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
  document.querySelectorAll('#app .t3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}

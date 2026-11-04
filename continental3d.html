@@ -4,6 +4,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Casa de juegos">
 <title>Continental 3D</title>
 <link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap">
+<script src="c_ui.js"></script>
 <!-- Prueba aparte: no reemplaza continental.html. Abre /3d en el servidor (node server3d.js). -->
 <style>
 /* ---------- Vista 3D a pantalla completa, estilo juegos de Windows 7 (Aero) ---------- */
@@ -165,10 +168,9 @@ html.c3c4 .t3seat,html.c3c4 .t3pl{opacity:0;pointer-events:none}   /* mirando el
 html.c3dark .t3gp .c4n,html.c3dark .t3gp .c4p{color:#a9adb3}
 html.c3dark .t3gp .c4s.me{background:linear-gradient(#2f5680,#24476d);border-color:#4f8fcf}
 /* ===== menús en modo oscuro ("Aero oscuro") ===== */
-html.c3dark .w7g{background:linear-gradient(180deg,rgba(255,255,255,.2) 0%,rgba(255,255,255,.07) 46%,rgba(255,255,255,0) 50%,rgba(255,255,255,.05) 100%),rgba(16,20,28,.66);border-color:rgba(255,255,255,.3)}
-html.c3dark .w7b,html.c3dark #t3menu .b{border-color:#111;background:linear-gradient(#5d636b 0%,#42464d 48%,#2e3135 52%,#25272a 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);color:#f1f1f1}
-@media (hover:hover){html.c3dark .w7b:hover,html.c3dark #t3menu .b:hover{border-color:#4a8cc4;background:linear-gradient(#56789b 0%,#3e5d7c 48%,#2b4864 52%,#26425d 100%)}}
-html.c3dark .w7b:active,html.c3dark #t3cam.open .tog,html.c3dark #t3menu .b.on{border-color:#4a8cc4;background:linear-gradient(#22394f 0%,#1d3247 48%,#182a3c 52%,#20374d 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+html.c3dark #t3menu .b{border-color:#111;background:linear-gradient(#5d636b 0%,#42464d 48%,#2e3135 52%,#25272a 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);color:#f1f1f1}
+@media (hover:hover){html.c3dark #t3menu .b:hover{border-color:#4a8cc4;background:linear-gradient(#56789b 0%,#3e5d7c 48%,#2b4864 52%,#26425d 100%)}}
+html.c3dark #t3cam.open .tog,html.c3dark #t3menu .b.on{border-color:#4a8cc4;background:linear-gradient(#22394f 0%,#1d3247 48%,#182a3c 52%,#20374d 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 html.c3dark .t3msg,html.c3dark #t3cam .tip{border-color:#0d0d0d;background:linear-gradient(#3b3e44,#25272b);color:#eee}
 html.c3dark #t3cam .tip::after{border-left-color:#2e3135;filter:drop-shadow(1px 0 0 #0d0d0d)}
 html.c3dark #t3cam .tip b{color:#8cc8ff}
@@ -178,19 +180,6 @@ html.c3dark #t3menu .mi{color:#eee}
 html.c3dark #t3menu hr{border-top-color:#3c3f45}
 html.c3dark #t3menu .box{background:#1c1e21;color:#ddd;border-color:#3c3f45}
 html.c3dark #t3menu .log,html.c3dark #t3menu .rt{color:#ddd}
-html.c3dark .w7win{background:linear-gradient(180deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.06) 30px,rgba(255,255,255,.03) 100%),rgba(22,28,38,.72)}
-html.c3dark .w7win .wt{color:#fff;text-shadow:0 0 8px #000,0 1px 2px #000}
-html.c3dark .w7win .wb{background:#2b2d31;border-color:#0d0d0d;color:#eee}
-html.c3dark .w7win .tab{border-color:#55595f;background:linear-gradient(#4a4e55,#3a3d42 50%,#2e3034 51%,#2a2c30);color:#eee}
-@media (hover:hover){html.c3dark .w7win .tab:hover{background:linear-gradient(#4f6f8f,#3b5875 50%,#2a4560 51%,#24405a)}}
-html.c3dark .w7win .tab.on{background:#1f2124;border-bottom-color:#1f2124}
-html.c3dark .w7win .pane{background:#1f2124;border-color:#55595f}
-html.c3dark .w7win .hd{color:#8cc8ff}
-html.c3dark .w7win .opt{color:#eee}
-@media (hover:hover){html.c3dark .w7win .opt:hover{border-color:#3d6f99;background:linear-gradient(#2c3e50,#253546)}}
-html.c3dark .w7win .opt.on{border-color:#4f8fcf;background:linear-gradient(#2f5680,#24476d);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
-html.c3dark .w7win .nt{color:#a9adb3}
-html.c3dark .w7win .ft .dflt{border-color:#4f8fcf;box-shadow:inset 0 0 0 1px #6aa8dc}
 /* ===== Uno 3D (usa las mismas barras y ventanas del Continental 3D) ===== */
 html.u3on,html.u3on body{overflow:hidden;height:100%;overscroll-behavior:none}
 html.u3on #app{pointer-events:none}
@@ -310,6 +299,7 @@ html.c3dark .h3bub:not(.emo){background:linear-gradient(#3b3e44,#25272b);color:#
 /* pantallas bajitas (celular acostado) */
 @media (max-height:520px){.w7b{min-height:36px;padding:0 10px}#t3top{min-height:38px;padding:2px 4px;top:4px}#t3log{display:none}#t3menu{top:48px}#t3view{top:50px}#t3cam{top:48px}#t3cam .pan{grid-template-columns:repeat(4,40px)}#t3cam .w7b{width:40px;height:40px}#t3cam .pan .wide{grid-column:1/5}#t3ap{max-height:calc(100% - 12px)}.t3msg{top:50px}#t3bar{bottom:4px}#t3bar .w7g{padding:3px}}
 </style>
+<link rel="stylesheet" href="ui.css">
 </head><body><div id="app">Cargando…</div>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="game.js"></script><script src="music.js"></script><script src="music_mp3.js"></script><script src="c_continental.js"></script><script src="c_uno.js"></script><script src="c_monopolydeal.js"></script>
