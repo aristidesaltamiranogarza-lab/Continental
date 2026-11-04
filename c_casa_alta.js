@@ -109,7 +109,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
  mod('mesita',{pos:[-14.1,0,7.6],rot:Math.PI*.75,esc:2.2});mod('jarron',{pos:[-14.1,.548*2.2,7.6],rot:.4,esc:2.2});OB.push({x:-14.1,z:7.6,r:.8});
  mod('vitrina',{pos:[-14.35,0,-.2],rot:Math.PI/2,esc:2.2});OB.push({x:-14.1,z:-1.4,r:1.05},{x:-14.1,z:1,r:1.05});
  mod('planta',{pos:[5.1,0,ZB+1.3],rot:.6,esc:3},PL);
- mod('ventilador',{pos:[0,CEIL-8,0],esc:2.2,sombra:false},fan.children.slice(),fan);
+ mod('ventilador',{pos:[0,CEIL-8,0],esc:2.2,sombra:false,inst:false},fan.children.slice(),fan);
  // ---------- reloj de péndulo en el fondo del corredor (marca la hora de verdad) ----------
  const ck={};{const x=13.75,z=ZB+.2,wd=std(0x4a2814,.45);box(1,2.6,.36,wd,x,4,z);box(1.15,.18,.42,wd,x,5.38,z);box(1.15,.14,.42,wd,x,2.66,z);
   const face=ctex('reloj-alta',256,256,(g,w,h)=>{g.fillStyle='#f3ead2';g.beginPath();g.arc(128,128,122,0,7);g.fill();g.strokeStyle='#4a2814';g.lineWidth=8;g.stroke();g.fillStyle='#2a1a10';
