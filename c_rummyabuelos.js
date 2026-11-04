@@ -26,7 +26,7 @@ function mk(ai){const B=AB[ai%AB.length],base=C.AVP.length;let g;C.AVP.push(...A
  if(B.bigote&&!window.MII){const b=new THREE.Mesh(new THREE.CapsuleGeometry(.035,.16,4,8),hair);b.rotation.z=Math.PI/2;b.position.set(0,-.13,.47);u.head.add(b)}
  if(B.taza){cup=new THREE.Group();const cm=new THREE.MeshStandardMaterial({color:0xa65a35,roughness:.8});const b=new THREE.Mesh(new THREE.CylinderGeometry(.1,.08,.17,16),cm);cup.add(b);
   const hd=new THREE.Mesh(new THREE.TorusGeometry(.05,.015,6,12),cm);hd.position.x=.11;cup.add(hd);const cf=new THREE.Mesh(new THREE.CircleGeometry(.09,14),new THREE.MeshStandardMaterial({color:0x2a160c,roughness:.3}));cf.rotation.x=-Math.PI/2;cf.position.y=.086;cup.add(cf);
-  cup.position.set(0,.08,.1);u.arms.find(m=>m.s>0).hand.add(cup)}
+  cup.position.set(-.11,.06,0);u.arms.find(m=>m.s>0).hand.add(cup)}   // la mano agarra el mango (que queda del lado de afuera)
  return {g,u,cup,seed:Math.random()*10,act:null,rx:null,nx:performance.now()+rnd(800,4000),hs:[v3(-.34,.22,.75),v3(.34,.22,.75)],hw:v3(0,0,0),tapT:0}}
 // los demás jugadores en sus sillas (tú no: estás en primera persona); si los Miis fallan, la mesa sigue sin abuelos
 function seats(G,seatK,me,E){const k=seatK.map(kk=>kk+'.'+(G.av?G.av[kk]:kk)).join(',')+':'+me;if(!C||k===key)return;key=k;
@@ -53,7 +53,7 @@ function step(now,dt,o){if(!C)return;const G=o.G,k=1-Math.exp(-dt/110),turn=G.ph
   switch(a&&a.t){
    case 'rack':hx=.5;look=null;L.set(-.2,.28+.04*Math.sin(now/180),.62);Rh.set(.2,.28+.04*Math.sin(now/180+1.6),.62);break;
    case 'scratch':Rh.lerp(v3(.5,1.02+.03*Math.sin(now/70),.1),env);hx=.1;break;
-   case 'sip':Rh.lerp(v3(.1,.66,.52),env);hx=-.12*env;if(p.cup)p.cup.rotation.x=-.8*env;break;
+   case 'sip':{const e=Math.min(1,env*1.6),tl=Math.max(0,(env-.55)/.45);Rh.lerp(v3(.11,.33+.03*tl,.63),e);hx=.22-.34*e;if(p.cup)p.cup.rotation.x=-.95*tl;break}   // sube la taza a la boca (0,.45,.53), la empina y echa la cabeza un poco atrás
    case 'look':look=a.to;break;
    case 'cheer':L.set(-.55,1.5+.06*Math.sin(now/110),.2);Rh.set(.55,1.5+.06*Math.sin(now/110+1),.2);hx=-.15;bob=.04*Math.abs(Math.sin(now/120));break;
    case 'clap':{const w=.07+.12*Math.abs(Math.sin(now/105));L.set(-w,.75,.62);Rh.set(w,.75,.62);hx=0;break}
