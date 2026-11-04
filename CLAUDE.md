@@ -9,6 +9,9 @@ Las líneas son muy largas, así que los archivos pesan mucho más de lo que par
 - server.js (salas, polling, bots), server3d.js (sirve la versión 3D).
 - Mérida en Venta: g_merida.js (reglas), merida_data.js (tablero y cartas), c_merida.js (lobby y ayudantes MR), c_meridaui.js (interfaz: barra, acciones, pestañas, temas), c_merida3d.js (tablero 3D en el cuarto de C3D) y c_merida2d.js (tablero 2D). Los dos tableros exponen la misma API (M3/M2).
 
+## Interfaz
+- Todo cambio visual (botones, paneles, avisos, pantallas 3D) sigue la skill `casa-ui` (.claude/skills/casa-ui): estilo Cálida con los tokens de ui.css; nunca regresar al estilo Windows 7 (clases w7…).
+
 ## Cómo leer y editar
 - Nunca abrir un archivo completo: usar grep para ubicar la función y leer solo ese tramo.
 - No explorar el repo. Leer solo lo que se indique; si hace falta otro archivo, preguntar antes.
