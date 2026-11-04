@@ -78,9 +78,11 @@ function buildRoom(){
  for(let x=XL+.8;x<W;x+=1.8)box(.06,.26,.12,ru2,x,HT-.45,-W+.08);const vw=new THREE.Mesh(new THREE.TorusGeometry(.16,.025,8,20),std(0x7a1d12,.6,{metalness:.4}));vw.position.set(W-.38,1.5,-W+.2);vw.rotation.y=Math.PI/2;SC.add(vw);
  techo.push(tube(v3(XL,HT-.2,1.3),v3(W,HT-.2,1.3),.05,ru));tube(v3(XL+.15,HT,3.2),v3(XL+.15,0,3.2),.06,ru);
  // puerta de la escalera, con una rayita de luz por abajo
- const dw=std(0x2a1a0f,.8);box(1.15,2.25,.08,dw,W-.05,1.12,-2.4).rotation.y=Math.PI/2;box(1.35,.12,.14,dw,W-.06,2.3,-2.4).rotation.y=Math.PI/2;
- const sl=new THREE.Mesh(new THREE.PlaneGeometry(1.05,.03),new THREE.MeshBasicMaterial({color:0xffb46a}));sl.position.set(W-.1,.015,-2.4);sl.rotation.set(-Math.PI/2,0,Math.PI/2);SC.add(sl);
- cyl(.035,.035,.06,std(0x8a7a50,.4,{metalness:.8}),W-.12,1.1,-2.0).rotation.z=Math.PI/2;
+ // a la medida de los Miis (miden como 3): 1.6 de ancho y 3.3 de alto, con jambas y cabezal
+ const dw=std(0x2a1a0f,.8);box(1.6,3.3,.08,dw,W-.05,1.65,-2.4).rotation.y=Math.PI/2;box(1.9,.14,.16,dw,W-.06,3.37,-2.4).rotation.y=Math.PI/2;
+ [-1,1].forEach(s=>box(.12,3.3,.14,dw,W-.06,1.65,-2.4+s*.87));
+ const sl=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.03),new THREE.MeshBasicMaterial({color:0xffb46a}));sl.position.set(W-.1,.015,-2.4);sl.rotation.set(-Math.PI/2,0,Math.PI/2);SC.add(sl);
+ cyl(.04,.04,.07,std(0x8a7a50,.4,{metalness:.8}),W-.12,1.55,-1.8).rotation.z=Math.PI/2;
  // esquinas: cajas, una silla rota tirada, una cubeta y cartón
  const cm=std(0xffffff,.85,{map:T.crate});box(.95,.95,.95,cm,-W+.6,.475,-W+.6).rotation.y=.15;box(.8,.8,.8,cm,-W+.65,1.35,-W+.62).rotation.y=-.2;box(.9,.9,.9,cm,-W+1.65,.45,-W+.55).rotation.y=.4;
  const bc=new THREE.Group();bc.position.set(W-1,0,W-1.1);bc.rotation.set(0,.7,Math.PI/2*.97);SC.add(bc);const bw=std(0x4a3020,.85);

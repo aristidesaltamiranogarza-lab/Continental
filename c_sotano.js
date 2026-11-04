@@ -28,10 +28,10 @@ function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,T
  pos.forEach((p,i)=>{const s=.8+Math.random()*.45;m4.makeScale(s,s*(.85+Math.random()*.3),s).setPosition(p[0],p[1],p[2]);bt.setMatrixAt(i,m4);bt.setColorAt(i,cc.setHex(BC[i*7%BC.length]))});S.add(bt);
  // vasos y una botella en la barra
  const gl=new THREE.MeshPhysicalMaterial({color:0xdfe6e8,roughness:.05,transparent:true,opacity:.35,depthWrite:false});[[-12.2,.1],[-11.6,-.05],[-9.1,.08]].forEach(([x,z])=>cyl(.04,.035,.11,gl,x,1.21,bz+z,S,12));
- // letrero de neón (se ve igual con o sin luces) y su luz rosa
+ // letrero de neón (se ve igual con o sin luces) y su luz rosa; cuelga delante del tubo de la pared y de las botellas
  const nt=H.ctex('neon-cantina',512,192,(g,w,h)=>{g.textAlign='center';g.textBaseline='middle';g.shadowColor='#ff2a6a';g.shadowBlur=22;g.strokeStyle='#ff5c8a';g.lineWidth=7;H.rr(g,14,14,w-28,h-28,28);g.stroke();
   g.font='italic bold 78px Georgia,serif';g.fillStyle='#ffd3e0';g.fillText('Cantina',w/2,h/2-14);g.shadowColor='#ffb02a';g.font='bold 30px Georgia,serif';g.fillStyle='#ffe2a8';g.fillText('LA ÚLTIMA BALA',w/2,h/2+50)});
- const ne=new THREE.Mesh(new THREE.PlaneGeometry(3,1.12),new THREE.MeshBasicMaterial({map:nt,transparent:true,toneMapped:false,depthWrite:false}));ne.position.set(bc,3.22,-W+.1);S.add(ne);
+ const ne=new THREE.Mesh(new THREE.PlaneGeometry(3,1.12),new THREE.MeshBasicMaterial({map:nt,transparent:true,toneMapped:false,depthWrite:false}));ne.position.set(bc,3.3,-W+.34);S.add(ne);
  const nl=new THREE.PointLight(0xff4a78,7,8.5,1.5);nl.position.set(bc,2.6,-W+1.3);nl.userData.keep=true;S.add(nl);
  // modelos de Poly Haven (c_casa_glb.js): el mueble de código se ve mientras baja el modelo (o si no hay modelos)
  const mod=(n,o,cod)=>{if(!window.CGLB)return null;const g=CGLB.pon('sot',n,Object.assign({sombra:true},o));S.add(g);if(cod)MOD.push([g,[].concat(cod)]);return g};
@@ -70,11 +70,11 @@ function piso(){if(F)return F;const r=ok()&&RRU.piso();if(!r){bad=true;return nu
  const ring=new THREE.Mesh(new THREE.RingGeometry(r.TBR+1.4,r.TBR+1.7,64),new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:0,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.03;S.add(ring);
  const hit={t:'table',g:'ruleta'},hits=[];[r.top,...r.chairs].forEach(o=>o&&o.traverse(m=>{if(m.isMesh){m.userData.hit=hit;hits.push(m)}}));
  // la escalera: la puerta de la pared derecha; tocarla (o caminar hasta ella) te sube a la casa
- const lk={x:W-.2,z:-2.4,r:1.5,ax:W-1.4,az:-2.4,to:'pb'},hb=new THREE.Mesh(new THREE.BoxGeometry(.3,2.3,1.3),new THREE.MeshBasicMaterial({visible:false}));
- hb.position.set(W-.1,1.15,-2.4);hb.userData.hit={t:'link',l:lk};S.add(hb);hits.push(hb);
+ const lk={x:W-.2,z:-2.4,r:1.5,ax:W-1.4,az:-2.4,to:'pb'},hb=new THREE.Mesh(new THREE.BoxGeometry(.3,3.3,1.7),new THREE.MeshBasicMaterial({visible:false}));
+ hb.position.set(W-.1,1.65,-2.4);hb.userData.hit={t:'link',l:lk};S.add(hb);hits.push(hb);
  const H=window.CASA3D,up=H.ctex('sign-subir',512,128,(g,w,h)=>{g.fillStyle='#1a0c0a';H.rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#c98a3a';g.lineWidth=6;H.rr(g,10,10,w-20,h-20,14);g.stroke();
   g.font='bold 46px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f3dcb0';g.fillText('⬆ Subir a la casa',w/2,h/2+3)});
- const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:up,toneMapped:false}));sg.position.set(W-.07,2.62,-2.4);sg.rotation.y=-Math.PI/2;S.add(sg);
+ const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:up,toneMapped:false}));sg.position.set(W-.07,3.64,-2.4);sg.rotation.y=-Math.PI/2;S.add(sg);
  // el salón de atrás (c_sotano_salon.js): casino, billar, rockola; trae sus muros (WL), obstáculos y su paso por cuadro
  let sal=null;if(window.SAL)try{sal=SAL.build({S,hits,HT:r.HT,W,XL:r.XL,TH:r.TH});if(sal)obs.push(...sal.OB)}catch(er){console.error('[SAL]',er);sal=null}
  // obstáculos: sillas de la Ruleta, cajas y cosas tiradas del cuarto, y lo de la cantina
