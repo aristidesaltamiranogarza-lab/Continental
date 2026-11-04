@@ -17,7 +17,7 @@ function build(e){E=e;const {THREE,SC,hits,OB,std,cyl,ctex,TH}=e,G=new THREE.Gro
   g.fillStyle=FC[v];g.font='bold '+(v==1?58:72)+'px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(FN[v],w/2,h/2+4)})}));
  for(let i=0;i<5;i++){const d=new THREE.Mesh(new THREE.BoxGeometry(.24,.24,.24),faces.slice());d.castShadow=true;d.userData.hit=hit;G.add(d);hits.push(d);dice.push(d);put(i,-1,0)}
  OB.push({x:X,z:Z,r:1.6});
- sign=document.createElement('div');sign.className='w7 w7g h3sign';sign.innerHTML='🎲 <b>Cubilete</b><small>toca para jugar</small>';sign.onclick=()=>CUB3.open();}
+ sign=document.createElement('div');sign.className='w7 w7g h3sign';sign.dataset.g='cub';sign.innerHTML='🎲 <b>Cubilete</b><small>sin partidas</small>';sign.onclick=()=>CUB3.open();}
 // v: cara de arriba (-1: dado guardado en el cubilete); h: apartado
 function put(i,v,h){const d=dice[i],T=E.TH+.17;if(v<0){d.visible=false;return}d.visible=true;
  const m=d.material;for(let k=0;k<6;k++)m[k]=faces[(v+k+1)%6];m[2]=faces[v];   // +y = la cara que salió
@@ -33,7 +33,7 @@ function step(now,toPx,W){if(!E)return;const t=(now-rollT)/650;
    d.rotation.set(now/70*k+i,now/60*k,now/85*k)}else{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,0,0)}});
  if(sign){if(!sign.isConnected){const app=document.getElementById('app');if(app)app.appendChild(sign)}
   const [x,y,vis]=toPx(new E.THREE.Vector3(X,E.TH+2.1,Z));sign.style.display=vis?'':'none';sign.style.transform=`translate(${Math.max(70,Math.min(W-70,x))}px,${y}px) translate(-50%,-100%)`;
-  const sub=S&&S.p.length?S.p.length+(S.st=='play'?' jugando':' en la mesa'):'toca para jugar';const sm=sign.querySelector('small');if(sm.textContent!==sub)sm.textContent=sub}}
+  const sub=S&&S.p.length?S.p.length+(S.st=='play'?' jugando':' en la mesa'):'sin partidas';const sm=sign.querySelector('small');if(sm.textContent!==sub)sm.textContent=sub}}
 function out(){const o=q;q=null;return o}
 const send=(op,x)=>{q=Object.assign({op},x||{});sfx('tick')};
 function hud(busy){ if(!open||busy||!S)return '';const c=S,mine=c.p.find(p=>p.id===me),turn=c.st=='play'?c.p[c.ti]:null,my=turn&&turn.id===me;

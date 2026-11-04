@@ -44,22 +44,29 @@ const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','�
  haciendas:[['h1','#79a96a','#fff','🌿'],['h2','#e8c24a','#333','🌽'],['h3','#a7a49a','#fff','🪨'],['h4','#df9234','#fff','🍯'],['h5','#eef1ee','#333','🧂']]};
 
 // ---------- escena ----------
+// calidad (c_bienvenida.js). Medio: sin sombras, pixelRatio 1 y sin luces puntuales (menos la chimenea)
+let QL=null;
+function applyQ(q){if(!R||!QL)return;const lo=q==='medio';
+ R.setPixelRatio(Math.min(devicePixelRatio||1,lo?1:2));R.shadowMap.enabled=!lo;QL.Ld.castShadow=!lo;QL.hl.intensity=lo?2.1:1.5;
+ SC.traverse(o=>{if(o.isPointLight&&!(fire&&o===fire.light))o.visible=!lo;if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
 function init(){if(ready)return;ready=true;
  R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
  SC=new THREE.Scene();SC.background=new THREE.Color(0x1a120c);CA=new THREE.PerspectiveCamera(42,1,.1,200);
  const hl=new THREE.HemisphereLight(0xfff4e6,0x3a2a1e,1.5);SC.add(hl);
  const Ld=new THREE.DirectionalLight(0xfff0d8,2.2);Ld.position.set(-8,22,10);Ld.castShadow=true;Ld.shadow.mapSize.set(2048,2048);Ld.shadow.bias=-.0005;
- Object.assign(Ld.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:70});SC.add(Ld);
+ Object.assign(Ld.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:70});SC.add(Ld);QL={hl,Ld};
  root=document.createElement('div');root.id='h3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
  lay=document.createElement('div');lay.id='h3lay';document.body.appendChild(lay);   // nombres, globitos y avisos (fuera de #app: no se borran al redibujar)
- buildHouse();me=newAv(pname,v3(0,0,3),Math.PI);
+ // llegada por el zaguán: la cámara entra desde afuera y tu Mii camina hasta su lugar (c_casa_cam.js)
+ const zg=window.CCAM&&!CCAM.RM;
+ buildHouse();me=newAv(pname,v3(0,0,zg?ZF-1.2:3),Math.PI);if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(v3(0,2.1,ZF+9),v3(0,2.6,ZF-6)),2800,'inOut')}applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
  setTimeout(()=>{if(!moved){moved=true;if(active()&&!inputBusy())render()}},12000);   // la ayuda de arriba se va sola
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{tch.delete(e.pointerId);pin=null;st=null});
- cv.addEventListener('contextmenu',e=>e.preventDefault());
+ cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('pointerleave',()=>{if(window.ETQ)ETQ.hov(null)});
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  const typing=e=>/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'');
  // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = emotes; Enter = hablar
- addEventListener('keydown',e=>{if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
+ addEventListener('keydown',e=>{if(window.CCAM&&active()&&!typing(e))CCAM.cut();if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
@@ -133,7 +140,7 @@ function buildHouse(){
  // marca donde tocaste el piso
  mark=new THREE.Mesh(new THREE.RingGeometry(.25,.4,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.position.y=.03;SC.add(mark)}
 // puerta al sótano (pared derecha): marco como el de las ventanas, letrero como el de la casa y un foquito rojo encima
-function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotation.y=-Math.PI/2;SC.add(G);const hit={t:'table',g:t.g},fr=std(0xe9e2d0,.5),wd=std(0x4a2814,.45),dk=std(0x2e1a0e,.5);
+function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotation.y=-Math.PI/2;SC.add(G);t.G=G;const hit={t:'table',g:t.g},fr=std(0xe9e2d0,.5),wd=std(0x4a2814,.45),dk=std(0x2e1a0e,.5);
  box(1.9,3.6,.12,wd,0,1.8,.06,G).userData.hit=hit;[[-.45,2.55],[.45,2.55],[-.45,1],[.45,1]].forEach(([x,y])=>box(.7,y>2?1.5:1.2,.05,dk,x,y,.14,G).userData.hit=hit);
  box(.22,3.9,.3,fr,-1.06,1.95,.12,G);box(.22,3.9,.3,fr,1.06,1.95,.12,G);box(2.34,.25,.34,fr,0,3.92,.14,G);
  const kb=new THREE.Mesh(new THREE.SphereGeometry(.09,12,8),std(0xc9a24a,.3,{metalness:.8}));kb.position.set(.7,1.6,.22);G.add(kb);
@@ -145,7 +152,7 @@ function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotat
  const lt=new THREE.PointLight(S[4],8,6,1.6);lt.position.set(0,4.3,.9);G.add(lt);
  const ring=new THREE.Mesh(new THREE.RingGeometry(t.r+1.4,t.r+1.7,64),new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:0,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.03;G.add(ring);
  t.ring=ring;t.chairs=[];G.traverse(o=>{if(o.userData.hit)hits.push(o)})}
-function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G.position.set(t.x,0,t.z);SC.add(G);const hit={t:'table',g:t.g},wood=std(0x4a2814,.45);
+function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G.position.set(t.x,0,t.z);SC.add(G);t.G=G;const hit={t:'table',g:t.g},wood=std(0x4a2814,.45);
  const fe=ctex('felt'+t.g,256,256,(g,w,h)=>{const gr=g.createRadialGradient(128,128,10,128,128,128);gr.addColorStop(0,t.felt[0]);gr.addColorStop(1,t.felt[1]);g.fillStyle=gr;g.fillRect(0,0,w,h)});
  const top=cyl(t.r,t.r,.14,std(0xffffff,.95,{map:fe}),0,TH,0,G,64);top.userData.hit=hit;
  const rim=new THREE.Mesh(new THREE.TorusGeometry(t.r,.13,12,64),new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7}));rim.rotation.x=Math.PI/2;rim.position.y=TH+.06;rim.castShadow=true;G.add(rim);rim.userData.hit=hit;
@@ -262,7 +269,8 @@ function camStep(dt,snapNow){if(snapNow){VK.forEach(q=>VW[q]=VT[q])}else{const f
  const t=por&&sel&&!viewed()&&TB.find(x=>x.g===sel),p=me.pos;
  if(t)selT.set((t.x+p.x)/2+Math.sin(VW.a)*6,0,(t.z+p.z)/2+Math.cos(VW.a)*6).sub(center(VW));else selT.set(0,0,0);selOff.lerp(selT,snapNow?1:.1);applyCam()}
 const panned=()=>Math.abs(VT.ox)>.3||Math.abs(VT.oz)>.3,viewed=()=>panned()||Math.abs(VT.k-1)>.03||Math.abs(wrap(VT.a))>.02||Math.abs(VT.t)>.02;
-function camHome(){VW.a=wrap(VW.a);Object.assign(VT,{ox:0,oz:0,k:1,a:0,t:0})}
+// Cuadrar: llega con easing (c_casa_cam.js) en vez de deslizarse
+function camHome(){const P=window.CCAM&&ready&&!CCAM.busy()&&CCAM.pose(CA);VW.a=wrap(VW.a);Object.assign(VT,{ox:0,oz:0,k:1,a:0,t:0});if(P){snap();CCAM.blendIn(CA,P,700)}}
 function camBtn(c){if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;else return;clampV()}
 // punto del piso debajo del dedo/ratón
 function ground(x,y){const r=cv.getBoundingClientRect();P2.set((x-r.left)/r.width*2-1,-(y-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(FLOOR,v3(0,0,0))}
@@ -275,9 +283,11 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q
 // ---------- tocar: piso = caminar ahí, mesa o letrero = ir a esa mesa ----------
 // Ratón: arrastrar (izquierdo o derecho) = mover la cámara; clic de rueda o Shift + clic derecho = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar = mover; dos dedos = pellizcar para zoom, girarlos para rotar, subirlos o bajarlos juntos para inclinar
+// qué etiqueta le toca a lo que señalas (mesa, puerta, cubilete, Conecta 4, backgammon)
+const hk=h=>h&&(h.t=='table'?h.g:/^(cub|c4|bg)$/.test(h.t)?h.t:null);
 function pick(e){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
  const h=ray.intersectObjects(hits,false);if(h.length)return h[0].object.userData.hit;const p=ray.ray.intersectPlane(FLOOR,v3(0,0,0));return p?{t:'floor',p}:null}
-function pDown(e){if(!active())return;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+function pDown(e){if(!active())return;if(window.CCAM)CCAM.cut();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(tch.size==2){st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);
    pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.t,mode:null};return}
@@ -295,7 +305,7 @@ function pMove(e){if(!active())return;
    pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
    const p=ground(mx,my);if(p&&pin.g){VT.ox+=pin.g.x-p.x;VT.oz+=pin.g.z-p.z;snap()}return}}
- if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default'}return}
+ if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default';if(window.ETQ)ETQ.hov(hk(h))}return}
  if(e.pointerId!==st.pid)return;
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;snap();return}
  // mover la cámara: el punto que agarraste se queda bajo el dedo
@@ -303,6 +313,8 @@ function pMove(e){if(!active())return;
   const p=ground(e.clientX,e.clientY);if(st.g&&p){VT.ox=VW.ox+st.g.x-p.x;VT.oz=VW.oz+st.g.z-p.z;VT.k=VW.k;snap()}}}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}const h=pick(e);if(!h)return;
+ // en el celular el primer toque solo enseña el detalle de la etiqueta; el segundo entra
+ const hg=hk(h);if(hg&&e.pointerType==='touch'&&window.ETQ&&!ETQ.tap(hg))return;
  if(h.t=='table')return goTable(h.g);
  if(h.t=='c4'||h.t=='bg')return JG3.tap(h);
  if(h.t=='cub'){tgt=v3(CUB3.X-1.6,0,CUB3.Z+1.6);tgtG=null;solve(tgt);showMark(tgt);return CUB3.open()}
@@ -318,25 +330,24 @@ const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r=
  tu:ic('<path d="M3 18h18M6 18l3-6h6l3 6"/><path d="M12 9V3M9 6l3-3 3 3"/>'),td:ic('<path d="M2 16l5-6h10l5 6z"/><path d="M12 7V2M9 5l3 2 3-2"/>'),
  home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
 function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t}" aria-label="${t}">${IC[c]}</button>`;
- return `<button id="t3view" class="w7 w7b" onclick="casaHome()" style="display:none" title="Regresar la cámara a tu Mii (Inicio)">${IC.home} Cuadrar</button>
- <div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>
+ return ` <div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>
  <div class="w7g pan">${cb('rl','Girar a la izquierda (Q)')}${cb('rr','Girar a la derecha (E)')}${cb('zi','Acercar (+)')}${cb('zo','Alejar (−)')}${cb('tu','Ver más desde arriba (R)')}${cb('td','Ver más de lado (F)')}
  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
- let o=`<div id="h3top" class="w7 w7g"><span class="h3t">🏠 <b>Casa de juegos</b></span><span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">
-  ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button></div>`;
+ let o=`<div id="h3top" class="w7 w7g"><span class="h3t">🏠 <b>Casa de juegos</b></span><span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
+  ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}${window.BIEN?'':'<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button>'}</div>`;
  if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar · arrastra para mover la cámara, dos dedos para girar y acercar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · arrastra para mover la cámara · rueda para acercar · Q E para girar'}</div>`;
  o+=camUI();
- TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'toca para jugar';
-  o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${G.name}</b><small>${sub}</small></div>`});
+ TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas';
+  o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
  if(msg&&!g)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="w7 w7g">Te invitaron a la sala <b>${esc(code)}</b><button class="w7b p" onclick="joinR()">Unirme</button></div>`;
  // emotes y para hablar (lo ven todos los que están en la casa)
  o+=`<div id="h3bar" class="w7 w7g">${EMO.map((e,i)=>`<button class="w7b em" onclick="casaEm('${e}')" title="${e} (tecla ${i+1})" aria-label="Emote ${e}">${e}</button>`).join('')}<span class="say"><input id="h3say" maxlength="80" placeholder="Di algo…" onkeydown="if(event.key==='Enter')casaSay();else if(event.key==='Escape')this.blur()" aria-label="Decir algo"><button class="w7b" onclick="casaSay()" aria-label="Decir">💬</button></span></div>`;
  if(g){const {pl,op}=tinfo(sel),pr=rooms.filter(r=>r.g==sel&&r.st=='play'&&r.w);
-  o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
+  o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${window.lobbyName?lobbyName(sel):g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
   <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.${pl?` Ahora: ${pl} jugando.`:''}</span></div>
   ${op.length?`<div class="h3rooms"><span>Salas esperando jugadores</span>${op.slice(0,5).map(r=>`<div><span>Sala de <b>${esc(r.host)}</b></span><small>${r.n}/${r.max}</small><button class="w7b p" onclick="casaJoin('${esc(r.c)}')">Unirme</button></div>`).join('')}</div>`:''}
   ${pr.length?`<div class="h3rooms h3watch"><span>Partidas en curso</span>${pr.slice(0,5).map(r=>`<div><span>${esc(r.ps.slice(0,3).join(', '))}${r.n>3?'…':''}</span><small>${r.sp?'👁 '+r.sp:''}</small><button class="w7b" onclick="casaWatch('${esc(r.w)}')" title="Mirar sin jugar">👁 Ver</button></div>`).join('')}</div>`:''}
@@ -349,27 +360,41 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
 function labels(){const tb=$id('h3top'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
  document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
   el.style.display=vis?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
+// tamaño, transparencia y empalmes de todas las etiquetas (c_etiquetas.js)
+function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(center(VW))||1,tb=$id('h3top');
+ ETQ.step({y0:tb?tb.getBoundingClientRect().bottom+4:0,ratio:g=>{const a=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z}:window.JG3&&JG3.P&&JG3.P[g]);return a?Math.hypot(cp.x-a.x,cp.y-TH,cp.z-a.z)/ref:1}})}
 
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}
 function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none'}document.documentElement.classList.toggle('h3on',a);if(!a){keys.clear();return}
+ if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none';if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}}document.documentElement.classList.toggle('h3on',a);if(!a){keys.clear();return}
  document.documentElement.classList.toggle('c3dark',dark);
  if(innerWidth!==W||innerHeight!==H){layout();camStep(dt,true)}
- net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
+ net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);if(window.CCAM)CCAM.apply(CA,now);if(window.CHOV)CHOV.step(dt,TB,window.ETQ&&ETQ.act(),CA);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W);if(window.JG3)JG3.step(now,toPx,W);labels();tags(now);R.render(SC,CA)}
-home=function(){if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
+ if(window.CUB3)CUB3.step(now,toPx,W);if(window.JG3)JG3.step(now,toPx,W);labels();tags(now);etq();R.render(SC,CA)}
+home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
+ if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
-window.CASA3D={std,box,cyl,ctex,rr,look:lookOf};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
-window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}render()};
+window.CASA3D={std,box,cyl,ctex,rr,look:lookOf,on:()=>on,calidad:applyQ};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
+window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g)return;goTable(g)};
 window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
-window.casaPlay=mode=>{if(!sel)return;pgame=sel;mk(mode)};
-window.casaJoin=c=>{code=c;joinR()};
-window.casaWatch=c=>watchR(c);
+// sentarse: vuela a la mesa, baja a la altura de la silla y funde a negro; luego entra al juego (c_casa_cam.js)
+let sitP=null;
+function sit(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x.g===sel);if(!t)return go();
+ const a=Math.atan2(CA.position.x-t.x,CA.position.z-t.z),r=t.r+(t.door?2.6:1.25),lk=v3(t.x,TH+.15,t.z),m0=msg;
+ const P=[CCAM.at(v3(t.x+Math.sin(a)*(r+3),TH+3.4,t.z+Math.cos(a)*(r+3)),lk),CCAM.at(v3(t.x+Math.sin(a)*r,TH+1.05,t.z+Math.cos(a)*r),lk)];
+ sitP=P[1];CCAM.fly(CA,P,1150);
+ setTimeout(()=>CCAM.fade(1,400).then(()=>{go();const t0=performance.now(),w=()=>{
+  if(!active()){CCAM.release(CA,0);CCAM.fade(0,500)}                                   // ya entraste: se ve el juego
+  else if(msg!==m0||performance.now()-t0>2500){sitP=null;CCAM.release(CA,700);CCAM.fade(0,400)}   // no se pudo: te levantas
+  else setTimeout(w,80)};w()}),750)}
+window.casaPlay=mode=>{if(!sel)return;pgame=sel;sit(()=>mk(mode))};
+window.casaJoin=c=>{code=c;sit(()=>joinR())};
+window.casaWatch=c=>sit(()=>watchR(c));
 window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};
 window.casaSay=()=>{const i=$id('h3say'),t=i&&i.value.trim().slice(0,80);if(!t)return;i.value='';outSay=t;bubble(me,t);sfx('tick')};
 let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>rename(me,pname),350)};

@@ -16,7 +16,7 @@ function build(e){E=e;if(!K||!K.mkC4)return;const {THREE,SC,hits,OB,std,cyl,box}
  const ct=std(0x4a2c18,.5),{x:tx,z:tz}=BGP;box(4,.14,2.9,ct,tx,1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>box(.14,.95,.14,ct,tx+a,.48,tz+b));
  [-1,1].forEach(s=>{cyl(.75,.8,.9,std(0x7a2a2a,.85),tx+s*2.9,.45,tz,null,24);OB.push({x:tx+s*2.9,z:tz,r:.9})});
  BG=K.mkBG(SC,v3(tx,1.09,tz));hits.push(...BG.hits);OB.push({x:tx-1,z:tz,r:1.7},{x:tx+1,z:tz,r:1.7});
- [['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='w7 w7g h3sign';s.innerHTML=`${ic} <b>${n}</b><small>toca para jugar</small>`;s.onclick=()=>JG3.open(t);signs[t]=s})}
+ [['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='w7 w7g h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s})}
 // ---------- estado ----------
 function sync(j,e){if(e)err=e;if(!j)return false;const k=JSON.stringify(j);if(k===snap)return !!e;const o=J;J=j;snap=k;
  if(o){['c4','bg'].forEach(t=>{const a=mine(t),b=o[t+'s'].find(x=>a&&x.id===a.id);
@@ -75,8 +75,8 @@ function step(now,toPx,W){if(!C4)return;
  BG.dice.forEach(d=>{const t=d.userData.to;if(!t)return;const k=d.userData.t0?Math.min(1,(now-d.userData.t0)/650):1;d.position.copy(t);d.position.y+=Math.sin(k*Math.PI)*.35;d.rotation.set((1-k)*9,(1-k)*7,(1-k)*5);if(k>=1)d.userData.t0=0});
  [['c4',C4P,4.6],['bg',BGP,2.6]].forEach(([t,p,y])=>{const s=signs[t];if(!s.isConnected){const app=document.getElementById('app');if(!app)return;app.appendChild(s)}
   const [x,yy,vis]=toPx(v3(p.x,y,p.z));s.style.display=vis?'':'none';s.style.transform=`translate(${Math.max(70,Math.min(W-70,x))}px,${yy}px) translate(-50%,-100%)`;
-  const g=J&&shown(t),sub=g&&g.st=='play'?nmk(g.p[0])+' vs '+nmk(g.p[1]):'toca para jugar',sm=s.querySelector('small');if(sm.textContent!==sub)sm.textContent=sub})}
-window.JG3={build,sync,tap,hud,step,out:()=>{const o=q;q=null;return o},
+  const g=J&&shown(t),sub=g&&g.st=='play'?nmk(g.p[0])+' vs '+nmk(g.p[1]):'sin partidas',sm=s.querySelector('small');if(sm.textContent!==sub)sm.textContent=sub})}
+window.JG3={P:{c4:C4P,bg:BGP},build,sync,tap,hud,step,out:()=>{const o=q;q=null;return o},
  a:(t,op,k)=>{const g=mine(t);send(t,op=='inv'?{op,k}:{op,id:g&&g.id});sfx('tick')},
  open:t=>{open=t;err='';if(window.CUB3&&CUB3.isOpen())CUB3.close();if(typeof casaClose=='function')casaClose();else render()},
  close:silent=>{if(!open)return;open=null;if(!silent){sfx('tick');render()}}};
