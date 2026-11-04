@@ -1,10 +1,10 @@
-// Cubilete en una mesita de la esquina de la Casa 3D (reglas en g_cubilete.js). Sin salas: viaja en el mismo /casa que las posiciones.
-// c_casa3d.js llama a CUB3.build / out / sync / hud / step. Se carga ANTES de c_casa3d.js.
+// Cubilete en una mesita de la cantina del sótano (c_sotano.js) (reglas en g_cubilete.js). Sin salas: viaja en el mismo /casa que las posiciones.
+// c_sotano.js llama a CUB3.build (con x, z); c_casa3d.js a out / sync / hud / step. Se carga ANTES de c_casa3d.js.
 (function(){
-const X=13.2,Z=-10.6,FN=['9','10','J','Q','K','A'],FC=['#26262b','#26262b','#c62828','#c62828','#26262b','#c62828'];
+let X=13.2,Z=-10.6;const FN=['9','10','J','Q','K','A'],FC=['#26262b','#26262b','#c62828','#c62828','#26262b','#c62828'];
 let E=null,S=null,me='',open=false,q=null,dice=[],faces=[],snap='',rollT=0,sign=null;
 const nm=p=>esc(p.n||'Jugador');
-function build(e){E=e;const {THREE,SC,hits,OB,std,cyl,ctex,TH}=e,G=new THREE.Group();G.position.set(X,0,Z);SC.add(G);const hit={t:'cub'};
+function build(e){if(E)return;E=e;if(e.x!=null){X=e.x;Z=e.z}const {THREE,SC,hits,OB,std,cyl,ctex,TH}=e,G=new THREE.Group();G.position.set(X,0,Z);SC.add(G);const hit={t:'cub'};
  // mesita redonda con fieltro café y una pata
  const top=cyl(1.15,1.15,.1,std(0x7a4a24,.85),0,TH,0,G,40);top.userData.hit=hit;hits.push(top);
  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.15,.08,10,40),std(0x4a2814,.45));rim.rotation.x=Math.PI/2;rim.position.y=TH+.04;G.add(rim);
@@ -16,7 +16,7 @@ function build(e){E=e;const {THREE,SC,hits,OB,std,cyl,ctex,TH}=e,G=new THREE.Gro
  for(let v=0;v<6;v++)faces.push(new THREE.MeshStandardMaterial({roughness:.35,map:ctex('cubf'+v,128,128,(g,w,h)=>{g.fillStyle='#fbf7ec';g.fillRect(0,0,w,h);
   g.fillStyle=FC[v];g.font='bold '+(v==1?58:72)+'px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(FN[v],w/2,h/2+4)})}));
  for(let i=0;i<5;i++){const d=new THREE.Mesh(new THREE.BoxGeometry(.24,.24,.24),faces.slice());d.castShadow=true;d.userData.hit=hit;G.add(d);hits.push(d);dice.push(d);put(i,-1,0)}
- OB.push({x:X,z:Z,r:1.6});
+ OB.push({x:X,z:Z,r:1.6});if(S)paint();
  sign=document.createElement('div');sign.className='w7 w7g h3sign';sign.dataset.g='cub';sign.innerHTML='🎲 <b>Cubilete</b><small>sin partidas</small>';sign.onclick=()=>CUB3.open();}
 // v: cara de arriba (-1: dado guardado en el cubilete); h: apartado
 function put(i,v,h){const d=dice[i],T=E.TH+.17;if(v<0){d.visible=false;return}d.visible=true;
@@ -25,10 +25,10 @@ function put(i,v,h){const d=dice[i],T=E.TH+.17;if(v<0){d.visible=false;return}d.
 function sync(c,id){me=id;if(!c)return false;const k=JSON.stringify(Object.assign({},c,{left:0}));if(k===snap)return false;const o=S;S=c;snap=k;
  if(o&&c.rolls>o.rolls&&c.st=='play')rollT=performance.now(),sfx('draw');if(o&&o.st=='play'&&c.st=='end')sfx(c.w.includes(me)?'go':'tick');
  if(o&&o.st!='play'&&c.st=='play')sfx('go');
- const turn=c.st=='play'?c.p[c.ti]:null,res=!turn&&c.st=='end'&&c.w.length?c.p.find(p=>p.id===c.w[0]):null,d=res&&res.r?res.r.d:c.dice;
- for(let i=0;i<5;i++)put(i,d[i],c.st=='play'&&c.held[i]);
- return true}
-function step(now,toPx,W){if(!E)return;const t=(now-rollT)/650;
+ if(E)paint();return true}
+function paint(){const c=S,turn=c.st=='play'?c.p[c.ti]:null,res=!turn&&c.st=='end'&&c.w.length?c.p.find(p=>p.id===c.w[0]):null,d=res&&res.r?res.r.d:c.dice;
+ for(let i=0;i<5;i++)put(i,d[i],c.st=='play'&&c.held[i])}
+function step(now,toPx,W,here){if(!E)return;if(!here){if(sign)sign.style.display='none';return}const t=(now-rollT)/650;
  dice.forEach((d,i)=>{const p=d.userData.p;if(!p)return;if(t<1&&!(S&&S.held[i])){const k=1-t;d.position.set(p[0]+Math.sin(now/90+i)*.08*k,p[1]+Math.abs(Math.sin(t*Math.PI*2.5))*.5*k,p[2]+Math.cos(now/80+i)*.08*k);
    d.rotation.set(now/70*k+i,now/60*k,now/85*k)}else{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,0,0)}});
  if(sign){if(!sign.isConnected){const app=document.getElementById('app');if(app)app.appendChild(sign)}
@@ -48,6 +48,6 @@ function hud(busy){ if(!open||busy||!S)return '';const c=S,mine=c.p.find(p=>p.id
   ${my?`<div class="cubr">${c.dice.map((v,i)=>die(v,i,c.held[i])).join('')}</div><div class="h3b"><button class="w7b dflt" onclick="CUB3.a('roll')"${c.rolls>=3?' disabled':''}>🎲 Tirar (${c.rolls}/3)</button>${c.rolls?`<button class="w7b" onclick="CUB3.a('stand')">✋ Plantarme</button>`:''}</div>`:''}
   <div class="h3b">${!mine?`<button class="w7b dflt" onclick="CUB3.a('join')">Sentarme a jugar</button>`:c.st!='play'?`${c.p.length>=2?`<button class="w7b dflt" onclick="CUB3.a('start')">▶ ${c.rn?'Otra ronda':'Empezar'} (${c.ante} fichas)</button>`:''}<button class="w7b" onclick="CUB3.a('leave')">Levantarme</button>`:''}</div>
  </div></div>`;return h}
-window.CUB3={X,Z,build,sync,step,out,hud,a:(op,i)=>{send(op,i!=null?{i}:null);if(op=='leave')open=false},
+window.CUB3={get X(){return X},get Z(){return Z},n:()=>S?S.p.length:0,play:()=>!!(S&&S.st=='play'),build,sync,step,out,hud,a:(op,i)=>{send(op,i!=null?{i}:null);if(op=='leave')open=false},
  open:()=>{open=true;if(window.JG3)JG3.close(1);if(typeof casaClose=='function')casaClose();else render()},close:()=>{open=false;sfx('tick');render()},isOpen:()=>open};
 })();

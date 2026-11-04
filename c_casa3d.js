@@ -26,11 +26,11 @@ let OB=[];                               // obstáculos redondos (sillas, mueble
 // y escaleras (links). Solo se dibuja el piso donde estás; el sótano se arma la primera vez que bajas. to: la puerta te lleva a ese piso
 const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:()=>({x:HX-2.6,z:-8,yaw:-Math.PI/2})};let FL=PB,LK=[],fBusy=false;
 const canGo=id=>id==='pb'||!!(window.SOT&&SOT.ok()),fpOn=()=>!!(window.CAV&&CAV.on());
-function goFloor(id){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
+function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
  const sw=()=>{const nf=id==='pb'?PB:SOT.piso();if(!nf)return render();const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];
   [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,1.57,me.pos.z);
-  Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);render()};
+  Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
  CCAM.fade(1,380).then(()=>{sw();return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
@@ -157,7 +157,8 @@ function buildHouse(){
  cyl(.015,.015,1.4,std(0x222222,.4),0,8.9,-4,SC,6);
  const dl=[0xff2fd1,0x2fe8ff,0xffe02f].map(c=>{const l=new THREE.PointLight(c,0,16,1.4);SC.add(l);return l});disco={ball,dl,lvl:0};
  // mesas de juego
- TB.forEach(t=>buildTable(t));if(window.CUB3)CUB3.build({THREE,SC,hits,OB,std,cyl,ctex,TH});if(window.JG3)JG3.build({THREE,SC,hits,OB,std,cyl,box});   // Cubilete en la esquina
+ TB.forEach(t=>buildTable(t));if(window.JG3)JG3.build({THREE,SC,hits,OB,std,cyl,box});   // el Cubilete está en el sótano (c_sotano.js)
+ if(window.CAMB)CAMB.build({THREE,SC,OB,std,box,cyl,ctex,TB,TH,HX,ZB,ZF});   // lámparas, ventiladores, reloj, hamaca y gato (c_casa_amb.js)
  // marca donde tocaste el piso
  mark=new THREE.Mesh(new THREE.RingGeometry(.25,.4,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.position.y=.03;SC.add(mark)}
 // puerta al sótano (pared derecha): marco como el de las ventanas, letrero como el de la casa y un foquito rojo encima
@@ -363,7 +364,7 @@ function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t
  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
- let o=`<div id="h3top" class="w7 w7g"><span class="h3t">${FL===PB?'🏠 <b>Casa de juegos</b>':'🕯️ <b>Sótano</b>'}</span>${FL===PB?'':`<button class="w7b" onclick="casaPiso('pb')" title="Subir a la casa" aria-label="Subir a la casa">⬆️</button>`}<span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
+ let o=`<div id="h3top" class="w7 w7g"><span class="h3t">${FL===PB?'🏠 <b>Casa de juegos</b>':'🕯️ <b>Sótano</b>'}</span>${FL===PB?'':`<button class="w7b" onclick="casaPiso('pb')" title="Subir a la casa" aria-label="Subir a la casa">⬆️</button>`}${window.CIR?CIR.btn():''}<span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
   ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}${window.BIEN?'':'<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button>'}</div>`;
  if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Toca el piso para caminar · toca una mesa para jugar · arrastra para mover la cámara, dos dedos para girar y acercar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · arrastra para mover la cámara · rueda para acercar · Q E para girar'}</div>`;
  o+=camUI();
@@ -382,7 +383,8 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
   <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button><button class="w7b" onclick="casaPlay('host')" title="Creas la sala y la administras, sin jugar">👑 Solo administrar</button></div>
   <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
   ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
- if(FL===PB){if(window.CUB3)o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g)}   // el cubilete y los juegos sueltos están en la planta baja
+ if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(!!g);if(FL===PB&&window.JG3)o+=JG3.hud(!!g);   // el cubilete en el sótano, los juegos sueltos en la planta baja
+ if(window.CIR)o+=CIR.hud(!!g);
  if(window.SOT)o+=SOT.seatHud();
  return o}
 // letreros: siguen a su mesa en la pantalla
@@ -405,11 +407,16 @@ function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(FL===PB){if(window.CUB3)CUB3.step(now,toPx,W);if(window.JG3)JG3.step(now,toPx,W)}if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();R.render(SC,CA)}
+ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(FL===PB){if(window.JG3)JG3.step(now,toPx,W);if(window.CAMB)CAMB.step(now,dt)}if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();R.render(SC,CA)}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
-window.CASA3D={std,box,cyl,ctex,rr,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id};
+// "Ir a…" (c_casa_ir.js): fundido y apareces junto a esa mesa (o el Cubilete / los juegos sueltos), cambiando de piso si hace falta
+function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:1.15}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1});if(!t)return;
+  const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,1.57,p.z);
+  Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
+ if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
+window.CASA3D={std,box,cyl,ctex,rr,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g)return;goTable(g)};

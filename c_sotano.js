@@ -1,5 +1,5 @@
 // Sótano: el piso de abajo de la casa. Es el mismo cuarto de la Ruleta Rusa (c_ruleta3d.js), agrandado hacia la izquierda con una cantina:
-// barra con botellas y bancos, letrero de neón y las mesas que vienen (Poker y Blackjack, cerradas: con los bancos volteados encima).
+// barra con botellas y bancos, el Cubilete en la punta de la barra, letrero de neón y las mesas que vienen (Poker y Blackjack, cerradas: con los bancos volteados encima).
 // c_casa3d.js lo usa como piso (SOT.piso): escena, mesas, obstáculos, cosas que se tocan, límites y la escalera para subir.
 // Solo se arma la primera vez que bajas (o que juegas Ruleta). También el aviso "tu lugar te espera" cuando te levantas de una partida
 // (casa_seat en localStorage, lo guarda c_ruleta3d.js).
@@ -79,6 +79,8 @@ function piso(){if(F)return F;const r=ok()&&RRU.piso();if(!r){bad=true;return nu
  const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:up,toneMapped:false}));sg.position.set(W-.07,2.62,-2.4);sg.rotation.y=-Math.PI/2;S.add(sg);
  // obstáculos: sillas de la Ruleta, cajas y cosas tiradas del cuarto, y lo de la cantina
  const OB=obs.concat(r.chairs.map((c,i)=>{const p=r.spos(i);return {x:p.x,z:p.z,r:.5}}),[{x:-W+.6,z:-W+.6,r:.75},{x:-W+1.65,z:-W+.55,r:.55},{x:-W+.7,z:W-.8,r:.35},{x:-W+1.6,z:W-.6,r:.45},{x:W-1,z:W-1.1,r:.7}]);
+ // el Cubilete: su mesita en la punta de la barra (las reglas viajan en /casa, c_cubilete3d.js)
+ if(window.CUB3)CUB3.build({THREE,SC:S,hits,OB,std:H.std,cyl:H.cyl,ctex:H.ctex,TH:r.TH,x:-5.6,z:-3.5});
  F={id:'sot',SC:S,TB:[{g:'ruleta',x:0,z:0,r:r.TBR,chairs:[],ring}],OB,hits,links:[lk],bx:[r.XL+.8,W-.8,-W+.8,W-.8],cb:[r.XL,W,-W,W],k:1,
   tm:THREE.ACESFilmicToneMapping,tx:1.1,spawn:()=>({x:W-1.6,z:-3.9,yaw:-Math.PI*.6}),enter:fp=>r.modo(fp?'1p':'casa'),step:r.step};
  return F}
