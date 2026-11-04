@@ -6,7 +6,7 @@
 if(typeof THREE==='undefined')return;
 const XW=15,ZB=-12,ZF=9,CEIL=8.5,AX=7,lo=()=>window.CALIDAD==='medio';
 let F=null,bad=false;
-const ok=()=>!bad&&!!(window.CASA3D&&CASA3D.mesa&&window.ESC);
+const ok=()=>!bad&&!!(window.CASA3D&&CASA3D.mesa&&window.ESC&&window.VENT);
 function piso(){if(F)return F;if(!ok()){bad=true;return null}
  const H=window.CASA3D,{std,ctex}=H,S=new THREE.Scene(),hits=[],OB=[],box=(w,h,d,m,x,y,z,p)=>H.box(w,h,d,m,x,y,z,p||S),cyl=(a,b,h,m,x,y,z,p,n)=>H.cyl(a,b,h,m,x,y,z,p||S,n);
  let rs=11;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280,fn=f=>({t:'fn',f}),tap=(o,h)=>o.traverse(m=>{if(m.isMesh){m.userData.hit=h;hits.push(m)}});
@@ -53,21 +53,16 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   const sp=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:.5,bevelEnabled:false,curveSegments:18}),cal);sp.rotation.y=-Math.PI/2;sp.position.x=AX+.25;sp.castShadow=sp.receiveShadow=true;S.add(sp);
   box(.7,.18,4.95-ZB+.2,cant,AX,y1+.09,(ZB+4.95)/2)}
 
- // ---------- cielo del atardecer (balcón y ventana) ----------
- const sky=ctex('cielo-alta',256,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#1a1f4a');gr.addColorStop(.55,'#5a3a6a');gr.addColorStop(.85,'#d9825a');gr.addColorStop(1,'#f2b66a');
-  g.fillStyle=gr;g.fillRect(0,0,w,h);g.fillStyle='#fff';for(let i=0;i<30;i++){g.globalAlpha=.25+(i%4)*.15;g.fillRect((i*71)%w,(i*37)%(h*.45),2,2)}g.globalAlpha=1;
-  g.fillStyle='#2a1a2e';for(let x=0;x<w;x+=22){const hh=14+((x*7)%23);g.fillRect(x,h-hh,20,hh)}g.fillRect(150,h-70,14,70);g.beginPath();g.arc(157,h-70,9,Math.PI,0);g.fill()});
+ // ---------- balcón y ventana al exterior compartido (c_casa_cielo.js + c_casa_ventanas.js: cielo según el tema, azoteas, sol que entra) ----------
  const fr=std(0xe9e2d0,.5),ir=std(0x1c1c1e,.45,{metalness:.6});
- // balcón en la pared derecha: puertas abiertas al cielo, contraventanas verdes y barandal de forja
- {const z0=.4,sk=new THREE.Mesh(new THREE.PlaneGeometry(3.2,5.4),new THREE.MeshBasicMaterial({map:sky}));sk.position.set(XW-.04,2.7,z0);sk.rotation.y=-Math.PI/2;S.add(sk);
-  box(.3,5.8,.22,fr,XW-.12,2.9,z0-1.71);box(.3,5.8,.22,fr,XW-.12,2.9,z0+1.71);box(.34,.3,3.64,fr,XW-.13,5.65,z0);
+ // balcón en la pared derecha: puertas abiertas al exterior, contraventanas verdes y barandal de forja
+ {const z0=.4;VENT.pon(S,'alta',{x:XW,y:2.7,z:z0,ry:-Math.PI/2,w:3.2,h:5.4,hondo:.35,abierta:true,cal:fr});
   const vd=std(0x3a5a4a,.55),vl=std(0x2c4a3c,.6);[-1,1].forEach(s=>{const zz=z0+s*2.65;box(.08,5.2,1.7,vd,XW-.06,2.7,zz);for(let y=.6;y<5;y+=.32)box(.04,.05,1.5,vl,XW-.11,y,zz)});
   box(.08,.08,3.2,ir,XW-.2,1.5,z0);box(.06,.06,3.2,ir,XW-.2,.15,z0);for(let z=z0-1.5;z<=z0+1.51;z+=.25)box(.03,1.35,.03,ir,XW-.2,.82,z);
   for(let z=z0-1.25;z<z0+1.4;z+=.5){const t=new THREE.Mesh(new THREE.TorusGeometry(.12,.015,6,16),ir);t.position.set(XW-.2,1.15,z);t.rotation.y=Math.PI/2;S.add(t)}
   const pot=std(0xb5643c,.7),lf=std(0x2e7d32,.8);[z0-2.4,z0+2.4].forEach(z=>{cyl(.4,.3,.8,pot,XW-.7,.4,z);for(let i=0;i<7;i++){const a=i/7*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.16,1.3,6),lf);l.position.set(XW-.7+Math.cos(a)*.2,1.35,z+Math.sin(a)*.2);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);S.add(l)}OB.push({x:XW-.7,z,r:.6})})}
  // ventana del estudio (pared izquierda)
- {const z0=-4.6,sk=new THREE.Mesh(new THREE.PlaneGeometry(3,3.6),new THREE.MeshBasicMaterial({map:sky}));sk.position.set(-XW+.05,4.6,z0);sk.rotation.y=Math.PI/2;S.add(sk);
-  box(.3,.2,3.3,fr,-XW+.12,6.5,z0);box(.45,.25,3.4,fr,-XW+.2,2.75,z0);box(.3,3.8,.18,fr,-XW+.12,4.6,z0-1.6);box(.3,3.8,.18,fr,-XW+.12,4.6,z0+1.6);box(.2,3.6,.1,fr,-XW+.1,4.6,z0)}
+ VENT.pon(S,'alta',{x:-XW,y:4.6,z:-4.6,ry:Math.PI/2,w:3,h:3.6,cal:fr});
 
  // ---------- libreros en la pared del fondo (todos los libros en una sola malla) ----------
  const BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0],BK=[],sw=std(0x4a2c18,.6);

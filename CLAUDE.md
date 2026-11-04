@@ -9,7 +9,7 @@ Las líneas son muy largas, así que los archivos pesan mucho más de lo que par
 - server.js (salas, polling, bots), server3d.js (sirve la versión 3D).
 - Mérida en Venta: g_merida.js (reglas), merida_data.js (tablero y cartas), c_merida.js (lobby y ayudantes MR), c_meridaui.js (interfaz: barra, acciones, pestañas, temas), c_merida3d.js (tablero 3D en el cuarto de C3D) y c_merida2d.js (tablero 2D). Los dos tableros exponen la misma API (M3/M2).
 
-- Modelos 3D: c_casa_glb.js (CGLB.pon(piso, nombre, {pos,rot,esc}) carga .glb del catálogo modelos/modelos.json), srv_modelos.js (envío por partes y caché de modelos/), preparar_modelos.js (genera hd/ y medio/ desde modelos/originales/), c_casa_medidor.js (F3 o ?medir: FPS y memoria).
+- Modelos 3D: c_casa_glb.js (CGLB.pon(piso, nombre, {pos,rot,esc}) carga .glb del catálogo modelos/modelos.json), srv_modelos.js (envío por partes y caché de modelos/), preparar_modelos.js (genera hd/ y medio/ desde modelos/originales/), c_casa_medidor.js (F3 o ?medir: FPS y memoria). Exterior: c_casa_cielo.js (CIELO: cielo, sol/luna y horizonte según el tema) y c_casa_ventanas.js (VENT.pon: ventana con portal en Completo y cubemap en Medio).
 
 ## Interfaz
 - Todo cambio visual (botones, paneles, avisos, pantallas 3D) sigue la skill `casa-ui` (.claude/skills/casa-ui): estilo Cálida con los tokens de ui.css; nunca regresar al estilo Windows 7 (clases w7…).
