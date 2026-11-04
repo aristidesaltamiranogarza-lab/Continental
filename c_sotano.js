@@ -1,12 +1,14 @@
 // Sótano: el piso de abajo de la casa. Es el mismo cuarto de la Ruleta Rusa (c_ruleta3d.js), agrandado hacia la izquierda con una cantina:
-// barra con botellas y bancos, el Cubilete en la punta de la barra, letrero de neón y dos mesitas; pasando el arco, el casino y el billar
+// barra con botellas y bancos, el Cubilete en la punta de la barra, letrero de neón, dos mesitas, barriles, diana y reloj (modelos de Poly Haven); pasando el arco, el casino y el billar
 // (c_sotano_salon.js: Póker, Blackjack y mesa de billar, "próximamente").
 // c_casa3d.js lo usa como piso (SOT.piso): escena, mesas, obstáculos, cosas que se tocan, límites y la escalera para subir.
 // Solo se arma la primera vez que bajas (o que juegas Ruleta). También el aviso "tu lugar te espera" cuando te levantas de una partida
 // (casa_seat en localStorage, lo guarda c_ruleta3d.js).
 (function(){
 if(typeof THREE==='undefined')return;
-let C=null,F=null,bad=false,walkL=null;const lamps=[],obs=[];
+let C=null,F=null,bad=false,walkL=null;const lamps=[],obs=[],MOD=[];
+// con el modelo puesto se esconde su mueble de código
+const modTick=()=>MOD.forEach(([g,c])=>{const v=!g.children.length;c.forEach(o=>{if(o.visible!==v)o.visible=v})});
 
 // ---------- la cantina (la arma c_ruleta3d.js al construir su cuarto) ----------
 function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,TH}=d,std=H.std;
@@ -31,22 +33,32 @@ function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,T
   g.font='italic bold 78px Georgia,serif';g.fillStyle='#ffd3e0';g.fillText('Cantina',w/2,h/2-14);g.shadowColor='#ffb02a';g.font='bold 30px Georgia,serif';g.fillStyle='#ffe2a8';g.fillText('LA ÚLTIMA BALA',w/2,h/2+50)});
  const ne=new THREE.Mesh(new THREE.PlaneGeometry(3,1.12),new THREE.MeshBasicMaterial({map:nt,transparent:true,toneMapped:false,depthWrite:false}));ne.position.set(bc,3.22,-W+.1);S.add(ne);
  const nl=new THREE.PointLight(0xff4a78,7,8.5,1.5);nl.position.set(bc,2.6,-W+1.3);nl.userData.keep=true;S.add(nl);
+ // modelos de Poly Haven (c_casa_glb.js): el mueble de código se ve mientras baja el modelo (o si no hay modelos)
+ const mod=(n,o,cod)=>{if(!window.CGLB)return null;const g=CGLB.pon('sot',n,Object.assign({sombra:true},o));S.add(g);if(cod)MOD.push([g,[].concat(cod)]);return g};
+ // los banquitos vienen pintados de claro: en la cantina se ven más gastados
+ const tinto=o=>o.traverse(m=>{if(m.isMesh)[].concat(m.material).forEach(t=>{if(!t.userData.tinto){t.color.multiplyScalar(.55);t.userData.tinto=1}})});
+ const grp=(x,z)=>{const g=new THREE.Group();g.position.set(x,0,z);S.add(g);return g};
  // bancos de la barra
  const red=std(0x6a1c16,.5),mt=std(0x707478,.4,{metalness:.75});
- for(let i=0;i<5;i++){const x=x0+.7+i*(bl-1.4)/4,z=bz+.95;cyl(.22,.2,.08,red,x,.84,z,S,16);cyl(.035,.045,.8,mt,x,.42,z,S,8);cyl(.2,.22,.03,mt,x,.015,z,S,16);
-  const fr=new THREE.Mesh(new THREE.TorusGeometry(.15,.014,6,18),mt);fr.rotation.x=Math.PI/2;fr.position.set(x,.32,z);S.add(fr);obs.push({x,z,r:.28})}
+ for(let i=0;i<5;i++){const x=x0+.7+i*(bl-1.4)/4,z=bz+.95,g=grp(x,z);cyl(.22,.2,.08,red,0,.84,0,g,16);cyl(.035,.045,.8,mt,0,.42,0,g,8);cyl(.2,.22,.03,mt,0,.015,0,g,16);
+  const fr=new THREE.Mesh(new THREE.TorusGeometry(.15,.014,6,18),mt);fr.rotation.x=Math.PI/2;fr.position.set(0,.32,0);g.add(fr);obs.push({x,z,r:.28});
+  mod('banco_barra',{pos:[x,0,z],rot:i*1.7,esc:1.15},g)}
  // banco de madera (volteado = encima de una mesa cerrada)
  const tab=(x,z,flip,y0)=>{const g=new THREE.Group();g.position.set(x,flip?y0+.78:0,z);if(flip)g.rotation.set(Math.PI,Math.random()*3,0);S.add(g);
-  cyl(.2,.19,.06,wdS,0,.75,0,g,16);for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.6;cyl(.022,.028,.75,wdS,Math.cos(a)*.14,.375,Math.sin(a)*.14,g,6)}if(!flip)obs.push({x,z,r:.25})};
- // lámpara colgante sobre cada mesa (en calidad Media se apaga la luz, el foco sigue)
- const lamp=(x,z)=>{const y=2.75;cyl(.006,.006,HT-y,std(0x111111,.6),x,(HT+y)/2,z,S,6);
+  cyl(.2,.19,.06,wdS,0,.75,0,g,16);for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.6;cyl(.022,.028,.75,wdS,Math.cos(a)*.14,.375,Math.sin(a)*.14,g,6)}if(!flip)obs.push({x,z,r:.25});return g};
+ // lámpara colgante sobre cada mesa (en calidad Media se apaga la luz, el foco sigue); el modelo cuelga del techo
+ const lamp=(x,z)=>{const y=2.75,c=cyl(.006,.006,HT-y,std(0x111111,.6),x,(HT+y)/2,z,S,6);
   const sh=new THREE.Mesh(new THREE.CylinderGeometry(.1,.4,.28,24,1,true),std(0x23402a,.5,{side:THREE.DoubleSide,metalness:.3}));sh.position.set(x,y,z);S.add(sh);
-  const b=new THREE.Mesh(new THREE.SphereGeometry(.06,12,8),new THREE.MeshBasicMaterial({color:0xfff0c8}));b.position.set(x,y-.12,z);S.add(b);
-  const L=new THREE.PointLight(0xffd9a0,9,6.5,1.6);L.position.set(x,y-.2,z);S.add(L);lamps.push(L)};
+  const b=new THREE.Mesh(new THREE.SphereGeometry(.06,12,8),new THREE.MeshBasicMaterial({color:0xfff0c8}));b.position.set(x,y-.06,z);S.add(b);
+  const L=new THREE.PointLight(0xffd9a0,9,6.5,1.6);L.position.set(x,y-.2,z);S.add(L);lamps.push(L);mod('lampara_industrial',{pos:[x,HT-.02,z],rot:x,esc:.95,sombra:false},[c,sh])};
  // dos mesitas de la cantina con sus bancos y su lámpara
- [[-11.2,2.5],[-7.9,2.9]].forEach(([x,z],k)=>{cyl(.55,.55,.05,tp,x,1.03,z,S,28);cyl(.06,.08,1,wd2,x,.5,z,S,10);cyl(.36,.4,.04,wd2,x,.02,z,S,20);
-  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.4+k;tab(x+Math.cos(a)*.95,z+Math.sin(a)*.95,false)}
+ [[-11.2,2.5],[-7.9,2.9]].forEach(([x,z],k)=>{const g=grp(x,z);cyl(.55,.55,.05,tp,0,1.03,0,g,28);cyl(.06,.08,1,wd2,0,.5,0,g,10);cyl(.36,.4,.04,wd2,0,.02,0,g,20);mod('mesa_cantina',{pos:[x,0,z],rot:k,esc:1.4},g);
+  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.4+k,sx=x+Math.cos(a)*.95,sz=z+Math.sin(a)*.95;mod('banquito',{pos:[sx,0,sz],rot:-a,esc:1.3,listo:tinto},tab(sx,sz,false))}
   [[.15,.1],[-.2,-.12]].forEach(([dx,dz])=>{const v=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.13,12),gl);v.position.set(x+dx,1.12,z+dz);S.add(v)});obs.push({x,z,r:.6});lamp(x,z)});
+ // barriles, una caja, la diana y el reloj (solo modelo)
+ mod('barril',{pos:[-13.35,0,-2.35],rot:.4,esc:1.25});mod('barril',{pos:[-7,0,4.55],rot:2,esc:1.25});mod('caja_madera',{pos:[-5.95,0,4.75],rot:Math.PI/2+.12,esc:1.2});
+ obs.push({x:-13.35,z:-2.35,r:.5},{x:-7,z:4.55,r:.5},{x:-5.95,z:4.75,r:.6});
+ mod('diana',{pos:[-13.84,2.05,-2.1],rot:Math.PI/2,esc:1.4});mod('reloj',{pos:[-13.84,2.8,3.75],rot:Math.PI/2,esc:1.5});
  // luz suave para caminar con la cámara de arriba (en la partida se apaga: ahí manda el foco)
  walkL=new THREE.HemisphereLight(0xffe2c0,0x2a1a10,.95);walkL.visible=false;S.add(walkL)}
 function modo(m){if(walkL)walkL.visible=m!=='juego';if(F)F.TB[0].ring.visible=m!=='juego'}   // en la partida no se ve el aro de "acércate"
@@ -72,7 +84,7 @@ function piso(){if(F)return F;const r=ok()&&RRU.piso();if(!r){bad=true;return nu
  // el Cubilete: su mesita en la punta de la barra (las reglas viajan en /casa, c_cubilete3d.js)
  if(window.CUB3)CUB3.build({THREE,SC:S,hits,OB,std:H.std,cyl:H.cyl,ctex:H.ctex,TH:r.TH,x:-5.6,z:-3.5});
  F={id:'sot',SC:S,TB:[{g:'ruleta',x:0,z:0,r:r.TBR,chairs:[],ring}],OB,hits,links:[lk],bx:[r.XL+.8,W-.8,-W+.8,W-.8],cb:[r.XL,W,-W,W],k:1,
-  tm:THREE.ACESFilmicToneMapping,tx:1.1,spawn:()=>({x:W-1.6,z:-3.9,yaw:-Math.PI*.6}),enter:fp=>r.modo(fp?'1p':'casa'),WL:sal?sal.WL:[],step:sal?(now,dt)=>{r.step(now,dt);sal.step(now,dt)}:r.step};
+  tm:THREE.ACESFilmicToneMapping,tx:1.1,spawn:()=>({x:W-1.6,z:-3.9,yaw:-Math.PI*.6}),enter:fp=>r.modo(fp?'1p':'casa'),WL:sal?sal.WL:[],step:(now,dt)=>{r.step(now,dt);if(sal)sal.step(now,dt);modTick()}};
  return F}
 
 // ---------- "tu lugar te espera": te levantaste de una partida y un bot juega por ti 2 minutos ----------

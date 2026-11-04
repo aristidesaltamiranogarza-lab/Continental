@@ -1,6 +1,91 @@
 {
- "version": "modelos-v1",
+ "version": "modelos-v2",
  "modelos": {
+  "banco_barra": {
+   "fuente": "Poly Haven · bar_chair_round_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/bar_chair_round_01",
+   "hd": {
+    "archivo": "hd/banco_barra.glb",
+    "h": "785113752a",
+    "kb": 1053
+   },
+   "medio": {
+    "archivo": "medio/banco_barra.glb",
+    "h": "cdd90c95e7",
+    "kb": 372
+   },
+   "original_kb": 6983
+  },
+  "banquito": {
+   "fuente": "Poly Haven · painted_wooden_stool",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/painted_wooden_stool",
+   "hd": {
+    "archivo": "hd/banquito.glb",
+    "h": "5082e25fcc",
+    "kb": 726
+   },
+   "medio": {
+    "archivo": "medio/banquito.glb",
+    "h": "9f1671d72f",
+    "kb": 88
+   },
+   "original_kb": 6546
+  },
+  "barril": {
+   "fuente": "Poly Haven · wine_barrel_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/wine_barrel_01",
+   "hd": {
+    "archivo": "hd/barril.glb",
+    "h": "192aa4be18",
+    "kb": 881
+   },
+   "medio": {
+    "archivo": "medio/barril.glb",
+    "h": "29afbe025d",
+    "kb": 147
+   },
+   "original_kb": 2178
+  },
+  "caja_madera": {
+   "fuente": "Poly Haven · wooden_crate_02",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/wooden_crate_02",
+   "hd": {
+    "archivo": "hd/caja_madera.glb",
+    "h": "4412f65309",
+    "kb": 980
+   },
+   "medio": {
+    "archivo": "medio/caja_madera.glb",
+    "h": "8949faddc5",
+    "kb": 114
+   },
+   "original_kb": 7965
+  },
+  "diana": {
+   "fuente": "Poly Haven · dartboard",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/dartboard",
+   "hd": {
+    "archivo": "hd/diana.glb",
+    "h": "96a4a0d147",
+    "kb": 2333
+   },
+   "medio": {
+    "archivo": "medio/diana.glb",
+    "h": "e15beedd3b",
+    "kb": 180
+   },
+   "original_kb": 11137
+  },
   "jarron": {
    "fuente": "Poly Haven · antique_ceramic_vase_01",
    "licencia": "CC0",
@@ -18,6 +103,23 @@
    },
    "original_kb": 1136
   },
+  "lampara_industrial": {
+   "fuente": "Poly Haven · hanging_industrial_lamp",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/hanging_industrial_lamp",
+   "hd": {
+    "archivo": "hd/lampara_industrial.glb",
+    "h": "e99041e066",
+    "kb": 1681
+   },
+   "medio": {
+    "archivo": "medio/lampara_industrial.glb",
+    "h": "ff68b13c60",
+    "kb": 181
+   },
+   "original_kb": 11691
+  },
   "mecedora": {
    "fuente": "Poly Haven · Rockingchair_01",
    "licencia": "CC0",
@@ -34,6 +136,23 @@
     "kb": 129
    },
    "original_kb": 1767
+  },
+  "mesa_cantina": {
+   "fuente": "Poly Haven · round_wooden_table_02",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/round_wooden_table_02",
+   "hd": {
+    "archivo": "hd/mesa_cantina.glb",
+    "h": "36bcde4d03",
+    "kb": 727
+   },
+   "medio": {
+    "archivo": "medio/mesa_cantina.glb",
+    "h": "0bf1259a12",
+    "kb": 93
+   },
+   "original_kb": 6604
   },
   "mesita": {
    "fuente": "Poly Haven · side_table_01",
@@ -68,6 +187,23 @@
     "kb": 393
    },
    "original_kb": 4760
+  },
+  "reloj": {
+   "fuente": "Poly Haven · wall_clock",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/wall_clock",
+   "hd": {
+    "archivo": "hd/reloj.glb",
+    "h": "d0673cb6e7",
+    "kb": 394
+   },
+   "medio": {
+    "archivo": "medio/reloj.glb",
+    "h": "0730f36a28",
+    "kb": 79
+   },
+   "original_kb": 4786
   },
   "sillon": {
    "fuente": "Poly Haven · ArmChair_01",
