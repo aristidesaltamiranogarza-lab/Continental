@@ -309,7 +309,7 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q
 // Ratón: arrastrar (izquierdo o derecho) = mover la cámara; clic de rueda o Shift + clic derecho = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar = mover; dos dedos = pellizcar para zoom, girarlos para rotar, subirlos o bajarlos juntos para inclinar
 // qué etiqueta le toca a lo que señalas (mesa, puerta, cubilete, Conecta 4, backgammon)
-const hk=h=>h&&(h.t=='table'?h.g:/^(cub|c4|bg)$/.test(h.t)?h.t:null);
+const hk=h=>h&&(h.t=='table'?h.g:/^(cub|c4|bg)$/.test(h.t)?h.t:h.t=='fn'&&h.g?h.g:null);   // fn con g: mesas de próximamente del sótano (c_sotano_salon.js)
 function pick(e){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
  const h=ray.intersectObjects(hits,false);if(h.length)return h[0].object.userData.hit;const p=ray.ray.intersectPlane(FLOOR,v3(0,0,0));return p?{t:'floor',p}:null}
 function pDown(e){if(!active())return;if(window.CCAM)CCAM.cut();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
@@ -389,7 +389,7 @@ function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+
   el.style.display=vis&&!afuera?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
 // tamaño, transparencia y empalmes de todas las etiquetas (c_etiquetas.js)
 function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(center(VW))||1,tb=$id('uiTop');
- ETQ.step({y0:tb?tb.getBoundingClientRect().bottom+4:0,ratio:g=>{const a=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z}:window.JG3&&JG3.P&&JG3.P[g]);return a?Math.hypot(cp.x-a.x,cp.y-TH,cp.z-a.z)/ref:1}})}
+ ETQ.step({y0:tb?tb.getBoundingClientRect().bottom+4:0,ratio:g=>{const a=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z}:window.JG3&&JG3.P&&JG3.P[g]||window.SAL&&SAL.P[g]);return a?Math.hypot(cp.x-a.x,cp.y-TH,cp.z-a.z)/ref:1}})}
 
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}

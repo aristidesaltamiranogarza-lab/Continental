@@ -1,5 +1,6 @@
 // Sótano: el piso de abajo de la casa. Es el mismo cuarto de la Ruleta Rusa (c_ruleta3d.js), agrandado hacia la izquierda con una cantina:
-// barra con botellas y bancos, el Cubilete en la punta de la barra, letrero de neón y las mesas que vienen (Poker y Blackjack, cerradas: con los bancos volteados encima).
+// barra con botellas y bancos, el Cubilete en la punta de la barra, letrero de neón y dos mesitas; pasando el arco, el casino y el billar
+// (c_sotano_salon.js: Póker, Blackjack y mesa de billar, "próximamente").
 // c_casa3d.js lo usa como piso (SOT.piso): escena, mesas, obstáculos, cosas que se tocan, límites y la escalera para subir.
 // Solo se arma la primera vez que bajas (o que juegas Ruleta). También el aviso "tu lugar te espera" cuando te levantas de una partida
 // (casa_seat en localStorage, lo guarda c_ruleta3d.js).
@@ -12,7 +13,7 @@ function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,T
  const box=(w,h,dd,m,x,y,z,p)=>H.box(w,h,dd,m,x,y,z,p||S),cyl=(a,b,h,m,x,y,z,p,n)=>H.cyl(a,b,h,m,x,y,z,p||S,n);
  const wd=std(0x3b2414,.55),wd2=std(0x2a180c,.6),tp=std(0x6a3e1e,.28),brass=std(0xc9a24a,.3,{metalness:.85}),felt=std(0x1f6a3a,.95),wdS=std(0x5a3a22,.8);
  // la barra, contra la pared del fondo, con su tubo de latón para los pies
- const x0=XL+.9,x1=-7.2,bc=(x0+x1)/2,bl=x1-x0,bz=-W+1.25;
+ const x0=-13.1,x1=-7.2,bc=(x0+x1)/2,bl=x1-x0,bz=-W+1.25;
  box(bl,1.08,.62,wd,bc,.54,bz);box(bl+.2,.07,.82,tp,bc,1.115,bz+.02);for(let x=x0+.4;x<x1;x+=1.2)box(.06,.9,.04,wd2,x,.5,bz+.32);
  const rail=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,bl,10),brass);rail.rotation.z=Math.PI/2;rail.position.set(bc,.24,bz+.45);S.add(rail);
  for(let x=x0+.3;x<=x1;x+=.9)obs.push({x,z:bz,r:.5});
@@ -42,25 +43,10 @@ function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,T
   const sh=new THREE.Mesh(new THREE.CylinderGeometry(.1,.4,.28,24,1,true),std(0x23402a,.5,{side:THREE.DoubleSide,metalness:.3}));sh.position.set(x,y,z);S.add(sh);
   const b=new THREE.Mesh(new THREE.SphereGeometry(.06,12,8),new THREE.MeshBasicMaterial({color:0xfff0c8}));b.position.set(x,y-.12,z);S.add(b);
   const L=new THREE.PointLight(0xffd9a0,9,6.5,1.6);L.position.set(x,y-.2,z);S.add(L);lamps.push(L)};
- // pizarrón de "próximamente" junto a cada mesa
- const pizarra=(k,t1,x,z,ry)=>{const tx=H.ctex('pizarra-'+k,256,320,(g,w,h)=>{g.fillStyle='#5a3a1e';g.fillRect(0,0,w,h);g.fillStyle='#1d2420';g.fillRect(14,14,w-28,h-28);g.textAlign='center';
-   g.fillStyle='#f2efe6';g.font='bold 44px "Segoe UI",Arial,sans-serif';g.fillText(t1,w/2,125);g.fillStyle='#e9d9a0';g.font='28px "Segoe UI",Arial,sans-serif';g.fillText('Próximamente',w/2,195);
-   g.strokeStyle='rgba(242,239,230,.6)';g.lineWidth=3;g.beginPath();g.moveTo(50,228);g.lineTo(w-50,228);g.stroke()});
-  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;S.add(g);const b=new THREE.Mesh(new THREE.PlaneGeometry(.62,.78),std(0xffffff,.9,{map:tx}));b.position.set(0,.8,.03);b.rotation.x=-.16;b.castShadow=true;g.add(b);
-  [-1,1].forEach(s=>{box(.04,1.25,.04,wd2,s*.3,.6,-.06,g).rotation.x=.25});obs.push({x,z,r:.4})};
- // Poker: mesa ovalada
- const PX=-10.4,PZ=1.9,pk=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.1,44),felt);pk.scale.set(1.55,1,1);pk.position.set(PX,TH-.05,PZ);pk.castShadow=pk.receiveShadow=true;S.add(pk);
- const prim=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,44),std(0x4a2814,.4));prim.rotation.x=Math.PI/2;prim.scale.set(1.55,1,1);prim.position.set(PX,TH-.02,PZ);prim.castShadow=true;S.add(prim);
- cyl(.28,.36,TH-.12,wd,PX,(TH-.12)/2,PZ,S,16);cyl(.8,.9,.08,wd,PX,.04,PZ,S,24);
- for(let i=0;i<6;i++){const a=i/6*Math.PI*2+.3;tab(PX+Math.cos(a)*2.25,PZ+Math.sin(a)*1.7,false)}tab(PX-.6,PZ,true,TH);tab(PX+.65,PZ+.1,true,TH);
- obs.push({x:PX-1,z:PZ,r:1.3},{x:PX+1,z:PZ,r:1.3});lamp(PX,PZ);pizarra('poker','♠ Poker',PX-2.3,PZ+2.1,.35);
- // Blackjack: media luna, el lado del crupier hacia la pared del fondo
- const BX=-6.5,BZ=2.5,bj=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,.1,40,1,false,-Math.PI/2,Math.PI),felt);bj.position.set(BX,TH-.05,BZ);bj.castShadow=bj.receiveShadow=true;S.add(bj);
- box(2.6,.12,.06,wd,BX,TH-.05,BZ-.02);const brim=new THREE.Mesh(new THREE.TorusGeometry(1.3,.07,8,32,Math.PI),std(0x4a2814,.4));brim.rotation.x=Math.PI/2;brim.position.set(BX,TH-.02,BZ);S.add(brim);
- cyl(.25,.32,TH-.12,wd,BX,(TH-.12)/2,BZ+.5,S,16);cyl(.7,.8,.08,wd,BX,.04,BZ+.5,S,24);
- [[0xa3302a,.1],[0x1c1c1c,.14],[0x2a6db0,.07]].forEach(([c,h],i)=>cyl(.035,.035,h,std(c,.5),BX-.25+i*.12,TH+h/2,BZ+.12,S,14));
- for(let i=0;i<3;i++){const a=Math.PI*(.2+i*.3);tab(BX+Math.cos(a)*1.95,BZ+Math.sin(a)*1.95,false)}tab(BX+.3,BZ+.55,true,TH);
- obs.push({x:BX,z:BZ+.5,r:1.35});lamp(BX,BZ+.4);pizarra('blackjack','♥ Blackjack',BX+1.9,BZ-1,-.2);
+ // dos mesitas de la cantina con sus bancos y su lámpara
+ [[-11.2,2.5],[-7.9,2.9]].forEach(([x,z],k)=>{cyl(.55,.55,.05,tp,x,1.03,z,S,28);cyl(.06,.08,1,wd2,x,.5,z,S,10);cyl(.36,.4,.04,wd2,x,.02,z,S,20);
+  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.4+k;tab(x+Math.cos(a)*.95,z+Math.sin(a)*.95,false)}
+  [[.15,.1],[-.2,-.12]].forEach(([dx,dz])=>{const v=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.13,12),gl);v.position.set(x+dx,1.12,z+dz);S.add(v)});obs.push({x,z,r:.6});lamp(x,z)});
  // luz suave para caminar con la cámara de arriba (en la partida se apaga: ahí manda el foco)
  walkL=new THREE.HemisphereLight(0xffe2c0,0x2a1a10,.95);walkL.visible=false;S.add(walkL)}
 function modo(m){if(walkL)walkL.visible=m!=='juego';if(F)F.TB[0].ring.visible=m!=='juego'}   // en la partida no se ve el aro de "acércate"
@@ -77,6 +63,8 @@ function piso(){if(F)return F;const r=ok()&&RRU.piso();if(!r){bad=true;return nu
  const H=window.CASA3D,up=H.ctex('sign-subir',512,128,(g,w,h)=>{g.fillStyle='#1a0c0a';H.rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#c98a3a';g.lineWidth=6;H.rr(g,10,10,w-20,h-20,14);g.stroke();
   g.font='bold 46px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f3dcb0';g.fillText('⬆ Subir a la casa',w/2,h/2+3)});
  const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:up,toneMapped:false}));sg.position.set(W-.07,2.62,-2.4);sg.rotation.y=-Math.PI/2;S.add(sg);
+ // el salón de atrás (c_sotano_salon.js): casino, billar, rockola; trae sus muros (WL), obstáculos y su paso por cuadro
+ let sal=null;if(window.SAL)try{sal=SAL.build({S,hits,HT:r.HT,W,XL:r.XL,TH:r.TH});if(sal)obs.push(...sal.OB)}catch(er){console.error('[SAL]',er);sal=null}
  // obstáculos: sillas de la Ruleta, cajas y cosas tiradas del cuarto, y lo de la cantina
  const OB=obs.concat(r.chairs.map((c,i)=>{const p=r.spos(i);return {x:p.x,z:p.z,r:.5}}),[{x:-W+.6,z:-W+.6,r:.75},{x:-W+1.65,z:-W+.55,r:.55},{x:-W+.7,z:W-.8,r:.35},{x:-W+1.6,z:W-.6,r:.45},{x:W-1,z:W-1.1,r:.7}]);
  // el plano de la casa junto a la puerta (c_casa_esc.js): tocarlo abre el 🧭
@@ -84,7 +72,7 @@ function piso(){if(F)return F;const r=ok()&&RRU.piso();if(!r){bad=true;return nu
  // el Cubilete: su mesita en la punta de la barra (las reglas viajan en /casa, c_cubilete3d.js)
  if(window.CUB3)CUB3.build({THREE,SC:S,hits,OB,std:H.std,cyl:H.cyl,ctex:H.ctex,TH:r.TH,x:-5.6,z:-3.5});
  F={id:'sot',SC:S,TB:[{g:'ruleta',x:0,z:0,r:r.TBR,chairs:[],ring}],OB,hits,links:[lk],bx:[r.XL+.8,W-.8,-W+.8,W-.8],cb:[r.XL,W,-W,W],k:1,
-  tm:THREE.ACESFilmicToneMapping,tx:1.1,spawn:()=>({x:W-1.6,z:-3.9,yaw:-Math.PI*.6}),enter:fp=>r.modo(fp?'1p':'casa'),step:r.step};
+  tm:THREE.ACESFilmicToneMapping,tx:1.1,spawn:()=>({x:W-1.6,z:-3.9,yaw:-Math.PI*.6}),enter:fp=>r.modo(fp?'1p':'casa'),WL:sal?sal.WL:[],step:sal?(now,dt)=>{r.step(now,dt);sal.step(now,dt)}:r.step};
  return F}
 
 // ---------- "tu lugar te espera": te levantaste de una partida y un bot juega por ti 2 minutos ----------
