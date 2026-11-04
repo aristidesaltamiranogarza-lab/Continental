@@ -51,9 +51,17 @@ function bajar(u){return fetch(u).then(r=>{if(!r.ok)throw Error(r.status);return
 function toma(v){const u=urlDe(PROPIO,v);let c=CACHE.get(u);
  if(!c){c={n:0,gl:null,b:0};CACHE.set(u,c);ST.carg++;
   c.p=Promise.all([cargador(),bajar(urlDe(base,v)).catch(e=>{if(base===PROPIO)throw e;console.warn('[CGLB] jsDelivr falló, uso el servidor',e);base=PROPIO;return bajar(u)})])
-   .then(([L,buf])=>{c.b=buf.byteLength;ST.bytes+=c.b;return new Promise((ok,no)=>L.parse(buf,'',ok,no))})
+   .then(([L,buf])=>{c.b=buf.byteLength;ST.bytes+=c.b;return new Promise((ok,no)=>L.parse(buf,'',ok,no))}).then(sube)
    .then(gl=>{c.gl=gl;ST.ok++;ST.carg--;if(c.n<=0)suelta(u,true);return gl},e=>{ST.err++;ST.carg--;ST.bytes-=c.b;CACHE.delete(u);throw e})}
  c.n++;return{u,p:c.p}}
+// sin tirones: las texturas suben a la tarjeta de una por cuadro y los shaders se compilan en paralelo antes de que el modelo aparezca
+const cuadro=()=>new Promise(ok=>{requestAnimationFrame(()=>ok());setTimeout(ok,120)});
+const rend=()=>window.CASA3D&&CASA3D.R&&CASA3D.R();let CAM=null;
+async function sube(gl){const R=rend();if(!R||!R.initTexture)return gl;const ts=new Set();
+ gl.scene.traverse(x=>{if(x.isMesh)[].concat(x.material).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture)ts.add(t)}})});
+ for(const t of ts){await cuadro();try{R.initTexture(t)}catch(e){}}return gl}
+async function precompila(o,g){const R=rend();if(!R||!R.compileAsync)return;let r=g;while(r.parent)r=r.parent;
+ try{await Promise.race([R.compileAsync(o,CAM||(CAM=new THREE.PerspectiveCamera()),r===o?null:r),espera(4000)])}catch(e){}}
 function libera(o){o.traverse(x=>{if(x.geometry)x.geometry.dispose();[].concat(x.material||[]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture)t.dispose()}m.dispose()})})}
 function suelta(u,ya){const c=CACHE.get(u);if(!c)return;if(!ya)c.n--;if(c.n>0||!c.gl)return;CACHE.delete(u);ST.bytes-=c.b;libera(c.gl.scene)}
 
@@ -83,18 +91,21 @@ function falsa(o,L){if(L.o.sombra===false||L.o.falsa===false)return;const g=L.g,
  const S=mancha(),m=new THREE.Mesh(S.g,S.m);T.b.getSize(T.v);m.scale.set(T.v.x*1.3,1,T.v.z*1.3);
  m.position.set((T.b.min.x+T.b.max.x)/2,y+.012/sy,(T.b.min.z+T.b.max.z)/2);m.name='sombra';m.renderOrder=-1;o.add(m)}
 // copias del mismo modelo (y todas las manchas) del piso en una sola llamada; las piezas originales se esconden pero se quedan en su lugar
-const INS=[],OCU=[];let jT=0;
-function deshaz(){clearTimeout(jT);INS.forEach(m=>{if(m.parent)m.parent.remove(m);m.dispose()});OCU.forEach(x=>x.visible=true);INS.length=OCU.length=0}
+const INS=[],OCU=[];let jT=0,jN=0;
+function deshaz(){jN++;clearTimeout(jT);INS.forEach(m=>{if(m.parent)m.parent.remove(m);m.dispose()});OCU.forEach(x=>x.visible=true);INS.length=OCU.length=0}
 function pideJunta(){clearTimeout(jT);jT=setTimeout(junta,300)}
 const vis=(x,h)=>{for(;x&&x!==h;x=x.parent)if(!x.visible)return false;return true};
-function junta(){deshaz();const P=new Map(),T=tmp();
+async function junta(){deshaz();const n=jN,P=new Map(),T=tmp(),H=[];
  (LUG[piso]||[]).forEach(L=>{if(!L.obj||L.o.inst===false||!vis(L.g))return;let r=L.g;while(r.parent)r=r.parent;if(r===L.g)return;
   L.obj.traverse(x=>{if(!x.isMesh||x.isInstancedMesh||x.isSkinnedMesh||x.morphTargetInfluences||!vis(x,L.g))return;
    const k=r.uuid+x.geometry.uuid+[].concat(x.material).map(m=>m.uuid).join();let e=P.get(k);if(!e)P.set(k,e={r,x:[]});e.x.push(x)})});
  const rs=new Set();P.forEach(e=>{if(e.x.length>1&&!rs.has(e.r)){rs.add(e.r);e.r.updateMatrixWorld(true)}});
  P.forEach(e=>{if(e.x.length<2)return;const a=e.x[0],m=new THREE.InstancedMesh(a.geometry,a.material,e.x.length);T.m.copy(e.r.matrixWorld).invert();
-  e.x.forEach((x,i)=>{m.setMatrixAt(i,T.m2.multiplyMatrices(T.m,x.matrixWorld));x.visible=false;OCU.push(x)});
-  m.castShadow=a.castShadow;m.receiveShadow=a.receiveShadow;m.renderOrder=a.renderOrder;m.name='glb:copias';m.computeBoundingSphere();e.r.add(m);INS.push(m)})}
+  e.x.forEach((x,i)=>m.setMatrixAt(i,T.m2.multiplyMatrices(T.m,x.matrixWorld)));
+  m.castShadow=a.castShadow;m.receiveShadow=a.receiveShadow;m.renderOrder=a.renderOrder;m.name='glb:copias';m.computeBoundingSphere();H.push([e.r,m,e.x])});
+ if(!H.length)return;const tg=new THREE.Group();H.forEach(h=>tg.add(h[1]));await precompila(tg,H[0][0]);   // las instancias usan otro shader
+ if(n!==jN){H.forEach(h=>h[1].dispose());return}
+ H.forEach(([r,m,xs])=>{r.add(m);INS.push(m);xs.forEach(x=>{x.visible=false;OCU.push(x)})})}
 
 // ---------- lugares ----------
 function vacia(L){L.t++;if(L.obj){deshaz();L.g.remove(L.obj);L.obj=null;pideJunta()}if(L.u){suelta(L.u);L.u=null}L.v=null}
@@ -109,9 +120,11 @@ async function llena0(L){const q=cal();if(q==='ligero'||L.piso!==piso)return vac
   if(t!==L.t||hd&&SIN){suelta(k.u);return}   // cambió el piso o la calidad mientras bajaba, o se acabó la memoria
   const o=gl.scene.clone(true),sb=L.o.sombra!==false&&q==='completo';
   o.traverse(x=>{if(x.isMesh){x.castShadow=sb;x.receiveShadow=q==='completo'}});
+  if(q==='medio')falsa(o,L);
+  await precompila(o,L.g);if(t!==L.t||hd&&SIN){suelta(k.u);return}
   deshaz();if(L.obj)L.g.remove(L.obj);if(L.u)suelta(L.u);L.obj=o;L.u=k.u;L.v=v;L.g.add(o);
   if(L.o.listo)try{L.o.listo(o,v)}catch(e){console.error(e)}
-  if(q==='medio')falsa(o,L);pideJunta();
+  pideJunta();
   if(hd){const M=performance.memory;if(M&&M.usedJSHeapSize>M.jsHeapSizeLimit*.9)bajaHD('memoria de JS al 90 %')}}}
 
 // pon(piso, nombre, opciones): grupo vacío al momento (ponlo en la escena) que se llena cuando el modelo baja

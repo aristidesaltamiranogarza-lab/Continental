@@ -15,10 +15,13 @@ function css(){if(document.getElementById('cmed-css'))return;const s=document.cr
 const f1=x=>(Math.round(x*10)/10).toFixed(1),k=n=>n>=1e6?f1(n/1e6)+' M':n>=1e3?f1(n/1e3)+' k':String(n),seg=ms=>ms?f1(ms/1000):'—';
 // tiempos de primera carga (desde que se abrió la página): página cargada y primera imagen de la casa; se miden aunque el medidor esté apagado
 let t1=0;const n0=Date.now();(function mira(){const R=window.CASA3D&&CASA3D.R&&CASA3D.R(),r=R&&R.info&&R.info.render;if(r&&(r.frame||r.calls)){t1=performance.now();return}if(Date.now()-n0<18e4)requestAnimationFrame(mira)})();
+let GPU='';const gpu=R=>{if(GPU)return GPU;try{const g=R.getContext(),e=g.getExtension('WEBGL_debug_renderer_info');
+ GPU=String(e?g.getParameter(e.UNMASKED_RENDERER_WEBGL):g.getParameter(g.RENDERER)).replace(/^ANGLE \([^,]*,\s*/,'').replace(/\s*\(0x[0-9a-f]+\)/i,'').replace(/\s*(Direct3D|OpenGL|Vulkan|Metal).*$/i,'').replace(/,.*$/,'').slice(0,40)}catch(e){GPU='?'}return GPU};
 const nav=()=>{const e=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];return e&&e.loadEventEnd||0};
 function pinta(fps){const R=window.CASA3D&&CASA3D.R&&CASA3D.R(),I=R&&R.info,M=performance.memory,G=window.CGLB&&CGLB.info();
  let h='<div><b class="'+(fps<30?'m-mal':'')+'">'+fps+'</b> <i>fps · peor</i> '+Math.round(peor)+' <i>ms</i></div>';
  if(I)h+='<div>'+I.render.calls+' <i>llamadas ·</i> '+k(I.render.triangles)+' <i>triáng.</i></div><div>'+I.memory.geometries+' <i>geom. ·</i> '+I.memory.textures+' <i>texturas</i></div>';
+ if(R){const X=window.RES&&RES.info();h+='<div>'+R.getPixelRatio()+' <i>px ·</i> '+R.domElement.width+'×'+R.domElement.height+(X&&X.tope?' <i>(auto)</i>':'')+'</div><div><i>'+gpu(R)+'</i></div>'}
  if(M)h+='<div>'+Math.round(M.usedJSHeapSize/1048576)+' <i>de</i> '+Math.round(M.jsHeapSizeLimit/1048576)+' <i>MB de JS</i></div>';
  if(G)h+='<div>'+G.puestos+' <i>modelos ('+G.hd+' HD) ·</i> '+f1(G.mb)+' <i>MB</i></div><div><i>'+G.calidad+' · '+G.origen+(G.cargando?' · bajando '+G.cargando:'')+(G.errores?' · '+G.errores+' errores':'')+'</i></div>';
  h+='<div>'+seg(nav())+' <i>s página ·</i> '+seg(t1)+' <i>s 1ª imagen</i></div>';
