@@ -70,7 +70,7 @@ function ventilador(){const g=new THREE.Group();g.position.set(3.7,0,-1.8);g.rot
  FAN={h,bl}}
 // ---------- foquitos colgados de la casa a la barda (se encienden uno por uno al anochecer) ----------
 function foquitos(){const wire=new THREE.LineBasicMaterial({color:0x222018}),soc=std(0x2a2a2a,.6),bg=new THREE.SphereGeometry(.055,10,8),sg=new THREE.CylinderGeometry(.022,.022,.05,8);
- [[v3(-4.2,3.7,7.3),v3(-3,3.1,-7.3)],[v3(0,3.9,7.3),v3(0,3.2,-7.3)],[v3(4.2,3.7,7.3),v3(3,3.1,-7.3)],[v3(-8.3,2.9,-2),v3(8.3,2.9,-2.6)]].forEach(([a,b])=>{
+ [[v3(-4.2,3.7,7.3),v3(-3,3.1,-7.3)],[v3(4.2,3.7,7.3),v3(3,3.1,-7.3)],[v3(-8.3,2.9,-2),v3(8.3,2.9,-2.6)]].forEach(([a,b])=>{
   const at=t=>{const p=a.clone().lerp(b,t);p.y-=.7*4*t*(1-t);return p},pts=[];for(let i=0;i<=40;i++)pts.push(at(i/40));G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),wire));
   for(let i=1;i<14;i++){const p=at(i/14),m=std(0xfff1cf,.4,{emissive:0xffc46a,emissiveIntensity:0});add(bg,m,p.x,p.y-.07,p.z,G0,false);add(sg,soc,p.x,p.y-.01,p.z,G0,false);BULBS.push({m,d:BULBS.length*.55+rnd(0,.5)})}});
  WARM=[v3(0,3,1.2),v3(0,3,-1.6)].map(p=>{const l=new THREE.PointLight(0xffc27a,0,10,1.8);l.position.copy(p);G0.add(l);return l})}
