@@ -71,7 +71,7 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
    sh.moveTo(l-m,0);sh.lineTo(l-m,tp);if(h.arco)sh.absarc(hh.c,tp,h.w/2+m,Math.PI,0,true);else{sh.lineTo(l-m,tp+m);sh.lineTo(r+m,tp+m)}sh.lineTo(r+m,0);sh.lineTo(r,0);sh.lineTo(r,tp);
    if(h.arco)sh.absarc(hh.c,tp,h.w/2,0,Math.PI,false);else sh.lineTo(l,tp);sh.lineTo(l,0);sh.closePath();
    const ge=new THREE.ExtrudeGeometry(sh,{depth:T+.04,bevelEnabled:false,curveSegments:20});ge.translate(0,0,-T-.02);
-   const G=grp(ia.p.x,ia.p.z,ia.g.rotation.y);G.add(new THREE.Mesh(ge,MARCO));RG.push({g:G,a:CORTE.indexOf(ia),b:CORTE.indexOf(ib)})})}
+   const G=grp(ia.p.x,ia.p.z,ia.g.rotation.y);G.add(new THREE.Mesh(ge,MARCO));RG.push({g:G,a:CORTE.indexOf(ia),b:CORTE.indexOf(ib)})});return {fa,fb}}
  function techo(x0,x1,z0,z1,vx){const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),TECHO);c.rotation.x=Math.PI/2;c.position.set((x0+x1)/2,H,(z0+z1)/2);SC.add(c);
   // vigas a lo largo de x (vx) o de z
   if(vx)for(let z=z0+1.2;z<z1-.6;z+=2.4)B(x1-x0,.42,.32,VIGA,(x0+x1)/2,H-.21,z,VIG).castShadow=false;
@@ -83,8 +83,8 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  ext('z',-17,1,-15,11,S);ext('z',17,-1,-15,11,S);
  tabique('x',-15.15,1,[[-17,17,S]],[[-17,-1,CO],[-1,17,K]],[{at:-9.5,w:4,h:5.8,arco:1},{at:6,w:2.2,h:3.6}]);
  tabique('x',11.15,-1,[[-17,17,S]],[[-4.5,4.5,Z]],[{at:0,w:4.2,h:6.4,arco:1}]);
- ext('z',-4.5,1,11.3,19,Z);ext('z',4.5,-1,11.3,19,Z);ext('x',19,-1,-4.5,4.5,Z);
- ext('z',-17,1,-25,-15.3,CO);ext('x',-25,1,-17,-1.15,CO);ext('x',-25,1,-.85,12,K);ext('x',-25,1,12.3,17,BA);ext('z',17,-1,-25,-19.65,BA);ext('z',17,-1,-19.35,-15.3,K);
+ ext('z',-4.5,1,11.3,19,Z);ext('z',4.5,-1,11.3,19,Z);if(!window.CCALLE)ext('x',19,-1,-4.5,4.5,Z);   // con la calle, el muro del frente (y su fachada) lo pone c_casa_calle.js
+ ext('z',-17,1,-25,-15.3,CO);if(!window.CPAT){ext('x',-25,1,-17,-1.15,CO);ext('x',-25,1,-.85,12,K);ext('x',-25,1,12.3,17,BA)}ext('z',17,-1,-25,-19.65,BA);ext('z',17,-1,-19.35,-15.3,K);
  tabique('z',-1,-1,[[-25,-15.3,CO]],[[-25,-15.3,K]],[{at:-19.5,w:2.2,h:3.6}]);
  tabique('z',12.15,-1,[[-25,-19.5,K]],[[-25,-19.65,BA]]);
  tabique('x',-19.5,1,[[12,17,K]],[[12.3,17,BA]],[{at:14.6,w:2,h:3.6}]);
@@ -98,7 +98,7 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  // ---------- ventanas al exterior (c_casa_ventanas.js) y el portón ----------
  if(window.VENT){VENT.pon(SC,'pb',{x:-9,y:4.4,z:-25,ry:0,w:3,h:3.4,cal:MARCO});VENT.pon(SC,'pb',{x:4.6,y:4.7,z:-25,ry:0,w:2.8,h:2.2,cal:MARCO});
   VENT.pon(SC,'pb',{x:15.6,y:6.2,z:-25,ry:0,w:1.2,h:1.1,postigos:false,sol:false,cal:MARCO});
-  VENT.pon(SC,'pb',{x:0,y:2.7,z:19,ry:Math.PI,w:3.6,h:5.4,hondo:.3,abierta:true,sol:false,cal:std(0x8a8077,.85)})}
+  if(!window.CCALLE)VENT.pon(SC,'pb',{x:0,y:2.7,z:19,ry:Math.PI,w:3.6,h:5.4,hondo:.3,abierta:true,sol:false,cal:std(0x8a8077,.85)})}
  const mad=std(0x5a3418,.55),madO=std(0x3a2212,.5),hie=std(0x1c1c1e,.45,{metalness:.6}),lat=std(0xc9a24a,.35,{metalness:.7}),loza=std(0xf7f7f2,.18);
  // hojas del portón, abiertas contra el muro del frente
  [-1,1].forEach(s=>{const G=grp(s*1.8,18.85,s>0?-Math.PI*.93:Math.PI*.93);B(1.78,5.3,.12,std(0x4a2814,.5),-s*.89,2.65,0,G);
@@ -187,7 +187,12 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  maceta(12.9,-20.4,.7);
 
  // ---------- la planta para c_casa3d.js ----------
- PB.bx=[-16.4,16.4,-24.4,18.4];PB.cb=[-17,17,-25,19];PB.WL=WL;PB.step=step;window.CPB.dbg={SC,PB}}
+ PB.bx=[-16.4,16.4,-24.4,18.4];PB.cb=[-17,17,-25,19];PB.WL=WL;PB.step=step;
+ // la calle con la fachada (c_casa_calle.js) y el patio de atrás (c_casa_patio.js) arman sus muros con estas piezas y agrandan PB.bx/PB.cb
+ const kit={SC,OB,hits,std,box,cyl,ctex,PB,B,C,grp,pm,tap,cara,segs,cap,tabique,suelo,cal,pasta,MS,MARCO,CAP,WL,H,T,mad,hie,lat};
+ if(window.CCALLE)try{CCALLE.build(kit)}catch(er){console.error('[CCALLE]',er)}
+ if(window.CPAT)try{CPAT.build(kit)}catch(er){console.error('[CPAT]',er)}
+window.CPB.dbg={SC,PB}}
 
 // la cadena del baño: ruido filtrado que sube y baja (el agua) y la cadena que baja y sube
 function cadena(){cadT=performance.now();if(typeof mute!='undefined'&&mute)return;

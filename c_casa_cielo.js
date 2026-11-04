@@ -3,7 +3,8 @@
 // Es una escena aparte (CIELO.ext) en coordenadas de la casa: CIELO.mundo se baja a la altura del piso donde estás (ALT),
 // así desde la planta alta se ven las azoteas desde arriba. Las ventanas (c_casa_ventanas.js) la dibujan:
 //   Completo: CIELO.dibuja(R, cámara, destino, piso) cada cuadro;  Medio: CIELO.hornea(R, punto, cubeRT, piso) una vez.
-// D4 agrega aquí la calle, la fachada y los vecinos (CIELO.mundo.add(...)).
+// D4: la calle, los vecinos y el patio cuelgan de CIELO.mundo (c_casa_calle.js, c_casa_patio.js); en la planta baja todo esto
+// es el fondo de la casa (CIELO.fondo: se dibuja primero y la casa encima, compartiendo la profundidad).
 (function(){
 if(typeof THREE==='undefined')return;
 const ALT={sot:-4,pb:0,alta:9.6,ter:19.2};
@@ -33,13 +34,13 @@ const hemi=new THREE.HemisphereLight(0xffffff,0x888888,1),sol=new THREE.Directio
 
 // ---------- horizonte: casas de uno y dos pisos de colores, árboles asomando y el suelo (luego D4 pone la calle) ----------
 let rs=7;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280;
-mundo.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(500,500).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:0xb39a78})),{name:'suelo'}));
+mundo.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(500,500).rotateX(-Math.PI/2).translate(0,-.4,0),new THREE.MeshLambertMaterial({color:0xb39a78})),{name:'suelo'}));
 const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c49b];
 const N=78,casas=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1).translate(0,.5,0),new THREE.MeshLambertMaterial(),N);
 const NV=N*2,vent=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.1,1.5),new THREE.MeshBasicMaterial({color:0xffffff,fog:true}),NV);
 const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),p=new THREE.Vector3(),s=new THREE.Vector3(),cc=new THREE.Color();
 let ni=0,nv=0;
-for(let i=0;ni<N&&i<400;i++){const a=rnd()*Math.PI*2,r=26+rnd()*70,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<21&&Math.abs(z)<18)continue;
+for(let i=0;ni<N&&i<400;i++){const a=rnd()*Math.PI*2,r=26+rnd()*70,x=Math.cos(a)*r,z=Math.sin(a)*r;if(z>-50&&z<62)continue;   // la cuadra, la calle y la de enfrente son de c_casa_calle.js
  const w=6+rnd()*7,d=6+rnd()*7,h=rnd()<.3?7+rnd()*2.5:3.6+rnd()*1.6,ry=Math.round(a/(Math.PI/2))*Math.PI/2+(rnd()-.5)*.2;
  e.set(0,ry,0);q.setFromEuler(e);casas.setMatrixAt(ni,m4.compose(p.set(x,0,z),q,s.set(w,h,d)));casas.setColorAt(ni,cc.setHex(PAL[(rnd()*PAL.length)|0]));ni++;
  // una o dos ventanas en la cara que ve a la casa (de noche se prenden)
@@ -48,7 +49,7 @@ for(let i=0;ni<N&&i<400;i++){const a=rnd()*Math.PI*2,r=26+rnd()*70,x=Math.cos(a)
   e.set(0,ang,0);q.setFromEuler(e);vent.setMatrixAt(nv++,m4.compose(p.set(px,yy,pz),q,s.set(1,1,1)))}}
 casas.count=ni;vent.count=nv;mundo.add(casas,vent);
 const NA=30,arb=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshLambertMaterial({color:0x4a7a3a}),NA);let na=0;
-for(let i=0;na<NA&&i<300;i++){const a=rnd()*Math.PI*2,r=34+rnd()*55,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<30&&Math.abs(z)<26)continue;   // lejos: de cerca taparían la vista
+for(let i=0;na<NA&&i<300;i++){const a=rnd()*Math.PI*2,r=34+rnd()*55,x=Math.cos(a)*r,z=Math.sin(a)*r;if(z>-48&&z<60)continue;   // lejos: de cerca taparían la vista
  const k=2.2+rnd()*2.2;arb.setMatrixAt(na,m4.compose(p.set(x,3.5+k*.6,z),q.identity(),s.set(k*1.2,k,k*1.2)));arb.setColorAt(na,cc.setHex([0x4a7a3a,0x3d6b35,0x5a8a40,0xc0442a][(rnd()*4)|0]));na++}
 arb.count=na;mundo.add(arb);
 
@@ -69,7 +70,9 @@ function coloca(p,pos){mundo.position.y=-(ALT[p]||0);domo.position.copy(pos);ext
 function dibuja(R,cam,rt,p){sync();coloca(p,cam.getWorldPosition(wp));const prev=R.getRenderTarget();R.setRenderTarget(rt);R.clear();R.render(ext,cam);R.setRenderTarget(prev)}
 // foto 360° del exterior desde un punto (Medio): cubeRT de WebGLCubeRenderTarget
 const cubos=new WeakMap();
+// la planta baja (D4): el exterior en pantalla; la casa se dibuja encima sin borrar (autoClear queda apagado)
+function fondo(R,cam,p){sync();coloca(p,cam.getWorldPosition(wp));R.setRenderTarget(null);R.autoClear=true;R.render(ext,cam);R.autoClear=false}
 function hornea(R,pos,crt,p){sync();let cc=cubos.get(crt);if(!cc){cc=new THREE.CubeCamera(.5,400,crt);cubos.set(crt,cc)}cc.position.copy(pos);coloca(p,pos);cc.update(R,ext)}
 
-window.CIELO={ext,mundo,ALT,sync,dibuja,hornea,noche:esNoche,estado:()=>T,ver:()=>ver,on:f=>subs.push(f)};
+window.CIELO={ext,mundo,ALT,sync,dibuja,hornea,fondo,lejos:[casas,vent,arb],noche:esNoche,estado:()=>T,ver:()=>ver,on:f=>subs.push(f)};
 })();

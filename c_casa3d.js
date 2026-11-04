@@ -79,7 +79,7 @@ function init(){if(ready)return;ready=true;
  lay=document.createElement('div');lay.id='h3lay';document.body.appendChild(lay);   // nombres, globitos y avisos (fuera de #app: no se borran al redibujar)
  // llegada por el zaguán: la cámara entra desde afuera y tu Mii camina hasta su lugar (c_casa_cam.js)
  const zg=window.CCAM&&!CCAM.RM;
- buildHouse();me=newAv(pname,v3(0,0,zg?ZF+6.2:3),Math.PI);if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(v3(0,2.4,ZF+7.6),v3(0,2.6,ZF-6)),2800,'inOut')}   // llegas por el zaguán (c_casa_pb.js)applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
+ buildHouse();const cl=!!window.CCALLE;me=newAv(pname,v3(0,0,zg?ZF+(cl?10.2:6.2):3),Math.PI);if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(cl?v3(0,3.6,ZF+17):v3(0,2.4,ZF+7.6),v3(0,2.6,ZF-6)),cl?3600:2800,'inOut')}   // llegas por el zaguán (c_casa_pb.js)applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
  setTimeout(()=>{if(!moved){moved=true;if(active()&&!inputBusy())render()}},12000);   // la ayuda de arriba se va sola
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{tch.delete(e.pointerId);pin=null;st=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('pointerleave',()=>{if(window.ETQ)ETQ.hov(null)});
@@ -404,7 +404,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();if(window.VENT)VENT.paso(FL.id,R,CA);R.render(SC,CA)}
+ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();if(window.VENT)VENT.paso(FL.id,R,CA);const exD=FL===PB&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC);R.render(SC,CA);if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};

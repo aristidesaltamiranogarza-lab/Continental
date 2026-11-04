@@ -37,12 +37,12 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,std,box,cyl,ctex,TB,HX,ZB}=
   clk={hh,mm,pe};hands();OB.push({x:-4.6,z:ZB+.42,r:.7})}
 
  // ---------- hamaca yucateca entre dos horcones, en la esquina del fondo ----------
- {const x0=10.3,x1=14.9,z=-12.2,hy=2.15,L=x1-x0,cx=(x0+x1)/2;
-  [x0,x1].forEach(x=>{cyl(.13,.15,2.7,wd2,x,1.35,z,SC,10);cyl(.05,.05,.1,brass,x+(x<cx?.12:-.12),hy,z,SC,8).rotation.z=Math.PI/2});
+ {const HM=(window.CPAT&&CPAT.ham)||{},P=HM.P||SC,x0=HM.x0||10.3,x1=HM.x1||14.9,z=HM.z||-12.2,hy=2.15,L=x1-x0,cx=(x0+x1)/2;   // con patio: entre sus dos pilares (c_casa_patio.js)
+  [x0,x1].forEach(x=>{if(!HM.P)cyl(.13,.15,2.7,wd2,x,1.35,z,SC,10);cyl(.05,.05,.1,brass,x+(x<cx?.12:-.12),hy,z,P,8).rotation.z=Math.PI/2});
   const tx=ctex('hamaca',256,256,(g,w,h)=>{const C=['#e63946','#f4a261','#e9c46a','#2a9d8f','#3a86c8','#8e5cd9','#f15bb5','#f4f1de'];
    for(let i=0;i<16;i++){g.fillStyle=C[i%C.length];g.fillRect(i*16,0,16,h)}
    g.strokeStyle='rgba(30,15,10,.35)';g.lineWidth=2;for(let k=-h;k<w;k+=10){g.beginPath();g.moveTo(k,0);g.lineTo(k+h,h);g.moveTo(k+h,0);g.lineTo(k,h);g.stroke()}});
-  const G=new THREE.Group();G.position.set(cx,hy,z);SC.add(G);
+  const G=new THREE.Group();G.position.set(cx,hy,z);P.add(G);
   // la cama: u a lo largo (0..1 entre ganchos, el tejido va de .2 a .8), v a lo ancho (-1..1); cuelga como catenaria y se abre en medio
   const NU=26,NV=10,U0=.2,U1=.8,pos=[],uv=[],ix=[],S=1.38,yAt=u=>-S*Math.sin(Math.PI*u);
   for(let i=0;i<=NU;i++){const u=U0+(U1-U0)*i/NU,t=(u-U0)/(U1-U0),wd=.07+.58*Math.pow(Math.sin(Math.PI*t),.6);
@@ -56,7 +56,7 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,std,box,cyl,ctex,TB,HX,ZB}=
   ham=G;for(let x=x0;x<=x1+.01;x+=L/4)OB.push({x,z,r:.75})}
 
  // ---------- gato negro sentado junto a la chimenea ----------
- {const G=new THREE.Group();G.position.set(-13.3,0,-7.2);G.rotation.y=Math.PI*.35;SC.add(G);
+ {const GT=(window.CPAT&&CPAT.gato)||{x:-13.3,y:0,z:-7.2,ry:Math.PI*.35},G=new THREE.Group();G.position.set(GT.x,GT.y,GT.z);G.rotation.y=GT.ry;(GT.P||SC).add(G);   // con patio: en el arriate del flamboyán
   const fur=std(0x141418,.55),ball=(r,sx,sy,sz,x,y,z,p,m)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),m||fur);o.scale.set(sx,sy,sz);o.position.set(x,y,z);o.castShadow=true;(p||G).add(o);return o};
   const body=ball(.2,1.05,1.15,1.25,0,.22,-.05);ball(.14,1,1.3,1,0,.33,.1);
   [-.065,.065].forEach(x=>{cyl(.034,.03,.3,fur,x,.15,.15,G,8);ball(.042,1,.6,1.3,x,.02,.18)});
@@ -67,7 +67,7 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,std,box,cyl,ctex,TB,HX,ZB}=
   // cola: cadena de segmentos que sale de atrás, se recuesta en el piso y se enrosca
   let par=new THREE.Group();par.position.set(0,.05,-.26);par.rotation.y=Math.PI;G.add(par);const tail=[];
   for(let i=0;i<8;i++){const s=new THREE.Group();if(i)s.position.z=.085;s.rotation.y=i?.22:-.4;par.add(s);const c=cyl(.028-i*.002,.03-i*.002,.09,fur,0,0,.045,s,8);c.rotation.x=Math.PI/2;tail.push(s);par=s}
-  cat={body,head,ears,eyes,tail};OB.push({x:-13.3,z:-7.2,r:.45})}
+  cat={body,head,ears,eyes,tail};OB.push({x:GT.x,z:GT.z,r:.45})}
 }
 function hands(){if(!clk)return;const d=new Date(),m=d.getMinutes()+d.getSeconds()/60,h=d.getHours()%12+m/60;clk.mm.rotation.z=-m/60*Math.PI*2;clk.hh.rotation.z=-h/12*Math.PI*2}
 function step(now,dt){if(!E)return;
