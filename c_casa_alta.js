@@ -38,8 +38,12 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(w,CEIL),m);pl.position.set(x,CEIL/2,z);pl.rotation.y=ry;pl.receiveShadow=true;S.add(pl);
   const wa=new THREE.Mesh(new THREE.PlaneGeometry(w,2.2),std(0x5a3418,.55));wa.position.set(x,1.1,z);wa.rotation.y=ry;wa.translateZ(.03);S.add(wa);
   const tr=new THREE.Mesh(new THREE.PlaneGeometry(w,.12),std(0x2e1f14,.5));tr.position.set(x,2.26,z);tr.rotation.y=ry;tr.translateZ(.05);S.add(tr)};
- // las cuatro paredes: planos de una cara, desde afuera no tapan a la cámara
- wall(XW*2,0,ZB,0);wall(ZF-ZB,-XW,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,XW,(ZF+ZB)/2,-Math.PI/2);wall(XW*2,0,ZF,Math.PI);
+ // las cuatro paredes con el kit de muros de la planta baja (c_casa_pb.js): caras de una sola cara (desde afuera no tapan a la cámara),
+ // lambrín, moldura, remate arriba y el corte de paredes; por fuera las pinta c_casa_casco.js
+ const KM=window.CPB&&CPB.kit?CPB.kit({SC:S,hits,std,box:H.box,cyl:H.cyl,ctex},CEIL):null;
+ if(KM){const wt=wp.clone();wt.needsUpdate=true;wt.repeat.set(.25,.25);const M={m:std(0xffffff,.9,{map:wt}),lam:std(0x5a3418,.55),lamH:2.2,rod:std(0x2e1f14,.5)};
+  KM.ext('x',ZB,1,-XW,XW,M);KM.ext('z',-XW,1,ZB,ZF,M);KM.ext('z',XW,-1,ZB,ZF,M);KM.ext('x',ZF,-1,-XW,XW,M)}
+ else{wall(XW*2,0,ZB,0);wall(ZF-ZB,-XW,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,XW,(ZF+ZB)/2,-Math.PI/2);wall(XW*2,0,ZF,Math.PI)}
  // techo: el plano mira hacia abajo (desde arriba no se ve); vigas y ventilador solo con la cámara debajo del techo (step)
  const top=new THREE.Group();top.visible=false;S.add(top);
  const cl=new THREE.Mesh(new THREE.PlaneGeometry(XW*2,ZF-ZB),std(0xe9dcc4,.9));cl.rotation.x=Math.PI/2;cl.position.set(0,CEIL,(ZF+ZB)/2);S.add(cl);
@@ -62,8 +66,10 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   box(.08,.08,3.2,ir,XW-.2,1.5,z0);box(.06,.06,3.2,ir,XW-.2,.15,z0);for(let z=z0-1.5;z<=z0+1.51;z+=.25)box(.03,1.35,.03,ir,XW-.2,.82,z);
   for(let z=z0-1.25;z<z0+1.4;z+=.5){const t=new THREE.Mesh(new THREE.TorusGeometry(.12,.015,6,16),ir);t.position.set(XW-.2,1.15,z);t.rotation.y=Math.PI/2;S.add(t)}
   const pot=std(0xb5643c,.7),lf=std(0x2e7d32,.8);[z0-2.4,z0+2.4].forEach(z=>{cyl(.4,.3,.8,pot,XW-.7,.4,z);for(let i=0;i<7;i++){const a=i/7*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.16,1.3,6),lf);l.position.set(XW-.7+Math.cos(a)*.2,1.35,z+Math.sin(a)*.2);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);S.add(l)}OB.push({x:XW-.7,z,r:.6})})}
- // ventana del estudio (pared izquierda)
- VENT.pon(S,'alta',{x:-XW,y:4.6,z:-4.6,ry:Math.PI/2,w:3,h:3.6,cal:fr});
+ // ventanas: la lista vive en c_casa_casco.js, que las pinta también por fuera (el balcón se arma arriba). Las nuevas no meten rayo de sol.
+ const VF=[];(window.CASCO?CASCO.VA:[{lado:'izq',u:-4.6,y:4.6,w:3,h:3.6}]).filter(v=>!v.puerta).forEach(v=>{const d=window.CASCO?CASCO.dentro(v):{x:-XW,z:v.u,ry:Math.PI/2};
+  const g=VENT.pon(S,'alta',{x:d.x,y:v.y,z:d.z,ry:d.ry,w:v.w,h:v.h,cal:fr,postigos:!v.alta,reja:!v.alta,sol:!v.nueva,hondo:v.alta?.3:null});
+  if(v.lado==='fr')VF.push(g)});
 
  // ---------- libreros en la pared del fondo (todos los libros en una sola malla) ----------
  const BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0],BK=[],sw=std(0x4a2c18,.6);
@@ -73,7 +79,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
  {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,.62),std(0xffffff,.7),BK.length),m4=new THREE.Matrix4(),c=new THREE.Color();
   BK.forEach(([x,y,z,t,hh,col],i)=>{m4.makeScale(t,hh,1).setPosition(x,y,z);im.setMatrixAt(i,m4);im.setColorAt(i,c.setHex(col))});im.castShadow=im.receiveShadow=true;S.add(im)}
  // planta alta junto al último librero
- {const lf=std(0x2e7d32,.8);cyl(.55,.42,1.1,std(0xb5643c,.7),5.1,.55,ZB+1.2);for(let i=0;i<10;i++){const a=i/10*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.22,2.2,6),lf);l.position.set(5.1+Math.cos(a)*.3,2.1,ZB+1.2+Math.sin(a)*.3);l.rotation.set(Math.sin(a)*.45,0,-Math.cos(a)*.45);l.castShadow=true;S.add(l)}}
+ const PL=new THREE.Group();S.add(PL);{const lf=std(0x2e7d32,.8);cyl(.55,.42,1.1,std(0xb5643c,.7),5.1,.55,ZB+1.2,PL);for(let i=0;i<10;i++){const a=i/10*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.22,2.2,6),lf);l.position.set(5.1+Math.cos(a)*.3,2.1,ZB+1.2+Math.sin(a)*.3);l.rotation.set(Math.sin(a)*.45,0,-Math.cos(a)*.45);l.castShadow=true;PL.add(l)}}
 
  // ---------- mesas del estudio: Monopoly y YuCATÁN (las arma c_casa3d.js) y el Backgammon (c_juegos3d.js) ----------
  const TB=[{g:'merida',x:-9,z:-5.4,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:-1.6,z:-5.4,felt:['#79a96a','#2f5a2a']}].filter(t=>typeof GM!='undefined'&&GM[t.g]);
@@ -88,7 +94,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   cyl(.2,.24,.22,std(0x3a2212,.5),0,0,0,fan,20);for(let i=0;i<5;i++){const arm=new THREE.Group();arm.rotation.y=i/5*Math.PI*2;fan.add(arm);box(.32,.03,.06,brass,.3,-.02,0,arm);const bl=box(1.35,.025,.3,wd2,1.1,-.02,0,arm);bl.rotation.x=.12;bl.castShadow=false}}
 
  // ---------- rincón de lectura: sillón, lámpara de pie y globo terráqueo ----------
- {const G=new THREE.Group();G.position.set(-12.4,0,5.2);G.rotation.y=Math.PI*.75;S.add(G);const tp=std(0x7a2a2a,.85),wd=std(0x3a2212,.5);
+ const SIL=new THREE.Group();{const G=SIL;G.position.set(-12.4,0,5.2);G.rotation.y=Math.PI*.75;S.add(G);const tp=std(0x7a2a2a,.85),wd=std(0x3a2212,.5);
   box(2,.7,1.9,tp,0,.65,0,G);box(2,1.6,.45,tp,0,1.5,-.75,G);[-1,1].forEach(s=>box(.4,1.1,1.9,tp,s*.95,1,0,G));[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([a,b])=>cyl(.06,.05,.3,wd,a,.15,b,G,8));OB.push({x:-12.4,z:5.2,r:1.4})}
  {const x=-14,z=3.2;cyl(.3,.34,.06,brass,x,.03,z,S,20);cyl(.03,.03,4,brass,x,2,z,S,8);const sh=new THREE.Mesh(new THREE.CylinderGeometry(.3,.5,.55,24,1,true),std(0xe9d9b0,.8,{side:THREE.DoubleSide}));sh.position.set(x,4.1,z);S.add(sh);
   const L=new THREE.PointLight(0xffd9a0,5,7,1.6);L.position.set(x,3.8,z);S.add(L);OB.push({x,z,r:.5})}
@@ -96,6 +102,14 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   cyl(.3,.36,.08,std(0x3a2212,.5),x,.04,z,S,16);cyl(.04,.04,1.6,brass,x,.85,z,S,8);const gl=new THREE.Mesh(new THREE.SphereGeometry(.6,24,16),std(0xffffff,.5,{map:gt}));gl.position.set(x,2.2,z);gl.rotation.z=.4;S.add(gl);
   const rim=new THREE.Mesh(new THREE.TorusGeometry(.66,.025,6,32,Math.PI*1.2),brass);rim.position.set(x,2.2,z);rim.rotation.set(0,Math.PI/2,.4-1.9);S.add(rim);OB.push({x,z,r:.6})}
 
+ // ---------- muebles con modelos (c_casa_glb.js, Poly Haven CC0, a 2.2 veces su tamaño como toda la casa) ----------
+ // mientras bajan, o si no se pueden bajar, se ven los de código (MOD: [lugar, piezas de código]); en Ligero no hay casa 3D
+ const MOD=[],mod=(n,o,cod,P)=>{if(!window.CGLB)return null;const g=CGLB.pon('alta',n,Object.assign({sombra:true},o));(P||S).add(g);if(cod)MOD.push([g,[].concat(cod)]);return g};
+ mod('sillon',{pos:[-12.4,0,5.2],rot:Math.PI*.75,esc:2.3},SIL);
+ mod('mesita',{pos:[-14.1,0,7.6],rot:Math.PI*.75,esc:2.2});mod('jarron',{pos:[-14.1,.548*2.2,7.6],rot:.4,esc:2.2});OB.push({x:-14.1,z:7.6,r:.8});
+ mod('vitrina',{pos:[-14.35,0,-.2],rot:Math.PI/2,esc:2.2});OB.push({x:-14.1,z:-1.4,r:1.05},{x:-14.1,z:1,r:1.05});
+ mod('planta',{pos:[5.1,0,ZB+1.3],rot:.6,esc:3},PL);
+ mod('ventilador',{pos:[0,CEIL-8,0],esc:2.2,sombra:false},fan.children.slice(),fan);
  // ---------- reloj de péndulo en el fondo del corredor (marca la hora de verdad) ----------
  const ck={};{const x=13.75,z=ZB+.2,wd=std(0x4a2814,.45);box(1,2.6,.36,wd,x,4,z);box(1.15,.18,.42,wd,x,5.38,z);box(1.15,.14,.42,wd,x,2.66,z);
   const face=ctex('reloj-alta',256,256,(g,w,h)=>{g.fillStyle='#f3ead2';g.beginPath();g.arc(128,128,122,0,7);g.fill();g.strokeStyle='#4a2814';g.lineWidth=8;g.stroke();g.fillStyle='#2a1a10';
@@ -116,10 +130,14 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
 
  // ---------- el piso para c_casa3d.js ----------
  let q=null;const qual=()=>{const l=lo();if(l===q)return;q=l;hl.intensity=l?2.1:1.5;Ld.castShadow=!l};
- const step=now=>{qual();const cm=CASA3D.cam();top.visible=!!cm&&cm.position.y<CEIL-.25;const d=new Date(),m=d.getMinutes()+d.getSeconds()/60;ck.m.rotation.z=-m/60*Math.PI*2;ck.h.rotation.z=-((d.getHours()%12)+m/60)/12*Math.PI*2;
+ const step=now=>{qual();const cm=CASA3D.cam();top.visible=!!cm&&cm.position.y<CEIL-.25;
+  // con la cámara del lado de la calle el muro de enfrente no se ve (una cara): sus ventanas tampoco
+  MOD.forEach(([g,c])=>{const v=!g.children.length;c.forEach(o=>{if(o.visible!==v)o.visible=v})});
+  if(cm){const iz=cm.position.z<ZF-.05;VF.forEach(g=>{if(g.visible!==iz)g.visible=iz});if(KM)CPB.corte(KM,cm.position,CASA3D.yo&&CASA3D.yo())}
+ const d=new Date(),m=d.getMinutes()+d.getSeconds()/60;ck.m.rotation.z=-m/60*Math.PI*2;ck.h.rotation.z=-((d.getHours()%12)+m/60)/12*Math.PI*2;
   if(!lo()){ck.pe.rotation.z=Math.sin(now/1000*Math.PI)*.16;if(top.visible)fan.rotation.y+=.025}
   const on=typeof musName=='function'&&musName()!='apagada';dial.emissive.setHex(on?0xffb04a:0);dial.emissiveIntensity=on?.9:0};
- F={id:'alta',SC:S,TB,OB,hits,links:[dn.lk,up],bx:[-XW+1,XW-1,ZB+1.2,ZF-1],cb:[-XW,XW,ZB,ZF],k:1,
+ F={id:'alta',SC:S,TB,OB,hits,links:[dn.lk,up],bx:[-XW+1,XW-1,ZB+1.2,ZF-1],cb:[-XW,XW,ZB,ZF],k:1,ext:true,
   spawn:from=>from==='ter'?{x:11.2,z:-1.2,yaw:0}:{x:7.6,z:6.6,yaw:-Math.PI/2},enter:fp=>{top.visible=!!fp;q=null;qual()},step};
  return F}
 window.ALTA={ok,piso};

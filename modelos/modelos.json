@@ -1,4 +1,124 @@
 {
  "version": "modelos-v1",
- "modelos": {}
+ "modelos": {
+  "jarron": {
+   "fuente": "Poly Haven · antique_ceramic_vase_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/antique_ceramic_vase_01",
+   "hd": {
+    "archivo": "hd/jarron.glb",
+    "h": "a9e8404b57",
+    "kb": 375
+   },
+   "medio": {
+    "archivo": "medio/jarron.glb",
+    "h": "29745df140",
+    "kb": 77
+   },
+   "original_kb": 1136
+  },
+  "mecedora": {
+   "fuente": "Poly Haven · Rockingchair_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/Rockingchair_01",
+   "hd": {
+    "archivo": "hd/mecedora.glb",
+    "h": "4823aea023",
+    "kb": 695
+   },
+   "medio": {
+    "archivo": "medio/mecedora.glb",
+    "h": "9c71b839ef",
+    "kb": 129
+   },
+   "original_kb": 1767
+  },
+  "mesita": {
+   "fuente": "Poly Haven · side_table_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/side_table_01",
+   "hd": {
+    "archivo": "hd/mesita.glb",
+    "h": "ef1418fdea",
+    "kb": 568
+   },
+   "medio": {
+    "archivo": "medio/mesita.glb",
+    "h": "a26feb5421",
+    "kb": 75
+   },
+   "original_kb": 1517
+  },
+  "planta": {
+   "fuente": "Poly Haven · potted_plant_02",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/potted_plant_02",
+   "hd": {
+    "archivo": "hd/planta.glb",
+    "h": "46e4bc792c",
+    "kb": 1909
+   },
+   "medio": {
+    "archivo": "medio/planta.glb",
+    "h": "eafa36ad6a",
+    "kb": 393
+   },
+   "original_kb": 4760
+  },
+  "sillon": {
+   "fuente": "Poly Haven · ArmChair_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/ArmChair_01",
+   "hd": {
+    "archivo": "hd/sillon.glb",
+    "h": "597e199153",
+    "kb": 1765
+   },
+   "medio": {
+    "archivo": "medio/sillon.glb",
+    "h": "c881316621",
+    "kb": 117
+   },
+   "original_kb": 2739
+  },
+  "ventilador": {
+   "fuente": "Poly Haven · ceiling_fan",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/ceiling_fan",
+   "hd": {
+    "archivo": "hd/ventilador.glb",
+    "h": "6417523197",
+    "kb": 488
+   },
+   "medio": {
+    "archivo": "medio/ventilador.glb",
+    "h": "232bf77d16",
+    "kb": 132
+   },
+   "original_kb": 5075
+  },
+  "vitrina": {
+   "fuente": "Poly Haven · vintage_cabinet_01",
+   "licencia": "CC0",
+   "pisos": [],
+   "url": "https://polyhaven.com/a/vintage_cabinet_01",
+   "hd": {
+    "archivo": "hd/vitrina.glb",
+    "h": "b9bf61ab13",
+    "kb": 1302
+   },
+   "medio": {
+    "archivo": "medio/vitrina.glb",
+    "h": "57c36d496f",
+    "kb": 345
+   },
+   "original_kb": 4874
+  }
+ }
 }

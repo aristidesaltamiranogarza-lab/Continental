@@ -384,9 +384,9 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  if(window.SOT)o+=SOT.seatHud();
  return o}
 // letreros: siguen a su mesa en la pantalla
-function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
+function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0,afuera=FL===PB&&!!window.CASCO&&CASCO.fuera();   // afuera la casa tiene techo: sin letreros de mesas
  document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
-  el.style.display=vis?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
+  el.style.display=vis&&!afuera?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
 // tamaño, transparencia y empalmes de todas las etiquetas (c_etiquetas.js)
 function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(center(VW))||1,tb=$id('uiTop');
  ETQ.step({y0:tb?tb.getBoundingClientRect().bottom+4:0,ratio:g=>{const a=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z}:window.JG3&&JG3.P&&JG3.P[g]);return a?Math.hypot(cp.x-a.x,cp.y-TH,cp.z-a.z)/ref:1}})}
@@ -404,7 +404,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();if(window.VENT)VENT.paso(FL.id,R,CA);const exD=FL===PB&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC);R.render(SC,CA);if(exD)R.autoClear=true}
+ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};

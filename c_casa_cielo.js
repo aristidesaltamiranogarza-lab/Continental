@@ -65,7 +65,9 @@ if(window.UI&&UI.on)UI.on(()=>aplica());
 aplica();
 
 const wp=new THREE.Vector3();
-function coloca(p,pos){mundo.position.y=-(ALT[p]||0);domo.position.copy(pos);ext.updateMatrixWorld()}
+// piezas que solo se ven desde algunos pisos (el casco de la casa por fuera, c_casa_casco.js): CIELO.pisos(grupo,['pb','ter'] o piso=>bool)
+const PIS=[];
+function coloca(p,pos){mundo.position.y=-(ALT[p]||0);for(const o of PIS)o.g.visible=typeof o.en==='function'?!!o.en(p):o.en.includes(p);domo.position.copy(pos);ext.updateMatrixWorld()}
 // dibuja el exterior visto por la cámara de la casa en un destino (render target) del tamaño de la pantalla
 function dibuja(R,cam,rt,p){sync();coloca(p,cam.getWorldPosition(wp));const prev=R.getRenderTarget();R.setRenderTarget(rt);R.clear();R.render(ext,cam);R.setRenderTarget(prev)}
 // foto 360° del exterior desde un punto (Medio): cubeRT de WebGLCubeRenderTarget
@@ -74,5 +76,5 @@ const cubos=new WeakMap();
 function fondo(R,cam,p){sync();coloca(p,cam.getWorldPosition(wp));R.setRenderTarget(null);R.autoClear=true;R.render(ext,cam);R.autoClear=false}
 function hornea(R,pos,crt,p){sync();let cc=cubos.get(crt);if(!cc){cc=new THREE.CubeCamera(.5,400,crt);cubos.set(crt,cc)}cc.position.copy(pos);coloca(p,pos);cc.update(R,ext)}
 
-window.CIELO={ext,mundo,ALT,sync,dibuja,hornea,fondo,lejos:[casas,vent,arb],noche:esNoche,estado:()=>T,ver:()=>ver,on:f=>subs.push(f)};
+window.CIELO={ext,mundo,ALT,sync,dibuja,hornea,fondo,pisos:(g,en)=>{PIS.push({g,en});return g},lejos:[casas,vent,arb],noche:esNoche,estado:()=>T,ver:()=>ver,on:f=>subs.push(f)};
 })();

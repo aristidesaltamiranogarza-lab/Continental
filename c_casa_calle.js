@@ -5,7 +5,7 @@
 // hasta su orilla; el arroyo no), calle con tope y registros, postes con cables, laurel encalado, un vocho estacionado y los vecinos:
 // fachadas meridanas contiguas de colores con relieve, azoteas con tinaco, una cuadra de cada lado con su esquina, y la calle se
 // pierde en la neblina. De noche se prenden el poste, los faroles y algunas ventanas; lo de la casa se oscurece (CCALLE.tinte).
-// CCALLE.fondo(R,cámara,SC): en la planta baja el exterior se dibuja primero y la casa encima (comparten la profundidad); si un bloque
+// CCALLE.fondo(R,cámara,SC,piso): en la planta baja (y en la alta y la terraza) el exterior se dibuja primero y la casa encima (comparten la profundidad); si un bloque
 // de vecinos (o lo de atrás de la barda, CCALLE.zona) queda entre la cámara y tu Mii, ese cuadro no se dibuja.
 (function(){
 if(typeof THREE==='undefined')return;
@@ -34,11 +34,12 @@ function cruza(a,t,b){let t0=0,t1=1;for(let k=0;k<3;k++){const ax='xyz'[k],o=a[a
   if(Math.abs(d)<1e-6){if(o<lo||o>hi)return false;continue}let u=(lo-o)/d,v=(hi-o)/d;if(u>v){const w=u;u=v;v=w}
   t0=Math.max(t0,u);t1=Math.min(t1,v);if(t0>t1)return false}return true}
 const cP=new THREE.Vector3(),tA=new THREE.Vector3();
-function fondo(R,cam,SC){if(!EXT||!window.CIELO||!CIELO.fondo)return false;if(SC.background)SC.background=null;
+function fondo(R,cam,SC,p){if(!EXT||!window.CIELO||!CIELO.fondo)return false;if(SC.background)SC.background=null;p=p||'pb';const y0=(CIELO.ALT&&CIELO.ALT[p])||0;
  cam.getWorldPosition(cP);const H3=window.CASA3D,av=H3&&H3.yo&&H3.yo();if(av)tA.set(av.x,1.6,av.z);else cam.getWorldDirection(tA).multiplyScalar(14).add(cP);
+ cP.y+=y0;tA.y+=y0;   // las zonas van en coordenadas de la casa (planta baja en 0)
  const lj=CIELO.lejos||[],fuera=cP.z<-42.4||cP.z>ZE;
  for(const z of ZON)if(cruza(cP,tA,z.b))z.o.forEach(o=>o.visible=false);if(fuera)lj.forEach(o=>o.visible=false);
- CIELO.fondo(R,cam,'pb');
+ CIELO.fondo(R,cam,p);
  for(const z of ZON)z.o.forEach(o=>o.visible=true);lj.forEach(o=>o.visible=true);return true}
 
 // ---------- armado (cada vez que se arma la planta baja; lo de afuera solo una vez) ----------

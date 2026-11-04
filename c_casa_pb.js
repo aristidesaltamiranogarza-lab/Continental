@@ -8,39 +8,25 @@
 (function(){
 if(typeof THREE==='undefined')return;
 const H=9,T=.3,V3=THREE.Vector3;
-const CORTE=[],RG=[];let VIG=null,ESP=null,CAD=null,cadT=-1e9,AC=null;
+let CORTE=[],RG=[],VIG=null,KP=null,ESP=null,CAD=null,cadT=-1e9,AC=null;
 const tv=new V3(),dv=new V3(),q=new V3();
 
-function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
+// kit de muros (también lo usan los otros pisos: CPB.kit(e,altoDeMuro)); cada piso lleva su lista de caras para el corte (CPB.corte)
+function kitMuros(e,H){const {SC,hits,std,box,cyl,ctex}=e;
  const B=(w,h,d,m,x,y,z,p)=>box(w,h,d,m,x,y,z,p||SC),C=(a,b,h,m,x,y,z,p,n)=>cyl(a,b,h,m,x,y,z,p||SC,n);
  const grp=(x,z,ry,y)=>{const G=new THREE.Group();G.position.set(x,y||0,z);G.rotation.y=ry||0;SC.add(G);return G};
  const pm=(w,h)=>{const g=new THREE.PlaneGeometry(w,h),u=g.attributes.uv;for(let i=0;i<u.count;i++)u.setXY(i,u.getX(i)*w,u.getY(i)*h);return g};   // UV en metros
  const tap=(o,f)=>o.traverse(m=>{if(m.isMesh){m.userData.hit={t:'fn',f};hits.push(m)}});
- const WL=[];VIG=new THREE.Group();SC.add(VIG);
+ const WL=[],CORTE=[],RG=[],VIG=new THREE.Group();SC.add(VIG);
 
  // ---------- texturas ----------
  const cal=(k,base,rep)=>{const t=ctex('cal-'+k,256,256,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);let s=k.charCodeAt(0)*97;const r=()=>(s=(s*9301+49297)%233280)/233280;
   for(let i=0;i<70;i++){g.fillStyle=i%2?'rgba(255,250,235,.07)':'rgba(70,40,20,.06)';g.beginPath();g.ellipse(r()*w,r()*h,8+r()*40,6+r()*26,r()*3,0,7);g.fill()}},1);t.repeat.set(1/(rep||4),1/(rep||4));return t};
- const tSal=ctex('wall-salon',256,256,(g,w,h)=>{g.fillStyle='#6d5a48';g.fillRect(0,0,w,h);for(let x=0;x<w;x+=32){g.fillStyle='rgba(255,235,200,.06)';g.fillRect(x,0,14,h)}
-  g.fillStyle='rgba(255,235,200,.08)';for(let y=16;y<h;y+=64)for(let x=16;x<w;x+=64){g.beginPath();g.arc(x+(y%128?32:0),y,5,0,7);g.fill()}},1);tSal.repeat.set(1/3,1/3);
  // mosaico de pasta: cuartos de roseta en las esquinas, cuatro mosaicos forman una flor
  const pasta=(k,a,b,c)=>{const t=ctex('pasta-'+k,256,256,(g,w,h)=>{const s=128;for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*s,y=j*s;g.save();g.beginPath();g.rect(x,y,s,s);g.clip();
    g.fillStyle=a;g.fillRect(x,y,s,s);[[0,0],[s,0],[0,s],[s,s]].forEach(([u,v])=>{g.fillStyle=b;g.beginPath();g.arc(x+u,y+v,s*.42,0,7);g.fill();g.fillStyle=c;g.beginPath();g.arc(x+u,y+v,s*.2,0,7);g.fill()});
    g.fillStyle=b;g.beginPath();g.moveTo(x+s/2,y+s*.3);g.lineTo(x+s*.7,y+s/2);g.lineTo(x+s/2,y+s*.7);g.lineTo(x+s*.3,y+s/2);g.closePath();g.fill();
    g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;g.strokeRect(x+1,y+1,s-2,s-2);g.restore()}},1);t.repeat.set(1/1.2,1/1.2);return t};
- const tal=ctex('talavera',128,128,(g,w,h)=>{const s=64;for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*s,y=j*s;g.fillStyle='#f4efe2';g.fillRect(x,y,s,s);g.fillStyle='#1f4f9a';
-   for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;g.beginPath();g.ellipse(x+s/2+Math.cos(a)*s*.3,y+s/2+Math.sin(a)*s*.3,s*.12,s*.06,a,0,7);g.fill()}
-   g.beginPath();g.arc(x+s/2,y+s/2,s*.18,0,7);g.fill();g.fillStyle='#e0a030';g.beginPath();g.arc(x+s/2,y+s/2,s*.08,0,7);g.fill();
-   g.strokeStyle='rgba(60,60,60,.3)';g.lineWidth=2;g.strokeRect(x+1,y+1,s-2,s-2)}},1);tal.repeat.set(1/.8,1/.8);
- const az=ctex('azulejo-ban',128,128,(g,w,h)=>{g.fillStyle='#c9d3d8';g.fillRect(0,0,w,h);g.fillStyle='#f7f7f2';for(let y=0;y<2;y++)for(let x=0;x<2;x++)g.fillRect(x*64+2,y*64+2,60,60)},1);az.repeat.set(1/.7,1/.7);
- const tab=ctex('tablero-ban',128,128,(g,w,h)=>{for(let y=0;y<4;y++)for(let x=0;x<4;x++){g.fillStyle=(x+y)%2?'#f2f0ea':'#2d5f8a';g.fillRect(x*32,y*32,32,32)}},1);tab.repeat.set(1/1.6,1/1.6);
-
- // ---------- materiales por cuarto: muro, lambrín (alto) y moldura ----------
- const MS={sal:{m:std(0xffffff,.9,{map:tSal}),lam:std(0x3e2a1c,.55),lamH:2.4,rod:std(0x2e1f14,.5)},
-  zag:{m:std(0xffffff,.92,{map:cal('zag','#cf8a78')}),lam:std(0x8a8077,.9),lamH:1.6,rod:std(0x6e665e,.8)},
-  com:{m:std(0xffffff,.92,{map:cal('com','#d8a85a')}),lam:std(0x5a3418,.55),lamH:2.2,rod:std(0x3a2212,.5)},
-  coc:{m:std(0xffffff,.92,{map:cal('coc','#eee5d0')}),lam:std(0x2f6b5a,.6),lamH:1.8,rod:std(0x1f4a3e,.5)},
-  ban:{m:std(0xffffff,.92,{map:cal('ban','#8fb6d6')}),lam:std(0xffffff,.35,{map:az}),lamH:2.6,rod:std(0x1f4f9a,.4)}};
  const MARCO=std(0xefe6d2,.85),CAP=std(0xd9ccb2,.9),TECHO=std(0xe9dcc4,.95),VIGA=std(0x4a2c18,.6);
 
  // cara de muro de a a b ([x,z]) que mira hacia n; huecos [{at,w,h,arco}] (at: coordenada del centro sobre el eje del muro)
@@ -77,6 +63,25 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
   if(vx)for(let z=z0+1.2;z<z1-.6;z+=2.4)B(x1-x0,.42,.32,VIGA,(x0+x1)/2,H-.21,z,VIG).castShadow=false;
   else for(let x=x0+1.25;x<x1-.6;x+=2.5)B(.32,.42,z1-z0,VIGA,x,H-.21,(z0+z1)/2,VIG).castShadow=false}
  function suelo(x0,x1,z0,z1,map){const f=new THREE.Mesh(pm(x1-x0,z1-z0),std(0xffffff,.6,{map}));f.rotation.x=-Math.PI/2;f.position.set((x0+x1)/2,0,(z0+z1)/2);f.receiveShadow=true;SC.add(f)}
+ return {SC,B,C,grp,pm,tap,WL,CORTE,RG,VIG,H,T,cal,pasta,cara,segs,cap,pt,nv,ext,tabique,techo,suelo,MARCO,CAP,TECHO,VIGA}}
+
+function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H);KP=KM;CORTE=KM.CORTE;RG=KM.RG;VIG=KM.VIG;
+ const {B,C,grp,pm,tap,WL,cal,pasta,cara,segs,cap,pt,nv,ext,tabique,techo,suelo,MARCO,CAP,TECHO,VIGA}=KM;
+ const tSal=ctex('wall-salon',256,256,(g,w,h)=>{g.fillStyle='#6d5a48';g.fillRect(0,0,w,h);for(let x=0;x<w;x+=32){g.fillStyle='rgba(255,235,200,.06)';g.fillRect(x,0,14,h)}
+  g.fillStyle='rgba(255,235,200,.08)';for(let y=16;y<h;y+=64)for(let x=16;x<w;x+=64){g.beginPath();g.arc(x+(y%128?32:0),y,5,0,7);g.fill()}},1);tSal.repeat.set(1/3,1/3);
+ const tal=ctex('talavera',128,128,(g,w,h)=>{const s=64;for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*s,y=j*s;g.fillStyle='#f4efe2';g.fillRect(x,y,s,s);g.fillStyle='#1f4f9a';
+   for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;g.beginPath();g.ellipse(x+s/2+Math.cos(a)*s*.3,y+s/2+Math.sin(a)*s*.3,s*.12,s*.06,a,0,7);g.fill()}
+   g.beginPath();g.arc(x+s/2,y+s/2,s*.18,0,7);g.fill();g.fillStyle='#e0a030';g.beginPath();g.arc(x+s/2,y+s/2,s*.08,0,7);g.fill();
+   g.strokeStyle='rgba(60,60,60,.3)';g.lineWidth=2;g.strokeRect(x+1,y+1,s-2,s-2)}},1);tal.repeat.set(1/.8,1/.8);
+ const az=ctex('azulejo-ban',128,128,(g,w,h)=>{g.fillStyle='#c9d3d8';g.fillRect(0,0,w,h);g.fillStyle='#f7f7f2';for(let y=0;y<2;y++)for(let x=0;x<2;x++)g.fillRect(x*64+2,y*64+2,60,60)},1);az.repeat.set(1/.7,1/.7);
+ const tab=ctex('tablero-ban',128,128,(g,w,h)=>{for(let y=0;y<4;y++)for(let x=0;x<4;x++){g.fillStyle=(x+y)%2?'#f2f0ea':'#2d5f8a';g.fillRect(x*32,y*32,32,32)}},1);tab.repeat.set(1/1.6,1/1.6);
+
+ // ---------- materiales por cuarto: muro, lambrín (alto) y moldura ----------
+ const MS={sal:{m:std(0xffffff,.9,{map:tSal}),lam:std(0x3e2a1c,.55),lamH:2.4,rod:std(0x2e1f14,.5)},
+  zag:{m:std(0xffffff,.92,{map:cal('zag','#cf8a78')}),lam:std(0x8a8077,.9),lamH:1.6,rod:std(0x6e665e,.8)},
+  com:{m:std(0xffffff,.92,{map:cal('com','#d8a85a')}),lam:std(0x5a3418,.55),lamH:2.2,rod:std(0x3a2212,.5)},
+  coc:{m:std(0xffffff,.92,{map:cal('coc','#eee5d0')}),lam:std(0x2f6b5a,.6),lamH:1.8,rod:std(0x1f4a3e,.5)},
+  ban:{m:std(0xffffff,.92,{map:cal('ban','#8fb6d6')}),lam:std(0xffffff,.35,{map:az}),lamH:2.6,rod:std(0x1f4f9a,.4)}};
 
  // ---------- planta: salón x[-17,17] z[-15,11] · zaguán x[-4.5,4.5] z[11.3,19] · atrás z[-25,-15.3]: comedor x[-17,-1.15], cocina x[-.85,12] (+ rincón del refri), baño x[12.3,17] z[-25,-19.65] ----------
  const S=MS.sal,Z=MS.zag,CO=MS.com,K=MS.coc,BA=MS.ban;
@@ -193,6 +198,7 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  const kit={SC,OB,hits,std,box,cyl,ctex,PB,B,C,grp,pm,tap,cara,segs,cap,tabique,suelo,cal,pasta,MS,MARCO,CAP,WL,H,T,mad,hie,lat};
  if(window.CCALLE)try{CCALLE.build(kit)}catch(er){console.error('[CCALLE]',er)}
  if(window.CPAT)try{CPAT.build(kit)}catch(er){console.error('[CPAT]',er)}
+ if(window.CASCO)try{CASCO.build(kit)}catch(er){console.error('[CASCO]',er)}
 window.CPB.dbg={SC,PB}}
 
 // la cadena del baño: ruido filtrado que sube y baja (el agua) y la cadena que baja y sube
@@ -214,11 +220,13 @@ function espejo(av){const q=window.CALIDAD==='completo'&&!!av&&av.x>12.3&&av.z<-
 function step(now){const H3=window.CASA3D,cam=H3&&H3.cam();if(!cam)return;const cp=cam.position,av=H3.yo&&H3.yo();
  VIG.visible=cp.y<H-.25;espejo(av);
  if(CAD){const k=(performance.now()-cadT)/450;CAD.position.y=4.12-(k>=0&&k<1?Math.sin(k*Math.PI)*.18:0)}
- if(!av)return;tv.set(av.x,1,av.z);
- for(const w of CORTE){let hid=false;const sc=dv.copy(cp).sub(w.p).dot(w.n),sa=q.copy(tv).sub(w.p).dot(w.n);
+ corte(KP,cp,av)}
+// corte tipo Sims: se esconde la cara de muro que queda entre la cámara y tu Mii (y el marco de sus vanos)
+function corte(K,cp,av){if(!K||!av)return;const H=K.H;tv.set(av.x,1,av.z);
+ for(const w of K.CORTE){let hid=false;const sc=dv.copy(cp).sub(w.p).dot(w.n),sa=q.copy(tv).sub(w.p).dot(w.n);
   if(sc>.02&&sa<-.02){q.copy(cp).lerp(tv,sc/(sc-sa));const u=dv.copy(q).sub(w.p).dot(w.d);hid=q.y<H+.3&&u>-1&&u<w.L+1}
   if(hid!==w.hid){w.hid=hid;w.g.visible=!hid}}
- for(const r of RG){const v=!((CORTE[r.a]||{}).hid||(CORTE[r.b]||{}).hid);if(r.g.visible!==v)r.g.visible=v}}
+ for(const r of K.RG){const v=!((K.CORTE[r.a]||{}).hid||(K.CORTE[r.b]||{}).hid);if(r.g.visible!==v)r.g.visible=v}}
 
-window.CPB={build,cadena};
+window.CPB={build,cadena,kit:kitMuros,corte};
 })();

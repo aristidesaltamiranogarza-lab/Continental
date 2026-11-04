@@ -1,12 +1,12 @@
 // c_casa_glb.js — CGLB: modelos .glb de la casa (texturas KTX2, geometría meshopt) con el THREE global de three.min.js.
-// Puente: los cargadores de three (GLTFLoader, KTX2Loader) son módulos que importan 'three'; se bajan de jsDelivr como texto,
+// Puente: los cargadores de three (GLTFLoader, KTX2Loader) son módulos que importan 'three'; se bajan de jsDelivr (o unpkg) como texto,
 // se cambia 'three' por un módulo que reexporta window.THREE y se cargan como blob. Así no hace falta importmap ni bundler.
 // Calidad: ligero = sin modelos; medio = versión Medio; completo = primero Medio y en segundo plano se cambia a HD.
 // Solo se cargan los modelos del piso donde estás; al cambiar de piso se libera la memoria del anterior.
 // Origen: en localhost los archivos locales (modelos/); fuera, jsDelivr con la etiqueta del catálogo; si jsDelivr falla, el servidor.
 //   const g=CGLB.pon('pb','silla_madera',{pos:[1,0,2],rot:Math.PI/2,esc:1,sombra:true,listo:(obj,ver)=>{}});  escena.add(g);
 (function(){
-const TV='0.160.0',JSM='https://cdn.jsdelivr.net/npm/three@'+TV+'/examples/jsm/',REPO='aristidesaltamiranogarza-lab/Continental';
+const TV='0.160.0',CDN=['https://cdn.jsdelivr.net/npm/three@'+TV+'/examples/jsm/','https://unpkg.com/three@'+TV+'/examples/jsm/'],REPO='aristidesaltamiranogarza-lab/Continental';
 const H=location.hostname,LOCAL=location.protocol==='file:'||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(H)||/\.(localhost|test)$/.test(H);
 const PROPIO=new URL('modelos/',location.href).href;
 let CAT=null,catP=null,base=PROPIO,ldP=null,piso='pb',q0=null;
@@ -17,18 +17,24 @@ const cal=()=>{const q=window.CALIDAD;return q==='completo'||q==='medio'?q:'lige
 let shim=null;const BL=new Map();
 const blob=t=>URL.createObjectURL(new Blob([t],{type:'text/javascript'}));
 function shimURL(){if(!shim){const k=Object.keys(window.THREE).filter(x=>/^[A-Za-z_$][\w$]*$/.test(x));shim=blob('const T=window.THREE;export const {'+k.join(',')+'}=T;export default T;')}return shim}
-const RE=/^(\s*import\s*|\s*(?:import|export)\b[^'";]*?\bfrom\s*)(['"])([^'"\n]+)\2/gm;   // solo import/export al inicio de línea (no lo que viene en comentarios)
+// import/export al inicio de línea; entre la palabra y 'from' solo nombres, llaves, comas y * (así no cruza código ni textos)
+const IMP=()=>/^[ \t]*(?:import|export)\s*(?:[\w$\s{},*]*?\bfrom\s*)?(['"])([^'"\n]+)\1/gm;
+const espera=ms=>new Promise(ok=>setTimeout(ok,ms));
+function trae(u,n){return fetch(u).then(r=>{if(!r.ok)throw Error(r.status+' '+u);return r.text()},e=>{if(n>0)return espera(700).then(()=>trae(u,n-1));throw e})}
 function modBlob(u){if(BL.has(u))return BL.get(u);
- const p=fetch(u).then(r=>{if(!r.ok)throw Error(r.status+' '+u);return r.text()}).then(async t=>{
-  const dep=new Map();let m;RE.lastIndex=0;while((m=RE.exec(t)))if(m[3]!=='three'&&!dep.has(m[3]))dep.set(m[3],modBlob(new URL(m[3],u).href));
+ const p=trae(u,2).then(async t=>{const dep=new Map();
+  for(const m of t.matchAll(IMP())){const s=m[2];if(s!=='three'&&/^\.{0,2}\//.test(s)&&!dep.has(s))dep.set(s,modBlob(new URL(s,u).href))}
   for(const [s,pp] of dep)dep.set(s,await pp);
-  return blob(t.replace(RE,(a,b,c,s)=>b+c+(s==='three'?shimURL():dep.get(s))+c))});
- BL.set(u,p);return p}
-const mod=r=>modBlob(JSM+r).then(u=>import(u));
+  return blob(t.replace(IMP(),(a,c,s)=>{const x=s==='three'?shimURL():dep.get(s);return x?a.slice(0,a.length-s.length-2)+c+x+c:a}))});
+ BL.set(u,p);p.catch(()=>BL.delete(u));return p}   // lo que falla se olvida: el siguiente intento lo vuelve a bajar
+let JSM=null;   // CDN que funcionó; si jsDelivr no responde se usa unpkg (de ahí viene three.min.js)
+function mod(r){const bs=JSM?[JSM]:CDN;let i=0;
+ const va=()=>modBlob(bs[i]+r).then(u=>import(u)).then(M=>{JSM=JSM||bs[i];return M},e=>{if(++i<bs.length){console.warn('[CGLB] '+r+': '+bs[i-1]+' falló, pruebo '+bs[i],e);return va()}throw e});
+ return va()}
 
 // cargador único (GLTF + KTX2 + meshopt); el KTX2 necesita el renderer para saber qué compresión aguanta la tarjeta
 function cargador(){return ldP||(ldP=Promise.all([mod('loaders/GLTFLoader.js'),mod('loaders/KTX2Loader.js'),mod('libs/meshopt_decoder.module.js')]).then(([G,K,M])=>{
- const L=new G.GLTFLoader(),k=new K.KTX2Loader().setTranscoderPath(JSM+'libs/basis/'),R=window.CASA3D&&CASA3D.R&&CASA3D.R();
+ const L=new G.GLTFLoader(),k=new K.KTX2Loader().setTranscoderPath((JSM||CDN[0])+'libs/basis/'),R=window.CASA3D&&CASA3D.R&&CASA3D.R();
  if(R)k.detectSupport(R);L.setKTX2Loader(k);L.setMeshoptDecoder(M.MeshoptDecoder);return L}).catch(e=>{ldP=null;throw e}))}
 
 // ---------- catálogo ----------
