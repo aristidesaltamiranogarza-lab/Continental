@@ -4,7 +4,7 @@
 (function(){
 const touch=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;
 const J={x:0,y:0,on:false};window.JOY=J;if(!touch)return;
-const css=document.createElement('style');css.textContent=`#joy{position:fixed;left:calc(18px + env(safe-area-inset-left));bottom:calc(152px + env(safe-area-inset-bottom));width:124px;height:124px;border-radius:50%;z-index:6;display:none;touch-action:none;
+const css=document.createElement('style');css.textContent=`#joy{position:fixed;left:calc(18px + env(safe-area-inset-left));bottom:calc(30px + env(safe-area-inset-bottom));width:124px;height:124px;border-radius:50%;z-index:6;display:none;touch-action:none;
  background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,.07));border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 10px rgba(0,0,0,.25)}
 html.h3on #joy{display:block}#joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none}
 #a2hs{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(20,24,40,.92);color:#fff;font:600 14px/1.35 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.4)}

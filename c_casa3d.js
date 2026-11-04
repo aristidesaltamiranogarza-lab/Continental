@@ -41,7 +41,7 @@ function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv
 function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.pose(CA),f=!CAV.on();CAV.set(f);if(!f&&document.pointerLockElement)document.exitPointerLock();
  Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=!f;if(FL.enter)FL.enter(f);
  if(P)CCAM.blendIn(CA,P,600);sfx('tick');render()}
-const EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
+const EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
  uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.',haciendas:'Pon ranchos y sacbés, cosecha y comercia en Yucatán. Gana quien llegue primero a los puntos.',
  ruleta:'Un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.',
@@ -85,14 +85,15 @@ function init(){if(ready)return;ready=true;
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('pointerleave',()=>{if(window.ETQ)ETQ.hov(null)});
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();if(fpOn())return;VT.k*=Math.exp(-e.deltaY*.0015);clampV()},{passive:false});
  const typing=e=>/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'');
- // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = emotes; Enter = hablar
+ // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = gestos; G = rueda de gestos; Enter = chat
  addEventListener('keydown',e=>{if(window.CCAM&&active()&&!typing(e))CCAM.cut();if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
   else if(k=='v'){e.preventDefault();fpTog()}
-  else if(k=='escape'){if(sel){closed=sel;sel=null;render()}else camHome()}
-  else if(k=='enter'){const i=$id('h3say');if(i){e.preventDefault();i.focus()}}
+  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
+  else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
+  else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
  addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
  // barra de cámara: dejar presionado repite
@@ -279,7 +280,7 @@ function netSync(d){const seen=new Set(),n0=others.size;
  rooms=d.r||[];const k=JSON.stringify(rooms)+'|'+others.size;synced=true;
  if(k!==roomsKey){const rk=roomsKey.split('|')[0],nk=k.split('|')[0];roomsKey=k;if(rk!==nk)seatSync();if(!inputBusy())render()}}
 // globitos (lo que dijo o su emote) y nombres arriba de cada Mii
-function bubble(a,t,emo){if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
+function bubble(a,t,emo){if(!emo&&window.CHUD)CHUD.msg(a===me?(pname||'').trim()||'Tú':a.name,t,a===me);if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
 function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='w7 w7g h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
 function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='w7 t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
   const [x,y,v0]=toPx(v3(a.pos.x,3.45,a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
@@ -375,17 +376,13 @@ function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t
  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
- let o=`<div id="h3top" class="w7 w7g"><span class="h3t">${{pb:'🏠 <b>Casa de juegos</b>',sot:'🕯️ <b>Sótano</b>',alta:'📚 <b>Planta alta</b>',ter:'🌅 <b>Terraza</b>'}[FL.id]}</span>${FL===PB?'':((u,t)=>`<button class="w7b" onclick="casaPiso('pb')" title="${t}" aria-label="${t}">${u}</button>`)(...(FL.id==='sot'?['⬆️','Subir a la casa']:['⬇️','Bajar a la planta baja']))}${window.CIR?CIR.btn():''}<span class="h3ppl" title="Personas en la casa">👥 ${n}</span><input id="h3name" placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value;casaName()" aria-label="Tu nombre">${window.BIEN?BIEN.sel():''}
-  ${typeof musCyc=='function'?`<button class="w7b" onclick="musCyc()" title="Música: ${musName()}" aria-label="Música">${musName()=='apagada'?'🔇':'🎵'}</button>`:''}${window.BIEN?'':'<button class="w7b" onclick="casaToggle()" title="Pantalla de inicio clásica">2D</button>'}</div>`;
- if(!moved)o+=`<div id="h3hint" class="w7 w7g">${touchy?'👆 Joystick para caminar (o toca el piso) · toca una mesa para jugar · arrastra para girar la cámara, pellizca para acercar':'🖱 Clic en el piso para caminar (o W A S D) · clic en una mesa para jugar · arrastra para girar la cámara · rueda para acercar · V primera persona'}</div>`;
- o+=camUI();
+ let o=window.CHUD?CHUD.html({piso:FL.id,n,name:pname,touchy,fp:fpOn(),canFp:!!window.CAV,busy:!!g,
+  people:[{n:(pname||'').trim()||'Tú',f:FL.id,me:1},...[...others.values()].map(a=>({n:a.name,f:a.f}))]}):'';
  TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas';
   o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
  if(msg&&!g)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="w7 w7g">Te invitaron a la sala <b>${esc(code)}</b><button class="w7b p" onclick="joinR()">Unirme</button></div>`;
- // emotes y para hablar (lo ven todos los que están en la casa)
- o+=`<div id="h3bar" class="w7 w7g">${EMO.map((e,i)=>`<button class="w7b em" onclick="casaEm('${e}')" title="${e} (tecla ${i+1})" aria-label="Emote ${e}">${e}</button>`).join('')}<span class="say"><input id="h3say" maxlength="80" placeholder="Di algo…" onkeydown="if(event.key==='Enter')casaSay();else if(event.key==='Escape')this.blur()" aria-label="Decir algo"><button class="w7b" onclick="casaSay()" aria-label="Decir">💬</button></span></div>`;
  if(g){const {pl,op}=tinfo(sel),pr=rooms.filter(r=>r.g==sel&&r.st=='play'&&r.w);
   o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${window.lobbyName?lobbyName(sel):g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
   <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.${pl?` Ahora: ${pl} jugando.`:''}</span></div>
@@ -399,11 +396,11 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  if(window.SOT)o+=SOT.seatHud();
  return o}
 // letreros: siguen a su mesa en la pantalla
-function labels(){const tb=$id('h3top'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
+function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0;
  document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
   el.style.display=vis?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
 // tamaño, transparencia y empalmes de todas las etiquetas (c_etiquetas.js)
-function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(center(VW))||1,tb=$id('h3top');
+function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(center(VW))||1,tb=$id('uiTop');
  ETQ.step({y0:tb?tb.getBoundingClientRect().bottom+4:0,ratio:g=>{const a=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z}:window.JG3&&JG3.P&&JG3.P[g]);return a?Math.hypot(cp.x-a.x,cp.y-TH,cp.z-a.z)/ref:1}})}
 
 // ---------- engancharse a la pantalla de inicio ----------
@@ -449,6 +446,6 @@ window.casaPlay=mode=>{if(!sel)return;pgame=sel;sit(()=>mk(mode))};
 window.casaJoin=c=>{code=c;sit(()=>joinR())};
 window.casaWatch=c=>sit(()=>watchR(c));
 window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};
-window.casaSay=()=>{const i=$id('h3say'),t=i&&i.value.trim().slice(0,80);if(!t)return;i.value='';outSay=t;bubble(me,t);sfx('tick')};
+window.casaSay=x=>{const t=String(x||'').trim().slice(0,80);if(!t)return;outSay=t;bubble(me,t);sfx('tick')};window.casaFp=()=>fpTog();
 let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>rename(me,pname),350)};
 })();

@@ -1,0 +1,99 @@
+/* ===== Interfaz de la casa (c_casa_hud.js) con los tokens de ui.css ===== */
+.uh-top,.uh-br,.uh-ctl,.uh-drop,.uh-rueda,.ui-sheet,.ui-scrim{pointer-events:auto}
+.ui-scrim.uh-clear{background:transparent}
+@media (min-width:768px){.ui-scrim.uh-nodesk{display:none}}
+.ui kbd{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:7px;border:1px solid var(--ui-line);border-bottom-width:2px;background:var(--ui-field);color:var(--ui-text);font:800 12px/1 var(--ui-font)}
+
+/* arriba: piso a la izquierda; gente y ajustes a la derecha */
+.uh-top{position:fixed;z-index:12;left:calc(14px + env(safe-area-inset-left,0px));right:calc(14px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:none}
+.uh-top>*{pointer-events:auto}
+.uh-top .ui-pill{height:46px;padding:0 12px 0 12px}
+.uh-top .ui-pill span{overflow:hidden;text-overflow:ellipsis}
+.uh-top .ui-rb{width:46px;height:46px}
+.uh-chev{width:18px;height:18px;margin-left:-2px;opacity:.8}
+.uh-tr{display:flex;gap:8px}
+
+/* abajo a la derecha: ojo, gestos y chat */
+.uh-br{position:fixed;z-index:12;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.uh-row{display:flex;align-items:flex-end;gap:12px}
+.ui-rb.mid{width:58px;height:58px}
+.ui-rb.mid .ui-ico{width:26px;height:26px}
+.ui-rb.big{width:70px;height:70px}
+.ui-rb>kbd{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);height:20px;min-width:20px;font-size:11px;pointer-events:none}
+@media (max-height:520px){.uh-br{bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:8px}.uh-row{gap:8px}.ui-rb.big{width:58px;height:58px}.ui-rb.mid{width:50px;height:50px}}
+
+/* compu: tarjeta de controles abajo a la izquierda */
+.uh-ctl{position:fixed;z-index:12;left:16px;bottom:16px;width:220px;padding:12px 14px;font-size:14px}
+.uh-ctl .ui-hd{margin-bottom:6px}
+.uh-xs{width:32px;height:32px}.uh-xs .ui-ico{width:18px;height:18px}
+.uh-k{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px;color:var(--ui-sub);font-weight:700}
+.uh-k span{display:flex;gap:4px}
+
+/* gente: tarjeta que cae del botón */
+.uh-drop{position:fixed;z-index:31;right:calc(14px + env(safe-area-inset-right,0px));top:calc(70px + env(safe-area-inset-top,0px));width:min(280px,calc(100% - 28px));max-height:calc(100% - 100px);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;animation:uiIn .16s ease-out}
+.uh-drop .ui-lbl{margin:2px 4px}
+.uh-per{display:flex;align-items:center;gap:10px}
+.uh-per>span{display:flex;flex-direction:column;gap:1px;min-width:0}
+.uh-per b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uh-per small{font-size:13px}
+.uh-av{flex:none;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font:800 15px/1 var(--ui-font)}
+
+/* ajustes */
+.uh-name{display:flex;align-items:flex-end;gap:12px}
+.uh-name .uh-av{width:48px;height:48px;font-size:20px}
+.uh-name label{flex:1;min-width:0}
+.uh-name .ui-lbl{margin-top:0}
+.uh-hint{display:block;margin-top:6px;font-size:13px}
+.uh-sws{margin-top:10px}
+.uh-2{display:flex;gap:10px;margin-top:14px}
+.uh-2 .ui-btn{flex:1;padding:0 12px;font-size:14px}
+.uh-2 .ui-ico{width:18px;height:18px}
+.ui-sheet .ui-seg button{padding:0 8px}
+.uh-ay{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:8px 0}
+.uh-ay span{font-weight:600}
+
+/* chat */
+.uh-msgs{display:flex;flex-direction:column;gap:12px;min-height:120px;padding:2px 0 8px;-webkit-user-select:text;user-select:text}
+.uh-m{display:flex;gap:10px;align-items:flex-start}
+.uh-m .uh-av{width:34px;height:34px;font-size:14px}
+.uh-m>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.uh-m small{color:var(--ui-sub);font-size:13px}
+.uh-m>span>span{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.uh-m.me small{color:var(--ui-icon)}
+.uh-empty{margin:24px 0;text-align:center}
+.uh-say{display:flex;gap:8px;margin-top:8px;flex:none}
+.uh-say .ui-in{border-radius:999px;height:50px}
+.uh-say .ui-rb{width:50px;height:50px;flex:none;box-shadow:none}
+.ui-sheet.izq{max-height:70%}
+@media (min-width:768px){.ui-sheet.izq .uh-msgs{min-height:80px}}
+
+/* gestos: rueda al centro y los bailes debajo */
+.uh-rueda{position:fixed;z-index:31;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:uiFade .15s ease-out}
+.uh-rueda>*{pointer-events:auto}
+.uh-rt{color:#fff;font:800 15px/1 var(--ui-font);text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none}
+.uh-ring{position:relative}
+.uh-e{position:absolute;width:64px;height:64px;padding:0;border-radius:50%;border:1px solid var(--ui-line);background:var(--ui-sheet);box-shadow:var(--ui-shadow);font-size:32px;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .12s}
+.uh-e:active{transform:scale(.92)}
+@media (hover:hover){.uh-e:hover{transform:scale(1.08)}}
+.uh-e kbd{position:absolute;right:-4px;bottom:-4px;height:20px;min-width:20px;font-size:11px}
+.uh-ex{position:absolute;width:64px;height:64px}
+.uh-dz{display:flex;gap:10px;margin-top:6px}
+.uh-dz .ui-pill{height:52px;padding:0 18px 0 12px;background:var(--ui-sheet)}
+.uh-de{font-size:26px}
+
+/* lo de antes con el mismo estilo: avisos, letreros de mesas, nombres, globitos, invitación */
+#h3toasts{left:50%!important;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 72px);bottom:auto!important;align-items:center}
+.h3toast,.t3msg,#h3inv{background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);border-radius:999px;box-shadow:var(--ui-shadow);color:var(--ui-text);font:700 14px/1.3 var(--ui-font);text-shadow:none}
+.h3toast{padding:8px 16px}
+.t3msg{padding:10px 18px;border-radius:18px;top:calc(env(safe-area-inset-top,0px) + 76px)}
+#h3inv{top:calc(env(safe-area-inset-top,0px) + 72px);padding:6px 6px 6px 16px}
+.h3sign{padding:6px 14px 7px;border-radius:16px;font-family:var(--ui-font);font-weight:700}
+.h3sign small{color:var(--ui-sub);font-weight:700}
+.h3sign.on{border-color:var(--ui-accent);box-shadow:0 0 0 3px var(--ui-accent),var(--ui-shadow)}
+.h3sign.open small{color:var(--ui-accent)}
+#h3lay .h3nm{font-family:var(--ui-font);font-weight:800}
+.h3bub{border:1px solid var(--ui-line);border-radius:16px;background:var(--ui-sheet);color:var(--ui-text);font:700 14px/1.3 var(--ui-font);box-shadow:var(--ui-shadow)}
+.h3bub::after{border-top-color:var(--ui-sheet)}
+html.c3dark .h3bub:not(.emo){background:var(--ui-sheet);color:var(--ui-text);border-color:var(--ui-line)}html.c3dark .h3bub::after{border-top-color:var(--ui-sheet)}
+.bnv-fps{background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:18px;box-shadow:var(--ui-shadow);font-family:var(--ui-font);font-weight:700;top:calc(env(safe-area-inset-top,0px) + 72px)}
+.bnv-fps button{min-height:36px;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-chip);color:var(--ui-text);font-weight:700}

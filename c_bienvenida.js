@@ -96,7 +96,7 @@ function warn(fps){if(CALIDAD==='ligero'||inGame()||!window.CASA3D||!CASA3D.on()
 // selector para la barra de la casa (junto al nombre)
 const sel=()=>`<select id="h3cal" onchange="BIEN.set(this.value)" title="Calidad" aria-label="Calidad">${Q.map(k=>`<option value="${k}"${k===CALIDAD?' selected':''}>${QN[k]}</option>`).join('')}</select>`;
 
-window.BIEN={pend,set,toggled,watch,sel};
+window.BIEN={pend,set,toggled,watch,sel,show:()=>{if(!pend())show()}};
 const nm=(ls.get('cont_n')||'').trim();
 if((!nm||!saved)&&!inGame())show();
 })();

@@ -13,7 +13,7 @@ const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['
  '/c_rummy2d.js':['c_rummy2d.js','text/javascript; charset=utf-8'],'/c_rummyui.js':['c_rummyui.js','text/javascript; charset=utf-8'],
  '/c_rummyesc.js':['c_rummyesc.js','text/javascript; charset=utf-8'],'/c_rummy3dm.js':['c_rummy3dm.js','text/javascript; charset=utf-8'],'/c_rummy3d.js':['c_rummy3d.js','text/javascript; charset=utf-8'],'/c_rummy3dvista.js':['c_rummy3dvista.js','text/javascript; charset=utf-8'],'/c_bienvenida.js':['c_bienvenida.js','text/javascript; charset=utf-8'],'/c_etiquetas.js':['c_etiquetas.js','text/javascript; charset=utf-8'],'/c_casa_cam.js':['c_casa_cam.js','text/javascript; charset=utf-8'],'/c_casa_amb.js':['c_casa_amb.js','text/javascript; charset=utf-8'],'/music_mp3.js':['music_mp3.js','text/javascript; charset=utf-8'],'/musica/neondemedianoche.mp3':['musica/neondemedianoche.mp3','audio/mpeg'],'/musica/bosadelcomodin.mp3':['musica/bosadelcomodin.mp3','audio/mpeg'],'/musica/fichalentalofi.mp3':['musica/fichalentalofi.mp3','audio/mpeg'],'/c_casa_dollhouse.js':['c_casa_dollhouse.js','text/javascript; charset=utf-8'],'/c_casa_ir.js':['c_casa_ir.js','text/javascript; charset=utf-8'],'/c_casa_hover.js':['c_casa_hover.js','text/javascript; charset=utf-8'],'/c_sotano.js':['c_sotano.js','text/javascript; charset=utf-8'],'/c_casa_esc.js':['c_casa_esc.js','text/javascript; charset=utf-8'],'/c_casa_ruta.js':['c_casa_ruta.js','text/javascript; charset=utf-8'],'/c_casa_joy.js':['c_casa_joy.js','text/javascript; charset=utf-8'],'/c_casa_alta.js':['c_casa_alta.js','text/javascript; charset=utf-8'],'/c_casa_terraza.js':['c_casa_terraza.js','text/javascript; charset=utf-8'],'/c_casa_avatar.js':['c_casa_avatar.js','text/javascript; charset=utf-8'],
  '/c_mii.js':['c_mii.js','text/javascript; charset=utf-8'],'/c_rummyabuelos.js':['c_rummyabuelos.js','text/javascript; charset=utf-8'],'/c_rummysfx.js':['c_rummysfx.js','text/javascript; charset=utf-8'],
- '/ui.css':['ui.css','text/css; charset=utf-8'],'/c_ui.js':['c_ui.js','text/javascript; charset=utf-8']};
+ '/ui.css':['ui.css','text/css; charset=utf-8'],'/ui_casa.css':['ui_casa.css','text/css; charset=utf-8'],'/c_casa_hud.js':['c_casa_hud.js','text/javascript; charset=utf-8'],'/c_ui.js':['c_ui.js','text/javascript; charset=utf-8']};
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
@@ -75,7 +75,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
 // ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
 const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
 //   // Cubilete de la esquina (sin salas)
-const casa={},EMO=['👋','😂','🎉','❤️','👍','😮','💃','🕺'];
+const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺'];
 function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
  // c: código para unirse (solo si espera jugadores); w: código para ir a mirar (si ya empezó)
  const fin=R.G&&R.G.phase=='final';   // partida terminada: ya no cuenta como en curso

@@ -1,12 +1,13 @@
 /* ===== Interfaz "Cálida" (día / noche). Tokens + componentes base. Reglas: skill casa-ui ===== */
 :root{--ui-panel:rgba(253,246,233,.93);--ui-sheet:#FDF6E9;--ui-line:rgba(94,52,24,.18);--ui-text:#3A2416;--ui-sub:#6E4F3A;--ui-icon:#B8481F;
  --ui-accent:#C2512A;--ui-on:#FFF8EE;--ui-chip:rgba(194,81,42,.10);--ui-field:#FFFFFF;--ui-shadow:0 6px 18px rgba(58,36,22,.25);--ui-scrim:rgba(40,22,10,.40);
- --ui-r:22px;--ui-font:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;--ui-blur:blur(14px) saturate(1.3);color-scheme:light}
+ --ui-r:22px;--ui-font:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;--ui-blur:blur(14px) saturate(1.3)}
 html[data-tema=noche]{--ui-panel:rgba(40,27,20,.90);--ui-sheet:#2A1D16;--ui-line:rgba(255,226,196,.16);--ui-text:#F7EADB;--ui-sub:#C9B19C;--ui-icon:#F0A77E;
- --ui-accent:#E8834F;--ui-on:#24140C;--ui-chip:rgba(255,226,196,.08);--ui-field:rgba(255,255,255,.06);--ui-shadow:0 8px 24px rgba(0,0,0,.45);--ui-scrim:rgba(0,0,0,.48);color-scheme:dark}
+ --ui-accent:#E8834F;--ui-on:#24140C;--ui-chip:rgba(255,226,196,.08);--ui-field:rgba(255,255,255,.06);--ui-shadow:0 8px 24px rgba(0,0,0,.45);--ui-scrim:rgba(0,0,0,.48)}
 
 /* ---------- base ---------- */
 .ui{font:700 15px/1.3 var(--ui-font);color:var(--ui-text);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+.ui{color-scheme:light}html[data-tema=noche] .ui{color-scheme:dark}
 .ui *,.ui *::before,.ui *::after{box-sizing:border-box}
 .ui-fx{position:fixed;z-index:12;pointer-events:auto}
 .ui-ico{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
