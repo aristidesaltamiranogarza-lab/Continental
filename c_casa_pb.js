@@ -70,7 +70,7 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
    const m=.1,l=hh.c-h.w/2,r=hh.c+h.w/2,tp=h.arco?h.h-h.w/2:h.h,sh=new THREE.Shape();
    sh.moveTo(l-m,0);sh.lineTo(l-m,tp);if(h.arco)sh.absarc(hh.c,tp,h.w/2+m,Math.PI,0,true);else{sh.lineTo(l-m,tp+m);sh.lineTo(r+m,tp+m)}sh.lineTo(r+m,0);sh.lineTo(r,0);sh.lineTo(r,tp);
    if(h.arco)sh.absarc(hh.c,tp,h.w/2,0,Math.PI,false);else sh.lineTo(l,tp);sh.lineTo(l,0);sh.closePath();
-   const ge=new THREE.ExtrudeGeometry(sh,{depth:T+.04,bevelEnabled:false,curveSegments:20});ge.translate(0,0,-T-.02);
+   const ge=new THREE.ExtrudeGeometry(sh,{depth:T+.1,bevelEnabled:false,curveSegments:20});ge.translate(0,0,-T-.05);   // sale más que el lambrín (.02) y su moldura (.035): sin parpadeo
    const G=grp(ia.p.x,ia.p.z,ia.g.rotation.y);G.add(new THREE.Mesh(ge,MARCO));RG.push({g:G,a:CORTE.indexOf(ia),b:CORTE.indexOf(ib)})});return {fa,fb}}
  function techo(x0,x1,z0,z1,vx){const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),TECHO);c.rotation.x=Math.PI/2;c.position.set((x0+x1)/2,H,(z0+z1)/2);SC.add(c);
   // vigas a lo largo de x (vx) o de z
@@ -83,6 +83,8 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  ext('z',-17,1,-15,11,S);ext('z',17,-1,-15,11,S);
  tabique('x',-15.15,1,[[-17,17,S]],[[-17,-1,CO],[-1,17,K]],[{at:-9.5,w:4,h:5.8,arco:1},{at:6,w:2.2,h:3.6}]);
  tabique('x',11.15,-1,[[-17,17,S]],[[-4.5,4.5,Z]],[{at:0,w:4.2,h:6.4,arco:1}]);
+ // el salón se parte en dos con un arco grande: al frente la sala de recibir, atrás las mesas
+ tabique('x',5.9,1,[[-17,17,S]],[[-17,17,S]],[{at:0,w:9.6,h:7.9,arco:1}]);
  ext('z',-4.5,1,11.3,19,Z);ext('z',4.5,-1,11.3,19,Z);if(!window.CCALLE)ext('x',19,-1,-4.5,4.5,Z);   // con la calle, el muro del frente (y su fachada) lo pone c_casa_calle.js
  ext('z',-17,1,-25,-15.3,CO);if(!window.CPAT){ext('x',-25,1,-17,-1.15,CO);ext('x',-25,1,-.85,12,K);ext('x',-25,1,12.3,17,BA)}ext('z',17,-1,-25,-19.65,BA);ext('z',17,-1,-19.35,-15.3,K);
  tabique('z',-1,-1,[[-25,-15.3,CO]],[[-25,-15.3,K]],[{at:-19.5,w:2.2,h:3.6}]);
@@ -91,7 +93,8 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;
  techo(-17,17,-15,11);techo(-4.5,4.5,11.3,19,1);techo(-17,-1.15,-25,-15.3);techo(-.85,12,-25,-15.3);techo(12,17,-19.35,-15.3,1);techo(12.3,17,-25,-19.65,1);
  // (los pisos llegan hasta la mitad de cada muro: desde arriba no queda hueco entre las dos caras)
  suelo(-4.5,4.5,11,19,pasta('zag','#e8dcc4','#b5473a','#2f6b4a'));suelo(-17,-1,-25,-15,pasta('com','#efe3c8','#c48a2a','#1f4f6a'));
- const pk=pasta('coc','#e9e2d0','#2f6b5a','#b5473a');suelo(-1,12.15,-25,-15,pk);suelo(12.15,17,-19.5,-15,pk);suelo(12.15,17,-25,-19.5,tab);
+ const pk=pasta('coc','#e9e2d0','#2f6b5a','#b5473a');suelo(-17,17,-15,11,pk);   // salón con el mismo piso de pasta que la cocina
+ suelo(-1,12.15,-25,-15,pk);suelo(12.15,17,-19.5,-15,pk);suelo(12.15,17,-25,-19.5,tab);
  // umbrales bajo cada vano entre cuartos (tapan la junta de los pisos)
  const um=std(0x8a8077,.85);[[-9.5,-15.15,4,T+.1],[6,-15.15,2.2,T+.1],[0,11.15,4.2,T+.1],[14.6,-19.5,2,T+.1]].forEach(([x,z,w,d])=>B(w,.02,d,um,x,.01,z).castShadow=false);B(T+.1,.02,2.2,um,-1,.01,-19.5).castShadow=false;
 
