@@ -88,10 +88,11 @@ function init(){if(ready)return;ready=true;
  // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = gestos; G = rueda de gestos; Enter = chat
  addEventListener('keydown',e=>{if(window.CCAM&&active()&&!typing(e))CCAM.cut();if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
+  else if(k=='e'&&sel&&window.CMESA&&CMESA.key('e'))e.preventDefault()
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
   else if(k=='v'){e.preventDefault();fpTog()}
-  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
+  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
   else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
@@ -299,7 +300,7 @@ function clampV(){if(fpOn())return CAV.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMA
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);applyCam()}
 function camStep(dt,snapNow){if(snapNow){VK.forEach(q=>VW[q]=VT[q])}else{const f=RM?1:1-Math.exp(-dt/110);VK.forEach(q=>{VW[q]+=(VT[q]-VW[q])*f})}
  // en celular parado, con la ventanita de la mesa abierta (abajo), la mesa y tu Mii se suben a la parte de arriba (si no moviste la cámara)
- const t=por&&sel&&!viewed()&&TB.find(x=>x.g===sel),p=me.pos;
+ const t=por&&sel&&!viewed()&&(!window.CMESA||CMESA.abierta())&&TB.find(x=>x.g===sel),p=me.pos;
  if(t)selT.set((t.x+p.x)/2+Math.sin(VW.a)*6,0,(t.z+p.z)/2+Math.cos(VW.a)*6).sub(center(VW));else selT.set(0,0,0);selOff.lerp(selT,snapNow?1:.1);applyCam()}
 const panned=()=>Math.abs(VT.ox)>.3||Math.abs(VT.oz)>.3,viewed=()=>fpOn()?Math.abs(VT.t)>.02:panned()||Math.abs(VT.k-(FL.k||1))>.03||Math.abs(wrap(VT.a))>.02||Math.abs(VT.t)>.02;
 // Cuadrar: llega con easing (c_casa_cam.js) en vez de deslizarse
@@ -353,7 +354,7 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}const rc=cv.getBoundingClientRect(),h=pick(locked()?{clientX:rc.left+rc.width/2,clientY:rc.top+rc.height/2}:e);if(!h)return;
  // en el celular el primer toque solo enseña el detalle de la etiqueta; el segundo entra
  const hg=hk(h);if(hg&&e.pointerType==='touch'&&window.ETQ&&!ETQ.tap(hg))return;
- if(h.t=='table')return goTable(h.g);
+ if(h.t=='table')return h.g===sel&&window.CMESA?CMESA.abrir():goTable(h.g);
  if(h.t=='link'){tgt=v3(h.l.ax,0,h.l.az);tgtL=h.l;tgtG=null;solve(tgt);showMark(tgt);sfx('card');return}   // la escalera
  if(h.t=='c4'||h.t=='bg')return JG3.tap(h);
  if(h.t=='fn')return h.f();   // el plano junto a la escalera (abre el 🧭) o la radio
@@ -376,23 +377,19 @@ function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t
  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
- let o=window.CHUD?CHUD.html({piso:FL.id,n,name:pname,touchy,fp:fpOn(),canFp:!!window.CAV,busy:!!g,
+ // la mesa que picaste: aviso "Jugar…" y, al tocarlo (o E), su panel (c_casa_mesa.js)
+ let mh='';if(window.CMESA){let c=null;if(g){const {pl,op}=tinfo(sel);c={g:sel,G:g,name:window.lobbyName?lobbyName(sel):g.name,desc:DESC[sel]||'',pl,op,pr:rooms.filter(r=>r.g==sel&&r.st=='play'&&r.w),code,msg}}mh=CMESA.html(c)}
+ const busy=!!(g&&window.CMESA&&CMESA.abierta());
+ let o=window.CHUD?CHUD.html({piso:FL.id,n,name:pname,touchy,fp:fpOn(),canFp:!!window.CAV,busy,
   people:[{n:(pname||'').trim()||'Tú',f:FL.id,me:1},...[...others.values()].map(a=>({n:a.name,f:a.f}))]}):'';
  TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas';
   o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
- if(msg&&!g)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
+ if(msg&&!busy)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="w7 w7g">Te invitaron a la sala <b>${esc(code)}</b><button class="w7b p" onclick="joinR()">Unirme</button></div>`;
- if(g){const {pl,op}=tinfo(sel),pr=rooms.filter(r=>r.g==sel&&r.st=='play'&&r.w);
-  o+=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="h3wt"><div class="wt"><span id="h3wt">${g.emoji} ${window.lobbyName?lobbyName(sel):g.name}</span><button class="wx" onclick="casaClose()" aria-label="Cerrar">✕</button></div>
-  <div class="wb"><div class="h3d">${DESC[sel]||''} <span class="h3n">Hasta ${g.max} jugadores.${pl?` Ahora: ${pl} jugando.`:''}</span></div>
-  ${op.length?`<div class="h3rooms"><span>Salas esperando jugadores</span>${op.slice(0,5).map(r=>`<div><span>Sala de <b>${esc(r.host)}</b></span><small>${r.n}/${r.max}</small><button class="w7b p" onclick="casaJoin('${esc(r.c)}')">Unirme</button></div>`).join('')}</div>`:''}
-  ${pr.length?`<div class="h3rooms h3watch"><span>Partidas en curso</span>${pr.slice(0,5).map(r=>`<div><span>${esc(r.ps.slice(0,3).join(', '))}${r.n>3?'…':''}</span><small>${r.sp?'👁 '+r.sp:''}</small><button class="w7b" onclick="casaWatch('${esc(r.w)}')" title="Mirar sin jugar">👁 Ver</button></div>`).join('')}</div>`:''}
-  <div class="h3b"><button class="w7b${op.length?'':' dflt'}" onclick="casaPlay('listo')">▶ Crear sala y jugar</button></div>
-  <div class="h3j"><span>¿Tienes un código?</span><input id="h3code" placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala"><button class="w7b" onclick="joinR()">Unirme</button></div>
-  ${msg?`<div class="h3m">${esc(msg)}</div>`:''}</div></div>`}
- if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(!!g);if(window.JG3)o+=JG3.hud(!!g);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
- if(window.CIR)o+=CIR.hud(!!g);
+ o+=mh;
+ if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
+ if(window.CIR)o+=CIR.hud(busy);
  if(window.SOT)o+=SOT.seatHud();
  return o}
 // letreros: siguen a su mesa en la pantalla
@@ -430,7 +427,7 @@ function mesaEn(t,S,h,O){const k=[SC,hits,OB];SC=S;hits=h;OB=O;try{t.r=t.r||2.2;
 window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
-window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g)return;goTable(g)};
+window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g){if(window.CMESA)CMESA.abrir();return}goTable(g)};
 window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
 // sentarse: vuela a la mesa, baja a la altura de la silla y funde a negro; luego entra al juego (c_casa_cam.js)
 let sitP=null;

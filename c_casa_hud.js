@@ -48,8 +48,8 @@ const P={
    return `<button class="uh-e" style="left:${(R+Math.cos(a)*R).toFixed(1)}px;top:${(R+Math.sin(a)*R).toFixed(1)}px" onclick="CHUD.em('${e}')" aria-label="Gesto ${e}">${e}${k?`<kbd>${i+1}</kbd>`:''}</button>`}).join('')}
    <button class="ui-rb big uh-ex" style="left:${R}px;top:${R}px" onclick="CHUD.close()" aria-label="Cerrar gestos">${I('x')}</button></div>
    <div class="uh-dz">${BAILES.map(([e,t])=>`<button class="ui-pill" onclick="CHUD.em('${e}')"><span class="uh-de" aria-hidden="true">${e}</span>${t}</button>`).join('')}</div></div>`},
- ayuda:c=>sheet('Cómo se juega',(c.touchy?[['Camina','Con el joystick de abajo, o toca el piso.'],['Mira','Arrastra para girar; pellizca para acercar.'],['Juega','Toca una mesa y elige cómo jugar.'],['Platica','El botón grande es el chat; el de la carita, los gestos.'],['Pisos','Toca el nombre del piso, arriba, para ir a otro.']]
-  :[['Camina','W A S D o flechas, o clic en el piso.'],['Mira','Arrastra para girar; la rueda acerca. V: primera persona.'],['Juega','Clic en una mesa y elige cómo jugar.'],['Platica','Enter abre el chat; G los gestos; 1 a 8, un gesto directo.'],['Pisos','Clic en el nombre del piso, arriba, para ir a otro.']])
+ ayuda:c=>sheet('Cómo se juega',(c.touchy?[['Camina','Con el joystick de abajo, o toca el piso.'],['Mira','Arrastra para girar; pellizca para acercar.'],['Juega','Toca una mesa; al llegar, toca «Jugar» abajo.'],['Platica','El botón grande es el chat; el de la carita, los gestos.'],['Pisos','Toca el nombre del piso, arriba, para ir a otro.']]
+  :[['Camina','W A S D o flechas, o clic en el piso.'],['Mira','Arrastra para girar; la rueda acerca. V: primera persona.'],['Juega','Clic en una mesa; al llegar, E (o el botón de abajo) abre su panel.'],['Platica','Enter abre el chat; G los gestos; 1 a 8, un gesto directo.'],['Pisos','Clic en el nombre del piso, arriba, para ir a otro.']])
   .map(([t,d])=>`<div class="ui-row uh-ay"><b>${t}</b><span class="ui-sub">${d}</span></div>`).join(''),'der')};
 const vacio='<p class="ui-sub uh-empty">Nadie ha dicho nada todavía. ¡Saluda!</p>';
 const mm=m=>`<div class="uh-m${m.me?' me':''}">${av(m.n)}<span><small>${es(m.n)}</small><span>${es(m.t)}</span></span></div>`;
@@ -76,7 +76,7 @@ function key(k){if(k=='escape'){if(!open)return false;close();return true}
  if(k=='enter'){if(open!='chat')tog('chat');const i=$('uiSay');if(i)i.focus();return true}
  if(k=='g'){tog('gestos');return true}
  return false}
-window.CHUD={html,msg,key,tog,close,send,isOpen:()=>open,
+window.CHUD={html,msg,key,tog,close,send,av,isOpen:()=>open,
  pisos:()=>{open=null;if(window.CIR)CIR.tog();else rr()},
  fp:()=>{if(typeof casaFp=='function')casaFp()},
  em:e=>{open=null;if(typeof casaEm=='function')casaEm(e);rr()},
