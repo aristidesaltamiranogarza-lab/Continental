@@ -11,6 +11,6 @@ Lista corta de lo que falta. El plan completo está en ROADMAP_CASA.md.
 - **D7 medición en dispositivos**: celular y PC modesta, en Medio y Completo (FPS, memoria, si Safari recarga la página).
 - **Paso 5 de la UI** (prompt_ui.md): se dejó en pausa hasta terminar el Bloque D.
 - **4d Mesas ocupadas**: animación genérica de mesa con partida en curso.
-- **Migrar los juegos a su mesa**: hecho para Continental, Uno, Mérida y YuCATÁN (c_casa_fondo.js: la casa de fondo con el mismo WebGL). Falta Monopoly Deal (pantalla 2D) y encoger los Miis (FONDO.MII).
+- **Migrar los juegos a su mesa**: hecho para Continental, Uno, Mérida y YuCATÁN (c_casa_fondo.js: la casa de fondo con el mismo WebGL). Falta Monopoly Deal (pantalla 2D). Miis al 80 % (MII.K en c_mii.js).
 - **Fase 5: Póker y Blackjack jugables** en el sótano (hoy solo están las mesas).
 - **Billar jugable** (BIL.D ya trae las medidas) y quitar los letreros "próximamente".

@@ -4,7 +4,7 @@
 (function(){
 if(typeof THREE==='undefined')return;
 const EYE=2.72,PMIN=-.7,PMAX=.55;let fp=false;
-function apply(cam,pos,V){cam.position.set(pos.x,EYE,pos.z);cam.rotation.order='YXZ';cam.rotation.set(V.t,V.a,0);cam.updateMatrixWorld()}
+function apply(cam,pos,V){cam.position.set(pos.x,EYE*(window.MII&&MII.K||1),pos.z);cam.rotation.order='YXZ';cam.rotation.set(V.t,V.a,0);cam.updateMatrixWorld()}
 function clamp(V){V.t=Math.max(PMIN,Math.min(PMAX,V.t));V.ox=V.oz=0}
 // mira al centro cuando el ratón está atrapado (pointer lock): el clic actúa ahí
 const st=document.createElement('style');st.textContent='#h3x{position:fixed;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.45);z-index:5;pointer-events:none;display:none}html.h3lock #h3x{display:block}';document.head.appendChild(st);

@@ -13,6 +13,8 @@ const rgba=(h,a)=>{const c=hexRGB(h);return `rgba(${c[0]},${c[1]},${c[2]},${a})`
 const css=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c:'#'+new THREE.Color(c).getHexString();
 const rr=(g,x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()};
 const KS=1/.85,Y0=1.336;   // vista previa → marco viejo: y_viejo=(y-Y0)*KS
+// KM: tamaño de los Miis (1 = el de antes). De pie se encogen desde los pies; sentados desde la altura de la mesa y su silla sigue en el piso
+const KM=.8;
 
 // ---------- los 6 personajes (mismo orden que AVP; la ropa toma el color de la ficha) ----------
 const CH=[
@@ -201,9 +203,9 @@ function mk(k,pi,o,col,src){o=o||{};const A=pi<CH.length?CH[pi]:conv(src||{}),C=
  let legs=null;
  if(!o.stand){
   // silla de madera (los abuelos del Rummy la esconden: buscan Box/Cylinder hijos directos)
-  const wood=new THREE.MeshStandardMaterial({color:0x3a1e0c,roughness:.6}),W=(geo,x,y,z)=>{M(geo,wood,x,y,z,g).userData.noOut=1};
-  W(new THREE.BoxGeometry(1.1,.12,1),0,-.66,-.05);W(new THREE.BoxGeometry(1.1,1.35,.12),0,.05,-.55);
-  [[-.48,-.5],[.48,-.5],[-.48,.38],[.48,.38]].forEach(([x,z])=>W(new THREE.CylinderGeometry(.05,.05,.9,8),x,-1.1,z));
+  const wood=new THREE.MeshStandardMaterial({color:0x3a1e0c,roughness:.6}),W=(geo,x,y,z)=>{const m=M(geo,wood,x,y,z,g);m.userData.noOut=1;m.userData.silla=1},hp=1.49-.66*KM;
+  W(new THREE.BoxGeometry(1.1*KM,.12,KM),0,-.66*KM,-.05*KM);W(new THREE.BoxGeometry(1.1*KM,1.35*KM,.12),0,.05*KM,-.55*KM);
+  [[-.48,-.5],[.48,-.5],[-.48,.38],[.48,.38]].forEach(([x,z])=>W(new THREE.CylinderGeometry(.05,.05,hp,8),x*KM,-1.55+hp/2,z*KM));
   // piernas sentadas: fijas
   [-1,1].forEach(s=>{const L=mkLimb(g,[{mat:mPants,r:legR}]);L.set(v3(s*.17,-.5,.05),v3(s*.19,-.5,.72),v3(s*.2,-1.3,.78));L.ms.forEach(m=>{m.frustumCulled=true;m.geometry.computeBoundingSphere()});shoe(s*.2,-1.42,.86)})}
  // de pie: quien lo use mueve las piernas con C3D.seg(L.up,cadera,rodilla) y C3D.seg(L.lo,rodilla,tobillo)
@@ -265,10 +267,12 @@ function mk(k,pi,o,col,src){o=o||{};const A=pi<CH.length?CH[pi]:conv(src||{}),C=
  hf.onBeforeRender=()=>{const t=performance.now()/1000;
   if(!rec.bl&&t>rec.nb){rec.bl=1;rec.be=t+.13;rec.draw()}else if(rec.bl&&t>rec.be){rec.bl=0;rec.nb=t+2+Math.random()*3.5;rec.draw()}
   if(tail){tail.rotation.z=.08*Math.sin(t*1.7+rec.seed);tail.rotation.x=.05*Math.sin(t*1.15+rec.seed)}};
+ // todo menos la silla va en S, encogido KM (los juegos siguen poniendo manos y piernas en las mismas coordenadas del Mii)
+ if(KM!==1){const S=new THREE.Group();S.scale.setScalar(KM);if(o.stand)S.position.y=-1.57*(1-KM);g.children.slice().forEach(c=>{if(!c.userData.silla)S.add(c)});g.add(S)}
  outline(g);
  g.userData={k,pi,body,head,arms,legs,reachT:0,cheerT:0,l1:.45,l2:.43,face:rec};return g}
 
 // gesto de la cara: 'normal' | 'feliz' | 'enojado' | 'sorpresa' | 'triste'
 function setFace(g,ex){const r=g&&g.userData&&g.userData.face;if(!r)return;r.ex=EXS.indexOf(ex)>=0?ex:'normal';r.draw()}
-window.MII={mk,setFace,CH};
+window.MII={mk,setFace,CH,K:KM};
 })();

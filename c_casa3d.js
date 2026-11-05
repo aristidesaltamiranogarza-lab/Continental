@@ -274,9 +274,10 @@ function netSync(d){const seen=new Set(),n0=others.size;
 // globitos (lo que dijo o su emote) y nombres arriba de cada Mii
 function bubble(a,t,emo){if(!emo&&window.CHUD)CHUD.msg(a===me?(pname||'').trim()||'Tú':a.name,t,a===me);if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
 function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='ui ui-fx ui-glass h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
+const MK=()=>window.MII&&MII.K||1;   // tamaño de los Miis (c_mii.js): nombres y globitos a su altura
 function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='ui ui-fx t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
-  const [x,y,v0]=toPx(v3(a.pos.x,3.45,a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
-  if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05,a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
+  const [x,y,v0]=toPx(v3(a.pos.x,3.45*MK(),a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
+  if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05*MK(),a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
 
 // ---------- cámara tipo Roblox: sigue a tu Mii desde atrás; arrastrar la gira alrededor de él, rueda o pellizco para acercar ----------
 const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>0;   // AH: cuánto adelante de tu Mii mira la cámara (0 = a él)
