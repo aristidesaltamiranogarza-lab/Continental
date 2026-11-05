@@ -140,7 +140,7 @@ const modal=(h,close)=>`<div class="mu-modal" onclick="if(event.target===this)${
 function menuBox(){const m3ok=!!(window.M3&&M3.ok()),sn=stageName(),G=V.G,seg=(L)=>`<div class="mu-seg">${L.map(([on,c,t,dis])=>`<button class="${on?'on':''}" onclick="${c}"${dis?' disabled':''}>${t}</button>`).join('')}</div>`;
  return `<div class="mu-card mu-menu"><header><b class="mu-h">Opciones</b><button class="mu-x" onclick="MRU.menu(0)" aria-label="Cerrar">${SV.x}</button></header>
   <div class="mu-opt"><span>Vista</span>${seg([[sn=='3d',"MRU.mode('3d')",'🎲 3D',!m3ok],[sn=='2d',"MRU.mode('2d')",'🗺️ 2D']])}</div>
-  <div class="mu-opt"><span>Tablero</span>${seg([[theme=='menta',"MRU.theme('menta')",'<i class="mu-sw" style="background:#cde6d0"></i>Menta'],[theme=='oscuro',"MRU.theme('oscuro')",'<i class="mu-sw" style="background:#1f2a25"></i>Oscuro']])}</div>
+  <div class="mu-opt"><span>Tema</span>${seg([[window.UI.tema()=='auto',"GHUD.tema('auto')",'Automático'],[window.UI.tema()=='dia',"GHUD.tema('dia')",'Día'],[window.UI.tema()=='noche',"GHUD.tema('noche')",'Noche']])}</div>
   <div class="mu-opt"><span>Seguir la ficha que se mueve</span>${seg([[follow,'MRU.follow(1)','Sí'],[!follow,'MRU.follow(0)','No']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
@@ -187,7 +187,7 @@ GM.merida.body=function(){if(!active())return origBody();
  const ae=document.activeElement;keep.f=ae&&ae.id&&/^mu/.test(ae.id)?{id:ae.id,s:ae.selectionStart,e:ae.selectionEnd}:null;
  try{ok=true;return hud()}catch(e){console.warn('Mérida UI:',e);ok=false;return origBody()}};
 GM.merida.after=function(){if(origAfter)origAfter();if(!active()||!ok){off();return}
- on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',sel>=0||menu);r.dataset.mrt=theme;
+ on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',sel>=0||menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;const pl=document.getElementById('mupls');if(pl&&keep.pl!=null)pl.scrollLeft=keep.pl;
  if(keep.f){const e=document.getElementById(keep.f.id);if(e){e.focus({preventScroll:true});try{if(keep.f.s!=null)e.setSelectionRange(keep.f.s,keep.f.e)}catch(_){}}}
  layout();if(keep.pl==null)turnInView();effects()};
@@ -207,11 +207,13 @@ window.MRU={get selected(){return sel},get insets(){return ins},
  tg:(key,i)=>{const L=TR[key],j=L.indexOf(i);if(j<0)L.push(i);else L.splice(j,1);render()},
  to:k=>{TR.to=k;TR.bp=[];TR.bj=0;TR.bc=0;render()},n:(k,v)=>{TR[k]=Math.max(0,Math.floor(+v||0))},
  offer:async()=>{const okk=await send({t:'tprop',to:TR.to,ap:TR.ap,bp:TR.bp,ac:TR.ac,bc:TR.bc,aj:TR.aj,bj:TR.bj});if(okk){TR={to:TR.to,ap:[],bp:[],ac:0,bc:0,aj:0,bj:0};sfx('go');render()}}};
+// el tema de la casa (día / noche) también pinta Mérida y YuCATÁN (clase mrui)
+if(window.UI&&window.UI.on)window.UI.on(()=>{if(document.documentElement.classList.contains('mrui')&&typeof render=='function')render()});
 // ---- estilos ----
 const css=document.createElement('style');css.textContent=`
-html[data-mrt]{--mu-f:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-html[data-mrt=menta]{--mu-card:#fffef8;--mu-card2:#eef5ec;--mu-ink:#18201b;--mu-sub:#56635b;--mu-line:#18201b;--mu-soft:rgba(24,32,27,.14);--mu-red:#d7261e;--mu-redd:#8f1610;--mu-grn:#1e8a4a;--mu-grnd:#0f5a2e;--mu-glass:rgba(255,254,248,.92);--mu-hs:0 3px 0 #18201b;--mu-page:#dfeadf;--mu-hi:#fff4c2}
-html[data-mrt=oscuro]{--mu-card:#1b2320;--mu-card2:#232d29;--mu-ink:#eef3ef;--mu-sub:#9fb2a8;--mu-line:#3f4d46;--mu-soft:rgba(238,243,239,.12);--mu-red:#ff5548;--mu-redd:#a1251c;--mu-grn:#2fb866;--mu-grnd:#17703c;--mu-glass:rgba(24,31,28,.9);--mu-hs:0 6px 18px rgba(0,0,0,.45);--mu-page:#0d1210;--mu-hi:#3a3520}
+html[data-mrt]{--mu-f:var(--ui-font)}
+html[data-mrt]{--mu-card:var(--ui-sheet);--mu-card2:#F5E8D3;--mu-ink:var(--ui-text);--mu-sub:var(--ui-sub);--mu-line:var(--ui-line);--mu-soft:var(--ui-line);--mu-red:var(--ui-accent);--mu-redd:#8E3517;--mu-grn:var(--ui-accent);--mu-grnd:#8E3517;--mu-glass:var(--ui-panel);--mu-hs:var(--ui-shadow);--mu-page:#F3E7D3;--mu-hi:rgba(194,81,42,.16)}
+html[data-mrt=oscuro]{--mu-card2:#33241B;--mu-redd:#9C4420;--mu-grnd:#9C4420;--mu-page:#1E1510;--mu-hi:rgba(232,131,79,.18)}
 html.mrui,html.mrui body{overflow:hidden;height:100%;overscroll-behavior:none}html.mrui body{background:var(--mu-page)}
 html.mrui #app{pointer-events:none;max-width:none;margin:0;padding:0}html.mrui #app>:not(.mu-hud){display:none!important}
 html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom:calc(var(--mu-cb,0px) + 10px);right:calc(var(--mu-r,0px) + 10px)}html.mrui #tombtn{bottom:calc(var(--mu-cb,0px) + 72px);right:calc(var(--mu-r,0px) + 12px)}
@@ -320,5 +322,17 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 @keyframes muyt{0%{transform:scale(.3) rotate(-8deg);opacity:0}18%{transform:scale(1.08) rotate(2deg);opacity:1}30%{transform:scale(1) rotate(0)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.92) translateY(-30px)}}
 @keyframes mumf{0%{opacity:0;transform:translate(-50%,-6px) scale(.6)}15%{opacity:1;transform:translate(-50%,6px) scale(1.12)}100%{opacity:0;transform:translate(-50%,48px) scale(1)}}
 @media (prefers-reduced-motion:reduce){.mu-hud *,.mu-cf,.mu-yt>div,.mu-mf{animation-duration:.01s!important}}
+
+/* estilo Cálida (skill casa-ui): bordes de 1px, pastillas redondas, sin sombras duras */
+.mu-b{border-width:1px;border-radius:999px;box-shadow:none;font-weight:800}.mu-b:active{transform:scale(.97);box-shadow:none}
+.mu-b.pri,.mu-b.ok{color:var(--ui-on);border-color:transparent;box-shadow:none}.mu-b.danger{box-shadow:none}
+.mu-b.sm{border-radius:999px}
+.mu-h{text-transform:none;font-weight:800;letter-spacing:0}
+.mu-ib,.mu-cb{border-width:1px;border-radius:999px;box-shadow:var(--ui-shadow)}
+.mu-pl{border-width:1px}.mu-pl em{color:var(--ui-on)}
+.mu-dockw{border-top-width:1px;border-radius:var(--ui-r) var(--ui-r) 0 0}
+.mu-sheet{border-width:1px;border-radius:var(--ui-r) var(--ui-r) 0 0}
+.mu-in{border-width:1px;border-radius:14px;background:var(--ui-field)}
+.mu-tabs button.on{color:var(--ui-accent)}
 `;document.head.appendChild(css);
 })();

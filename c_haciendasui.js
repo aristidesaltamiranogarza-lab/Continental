@@ -92,7 +92,7 @@ function pickBox(){const p=pick,G=V.G,res=(f,L)=>`<div class="hz-pk">${[0,1,2,3,
 function menuBox(){const seg=L=>`<div class="mu-seg">${L.map(([o,c,t])=>`<button class="${o?'on':''}" onclick="${c}">${t}</button>`).join('')}</div>`;
  return `<div class="mu-card mu-menu"><header><b class="mu-h">Opciones</b><button class="mu-x" onclick="HZU.menu(0)" aria-label="Cerrar">${SV.x}</button></header>
   <div class="mu-opt"><span>Vista</span>${seg([[is3(),"HZU.mode('3d')",'🎲 3D'],[!is3(),"HZU.mode('2d')",'🗺️ 2D']])}</div>
-  <div class="mu-opt"><span>Tema</span>${seg([[theme=='claro',"HZU.theme('claro')",'☀️ Claro'],[theme=='oscuro',"HZU.theme('oscuro')",'🌙 Oscuro']])}</div>
+  <div class="mu-opt"><span>Tema</span>${seg([[window.UI.tema()=='auto',"GHUD.tema('auto')",'Automático'],[window.UI.tema()=='dia',"GHUD.tema('dia')",'Día'],[window.UI.tema()=='noche',"GHUD.tema('noche')",'Noche']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
   <div class="mu-acts"><button class="mu-b" onclick="HZU.menu(0);HZX.guide(1)">📖 Cómo se juega</button><button class="mu-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button></div></div>`}
@@ -155,7 +155,7 @@ window.HZU={get me(){return me()},D,tok,rc,chips,nm,pc,has,mine,myTurn,playable,
 GM.haciendas.body=function(){if(!active())return origBody();const sc=document.getElementById('musc');keep.sc=sc?sc.scrollTop:keep.sc;
  try{ok=true;return hud()}catch(e){console.warn('Haciendas UI:',e);ok=false;return origBody()}};
 GM.haciendas.after=function(){if(!active()||!ok){off();return}
- on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',!!pick||menu||!!(window.HZX&&HZX.open()));r.dataset.mrt=theme=='oscuro'?'oscuro':'menta';
+ on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',!!pick||menu||!!(window.HZX&&HZX.open()));if(window.UI){const t=window.UI.noche()?'oscuro':'claro';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}}r.dataset.mrt=theme=='oscuro'?'oscuro':'menta';
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;
  const st=V.G.st;if(!myTurn()||(bm=='prot'?V.G.played||(st!='roll'&&st!='main'):st!='main'))bm=null;   // el modo de construir se apaga solo
  tickClock();layout();effects();if(window.HZX)HZX.after(V.G,me())};
