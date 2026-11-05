@@ -289,17 +289,20 @@ function stTxt(G,m){const n=k=>es(G.players[k].name),sh=G.sh,r=G.res;
  if(G.st=='res'&&r)return r.r=='click'?'Clic. '+(r.v===m?'Sigues vivo.':n(r.v)+' sigue vivo.'):'💥 ¡BANG! '+(r.v===m?'Te moriste.':n(r.v)+' está muerto.');return ''}
 function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=m>=0&&!fin&&!dead&&G.turn===m,seatd=m>=0&&!fin&&!dead&&!V.watch,casa=!!(window.CASA3D&&CASA3D.on()),al=G.players.map((_,k)=>k).filter(k=>!G.dead[k]),nm=k=>es(G.players[k].name),left=6-G.fired;
  const ch=Array.from({length:6},(_,i)=>`<i class="${i<G.fired?'e':''}"></i>`).join('');let card='';
- if(fin)card=`<div class="rr-big">${G.win==null?'Nadie quedó vivo':G.win===m?'🏆 ¡Sobreviviste! Ganaste':'🏆 '+nm(G.win)+' es el último en pie'}</div><div class="rr-acts">${V.host?`<button class="rr-b pri" onclick="send({t:'reset'})">Otra partida</button>`:''}<button class="rr-b" onclick="leave()">🚪 Salir</button></div>`;
- else if(my&&G.st=='spin')card=`<div class="rr-q">¿Giras el tambor?</div><div class="rr-acts"><button class="rr-b pri" onclick="RRU.spin(1)">🔄 Girar</button><button class="rr-b" onclick="RRU.spin(0)">➡️ No girar</button></div>
+ if(fin)card=`<div class="rr-big">${G.win==null?'Nadie quedó vivo':G.win===m?'🏆 ¡Sobreviviste! Ganaste':'🏆 '+nm(G.win)+' es el último en pie'}</div><div class="rr-acts">${V.host?`<button class="ui-btn" onclick="send({t:'reset'})">${UI.ico('nuevo')}Otra partida</button>`:''}<button class="ui-btn sec" onclick="leave()">${UI.ico('salir')}Salir</button></div>`;
+ else if(my&&G.st=='spin')card=`<div class="rr-q">¿Giras el tambor?</div><div class="rr-acts"><button class="ui-btn" onclick="RRU.spin(1)">🔄 Girar</button><button class="ui-btn sec" onclick="RRU.spin(0)">➡️ No girar</button></div>
   <div class="rr-s">${G.fired?`Ya ${G.fired==1?'salió 1 clic':'salieron '+G.fired+' clics'}: sin girar, el riesgo es de 1 en ${left}. Si giras, vuelve a 1 en 6.`:'El riesgo es de 1 en 6.'}</div>`;
- else if(my&&G.st=='aim')card=`<div class="rr-q">¿A quién le disparas?</div>${G.can?'':'<div class="rr-s">No puedes girar: el anterior sobrevivió a su propio tiro.</div>'}<div class="rr-acts"><button class="rr-b dan" onclick="RRU.shoot(${m})">🫵 A mí</button>${al.filter(k=>k!==m).map(k=>`<button class="rr-b" onclick="RRU.shoot(${k})">🎯 ${nm(k)}</button>`).join('')}</div>
+ else if(my&&G.st=='aim')card=`<div class="rr-q">¿A quién le disparas?</div>${G.can?'':'<div class="rr-s">No puedes girar: el anterior sobrevivió a su propio tiro.</div>'}<div class="rr-acts"><button class="ui-btn rr-dan" onclick="RRU.shoot(${m})">🫵 A mí</button>${al.filter(k=>k!==m).map(k=>`<button class="ui-btn sec" onclick="RRU.shoot(${k})">🎯 ${nm(k)}</button>`).join('')}</div>
   <div class="rr-s">Riesgo: 1 en ${left}. Si le disparas a otro y no sale, te disparas tú con la siguiente recámara.${OK3&&!failed?' También puedes tocar a alguien en la mesa.':''}</div>`;
  else card=`<div class="rr-q">${stTxt(G,m)}</div>${dead?'<div class="rr-s">💀 Estás muerto: te quedas mirando hasta que acabe.</div>':V.watch?'<div class="rr-s">👁 Estás mirando.</div>':''}`;
  if(my&&G.el>25000)card+=`<div class="rr-s rr-w">⏳ Si no decides pronto, un bot juega por ti.</div>`;
  const list=G.players.map((p,k)=>`<div class="${G.dead[k]?'d':''}">${G.dead[k]===1?'💀':G.dead[k]===2?'🚪':!fin&&G.sh===k?'🔫':'🙂'} ${nm(k)}${k===m?' (tú)':''}${G.kills[k]?' · '+G.kills[k]+' 🎯':''}</div>`).join('');
- return `<div class="rr-hud"><div class="rr-top">🔫 <b>Ruleta Rusa</b><span>👥 ${al.length}/${G.players.length}</span><span class="rr-cyl" title="Recámaras: las apagadas ya hicieron clic">${ch}</span><span title="Si no se gira el tambor">💀 1 en ${left}</span><button class="rr-mb" onclick="RRU.menu()" aria-label="Menú">☰</button></div>
- ${menu?`<div class="rr-menu">${rules}${seatd?`<div class="rr-s">${casa?'Si te levantas, un bot juega por ti y tienes 2 minutos para volver a tu lugar. ':''}Si abandonas, un bot se queda con tu asiento.</div>`:''}<div class="rr-acts">${seatd&&casa?`<button class="rr-b" onclick="RRU.stand()">🧍 Levantarme</button>`:`<button class="rr-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`}${seatd?`<button class="rr-b dan" onclick="RRU.quit()">🏳️ Abandonar</button>`:''}<button class="rr-b" onclick="RRU.menu()">Cerrar</button></div></div>`:''}
- <div class="rr-log">${G.log.slice(-4).map(l=>`<div>${es(l.t)}</div>`).join('')}</div><div class="rr-list">${list}</div><div class="rr-card">${card}</div></div>`}
+ const ic=n=>UI.ico(n);let h=`<div class="rr-hud">`+GHUD.top({st:`🔫 <b>Ruleta Rusa</b> <span class="rr-n" title="Vivos">${ic('gente')}${al.length}/${G.players.length}</span>`,turn:`<span class="rr-cyl" title="Recámaras: las apagadas ya hicieron clic">${ch}</span><span title="Si no se gira el tambor">1 en ${left}</span>`,me:my,open:menu,menu:'RRU.menu()'});
+ if(menu){const rg=String(rules).replace(/^\s*<details[^>]*>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
+  const aj=GHUD.ajustes('',(seatd?`<p class="ui-sub rr-s">${casa?'Si te levantas, un bot juega por ti y tienes 2 minutos para volver a tu lugar. ':''}Si abandonas, un bot se queda con tu asiento.</p>`:'')
+   +(seatd&&casa?`<button class="ui-btn sec full" onclick="RRU.stand()">${ic('persona')}Levantarme</button>`:`<button class="ui-btn sec full" onclick="leave()">${ic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`)+(seatd?`<button class="ui-btn sec full rr-dan" onclick="RRU.quit()">🏳️ Abandonar</button>`:''));
+  h+=GHUD.sheet('Ruleta Rusa',[['aj','Ajustes',aj],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'RRU.menu()')}
+ return h+`<div class="ui rr-log">${G.log.slice(-4).map(l=>`<div>${es(l.t)}</div>`).join('')}</div><div class="ui rr-list">${list}</div><div class="ui ui-card rr-card">${card}</div></div>`}
 const tick=()=>{if(typeof sfx=='function')sfx('tick')};
 const seatLS=v=>{try{v?localStorage.setItem('casa_seat',JSON.stringify(v)):localStorage.removeItem('casa_seat')}catch(e){}};
 window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'shoot',to:k})},menu:()=>{menu=!menu;tick();render()},
@@ -310,23 +313,21 @@ window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'sh
  piso(){if(!OK3||!RRG||failed)return null;try{if(!ready)init()}catch(e){console.warn('Ruleta 3D:',e);failed=true;return null}
   return {SC,XL,W,HT,TH,TBR,CR,NS,spos,top:tbl,chairs,modo,step:(now,dt)=>{if(!shown)stepRoom(now,dt)}}}};
 // ---- enganche con game.js ----
-GM.ruleta.body=function(){if(!active())return body0();try{return hud()}catch(e){console.warn('Ruleta:',e);return body0()}};
-GM.ruleta.after=function(){if(!active()){off();return}on=true;const r=document.documentElement;r.classList.add('rrui');
+GM.ruleta.body=function(){if(!active())return body0();GHUD.save();try{return hud()}catch(e){console.warn('Ruleta:',e);return body0()}};
+GM.ruleta.after=function(){if(!active()){off();return}on=true;GHUD.restore();const r=document.documentElement;r.classList.add('rrui');
  if(OK3&&RRG&&!failed){try{show(true);sync(V.G)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false)}}r.classList.toggle('rr2d',!OK3||!RRG||failed)};
 function off(){if(!on)return;on=false;menu=false;document.documentElement.classList.remove('rrui','rr2d');if(ready){show(false);clearPlayers();RRG.reset();sig='';G0=null;stg=null}}
 setInterval(()=>{if(on&&!active())off()},400);
 const css2=document.createElement('style');css2.textContent=`html.rrui,html.rrui body{overflow:hidden;height:100%;overscroll-behavior:none}html.rrui body{background:#030202}
 html.rrui #app{pointer-events:none;max-width:none;margin:0;padding:0}html.rrui #app>:not(.rr-hud){display:none!important}
-.rr-hud{position:fixed;inset:0;z-index:2;pointer-events:none;color:#eadfcd;font:15px/1.35 system-ui,sans-serif}
-.rr-top{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;padding:6px 12px;border-radius:14px;background:rgba(8,6,5,.75);border:1px solid rgba(255,210,150,.15);pointer-events:auto;white-space:nowrap;max-width:calc(100% - 20px);overflow-x:auto}
-.rr-cyl{display:inline-flex;gap:3px}.rr-cyl i{width:11px;height:11px;border-radius:50%;background:#b08a4a;box-shadow:inset 0 0 0 2px #3a2a14}.rr-cyl i.e{background:#2a2420;box-shadow:inset 0 0 0 2px #151210}
-.rr-mb{background:none;border:0;color:inherit;font-size:20px;cursor:pointer;padding:0 2px}
-.rr-menu{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 24px));padding:12px;border-radius:14px;background:rgba(12,9,7,.94);border:1px solid rgba(255,210,150,.2);pointer-events:auto;font-size:14px}.rr-menu details{margin-bottom:10px}
-.rr-card{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(560px,calc(100% - 24px));box-sizing:border-box;padding:12px 14px;border-radius:16px;background:rgba(10,7,5,.8);border:1px solid rgba(255,200,140,.18);pointer-events:auto;text-align:center}
-.rr-q{font:800 19px Georgia,serif;margin-bottom:8px}.rr-q:empty{display:none}.rr-big{font:900 24px Georgia,serif;margin:4px 0 10px}.rr-s{font-size:13px;opacity:.75;margin-top:6px}.rr-w{color:#ffb36b;opacity:1}
-.rr-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.rr-b{min-height:40px;padding:0 16px;border-radius:12px;border:1px solid rgba(255,220,170,.25);background:#2a1f18;color:#f3e6d2;font:700 15px system-ui,sans-serif;cursor:pointer}
-.rr-b.pri{background:#8a2a1a;border-color:#d2643c}.rr-b.dan{background:#4a0f0c;border-color:#a3302a}.rr-b:active{transform:translateY(1px)}
-.rr-log{position:absolute;left:12px;top:60px;max-width:min(340px,55%);font-size:13px}.rr-log div{padding:3px 8px;margin-bottom:4px;border-radius:8px;background:rgba(8,6,5,.6)}
-.rr-list{display:none}html.rr2d .rr-list{display:block;position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:17px;line-height:1.8;text-align:center}html.rr2d .rr-list .d{opacity:.5;text-decoration:line-through}
-@media (max-width:560px){.rr-log{top:56px;font-size:12px;max-width:calc(100% - 24px)}.rr-top{gap:7px;font-size:14px}}`;document.head.appendChild(css2);
+.rr-hud{position:fixed;inset:0;z-index:2;pointer-events:none}
+.rr-n{display:inline-flex;align-items:center;gap:4px;margin-left:6px;color:var(--ui-sub)}.rr-n .ui-ico{width:18px;height:18px}
+.rr-cyl{display:inline-flex;gap:3px;margin-right:8px}.rr-cyl i{width:11px;height:11px;border-radius:50%;background:currentColor}.rr-cyl i.e{opacity:.25}
+.rr-card{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(560px,calc(100% - 28px));pointer-events:auto;text-align:center;padding:14px 16px}
+.rr-q{font-size:1.2em;font-weight:800;margin-bottom:10px}.rr-q:empty{display:none}.rr-big{font-size:1.4em;font-weight:800;margin:4px 0 12px}.rr-s{font-size:13px;color:var(--ui-sub);margin-top:8px}.rr-w{color:var(--ui-accent)}
+.rr-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.ui-btn.rr-dan{background:var(--ui-text);color:var(--ui-sheet);border-color:transparent}
+.rr-log{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 72px);max-width:min(340px,55%);font-size:13px;pointer-events:none}.rr-log div{padding:5px 12px;margin-bottom:5px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);width:max-content;max-width:100%}
+.rr-list{display:none}html.rr2d .rr-list{display:block;position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:14px 20px;border-radius:var(--ui-r);background:var(--ui-panel);color:var(--ui-text);font-size:17px;line-height:1.8;text-align:center}html.rr2d .rr-list .d{opacity:.5;text-decoration:line-through}
+@media (max-width:560px){.rr-log{font-size:12px;max-width:calc(100% - 28px)}}`;document.head.appendChild(css2);
 })();
