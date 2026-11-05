@@ -160,3 +160,50 @@ html.c3c4 .gj-seat,html.c3c4 .gj-pl{opacity:0;pointer-events:none}
 .t3apn{margin:10px 0 0}
 .t3apf{flex-direction:row;justify-content:flex-end}
 @media (max-width:600px){.t3apg{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Monopoly Deal en la casa 3D (c_mdeal_hud.js pone html.mdui; el modo 2D Ligero no lo usa) ===== */
+html.mdui body{background:#F3E7D3;color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
+html.mdui[data-tema=noche] body{background:#1E1510}
+html.mdui body::before,html.mdui body::after{display:none}
+html.mdui[data-game="md"] #app{padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 0}
+.md-menu{position:fixed;z-index:22;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(14px + env(safe-area-inset-right,0px));width:46px;height:46px}
+html.mdui[data-game="md"] h1{font:800 1.6em var(--ui-font);color:var(--ui-text);text-align:center}
+html.mdui[data-game="md"] .b{min-height:44px;margin:4px 4px 4px 0;padding:0 18px;border:1px solid transparent;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);box-shadow:none;text-shadow:none;text-transform:none;letter-spacing:0;font:800 15px/1 var(--ui-font);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+html.mdui[data-game="md"] .b:active{transform:scale(.96);box-shadow:none}
+html.mdui[data-game="md"] .b.g{background:var(--ui-chip);color:var(--ui-text);border-color:var(--ui-line)}
+html.mdui[data-game="md"] .b.g.on{background:var(--ui-accent);color:var(--ui-on);outline:0}
+html.mdui[data-game="md"] .b.sm2{padding:0 14px;font-size:14px}
+html.mdui[data-game="md"] .b:disabled{filter:none;opacity:.5}
+html.mdui[data-game="md"] .box{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:18px;box-shadow:var(--ui-shadow)}
+html.mdui[data-game="md"] .box.felt{background:var(--ui-chip);border:1px solid var(--ui-line);border-radius:18px;box-shadow:none}
+html.mdui[data-game="md"] .top{background:none;color:var(--ui-sub);font:600 13px/1.35 var(--ui-font);text-shadow:none;padding:0;margin:4px 0}
+html.mdui[data-game="md"] .pstat{color:var(--ui-text);font-size:14px}
+html.mdui[data-game="md"] .msg{color:var(--ui-accent);font:700 14px var(--ui-font)}
+html.mdui[data-game="md"] details{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:16px}
+html.mdui[data-game="md"] .log{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:16px;font-family:var(--ui-font)}
+html.mdui[data-game="md"] .log div:first-child{color:var(--ui-accent)}
+html.mdui[data-game="md"] .seat{background:var(--ui-sheet);color:var(--ui-text)}
+html.mdui[data-game="md"] .seat small{color:var(--ui-accent)}
+html.mdui[data-game="md"] .seat .dn{color:var(--ui-text)}
+html.mdui[data-game="md"] .seat.on{box-shadow:0 0 0 3px var(--ui-accent)}
+/* turno y acción pendiente arriba (deja lugar al ☰) */
+html.mdui[data-game="md"] .mdtop{top:calc(env(safe-area-inset-top,0px) + 8px);margin:4px 0 6px;padding:10px 64px 10px 16px;min-height:46px;background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:22px;box-shadow:var(--ui-shadow);font:700 14px/1.35 var(--ui-font)}
+html.mdui[data-game="md"] .mdtop.myturn,html.mdui[data-game="md"] .myturn{background:var(--ui-accent);color:var(--ui-on);border-color:transparent;animation:none}
+html.mdui[data-game="md"] .mdpa{border-top:1px dashed currentColor;font:700 13px var(--ui-font)}
+html.mdui[data-game="md"] .mdpt,html.mdui[data-game="md"] .msets{background:var(--ui-text);color:var(--ui-sheet)}
+/* rivales y mesas: el color del jugador queda en el borde */
+html.mdui[data-game="md"] .mdst{background:var(--ui-sheet);color:var(--ui-text);border-width:2px;border-radius:16px;font-family:var(--ui-font);box-shadow:var(--ui-shadow)}
+html.mdui[data-game="md"] .mdst.on{box-shadow:0 0 0 3px var(--ui-accent),var(--ui-shadow)}
+html.mdui[data-game="md"] .mdst.open{background:var(--ui-chip)}
+html.mdui[data-game="md"] .mdhint{color:var(--ui-sub);text-shadow:none}
+html.mdui[data-game="md"] .mtb{border:2px solid var(--c)}
+html.mdui[data-game="md"] .mtb.on{box-shadow:0 0 0 3px var(--ui-accent),var(--ui-shadow)}
+html.mdui[data-game="md"] .mth{font:800 15px var(--ui-font)}
+html.mdui[data-game="md"] .mg{border:1px solid var(--ui-line);border-radius:12px}
+html.mdui[data-game="md"] .mg.full{box-shadow:0 0 0 3px var(--ui-accent)}
+html.mdui[data-game="md"] .mrent{color:var(--ui-sub);font-family:var(--ui-font)}
+html.mdui[data-game="md"] .mdm{border-color:var(--ui-accent)}
+/* tu mano: hoja de abajo en celular, tarjeta en compu */
+html.mdui[data-game="md"] .mdhw{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-bottom:0;border-radius:var(--ui-r) var(--ui-r) 0 0;margin:8px -14px 0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:var(--ui-shadow)}
+html.mdui[data-game="md"] .mdhb{font:700 14px var(--ui-font);gap:6px}
+@media (min-width:640px){html.mdui[data-game="md"] .mdhw{margin:8px 0 0;border:1px solid var(--ui-line);border-radius:var(--ui-r)}}
