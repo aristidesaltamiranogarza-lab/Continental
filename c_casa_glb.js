@@ -1,7 +1,7 @@
 // c_casa_glb.js — CGLB: modelos .glb de la casa (texturas KTX2, geometría meshopt) con el THREE global de three.min.js.
 // Puente: los cargadores de three (GLTFLoader, KTX2Loader) son módulos que importan 'three'; se bajan de jsDelivr (o unpkg) como texto,
 // se cambia 'three' por un módulo que reexporta window.THREE y se cargan como blob. Así no hace falta importmap ni bundler.
-// Calidad: ligero = sin modelos; medio = versión Medio; completo = primero Medio y en segundo plano se cambia a HD.
+// Calidad: ligero = sin modelos; medio = versión Medio; completo = HD directo (si falla, Medio).
 // Solo se cargan los modelos del piso donde estás; al cambiar de piso se libera la memoria del anterior.
 // Origen: en localhost los archivos locales (modelos/); fuera, jsDelivr con la etiqueta del catálogo; si jsDelivr falla, el servidor.
 // D7: en Medio cada modelo de piso lleva sombra falsa (mancha); las copias del mismo modelo se dibujan como instancias (opción inst:false
@@ -51,7 +51,7 @@ function bajar(u){return fetch(u).then(r=>{if(!r.ok)throw Error(r.status);return
 function toma(v){const u=urlDe(PROPIO,v);let c=CACHE.get(u);
  if(!c){c={n:0,gl:null,b:0};CACHE.set(u,c);ST.carg++;
   c.p=Promise.all([cargador(),bajar(urlDe(base,v)).catch(e=>{if(base===PROPIO)throw e;console.warn('[CGLB] jsDelivr falló, uso el servidor',e);base=PROPIO;return bajar(u)})])
-   .then(([L,buf])=>{c.b=buf.byteLength;ST.bytes+=c.b;return new Promise((ok,no)=>L.parse(buf,'',ok,no))}).then(sube)
+   .then(([L,buf])=>{c.b=buf.byteLength;ST.bytes+=c.b;return enCola(()=>new Promise((ok,no)=>L.parse(buf,'',ok,no)).then(sube))})
    .then(gl=>{c.gl=gl;ST.ok++;ST.carg--;if(c.n<=0)suelta(u,true);return gl},e=>{ST.err++;ST.carg--;ST.bytes-=c.b;CACHE.delete(u);throw e})}
  c.n++;return{u,p:c.p}}
 // sin tirones: las texturas suben a la tarjeta de una por cuadro y los shaders se compilan en paralelo antes de que el modelo aparezca
@@ -59,7 +59,9 @@ const cuadro=()=>new Promise(ok=>{requestAnimationFrame(()=>ok());setTimeout(ok,
 const rend=()=>window.CASA3D&&CASA3D.R&&CASA3D.R();let CAM=null;
 async function sube(gl){const R=rend();if(!R||!R.initTexture)return gl;const ts=new Set();
  gl.scene.traverse(x=>{if(x.isMesh)[].concat(x.material).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture)ts.add(t)}})});
- for(const t of ts){await cuadro();try{R.initTexture(t)}catch(e){}}return gl}
+ for(const t of ts){await cuadro();await cuadro();try{R.initTexture(t)}catch(e){}}return gl}
+// los modelos se procesan de uno en uno (leer el .glb y subir sus texturas); las descargas sí van en paralelo
+let COLA=Promise.resolve();const enCola=f=>{const p=COLA.then(f);COLA=p.catch(()=>{});return p};
 async function precompila(o,g){const R=rend();if(!R||!R.compileAsync)return;let r=g;while(r.parent)r=r.parent;
  try{await Promise.race([R.compileAsync(o,CAM||(CAM=new THREE.PerspectiveCamera()),r===o?null:r),espera(4000)])}catch(e){}}
 function libera(o){o.traverse(x=>{if(x.geometry)x.geometry.dispose();[].concat(x.material||[]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture)t.dispose()}m.dispose()})})}
@@ -95,7 +97,8 @@ const INS=[],OCU=[];let jT=0,jN=0;
 function deshaz(){jN++;clearTimeout(jT);INS.forEach(m=>{if(m.parent)m.parent.remove(m);m.dispose()});OCU.forEach(x=>x.visible=true);INS.length=OCU.length=0}
 function pideJunta(){clearTimeout(jT);jT=setTimeout(junta,300)}
 const vis=(x,h)=>{for(;x&&x!==h;x=x.parent)if(!x.visible)return false;return true};
-async function junta(){deshaz();const n=jN,P=new Map(),T=tmp(),H=[];
+async function junta(){if(CN){pideJunta();return}   // se juntan una sola vez, cuando ya llegaron todos los del piso
+ deshaz();const n=jN,P=new Map(),T=tmp(),H=[];
  (LUG[piso]||[]).forEach(L=>{if(!L.obj||L.o.inst===false||!vis(L.g))return;let r=L.g;while(r.parent)r=r.parent;if(r===L.g)return;
   L.obj.traverse(x=>{if(!x.isMesh||x.isInstancedMesh||x.isSkinnedMesh||x.morphTargetInfluences||!vis(x,L.g))return;
    const k=r.uuid+x.geometry.uuid+[].concat(x.material).map(m=>m.uuid).join();let e=P.get(k);if(!e)P.set(k,e={r,x:[]});e.x.push(x)})});
@@ -114,18 +117,19 @@ let CN=0,tI=0,mide=true,tL=0;
 async function llena(L){CN++;try{await llena0(L)}finally{if(!--CN&&mide){tL=performance.now()-tI;mide=false}}}
 async function llena0(L){const q=cal();if(q==='ligero'||L.piso!==piso)return vacia(L);
  const t=++L.t;await catalogo();if(t!==L.t)return;const m=CAT.modelos[L.n];if(!m){if(!L.av){L.av=1;console.warn('[CGLB] no está en el catálogo:',L.n)}return}
- const pasos=(q==='completo'&&!SIN?(L.v?['hd']:['medio','hd']):['medio']).filter(v=>m[v]&&v!==L.v);
+ // Completo: HD directo (mientras baja se ve el mueble de código); si HD falla, Medio. El primero que se pone termina.
+ const hdOk=q==='completo'&&!SIN,pasos=hdOk&&L.v==='hd'?[]:(hdOk?['hd','medio']:['medio']).filter(v=>m[v]&&v!==L.v);
  for(const v of pasos){const k=toma(m[v]),hd=v==='hd';let gl;if(hd)hdVa(1);
   try{gl=await k.p}catch(e){if(hd&&(e instanceof RangeError||/memory|alloc/i.test(e&&e.message)))bajaHD('un modelo HD no cupo');console.warn('[CGLB] no se pudo cargar',L.n,v,e);suelta(k.u);continue}finally{if(hd)hdVa(-1)}
-  if(t!==L.t||hd&&SIN){suelta(k.u);return}   // cambió el piso o la calidad mientras bajaba, o se acabó la memoria
+  if(t!==L.t){suelta(k.u);return}if(hd&&SIN){suelta(k.u);continue}   // cambió el piso o la calidad mientras bajaba, o se acabó la memoria
   const o=gl.scene.clone(true),sb=L.o.sombra!==false&&q==='completo';
   o.traverse(x=>{if(x.isMesh){x.castShadow=sb;x.receiveShadow=q==='completo'}});
   if(q==='medio')falsa(o,L);
-  await precompila(o,L.g);if(t!==L.t||hd&&SIN){suelta(k.u);return}
+  await precompila(o,L.g);if(t!==L.t){suelta(k.u);return}if(hd&&SIN){suelta(k.u);continue}
   deshaz();if(L.obj)L.g.remove(L.obj);if(L.u)suelta(L.u);L.obj=o;L.u=k.u;L.v=v;L.g.add(o);
   if(L.o.listo)try{L.o.listo(o,v)}catch(e){console.error(e)}
   pideJunta();
-  if(hd){const M=performance.memory;if(M&&M.usedJSHeapSize>M.jsHeapSizeLimit*.9)bajaHD('memoria de JS al 90 %')}}}
+  if(hd){const M=performance.memory;if(M&&M.usedJSHeapSize>M.jsHeapSizeLimit*.9)bajaHD('memoria de JS al 90 %')}return}}
 
 // pon(piso, nombre, opciones): grupo vacío al momento (ponlo en la escena) que se llena cuando el modelo baja
 function pon(p,n,o){o=o||{};const g=new THREE.Group();g.name='glb:'+n;
