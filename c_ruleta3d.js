@@ -276,7 +276,7 @@ function show(on){if(on&&!ready)init();if(!ready||shown===on)return;shown=on;roo
  if(on){if(shR){root.prepend(cv);rstate();Wd=0}modo('juego');
   // venías caminando en el sótano: la cámara arranca donde estaba la de la casa y vuela a tu silla
   hand=null;if(CH.piso&&CH.piso()==='sot'){const c=CH.cam();hand={p:c.position.clone(),a:c.position.clone().add(c.getWorldDirection(v3(0,0,0)).multiplyScalar(3))}}
-  tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{RRS.hum(false);if(brStop){brStop();brStop=null}}}
+  tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{cv.style.filter='';RRS.hum(false);if(brStop){brStop();brStop=null}}}
 const RRG=window.RRG,RRS=window.RRS||{snd(){},breath:()=>()=>{},hum(){},flick(){}},es=typeof esc=='function'?esc:x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 
 // ---------- interfaz (HTML encima del 3D; sin 3D se ve la lista de jugadores) ----------
