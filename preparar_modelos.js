@@ -32,10 +32,13 @@ for(const n of lista){
  const lado=path.join(ORI,n+'.json');if(fs.existsSync(lado))Object.assign(e,JSON.parse(fs.readFileSync(lado,'utf8')));
  for(const v in VERS){
   const rel=v+'/'+n+'.glb',out=path.join(D,rel);
-  const a=['-y',GT,'optimize',src,out,'--compress','meshopt','--texture-compress',ktx?'ktx2':'webp','--texture-size',String(VERS[v].tam),...VERS[v].extra];
-  console.log('\n▶',n,v,'\n ',npx,a.join(' '));if(seco)continue;
+  // con KTX2 todas las texturas van en ETC1S (en UASTC pesaban 6-9 veces más en disco); el optimize no toca texturas y etc1s las reduce
+  // (primero etc1s del original y luego optimize, para no comprimir la geometría dos veces)
+  const a2=ktx?['-y',GT,'etc1s',src,out,'--quality','255','--resize',String(VERS[v].tam)]:null;
+  const a=['-y',GT,'optimize',ktx?out:src,out,'--compress','meshopt','--texture-compress',ktx?'false':'webp',...(ktx?[]:['--texture-size',String(VERS[v].tam)]),...VERS[v].extra];
+  console.log('\n▶',n,v);if(a2)console.log(' ',npx,a2.join(' '));console.log(' ',npx,a.join(' '));if(seco)continue;
   fs.mkdirSync(path.dirname(out),{recursive:true});
-  const r=corre(npx,a);if(r.status!==0||!fs.existsSync(out)){console.error('✖ falló',n,v);mal++;continue}
+  let r=a2?corre(npx,a2):{status:0};if(r.status===0)r=corre(npx,a);if(r.status!==0||!fs.existsSync(out)){console.error('✖ falló',n,v);mal++;continue}
   const b=fs.readFileSync(out);e[v]={archivo:rel,h:cr.createHash('sha1').update(b).digest('hex').slice(0,10),kb:Math.round(b.length/1024)}}
  e.original_kb=Math.round(fs.statSync(src).size/1024)}
 
