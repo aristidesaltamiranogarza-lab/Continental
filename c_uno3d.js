@@ -121,8 +121,10 @@ function selGlow(m,onn,col){let g=m.userData.sg;if(!g&&!onn)return;
  g.visible=!!onn;if(onn)g.material.color.set(col)}
 
 // ---------- escena y mesa ----------
+// shR: dibuja con el WebGL de la casa · fz: escala de la casa de fondo (0: con su propio cuarto); c_casa_fondo.js
+let shR=false,fz=0;
 function init(){if(ready)return;ready=true;
- R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+ shR=!!(window.FONDO&&FONDO.R('uno'));R=shR?FONDO.R():new THREE.WebGLRenderer({antialias:true,alpha:true});if(!shR){R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap}
  SC=new THREE.Scene();CA=new THREE.PerspectiveCamera(40,1,.1,200);SC.add(CA);
  const hl=new THREE.HemisphereLight(0xffffff,0x2a1e18,1.7);SC.add(hl);
  const Ld=new THREE.DirectionalLight(0xfff2da,2.6);Ld.position.set(-5,14,7);Ld.castShadow=true;Ld.shadow.mapSize.set(2048,2048);Ld.shadow.bias=-.0004;
@@ -168,7 +170,7 @@ function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o
  L.ctr=v3(0,0,por?-.5:-.15);if(por){L.deck=v3(0,0,L.ctr.z-1.15*ps);L.disc=v3(0,0,L.ctr.z+1.15*ps)}else{L.deck=v3(-1.5*ps,0,L.ctr.z);L.disc=v3(1.5*ps,0,L.ctr.z)}
  ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.5,depthWrite:false}));
  ringM.rotation.x=-Math.PI/2;const rr2=por?3.1:2.75;ringM.scale.set(rr2*2.3,rr2*2.3,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
- if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room}}
+ if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=base}
 function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
  if(G.dir!==ringDir){ringDir=G.dir;ringM.material.map=ringTex(ringDir);ringM.material.needsUpdate=true;if(!first)ringBoost=1}
  ringBoost=Math.max(0,ringBoost-dt/900);ringG.rotation.y-=ringDir*dt*(.00025+ringBoost*.006);
@@ -230,7 +232,7 @@ function fan(ids,play,drawn){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0
 function avSync(){if(!K3)return;const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=K3.avPick();
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
  want.forEach(k=>{let g=avs.get(k);if(!g){g=K3.mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
-  g.position.set(Math.cos(a)*(L.rx+1.4),0,Math.sin(a)*(L.rz+1.4));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
+  const o=window.FONDO?FONDO.mii(g,fz,k===V.me):1.4;g.position.set(Math.cos(a)*(L.rx+o),0,Math.sin(a)*(L.rz+o));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
   g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
 const POLE=[v3(-1.3,-.5,-.4),v3(1.3,-.5,-.4)],avTgt=new THREE.Vector3(),avP=new THREE.Vector3();
 function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
@@ -238,7 +240,7 @@ function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
  avs.forEach(g=>{const u=g.userData,k=u.k,turn=!fin&&G.turn===k,f=.08;
   u.body.scale.y=1+.012*Math.sin(now/650+k*1.7);u.body.rotation.x+=((turn?.12:0)-u.body.rotation.x)*f;
   // la cabeza mira a quien tiene el turno (o a sus cartas cuando le toca)
-  let yaw=0,pitch=.3;if(!turn){avTgt.copy(G.turn===V.me||!avs.get(G.turn)?v3(0,1,L.rz+1):avs.get(G.turn).position.clone().setY(1.3));g.worldToLocal(avTgt);
+  let yaw=0,pitch=.3;if(!turn){avTgt.copy(G.turn===V.me||!avs.get(G.turn)?v3(0,1,L.rz+1):avs.get(G.turn).position.clone().setY(1.3*avs.get(G.turn).scale.y));g.worldToLocal(avTgt);
    yaw=Math.max(-1.1,Math.min(1.1,Math.atan2(avTgt.x,avTgt.z)));pitch=.05}
   u.head.rotation.y+=(yaw-u.head.rotation.y)*f;u.head.rotation.x+=(pitch-u.head.rotation.x)*f;
   // la mano derecha se estira al tirar una carta; las dos arriba al gritar ¡UNO! (y sin parar si ganó)
@@ -304,7 +306,7 @@ function popAt(k,t,col,sub){if(!L)return;const p=k<0?L.disc.clone().setY(.4):(av
 
 // ---------- tocar y arrastrar ----------
 function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
- const h=ray.intersectObjects(only||hits,false);return h.length?h[0].object.userData.hit:null}
+ const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));return h.length?h[0].object.userData.hit:null}
 // Ratón: clic derecho y arrastrar = mover; clic de rueda (o Shift + clic derecho) = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar fuera de tu mano = mover; dos dedos = pellizcar para zoom, girarlos para rotar, subirlos o bajarlos para inclinar
 function pDown(e){if(!active()||upick!=null)return;if(menu){menu=false;render();return}
@@ -398,7 +400,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   o+=GHUD.sheet('Uno',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<p class="gj-rt">${rg}</p>`]],'u3dMenu()')}
  return o}
 function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
- document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
+ document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh2+y0,Math.min(H-hh2,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
  // nombres de las pilas: abajo de cada una (en celular parado, el del mazo va arriba de él)
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
@@ -421,10 +423,15 @@ function active(){return on&&!!S&&!!V&&V.game==='uno'&&!!V.G&&(V.G.phase==='play
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('u3on',a);
  if(!a){first=true;if(dpvEl)dpvEl.classList.remove('on');document.documentElement.classList.remove('u3mini');home();VW.x=VW.z=0;VW.k=1;return}
+ if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
  viewStep(dt);step(now);ringStep(dt,now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
- R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
+ // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
+ const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:Math.max(L.rx,L.rz)+.6,rt:2.6}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
+ if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
+// sin su cuarto en la casa: los Miis a tamaño de casa
+function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;if(V&&V.G)sync()}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0')}catch(e){}render()}
 GM.uno.body=function(){
  if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?`<button class="b g sm2" onclick="u3dToggle()">${on?'🖼 Vista clásica 2D':'🎲 Vista 3D'}</button>`:'')+orig()}

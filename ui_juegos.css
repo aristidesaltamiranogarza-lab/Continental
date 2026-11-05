@@ -207,3 +207,20 @@ html.mdui[data-game="md"] .mdm{border-color:var(--ui-accent)}
 html.mdui[data-game="md"] .mdhw{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-bottom:0;border-radius:var(--ui-r) var(--ui-r) 0 0;margin:8px -14px 0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:var(--ui-shadow)}
 html.mdui[data-game="md"] .mdhb{font:700 14px var(--ui-font);gap:6px}
 @media (min-width:640px){html.mdui[data-game="md"] .mdhw{margin:8px 0 0;border:1px solid var(--ui-line);border-radius:var(--ui-r)}}
+/* chat de las salas (game.js, el mismo del 2D Ligero; este archivo solo se carga en la página 3D): botón grande de color como el de la casa y su panel */
+#chat{right:16px;bottom:16px;font:700 15px/1.35 var(--ui-font);color:var(--ui-text)}
+#chat #cb{position:relative;display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;padding:0;border-radius:999px;border:1px solid transparent;
+ background:var(--ui-accent);color:var(--ui-on);box-shadow:var(--ui-shadow);font:800 20px/1 var(--ui-font);cursor:pointer;touch-action:manipulation}
+#chat #cb .ui-ico{width:26px;height:26px}
+#chat #cb:active{transform:scale(.96)}
+#chat #cn{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--ui-text);color:var(--ui-sheet);font:800 12px/22px var(--ui-font);text-align:center;pointer-events:none}
+#chat #cn:empty{display:none}
+#chat #cp{width:min(340px,calc(100vw - 32px));margin-bottom:10px;padding:12px;background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:var(--ui-r);box-shadow:var(--ui-shadow)}
+#chat #cl{max-height:40vh;-webkit-user-select:text;user-select:text}
+#chat #cl div{padding:6px 2px;border-bottom:1px solid var(--ui-line)}
+#chat #cl div:last-child{border-bottom:0}
+#chat #cl b{color:var(--ui-accent)}
+#chat #cf{gap:8px;margin-top:10px}
+#chat #ci{min-height:44px;padding:0 14px;border-radius:14px;border:1px solid var(--ui-line);background:var(--ui-field);color:var(--ui-text);font:700 16px/1 var(--ui-font);outline:none}
+#chat #ci:focus{border-color:var(--ui-accent)}
+#chat #cf .b{min-height:44px;text-transform:none;letter-spacing:normal;padding:0 18px;border-radius:999px;border:1px solid transparent;background:var(--ui-accent);color:var(--ui-on);font:800 15px/1 var(--ui-font);box-shadow:none;text-shadow:none;cursor:pointer}

@@ -51,3 +51,7 @@ window.GHUD={win,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,sav
  mus:n=>{if(typeof musCyc!='function')return;for(let i=0;i<4&&musName()!==n;i++)musCyc();rr()},
  snd:on=>{mute=!on;if(on)tick();rr()}};
 })();
+// chat de las salas (game.js, lo comparte el 2D Ligero): en la página 3D el botón lleva el icono de trazo en vez del emoji; estilos en ui_juegos.css
+(function(){const f=()=>{const b=document.getElementById('cb'),n=document.getElementById('cn');if(!b||b.dataset.ui||!window.UI)return;b.dataset.ui=1;
+ b.textContent='';b.insertAdjacentHTML('afterbegin',UI.ico('chat'));if(n)b.appendChild(n);b.setAttribute('aria-label','Chat');b.title='Chat'};
+ f();document.addEventListener('DOMContentLoaded',f)})();

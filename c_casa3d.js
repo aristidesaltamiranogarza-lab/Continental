@@ -36,7 +36,7 @@ function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=tr
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
 // full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
 function rstate(full){R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;if(full!==false)applyQ(window.CALIDAD);else{R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true}if(FL.enter)FL.enter(fpOn())}
-function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv.style.filter='';rstate(window.CALIDAD==='medio');me.g.visible=!fpOn()}
+function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv.style.filter='';fondoFin();R.autoClear=true;R.shadowMap.autoUpdate=true;W=0;rstate(window.CALIDAD==='medio');me.g.visible=!fpOn()}
 // primera persona (c_casa_avatar.js): tecla V o el botón del ojo
 function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.pose(CA),f=!CAV.on();CAV.set(f);if(!f&&document.pointerLockElement)document.exitPointerLock();
  Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=!f;if(FL.enter)FL.enter(f);
@@ -173,7 +173,7 @@ function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G
  const fe=ctex('felt'+t.g,256,256,(g,w,h)=>{const gr=g.createRadialGradient(128,128,10,128,128,128);gr.addColorStop(0,t.felt[0]);gr.addColorStop(1,t.felt[1]);g.fillStyle=gr;g.fillRect(0,0,w,h)});
  const top=cyl(t.r,t.r,.14,std(0xffffff,.95,{map:fe}),0,TH,0,G,64);top.userData.hit=hit;
  const rim=new THREE.Mesh(new THREE.TorusGeometry(t.r,.13,12,64),new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7}));rim.rotation.x=Math.PI/2;rim.position.y=TH+.06;rim.castShadow=true;G.add(rim);rim.userData.hit=hit;
- cyl(.25,.35,TH-.1,wood,0,(TH-.1)/2,0,G);cyl(1,1.1,.1,wood,0,.05,0,G);
+ t.pie=[cyl(.25,.35,TH-.1,wood,0,(TH-.1)/2,0,G),cyl(1,1.1,.1,wood,0,.05,0,G)];   // el pie se queda cuando un juego pone su mesa encima (c_casa_fondo.js)
  // cartitas encima
  (DECO[t.g]||[]).forEach(([k,bg,fg,tx],i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(.55,.77),new THREE.MeshStandardMaterial({map:miniCard(k,bg,fg,tx),roughness:.6,transparent:true}));
   const a=i/5*Math.PI*2+.4,d=i==4?0:1.1;m.rotation.set(-Math.PI/2,0,a*1.7);m.position.set(Math.cos(a)*d,TH+.08+i*.002,Math.sin(a)*d);m.receiveShadow=true;G.add(m)});
@@ -411,7 +411,24 @@ function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
 // mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)
 function mesaEn(t,S,h,O){const k=[SC,hits,OB];SC=S;hits=h;OB=O;try{t.r=t.r||2.2;buildTable(t)}finally{[SC,hits,OB]=k}}
-window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>me&&me.pos};
+// la casa de fondo en una partida (c_casa_fondo.js). ancla(g): la mesa del juego en este piso (centro, altura de la cubierta y hacia dónde queda
+// tu silla: de espaldas a la pared, viendo hacia las otras mesas del piso). fondo(cam,g,sillas): dibuja el piso desde cam sin esa mesa (queda su pie) ni los
+// Miis que caminan; sillas: deja las sillas y los Miis sentados (juegos de tablero). Mientras, yo() es la mesa (corte de paredes y calle). back() lo deshace.
+let fzT=null,fzN=0;const fzP=v3(0,0,0);
+function ancla(g){const t=ready&&on&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)return null;
+ if(t.fa==null){const o=TB.filter(x=>x!==t),b=FL.cb||PB.cb,c=o.length?o.reduce((c,x)=>[c[0]+x.x/o.length,c[1]+x.z/o.length],[0,0]):[(b[0]+b[1])/2,(b[2]+b[3])/2];t.fa=Math.atan2(t.x-c[0],t.z-c[1])}return {x:t.x,z:t.z,y:TH+.07,a:t.fa,r:t.r}}
+// arranca(g): si recargaste a media partida la casa no se armó (se arma sin dibujarse); si la mesa está en otro piso, te pasa junto a ella
+const PISOJ={continental:'pb',uno:'pb',merida:'alta',haciendas:'alta'};
+function arranca(g){if(!on)return false;if(!ready)try{init()}catch(e){console.warn('Casa 3D:',e);return false}const p=PISOJ[g];if(p&&p!==FL.id&&!fBusy)irA(p,g);return true}
+function fondoFin(){const t=fzT;if(!t)return;fzT=null;t.G.children.forEach(o=>{if(o.userData.fz){o.visible=true;delete o.userData.fz}});seated.forEach(s=>{if(s.t===t)s.g.visible=true})}
+function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)return false;const now=performance.now();
+ if(fzT!==t){fondoFin();fzT=t;fzN=0;fzP.set(t.x,0,t.z);t.G.children.forEach(o=>{if(o.visible&&!o.isLight&&!t.pie.includes(o)&&!(sillas&&t.chairs.includes(o))){o.visible=false;o.userData.fz=1}})}
+ fzN++;me.g.visible=false;others.forEach(o=>o.g.visible=false);if(!sillas)seated.forEach(s=>{if(s.t===t)s.g.visible=false});
+ CA.position.copy(cam.position);CA.quaternion.copy(cam.quaternion);CA.updateMatrixWorld();   // los módulos del piso (vigas, corte, LUZ) leen CASA3D.cam()
+ R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
+ if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
+ const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
+window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,ancla,fondo,arranca};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g){if(window.CMESA)CMESA.abrir();return}goTable(g)};

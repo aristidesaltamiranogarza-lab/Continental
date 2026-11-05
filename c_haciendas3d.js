@@ -11,8 +11,10 @@ const VW={x:0,z:0,k:1,a:0,t:EL},VT={x:0,z:0,k:1,a:0,t:EL},VK=['x','z','k','a','t
 const pc=k=>D.PCOL[k%D.PCOL.length];
 const css=document.createElement('style');css.textContent=`#hz3root{position:fixed;inset:0;z-index:1;display:none;background:radial-gradient(ellipse at 50% 45%,#3a2c20 0%,#140e09 75%);touch-action:none;-webkit-user-select:none;user-select:none}
 #hz3root canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}`;document.head.appendChild(css);
+// shR: dibuja con el WebGL de la casa · fz: escala de la casa de fondo (0: con su propio cuarto) · pata: lo de la mesa que va bajo la cubierta; c_casa_fondo.js
+let shR=false,fz=0;const pata=[];
 function init(){if(ready)return;ready=true;
- R=new THREE.WebGLRenderer({antialias:true,alpha:true});const mob=matchMedia('(pointer:coarse)').matches;R.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+ shR=!!(window.FONDO&&FONDO.R('haciendas'));R=shR?FONDO.R():new THREE.WebGLRenderer({antialias:true,alpha:true});const mob=matchMedia('(pointer:coarse)').matches;if(!shR){R.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.5:2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap}
  SC=new THREE.Scene();CA=new THREE.PerspectiveCamera(40,1,.1,400);
  LT.h=new THREE.HemisphereLight(0xfff4e0,0x3a2a1e,1.5);SC.add(LT.h);
  LT.d=new THREE.DirectionalLight(0xfff0d8,2.3);LT.d.position.set(-6,16,8);LT.d.castShadow=true;LT.d.shadow.mapSize.set(mob?1024:2048,mob?1024:2048);
@@ -23,15 +25,15 @@ function init(){if(ready)return;ready=true;
  const rr=(w,r)=>{const s=new THREE.Shape(),h=w/2;s.moveTo(-h+r,-h);s.lineTo(h-r,-h);s.quadraticCurveTo(h,-h,h,-h+r);s.lineTo(h,h-r);s.quadraticCurveTo(h,h,h-r,h);s.lineTo(-h+r,h);s.quadraticCurveTo(-h,h,-h,h-r);s.lineTo(-h,-h+r);s.quadraticCurveTo(-h,-h,-h+r,-h);return s};
  const tg=new THREE.ExtrudeGeometry(rr(15.4,1.3),{depth:.38,bevelEnabled:true,bevelThickness:.1,bevelSize:.12,bevelSegments:4,curveSegments:10});tg.rotateX(-Math.PI/2);
  const tt=new THREE.Mesh(tg,wood);tt.position.y=-.1-.48;tt.receiveShadow=tt.castShadow=true;SC.add(tt);
- const FY=-1.55*RS,ap=new THREE.Mesh(M.box(13.6,.7,13.6),dw);ap.position.y=-.95;SC.add(ap);
- [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const l=new THREE.Mesh(M.box(.9,-.6-FY,.9),dw);l.position.set(a*6.2,(-.6+FY)/2,b*6.2);l.castShadow=true;SC.add(l)});
+ const FY=-1.55*RS,ap=new THREE.Mesh(M.box(13.6,.7,13.6),dw);ap.position.y=-.95;SC.add(ap);pata.push(ap);
+ [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const l=new THREE.Mesh(M.box(.9,-.6-FY,.9),dw);l.position.set(a*6.2,(-.6+FY)/2,b*6.2);l.castShadow=true;SC.add(l);pata.push(l)});
  if(K3&&K3.buildRoom){try{room=K3.buildRoom(false,6.2,6.2);room.scale.setScalar(RS);SC.add(room);room.traverse(o=>{if(o.isLight)o.userData.i0=o.intensity})}catch(e){console.warn('Haciendas 3D: sin cuarto',e);room=null}}
  board=new THREE.Group();dyn=new THREE.Group();hits=new THREE.Group();SC.add(board,dyn,hits);
  for(let v=1;v<=6;v++)faces[v]=new THREE.MeshStandardMaterial({map:M.dieTex(v),roughness:.35});
  for(let j=0;j<2;j++){const d=new THREE.Mesh(new THREE.BoxGeometry(.42,.42,.42),[1,6,2,5,3,4].map(v=>faces[v]));d.castShadow=true;SC.add(d);dice.push(d)}
  root=document.createElement('div');root.id='hz3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{ptr.delete(e.pointerId);if(ptr.size<2)pin=null});
- cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
+ cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('wheel',e=>{if(!shown)return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  addEventListener('keydown',e=>{if(!shown||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'')||e.ctrlKey||e.metaKey||e.altKey)return;
   const f={arrowleft:()=>VT.a-=.2,arrowright:()=>VT.a+=.2,arrowup:()=>VT.t+=.08,arrowdown:()=>VT.t-=.08,'+':()=>VT.k*=1.2,'=':()=>VT.k*=1.2,'-':()=>VT.k/=1.2,home:home}[e.key.toLowerCase()];
   if(f){e.preventDefault();f();touched=true;clampV()}})}
@@ -114,8 +116,11 @@ function step(now,dt){const hu=dyn.userData.hur;if(hu&&hu.parent)hu.userData.spi
   else{d.position.set(x0,.11,z0);d.rotation.set(0,j?.35:-.2,0)}});
  const f=1-Math.exp(-dt/110);VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
+ if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize();
- try{step(now,dt);applyCam();R.render(SC,CA)}catch(e){console.warn('Haciendas 3D:',e);H3.fail();if(typeof render=='function')render()}}
+ try{step(now,dt);applyCam();
+  // con la casa de fondo (c_casa_fondo.js) va primero la casa y el tablero queda encima, en la mesa de la casa y sin su cuarto
+  const fs=window.FONDO?FONDO.pinta(R,CA,'haciendas',{r:10.5,rt:2.5,y:-.1,sillas:1}):0;if(fs!==fz){fz=fs;if(room)room.visible=!fs;pata.forEach(o=>o.visible=!fs)}if(!fs)R.clear();R.render(SC,CA)}catch(e){console.warn('Haciendas 3D:',e);H3.fail();if(typeof render=='function')render()}}
 window.H3={ok:()=>!failed,
  fail(){failed=true;this.show(false)},
  show(on){if(on&&!failed){try{init()}catch(e){failed=true;console.warn('Haciendas 3D: no se pudo iniciar',e);throw e}}if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';

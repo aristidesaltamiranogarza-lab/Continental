@@ -104,8 +104,10 @@ function pulse(now){const p=.65+.35*Math.sin(now/260);glows.forEach(g=>{g.materi
   m.material.color.set(k<1?0xff5a4a:b.col);m.material.opacity=b.ok?.95:.55+.25*Math.sin(now/380)})}   // >.5 = parpadea
 
 // ---------- escena y mesa ----------
+// shR: dibuja con el WebGL de la casa · fz: escala de la casa de fondo (0: con su propio cuarto); c_casa_fondo.js
+let shR=false,fz=0;
 function init(){if(ready)return;ready=true;
- R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+ shR=!!(window.FONDO&&FONDO.R('continental'));R=shR?FONDO.R():new THREE.WebGLRenderer({antialias:true,alpha:true});if(!shR){R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap}
  SC=new THREE.Scene();CA=new THREE.PerspectiveCamera(40,1,.1,200);SC.add(CA);
  const hl=new THREE.HemisphereLight(0xffffff,0x24402e,1.7);SC.add(hl);
  const Ld=new THREE.DirectionalLight(0xfff2da,2.6);Ld.position.set(-5,14,7);Ld.castShadow=true;Ld.shadow.mapSize.set(2048,2048);Ld.shadow.bias=-.0004;
@@ -151,7 +153,7 @@ function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o
  else{L.deck=v3(-ix+.6,0,-.95);L.disc=v3(-ix+.6,0,1.15);L.rect={x0:-ix+1.6,x1:ix,z0:-iz,z1:iz}}
  // mientras no te bajes, tu lado de la mesa guarda las siluetas de tu contrato
  L.band={x0:L.rect.x0,x1:ix,z0:iz-(por?1.5:1.4),z1:iz+(por?.45:.35)};L.rectMine=Object.assign({},L.rect,{z1:L.band.z0-.15});
- const room=buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;
+ const room=buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room;L.baseM=base;
  buildC4(por,rx,rz,room.userData.c4);buildBG(room.userData.bg)}
 // ---------- el cuarto: piso, paredes y muebles alrededor de la mesa (el Conecta 4 está en una esquina del fondo) ----------
 function ctex(key,w,h,draw){if(texC[key])return texC[key];const c=cnv(w,h);draw(c.getContext('2d'),w,h);const t=tx(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return texC[key]=t}
@@ -352,14 +354,14 @@ function mkAvatar(k,pi,o={}){if(window.MII)return MII.mk(k,pi,o,COL[k%10],AVP[pi
 function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
  want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
-  g.position.set(Math.cos(a)*(L.rx+1.4),0,Math.sin(a)*(L.rz+1.4));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
+  const o=window.FONDO?FONDO.mii(g,fz,k===V.me):1.4;g.position.set(Math.cos(a)*(L.rx+o),0,Math.sin(a)*(L.rz+o));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
   g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
 const POLE=[v3(-1.3,-.5,-.4),v3(1.3,-.5,-.4)];
 function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
  avs.forEach(g=>{const u=g.userData,k=u.k,turn=G.turn===k,f=.08;
   u.body.scale.y=1+.012*Math.sin(now/650+k*1.7);u.body.rotation.x+=((turn?.12:0)-u.body.rotation.x)*f;
   // la cabeza mira a quien tiene el turno (o a sus cartas cuando le toca)
-  let yaw=0,pitch=.3;if(!turn){avTgt.copy(G.turn===V.me||!avs.get(G.turn)?v3(0,1,L.rz+1):avs.get(G.turn).position.clone().setY(1.3));g.worldToLocal(avTgt);
+  let yaw=0,pitch=.3;if(!turn){avTgt.copy(G.turn===V.me||!avs.get(G.turn)?v3(0,1,L.rz+1):avs.get(G.turn).position.clone().setY(1.3*avs.get(G.turn).scale.y));g.worldToLocal(avTgt);
    yaw=Math.max(-1.1,Math.min(1.1,Math.atan2(avTgt.x,avTgt.z)));pitch=.05}
   u.head.rotation.y+=(yaw-u.head.rotation.y)*f;u.head.rotation.x+=(pitch-u.head.rotation.x)*f;
   // manos sobre la orilla de la mesa; la derecha se estira al jugar; las dos arriba al bajarse
@@ -434,7 +436,7 @@ function bgdiscover(){if(bgfound)return;bgfound=true;try{localStorage.setItem('c
 const BGIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" fill="#5a3418"/><rect x="3.5" y="5.5" width="17" height="13" fill="#1f5b3a"/><path d="M4 5.5l1.5 6 1.5-6zM7.5 5.5l1.5 6 1.5-6zM13.5 18.5l1.5-6 1.5 6zM17 18.5l1.5-6 1.5 6z" fill="#e8dcc0"/><path d="M5.8 18.5l1.5-6 1.5 6zM15.3 5.5l1.5 6 1.5-6z" fill="#9e2a2a"/><rect x="11.4" y="5.5" width="1.2" height="13" fill="#5a3418"/></svg>';
 const bgdisc=k=>`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
 function bgUI(top){const G=V.G,me=V.me;if(me<0)return '';const g=bgg(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
- const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;if(!bgfound&&!g)return '';
+ const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;if(fz||(!bgfound&&!g))return '';
  let h=`<button id="t3bgb" class="ui ui-rb t3gb${myT||inv?' on':''}" style="top:calc(env(safe-area-inset-top,0px) + ${top}px)" onclick="${bgopen&&VT.bg?'bgo(0)':'bggo()'}" title="Backgammon" aria-label="Backgammon">${BGIC}</button>`;
  if(inv&&!bgopen)h+=`<div id="t3bgi" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Backgammon</b><span><button class="ui-btn sec" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></span></div>`;
  if(!bgopen)return h;let b='';
@@ -658,7 +660,7 @@ function sync(){if(!ready||!L||!active())return;
 
 // ---------- tocar y arrastrar ----------
 function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
- const h=ray.intersectObjects(only||hits,false);return h.length?h[0].object.userData.hit:null}
+ const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));return h.length?h[0].object.userData.hit:null}
 // Ratón: clic derecho y arrastrar = mover; clic de rueda (o Shift + clic derecho) = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar fuera de tu mano = mover; dos dedos = pellizcar para zoom, girarlos para rotar
 function pDown(e){if(!active()||ap)return;if(e.pointerType!=='mouse')peek(false);if(menu){menu=false;render();return}
@@ -761,7 +763,7 @@ const c4g=()=>{const L=V.G.c4s||[];return L.find(x=>x.p.includes(V.me))};
 const c4disc=k=>`<i class="c4m ${k?'y':'r'}"></i>`;
 function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
  const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;
- if(!c4found&&!g)return '';
+ if(fz||(!c4found&&!g))return '';
  let h=`<button id="t3c4b" class="ui ui-rb t3gb${myT||inv?' on':''}" onclick="${c4open&&VT.c4?'c4o(0)':'c4go()'}" title="Conecta 4" aria-label="Conecta 4">${C4IC}</button>`;
  // te retaron: aviso con botones aunque la ventana esté cerrada
  if(inv&&!c4open)h+=`<div id="t3c4i" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Conecta 4</b><span><button class="ui-btn sec" onclick="c4a('acc')">Jugar</button><button class="ui-btn sec" onclick="c4a('end')">Ahora no</button></span></div>`;
@@ -822,7 +824,7 @@ function apUI(){const T=APT[ap.tab];
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
-function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
+function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh+(L.top||24)-20,Math.min(H-hh,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
@@ -834,10 +836,15 @@ function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEac
 function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase==='play'}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
+ if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
  viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
- R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
+ // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
+ const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:Math.max(L.rx,L.rz)+.6,rt:2.6}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
+ if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
+// sin su cuarto en la casa: ni el Conecta 4 ni el Backgammon escondidos; los Miis a tamaño de casa
+function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;[C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
 function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4||VT.bg)?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.bg?`${BGIC} Backgammon · ${UI.ico('cuadrar')}Volver a la mesa`:VT.c4?`${C4IC} Conecta 4 · ${UI.ico('cuadrar')}Volver a la mesa`:p?`${UI.ico('ojo')}<b>${esc(p.name)}</b> · ${UI.ico('cuadrar')}Cuadrar`:`${UI.ico('cuadrar')}Cuadrar`;
