@@ -39,11 +39,13 @@ function ajustes(rows,btns){const mus=typeof musName=='function'?musName():null,
  ${mus!=null?`<span class="ui-lbl">Música</span>${seg([['apagada','No'],['baja','Baja'],['media','Media'],['alta','Alta']],mus,'GHUD.mus')}`:''}
  <div class="gj-sws">${row('sonido','Sonidos',sw(snd,'GHUD.snd(this.checked)','Sonidos'))}${rows||''}</div>
  ${btns?`<div class="gj-btns">${btns}</div>`:''}`}
+// ventanita de una mesa de la casa (Conecta 4, Backgammon, Cubilete, Ir a…): tarjeta a la derecha en compu, hoja de abajo en celular
+const win=(title,body,close,cls)=>`<div id="h3win" class="ui ui-sheet h3w${cls?' '+cls:''}" role="dialog" aria-label="${title.replace(/<[^>]+>/g,'').replace(/"/g,'')}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div><div class="ui-bd">${body}</div></div>`;
 // el scroll del panel no se pierde al redibujar: save() antes de armar el HTML, restore() después
 function save(){const b=$('gjBd');scroll=b?b.scrollTop:0}
 function restore(){const b=$('gjBd');if(b)b.scrollTop=scroll}
 
-window.GHUD={top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,save,restore,
+window.GHUD={win,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,save,restore,
  tab:k=>{tab=k;const b=$('gjBd');if(b)b.scrollTop=0;tick();rr()},
  tema:t=>{UI.setTema(t);tick();rr()},
  mus:n=>{if(typeof musCyc!='function')return;for(let i=0;i<4&&musName()!==n;i++)musCyc();rr()},

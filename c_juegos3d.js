@@ -20,7 +20,7 @@ function build(e){if(!K||!K.mkC4)return;if(!E)E=e;const {SC,hits,OB,std}=e,cyl=(
  const ct=std(0x4a2c18,.5),{x:tx,z:tz}=BGP;box(4,.14,2.9,ct,tx,1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>box(.14,.95,.14,ct,tx+a,.48,tz+b));
  [-1,1].forEach(s=>{cyl(.75,.8,.9,std(0x7a2a2a,.85),tx+s*2.9,.45,tz,null,24);OB.push({x:tx+s*2.9,z:tz,r:.9})});
  BG=K.mkBG(SC,v3(tx,1.09,tz));hits.push(...BG.hits);OB.push({x:tx-1,z:tz,r:1.7},{x:tx+1,z:tz,r:1.7})}
- if(!signs.c4)[['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='w7 w7g h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s});
+ if(!signs.c4)[['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='ui ui-fx ui-glass h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s});
  if(J){c4sync();bgSync()}}
 // ---------- estado ----------
 function sync(j,e){if(e)err=e;if(!j)return false;const k=JSON.stringify(j);if(k===snap)return !!e;const o=J;J=j;snap=k;
@@ -60,17 +60,16 @@ function hud(busy){if(!open||busy||!J)return '';const t=open,N=t=='c4'?'Conecta 
  const a=(op2,x)=>`JG3.a('${t}','${op2}'${x!=null?','+x:''})`;let b='';
  if(!g){const L=J[t+'s'],ks=J.pl.filter(p=>p.k!==J.me),bz=k=>L.some(x=>x.st!='end'&&x.p.includes(k));
   b=`<div class="h3d">${t=='c4'?'Junta 4 fichas de tu color en línea.':'Saca tus 15 fichas antes que tu rival. Los dados se tiran solos.'} ¿A quién retas?</div>
-   <div class="h3b">${ks.map(p=>`<button class="w7b" onclick="${a('inv',p.k)}"${bz(p.k)?' disabled':''}>${esc(p.n)}${bz(p.k)?' · jugando':''}</button>`).join('')||'<span class="h3n">No hay nadie más en la casa.</span>'}</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="h3d">Esperando a que <b>${nmk(op)}</b> acepte…</div><div class="h3b"><button class="w7b" onclick="${a('end')}">Cancelar</button></div>`
-  :`<div class="h3d"><b>${nmk(op)}</b> te reta a ${N}</div><div class="h3b"><button class="w7b dflt" onclick="${a('acc')}">Jugar</button><button class="w7b" onclick="${a('end')}">Ahora no</button></div>`;
+   <div class="h3b">${ks.map(p=>`<button class="ui-btn sec" onclick="${a('inv',p.k)}"${bz(p.k)?' disabled':''}>${esc(p.n)}${bz(p.k)?' · jugando':''}</button>`).join('')||'<span class="h3n">No hay nadie más en la casa.</span>'}</div>`}
+ else if(g.st=='inv')b=mi==0?`<div class="h3d">Esperando a que <b>${nmk(op)}</b> acepte…</div><div class="h3b"><button class="ui-btn sec" onclick="${a('end')}">Cancelar</button></div>`
+  :`<div class="h3d"><b>${nmk(op)}</b> te reta a ${N}</div><div class="h3b"><button class="ui-btn" onclick="${a('acc')}">Jugar</button><button class="ui-btn sec" onclick="${a('end')}">Ahora no</button></div>`;
  else{const my=g.st=='play'&&g.turn==mi;let st;
   if(g.st=='play'){if(t=='c4')st=my?`${chip(mi)} <b>¡Tu turno!</b> Toca una columna del tablero`:`Turno de ${nmk(op)}…`;
    else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]} (dobles)`:g.dice.join(' y ');st=my?(g.mv.length?`${chip(mi)} <b>¡Tu turno!</b> Dados: ${dc}. Toca una ficha y luego a dónde moverla`:`Dados: ${dc}. No tienes jugadas`):`Turno de ${nmk(op)}… (dados: ${dc})`}}
   else st=g.w==2?'Empate: se llenó el tablero':g.w==mi?(g.why?`🏆 ${nmk(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nmk(op)}</b>`);
   b=`<div class="h3d">${st}</div><div class="h3n">${chip(0)} ${nmk(g.p[0])}${t=='bg'?` (${g.off[0]}/15)`:''} vs ${chip(1)} ${nmk(g.p[1])}${t=='bg'?` (${g.off[1]}/15)`:''}</div>
-   <div class="h3b">${t=='bg'&&my&&!g.mv.length?`<button class="w7b dflt" onclick="${a('pass')}">Pasar turno</button>`:''}${g.st=='play'?`<button class="w7b" onclick="if(confirm('¿Rendirte?'))${a('end')}">Rendirse</button>`:`<button class="w7b dflt" onclick="${a('inv',op)}">Revancha</button><button class="w7b" onclick="${a('end')}">Nueva partida</button>`}</div>`}
- return `<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="jgt"><div class="wt"><span id="jgt">${t=='c4'?'🔴':'🎲'} ${N}</span><button class="wx" onclick="JG3.close()" aria-label="Cerrar">✕</button></div>
-  <div class="wb">${b}${err?`<div class="h3m">${esc(err)}</div>`:''}</div></div>`}
+   <div class="h3b">${t=='bg'&&my&&!g.mv.length?`<button class="ui-btn" onclick="${a('pass')}">Pasar turno</button>`:''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte?'))${a('end')}">Rendirse</button>`:`<button class="ui-btn" onclick="${a('inv',op)}">Revancha</button><button class="ui-btn sec" onclick="${a('end')}">Nueva partida</button>`}</div>`}
+ return GHUD.win(`${t=='c4'?'🔴':'🎲'} ${N}`,b+(err?`<div class="h3m">${esc(err)}</div>`:''),'JG3.close()')}
 // ---------- animación y letreros ----------
 // fl: el piso donde estás (solo se anima y se ve el letrero del juego de ese piso)
 function step(now,toPx,W,fl){const here=t=>(t=='c4'?C4:BG)&&FLG[t]===(fl||'pb');

@@ -96,7 +96,7 @@ html[data-tema=noche] .ui-sw i::after{background:var(--ui-sub)}
 
 /* ===== alias de las clases viejas .w7… (los juegos las siguen usando) ===== */
 .w7{font:700 clamp(13px,.55vw + 10px,16px)/1.3 var(--ui-font);color:var(--ui-text)}
-.w7g{background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);border-radius:var(--ui-r);box-shadow:var(--ui-shadow);color:var(--ui-text);text-shadow:none}
+.w7g,.ui-glass{background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);border-radius:var(--ui-r);box-shadow:var(--ui-shadow);color:var(--ui-text);text-shadow:none}
 .w7b{min-height:44px;min-width:44px;padding:0 16px;border:1px solid var(--ui-line);border-radius:999px;background:var(--ui-chip);box-shadow:none;color:var(--ui-text);font:700 1em var(--ui-font)}
 @media (hover:hover){.w7b:hover{border-color:var(--ui-accent);background:var(--ui-chip);filter:brightness(1.04)}}
 .w7b:active{border-color:var(--ui-accent);background:var(--ui-chip);box-shadow:none;transform:scale(.97)}

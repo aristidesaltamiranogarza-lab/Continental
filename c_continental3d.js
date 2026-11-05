@@ -6,7 +6,7 @@ if(typeof THREE==='undefined'||typeof GM==='undefined'||!GM.continental){console
 const orig=GM.continental.body,origAfter=GM.continental.after;
 let on=true;try{on=localStorage.getItem('cont_3d')!=='0'}catch(e){}
 let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',felt=null,tbl=null;
-let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,menuOpen=new Set(),menuScroll=0,wasDown=null,bajando=0;
+let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,wasDown=null,bajando=0;
 const slots=new Map();                   // siluetas del contrato en tu lado de la mesa
 const meshes=new Map(),texC={},glows=new Map(),hits=[];
 const CW=1,CH=1.4,CT=.012,D=3;          // carta base (unidades del mundo) y distancia de tu mano a la cámara
@@ -114,8 +114,8 @@ function init(){if(ready)return;ready=true;
  const pt=new THREE.PointLight(0xffffff,1.6,0,1.4);pt.position.set(0,1.2,1);CA.add(pt);   // luz suave para tu mano
  [hl,Ld,fill,pt].forEach(l=>l.layers.enableAll());R.autoClear=false;
  root=document.createElement('div');root.id='c3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
- peekEl=document.createElement('div');peekEl.id='t3peek';peekEl.className='w7 w7g';peekEl.innerHTML='<img alt=""><div class="nm"></div>';document.body.appendChild(peekEl);
- dpvEl=document.createElement('div');dpvEl.id='t3dpv';dpvEl.className='w7 w7g';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
+ peekEl=document.createElement('div');peekEl.id='t3peek';peekEl.className='ui ui-card';peekEl.innerHTML='<img alt=""><div class="nm"></div>';document.body.appendChild(peekEl);
+ dpvEl=document.createElement('div');dpvEl.id='t3dpv';dpvEl.className='ui ui-card';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pCancel);
  cv.addEventListener('pointerleave',()=>{if(!st)peek(false);if(!st&&hov!=null){hov=null;sync()}});cv.addEventListener('contextmenu',e=>e.preventDefault());
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
@@ -435,20 +435,20 @@ const BGIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><
 const bgdisc=k=>`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
 function bgUI(top){const G=V.G,me=V.me;if(me<0)return '';const g=bgg(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
  const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;if(!bgfound&&!g)return '';
- let h=`<button id="t3bgb" class="w7 w7b t3gb${myT||inv?' p':''}" style="top:calc(env(safe-area-inset-top,0px) + ${top}px)" onclick="${bgopen&&VT.bg?'bgo(0)':'bggo()'}" title="Backgammon" aria-label="Backgammon">${BGIC}</button>`;
- if(inv&&!bgopen)h+=`<div id="t3bgi" class="w7 w7g t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Backgammon</b><span><button class="w7b" onclick="bga('acc')">Jugar</button><button class="w7b" onclick="bga('end')">Ahora no</button></span></div>`;
+ let h=`<button id="t3bgb" class="ui ui-rb t3gb${myT||inv?' on':''}" style="top:calc(env(safe-area-inset-top,0px) + ${top}px)" onclick="${bgopen&&VT.bg?'bgo(0)':'bggo()'}" title="Backgammon" aria-label="Backgammon">${BGIC}</button>`;
+ if(inv&&!bgopen)h+=`<div id="t3bgi" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Backgammon</b><span><button class="ui-btn sec" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></span></div>`;
  if(!bgopen)return h;let b='';
  if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.bgs||[]).some(x=>x.st!='end'&&x.p.includes(k));
-  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="w7b" onclick="bginv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
+  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="bginv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
    <div class="c4n">Saca tus 15 fichas antes que tu rival. Los dados se tiran solos al empezar cada turno.</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="ft"><button class="w7b" onclick="bga('end')">Cancelar</button></div>`
-  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Backgammon</div><div class="ft"><button class="w7b dflt" onclick="bga('acc')">Jugar</button><button class="w7b" onclick="bga('end')">Ahora no</button></div>`;
+ else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="gj-btns"><button class="ui-btn sec" onclick="bga('end')">Cancelar</button></div>`
+  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Backgammon</div><div class="gj-btns"><button class="ui-btn" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></div>`;
  else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]} (dobles)`:g.dice.join(' y ');
   const st=g.st=='play'?(myT?(g.mv.length?`${bgdisc(mi)} <b>¡Tu turno!</b> Dados: ${dc}. Toca una ficha y luego a dónde moverla`:`${bgdisc(mi)} Dados: ${dc}. No tienes jugadas`):`${bgdisc(1-mi)} Turno de ${nm(op)}… (dados: ${dc})`)
    :g.w==mi?(g.why?`🏆 ${nm(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
   b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${bgdisc(0)} ${nm(g.p[0])} (${g.off[0]}/15) &nbsp;vs&nbsp; ${bgdisc(1)} ${nm(g.p[1])} (${g.off[1]}/15)</div>
-   <div class="ft">${VT.bg?'<button class="w7b" onclick="bgo(0)">↩ Mesa</button>':'<button class="w7b dflt" onclick="bggo()">Ver tablero</button>'}${myT&&!g.mv.length?'<button class="w7b dflt" onclick="bga(\'pass\')">Pasar turno</button>':''}${g.st=='play'?`<button class="w7b" onclick="if(confirm('¿Rendirte en Backgammon?'))bga('end')">Rendirse</button>`:`<button class="w7b dflt" onclick="bginv(${op})">Revancha</button><button class="w7b" onclick="bga('end')">Nueva partida</button>`}</div>`}
- return h+`<div id="t3bg" class="w7 w7win t3gp" role="dialog" aria-label="Backgammon"><div class="wt"><span>Backgammon</span><button class="wx" onclick="bgo(0)" aria-label="Cerrar">✕</button></div><div class="wb">${b}</div></div>`}
+   <div class="gj-btns">${VT.bg?'<button class="ui-btn sec" onclick="bgo(0)">Volver a la mesa</button>':'<button class="ui-btn" onclick="bggo()">Ver tablero</button>'}${myT&&!g.mv.length?'<button class="ui-btn" onclick="bga(\'pass\')">Pasar turno</button>':''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Backgammon?'))bga('end')">Rendirse</button>`:`<button class="ui-btn" onclick="bginv(${op})">Revancha</button><button class="ui-btn sec" onclick="bga('end')">Nueva partida</button>`}</div>`}
+ return h+`<div id="t3bg" class="ui ui-card t3gp" role="dialog" aria-label="Backgammon"><div class="ui-hd"><h2 class="ui-h">Backgammon</h2><button class="ui-x" onclick="bgo(0)" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="ui-bd">${b}</div></div>`}
 function bgcheck(){const g=bgg();if(!g){bgsnap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,JSON.stringify(g.last),g.turn,g.rn,g.w].join('|');if(k===bgsnap)return;
  const o=bgsnap.split('|');bgsnap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
  if(o[2]!==JSON.stringify(g.last))sfx('place');if(o[4]!==String(g.rn))sfx('shuf');
@@ -467,7 +467,7 @@ function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
- const tb=$('#t3top'),bb=$('#t3bar .w7g'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:54)+(h<500?4:24),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
+ const tb=$('#gjHint')||$('#gjTop'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(80,Math.min(h*.22,w*.34,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.1)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
  const rb=h-bar-ch*.62,rh=Math.max(120,rb-top),el=por?1.12:.98;
@@ -719,49 +719,40 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
 // ---------- capa de controles (HTML encima del 3D) ----------
 function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&&G.step=='play',drw=mine&&G.step=='draw';
  const hint=i<0?mirTxt():mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
- let h=`<div id="t3top" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="c3dMenu()" aria-label="Menú">☰ Juego</button>
-  <div class="inf"><div class="l1">Ronda ${G.round+1}/7 · <b>${conTxt(G.round)}</b></div><div class="l2">${mine?'<b>¡Tu turno!</b> '+hint:hint}</div></div>
-  <button class="w7b" onclick="c3dMini()" title="Ocultar la barra" aria-label="Ocultar la barra">▴</button><button class="w7b" onclick="c3dToggle()" title="Vista clásica 2D">2D</button></div>`;
- // modo minimalista: solo una pastilla con el menú, el contrato (o tu turno) y el botón para regresar la barra
- if(mini)h=`<div id="t3mini" class="w7 w7g${mine?' me':''}"><button class="w7b" onclick="c3dMenu()" aria-label="Menú">☰</button><span class="st">${mine?'<b>¡Tu turno!</b>':esc(conTxt(G.round))}</span><button class="w7b" onclick="c3dMini()" title="Mostrar la barra" aria-label="Mostrar la barra">▾</button></div>`;
- const lg=(G.log||[]).slice(-1)[0];if(lg&&!mini)h+=`<div id="t3log" class="w7">${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}</div>`;
+ // arriba: ronda y contrato, turno, cámara y ☰; abajo de ellas la ayuda o la última jugada
+ const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
+ let h=GHUD.top({st:`${G.round+1}/7 · <b>${conTxt(G.round)}</b>`,turn:mine?'¡Tu turno!':'Turno de '+nm(t),me:mine,open:menu,menu:'c3dMenu()',right:GHUD.camTog(camOpen)});
+ if(!mini)h+=GHUD.hint(mine||!lgT?hint:lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
- if(mt&&age<4500)h+=`<div class="w7 t3msg" style="animation-delay:-${age}ms">${msg?esc(msg):'<b>'+esc(G.note)+'</b>'}</div>`;
+ if(mt&&age<4500)h+=GHUD.toast(msg?esc(msg):'<b>'+esc(G.note)+'</b>',age,mini);
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const o=V.players[k],on=G.turn==k;
   const nj=G.melds.filter(m=>m.owner==k).length;
-  h+=`<div class="w7 w7g t3seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${o.on?' on':''}"></i><small>${o.out?'expulsado':(hc(k)+' cartas'+(nj?' · ✓ '+nj+(nj>1?' juegos':' juego'):'')+(on?(G.step=='draw'?' · robando…':' · jugando…'):''))}</small></div>`});
- h+=`<div class="w7 t3pl" id="t3pdk">Mazo · ${G.deck}</div><div class="w7 t3pl" id="t3pds">Descarte</div>`;
+  h+=`<div class="ui gj-seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${o.on?' on':''}"></i><small>${o.out?'expulsado':(hc(k)+' cartas'+(nj?' · ✓ '+nj+(nj>1?' juegos':' juego'):'')+(on?(G.step=='draw'?' · robando…':' · jugando…'):''))}</small></div>`});
+ h+=`<div class="ui gj-pl" id="t3pdk">Mazo · ${G.deck}</div><div class="ui gj-pl" id="t3pds">Descarte</div>`;
  // botones de abajo
- let b='';
- if(i<0)b=`<span class="hint">${mirTxt()}</span>${V.watch?'<button class="w7b" onclick="leave()">🚪 Dejar de mirar</button>':''}`;
- else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="w7b${rd?' p':''}" onclick="c3dBajar()">⬇ Bajarme</button>`;if(V.pend)b+=`<button class="w7b" onclick="send({t:'undoswap'})">↶ Deshacer cambio</button>`;
-   b+=`<button class="w7b${sel.size==1&&!rd?' p':''}" onclick="discard()">Descartar</button>`}
-  else if(drw)b+=`<span class="hint">👆 Toca el mazo o el descarte</span>`;
-  if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<span class="hint">Pediste comprar…</span><button class="w7b" onclick="send({t:'unbuy'})">✖ Cancelar compra</button>`:`<button class="w7b" onclick="comprar()">Comprar (+1)</button>`;
-  b+=`<button class="w7b" onclick="cyc()" title="Ordenar">⇅ ${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;
-  if(dn)b=`<span class="hint">✓ Bajaste</span>`+b}
- h+=`<div id="t3bar" class="w7"><div class="w7g">${b}</div></div>`;
- h+=`<button id="t3view" class="w7 w7b" onclick="c3dHome()" style="display:none" title="Regresar a la vista de siempre (Esc)">${IC.home} Cuadrar</button>`;
- const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t}" aria-label="${t}">${IC[c]}</button>`;
- h+=`<div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>
-  <div class="w7g pan">${cb('rl','Girar a la izquierda (Q)')}${cb('rr','Girar a la derecha (E)')}${cb('zi','Acercar (+)')}${cb('zo','Alejar (−)')}${cb('tu','Ver más desde arriba (R)')}${cb('td','Ver más de lado (F)')}
-  <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Esc)">${IC.home} Cuadrar</button></div>
-  ${camOpen&&camTip?`<div class="tip">${touchy?'<b>Con los dedos</b><br>☝ Arrastra la mesa para moverla<br>🤏 Pellizca para acercar<br>🔄 Gira dos dedos para rotar':'<b>Con el ratón</b><br>Clic derecho y arrastra: mover<br>Rueda: acercar<br>Clic de rueda (o Shift + clic derecho): girar e inclinar<br>Teclado: W A S D, Q / E, R / F'}</div>`:''}</div>`;
+ let b='';const ic=n=>UI.ico(n);
+ if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Dejar de mirar</button>`:''}`;
+ else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer cambio</button>`;
+   b+=`<button class="ui-btn${sel.size==1&&!rd?' go':' sec'}" onclick="discard()">Descartar</button>`}
+  else if(drw)b+=`<span class="gj-note">Toca el mazo o el descarte</span>`;
+  if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<span class="gj-note">Pediste comprar…</span><button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar (+1)</button>`;
+  b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;
+  if(dn)b=`<span class="gj-note">✓ Bajaste</span>`+b}
+ h+=GHUD.bar(b)+GHUD.view('c3dHome()',mini)+GHUD.cam(IC,camOpen,mini);
+ if(camOpen&&camTip)h+=`<div class="ui ui-card gj-tip${mini?' mini':''}">${touchy?'<b>Con los dedos</b><br>Arrastra la mesa para moverla<br>Pellizca para acercar<br>Gira dos dedos para rotar':'<b>Con el ratón</b><br>Clic derecho y arrastra: mover<br>Rueda: acercar<br>Clic de rueda (o Shift + clic derecho): girar e inclinar<br>Teclado: W A S D, Q / E, R / F'}</div>`;
  if(ap)h+=apUI();
  // ayuda sobre lo seleccionado y nombres de las siluetas
- const tt=selTxt();if(tt)h+=`<div id="t3sel" class="w7 w7g${tt[0]=='✓'?' ok':tt[0]=='✗'?' no':''}">${tt}</div>`;
+ const tt=selTxt();if(tt)h+=`<div id="t3sel" class="ui${tt[0]=='✓'?' ok':tt[0]=='✗'?' no':''}">${tt}</div>`;
  if(pl&&!dn)staged.forEach((g,k)=>{const tot=staged.filter(x=>x.type==g.type).length,nn=staged.slice(0,k+1).filter(x=>x.type==g.type).length;
-  h+=`<div class="w7 t3pl t3sl${okSlot(g)?' ok':''}" id="t3sl${k}">${TN[g.type]}${tot>1?' '+nn:''}${okSlot(g)?' ✓':''}</div>`});
- h+=c4UI();h+=bgUI(V.me>=0&&(c4found||c4g())?108:58);
- // menú Juego
- if(menu){const op=k=>menuOpen.has(k)?' open':'';
-  h+=`<div id="t3menu" class="w7"><button class="mi" onclick="mute=!mute;render()">${mute?'🔇 Efectos de sonido: apagados':'🔊 Efectos de sonido: encendidos'}</button><button class="mi" onclick="musCyc()">${musName()=='apagada'?'🔇':'🎵'} Música: ${musName()}</button><button class="mi" onclick="c3dToggle()">🖼 Vista clásica 2D</button><button class="mi" onclick="c3dDark()">${dark?'☀️ Menús en modo claro':'🌙 Menús en modo oscuro'}</button><button class="mi" onclick="c3dMini()">${mini?'▾ Mostrar la barra de arriba':'▴ Ocultar la barra de arriba'}</button><hr>
-  <button class="mi" onclick="c3dAp()">🎨 Cambiar apariencia…</button>${V.me>=0&&(c4found||c4g())?'<button class="mi" onclick="c4go()">🔴 Conecta 4</button>':''}${V.me>=0&&(bgfound||bgg())?'<button class="mi" onclick="bggo()">🎲 Backgammon</button>':''}<details data-k="pl"${op('pl')}><summary class="mi">👥 Jugadores</summary>${plist()}</details>
-  <details data-k="lg"${op('lg')}><summary class="mi">📜 Historial</summary>${logv()||'<div class="rt">Nada todavía.</div>'}</details>
-  ${GM.continental.rules.replace('<details>',`<details data-k="rg"${op('rg')}>`).replace('<summary>Reglas</summary>','<summary class="mi">📖 Reglas</summary><div class="rt">').replace(/<\/details>$/,'</div></details>')}
-  ${V.host?`<hr><button class="mi" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">✖ Cerrar sala</button>`:''}</div>`}
+  h+=`<div class="ui gj-pl t3sl${okSlot(g)?' ok':''}" id="t3sl${k}">${TN[g.type]}${tot>1?' '+nn:''}${okSlot(g)?' ✓':''}</div>`});
+ h+=c4UI();h+=bgUI(V.me>=0&&(c4found||c4g())?126:72);
+ // menú ☰: un solo panel con pestañas (ajustes, jugadores, historial y reglas)
+ if(menu){const rg=String(GM.continental.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
+  const aj=GHUD.ajustes(GHUD.row('','Ayuda arriba',GHUD.sw(!mini,'c3dMini()','Ayuda arriba')),
+   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Cambiar apariencia…</button>${V.me>=0&&(c4found||c4g())?`<button class="ui-btn sec full" onclick="c4go()">${C4IC}Conecta 4</button>`:''}${V.me>=0&&(bgfound||bgg())?`<button class="ui-btn sec full" onclick="bggo()">${BGIC}Backgammon</button>`:''}<button class="ui-btn sec full" onclick="c3dToggle()">${ic('pantalla')}Vista clásica 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
+  h+=GHUD.sheet('Continental',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'c3dMenu()')}
  return h}
 // ---------- Conecta 4 entre dos jugadores (se juega durante la partida; las reglas están en el servidor) ----------
 const C4IC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" fill="#2a63c6"/><circle cx="7" cy="9" r="2.6" fill="#0d2a5c"/><circle cx="12" cy="9" r="2.6" fill="#0d2a5c"/><circle cx="17" cy="9" r="2.6" fill="#f9c623"/><circle cx="7" cy="15" r="2.6" fill="#e53935"/><circle cx="12" cy="15" r="2.6" fill="#f9c623"/><circle cx="17" cy="15" r="2.6" fill="#e53935"/></svg>';
@@ -771,21 +762,21 @@ const c4disc=k=>`<i class="c4m ${k?'y':'r'}"></i>`;
 function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
  const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;
  if(!c4found&&!g)return '';
- let h=`<button id="t3c4b" class="w7 w7b t3gb${myT||inv?' p':''}" onclick="${c4open&&VT.c4?'c4o(0)':'c4go()'}" title="Conecta 4" aria-label="Conecta 4">${C4IC}</button>`;
+ let h=`<button id="t3c4b" class="ui ui-rb t3gb${myT||inv?' on':''}" onclick="${c4open&&VT.c4?'c4o(0)':'c4go()'}" title="Conecta 4" aria-label="Conecta 4">${C4IC}</button>`;
  // te retaron: aviso con botones aunque la ventana esté cerrada
- if(inv&&!c4open)h+=`<div id="t3c4i" class="w7 w7g t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Conecta 4</b><span><button class="w7b" onclick="c4a('acc')">Jugar</button><button class="w7b" onclick="c4a('end')">Ahora no</button></span></div>`;
+ if(inv&&!c4open)h+=`<div id="t3c4i" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Conecta 4</b><span><button class="ui-btn sec" onclick="c4a('acc')">Jugar</button><button class="ui-btn sec" onclick="c4a('end')">Ahora no</button></span></div>`;
  if(!c4open)return h;
  let b='';
  if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.c4s||[]).some(x=>x.st!='end'&&x.p.includes(k));
-  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="w7b" onclick="c4inv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
+  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="c4inv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
    <div class="c4n">Junta 4 fichas de tu color en línea: horizontal, vertical o diagonal.</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="ft"><button class="w7b" onclick="c4a('end')">Cancelar</button></div>`
-  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Conecta 4</div><div class="ft"><button class="w7b dflt" onclick="c4a('acc')">Jugar</button><button class="w7b" onclick="c4a('end')">Ahora no</button></div>`;
+ else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="gj-btns"><button class="ui-btn sec" onclick="c4a('end')">Cancelar</button></div>`
+  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Conecta 4</div><div class="gj-btns"><button class="ui-btn" onclick="c4a('acc')">Jugar</button><button class="ui-btn sec" onclick="c4a('end')">Ahora no</button></div>`;
  else{const st=g.st=='play'?(myT?`${c4disc(mi)} <b>¡Tu turno!</b> Toca una columna del tablero`:`${c4disc(1-mi)} Turno de ${nm(op)}…`)
    :g.w==2?'Empate: el tablero se llenó':g.w==mi?(g.why?`🏆 ${nm(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
   b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${c4disc(0)} ${nm(g.p[0])} &nbsp;vs&nbsp; ${c4disc(1)} ${nm(g.p[1])}</div>
-   <div class="ft">${VT.c4?'<button class="w7b" onclick="c4o(0)">↩ Mesa</button>':'<button class="w7b dflt" onclick="c4go()">Ver tablero</button>'}${g.st=='play'?`<button class="w7b" onclick="if(confirm('¿Rendirte en Conecta 4?'))c4a('end')">Rendirse</button>`:`<button class="w7b dflt" onclick="c4inv(${op})">Revancha</button><button class="w7b" onclick="c4a('end')">Nueva partida</button>`}</div>`}
- return h+`<div id="t3c4" class="w7 w7win t3gp" role="dialog" aria-label="Conecta 4"><div class="wt"><span>Conecta 4</span><button class="wx" onclick="c4o(0)" aria-label="Cerrar">✕</button></div><div class="wb">${b}</div></div>`}
+   <div class="gj-btns">${VT.c4?'<button class="ui-btn sec" onclick="c4o(0)">Volver a la mesa</button>':'<button class="ui-btn" onclick="c4go()">Ver tablero</button>'}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Conecta 4?'))c4a('end')">Rendirse</button>`:`<button class="ui-btn" onclick="c4inv(${op})">Revancha</button><button class="ui-btn sec" onclick="c4a('end')">Nueva partida</button>`}</div>`}
+ return h+`<div id="t3c4" class="ui ui-card t3gp" role="dialog" aria-label="Conecta 4"><div class="ui-hd"><h2 class="ui-h">Conecta 4</h2><button class="ui-x" onclick="c4o(0)" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="ui-bd">${b}</div></div>`}
 // sonidos y avisos cuando cambia la partida (la jugada del otro, tu turno, el final)
 function c4check(){const g=c4g();if(!g){c4snap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,g.last,g.turn,g.w].join(':');if(k===c4snap)return;
  const o=c4snap.split(':');c4snap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
@@ -823,15 +814,15 @@ function thumb(kind,v){const k=kind+v+(kind=='bg'?scards+sback:'');if(thumbs[k])
  return thumbs[k]=c.toDataURL()}
 const apCur=k=>k=='ui'?(dark?'dark':'light'):k=='bg'?sbg:k=='cards'?scards:sback;
 function apUI(){const T=APT[ap.tab];
- return `<div id="t3ap" class="w7 w7win" role="dialog" aria-modal="true" aria-labelledby="t3apt"><div class="wt"><span id="t3apt">Cambiar apariencia</span><button class="wx" onclick="c3dApClose(0)" aria-label="Cerrar">✕</button></div>
- <div class="wb"><div class="tabs" role="tablist">${Object.keys(APT).map(k=>`<button role="tab" aria-selected="${ap.tab==k}" class="tab${ap.tab==k?' on':''}" onclick="c3dApTab('${k}')">${APT[k].n}</button>`).join('')}</div>
- <div class="pane" role="tabpanel"><div class="hd">${T.h}</div><div class="grid">${T.o.map(([v,n])=>`<button class="opt${apCur(ap.tab)==v?' on':''}" onclick="c3dApSet('${ap.tab}','${v}')" aria-pressed="${apCur(ap.tab)==v}"><img src="${thumb(ap.tab,v)}" alt=""><span>${n}</span></button>`).join('')}</div>
- <div class="nt">Los cambios se ven en la mesa al instante.</div></div>
- <div class="ft"><button class="w7b dflt" onclick="c3dApClose(1)">Aceptar</button><button class="w7b" onclick="c3dApClose(0)">Cancelar</button></div></div></div>`}
+ return `<div class="ui-scrim ligero" onclick="c3dApClose(0)"></div><div id="t3ap" class="ui ui-sheet mid" role="dialog" aria-modal="true" aria-labelledby="t3apt"><div class="ui-hd"><h2 class="ui-h" id="t3apt">Cambiar apariencia</h2><button class="ui-x" onclick="c3dApClose(0)" aria-label="Cerrar">${UI.ico('x')}</button></div>
+ <div class="ui-seg full gj-tabs" role="tablist">${Object.keys(APT).map(k=>`<button type="button" role="tab" aria-selected="${ap.tab==k}" class="${ap.tab==k?'on':''}" onclick="c3dApTab('${k}')">${APT[k].n}</button>`).join('')}</div>
+ <div class="ui-bd" role="tabpanel"><span class="ui-lbl">${T.h}</span><div class="t3apg">${T.o.map(([v,n])=>`<button class="t3apo${apCur(ap.tab)==v?' on':''}" onclick="c3dApSet('${ap.tab}','${v}')" aria-pressed="${apCur(ap.tab)==v}"><img src="${thumb(ap.tab,v)}" alt=""><span>${n}</span></button>`).join('')}</div>
+ <p class="ui-sub t3apn">Los cambios se ven en la mesa al instante.</p></div>
+ <div class="gj-btns t3apf"><button class="ui-btn sec" onclick="c3dApClose(0)">Cancelar</button><button class="ui-btn" onclick="c3dApClose(1)">Aceptar</button></div></div>`}
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
-function labels(){if(!L)return;document.querySelectorAll('#app .t3seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
+function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh+(L.top||24)-20,Math.min(H-hh,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
@@ -848,19 +839,19 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('t3view');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4||VT.bg)?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.bg?`${BGIC} Backgammon · ${IC.home} Volver a la mesa`:VT.c4?`${C4IC} Conecta 4 · ${IC.home} Volver a la mesa`:p?`👁 <b>${esc(p.name)}</b> · ${IC.home} Cuadrar`:`${IC.home} Cuadrar`;
- document.querySelectorAll('#app .t3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
+function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4||VT.bg)?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.bg?`${BGIC} Backgammon · ${UI.ico('cuadrar')}Volver a la mesa`:VT.c4?`${C4IC} Conecta 4 · ${UI.ico('cuadrar')}Volver a la mesa`:p?`${UI.ico('ojo')}<b>${esc(p.name)}</b> · ${UI.ico('cuadrar')}Cuadrar`:`${UI.ico('cuadrar')}Cuadrar`;
+ document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
  if(!active()){const G=V&&V.G;return (G&&G.phase=='play'?`<button class="b g sm2" onclick="c3dToggle()">${on?'🖼 Vista clásica 2D':'🎲 Vista 3D'}</button>`:'')+orig()}
  // guardo lo abierto y el scroll para que no se pierda al redibujar
- const m=$('#t3menu');if(m){menuScroll=m.scrollTop;menuOpen=new Set([...m.querySelectorAll('details[open]')].map(d=>d.dataset.k))}
+ GHUD.save();
  try{init();return hud()}catch(e){console.warn('Continental 3D:',e);on=false;return orig()}};
 GM.continental.after=function(){if(origAfter)origAfter();if(!active())return;
  try{c4check();bgcheck()}catch(e){}
- const m=$('#t3menu');if(m)m.scrollTop=menuScroll;
- try{const bb=$('#t3bar .w7g');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Continental 3D:',e)}};
+ GHUD.restore();
+ try{const bb=$('#gjBar .gj-bb');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Continental 3D:',e)}};
 window.c3dToggle=toggle;
 window.c3dMenu=()=>{menu=!menu;render()};
 window.c3dDark=()=>{setDark(!dark);menu=false;sfx('tick');render()};

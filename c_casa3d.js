@@ -273,8 +273,8 @@ function netSync(d){const seen=new Set(),n0=others.size;
  if(k!==roomsKey){const rk=roomsKey.split('|')[0],nk=k.split('|')[0];roomsKey=k;if(rk!==nk)seatSync();if(!inputBusy())render()}}
 // globitos (lo que dijo o su emote) y nombres arriba de cada Mii
 function bubble(a,t,emo){if(!emo&&window.CHUD)CHUD.msg(a===me?(pname||'').trim()||'Tú':a.name,t,a===me);if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
-function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='w7 w7g h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
-function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='w7 t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
+function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='ui ui-fx ui-glass h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
+function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='ui ui-fx t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
   const [x,y,v0]=toPx(v3(a.pos.x,3.45,a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
   if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05,a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
 
@@ -362,10 +362,6 @@ const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r=
  tu:ic('<path d="M3 18h18M6 18l3-6h6l3 6"/><path d="M12 9V3M9 6l3-3 3 3"/>'),td:ic('<path d="M2 16l5-6h10l5 6z"/><path d="M12 7V2M9 5l3 2 3-2"/>'),
  fp:ic('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
  home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
-function camUI(){const cb=(c,t)=>`<button class="w7b" data-cam="${c}" title="${t}" aria-label="${t}">${IC[c]}</button>`;
- return ` <div id="t3cam" class="w7${camOpen?' open':''}"><button class="w7b tog" data-cam="tog" title="Cámara" aria-label="Cámara" aria-expanded="${camOpen}">${IC.cam}</button>${window.CAV?`<button class="w7b tog${CAV.on()?' on':''}" data-cam="fp" title="${CAV.on()?'Volver a la cámara de arriba':'Primera persona'} (V)" aria-label="Primera persona" aria-pressed="${CAV.on()}">${IC.fp}</button>`:''}
- <div class="w7g pan">${cb('rl','Girar a la izquierda (Q)')}${cb('rr','Girar a la derecha (E)')}${cb('zi','Acercar (+)')}${cb('zo','Alejar (−)')}${cb('tu','Ver más desde arriba (R)')}${cb('td','Ver más de lado (F)')}
- <button class="w7b wide" data-cam="home" title="Cuadrar la cámara (Inicio)">${IC.home} Cuadrar</button></div></div>`}
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
 function hud(){const g=sel&&GM[sel],n=others.size+1;
  // la mesa que picaste: aviso "Jugar…" y, al tocarlo (o E), su panel (c_casa_mesa.js)
@@ -374,10 +370,10 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  let o=window.CHUD?CHUD.html({piso:FL.id,n,name:pname,touchy,fp:fpOn(),canFp:!!window.CAV,busy,
   people:[{n:(pname||'').trim()||'Tú',f:FL.id,me:1},...[...others.values()].map(a=>({n:a.name,f:a.f}))]}):'';
  TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas';
-  o+=`<div class="w7 w7g h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
- if(msg&&!busy)o+=`<div class="w7 t3msg">${esc(msg)}</div>`;
+  o+=`<div class="ui ui-fx ui-glass h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
+ if(msg&&!busy)o+=`<div class="ui ui-fx t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
- if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="w7 w7g">Te invitaron a la sala <b>${esc(code)}</b><button class="w7b p" onclick="joinR()">Unirme</button></div>`;
+ if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass">Te invitaron a la sala <b>${esc(code)}</b><button class="ui-btn" onclick="joinR()">Unirme</button></div>`;
  o+=mh;
  if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
  if(window.CIR)o+=CIR.hud(busy);

@@ -17,7 +17,7 @@ function build(e){if(E)return;E=e;if(e.x!=null){X=e.x;Z=e.z}const {THREE,SC,hits
   g.fillStyle=FC[v];g.font='bold '+(v==1?58:72)+'px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(FN[v],w/2,h/2+4)})}));
  for(let i=0;i<5;i++){const d=new THREE.Mesh(new THREE.BoxGeometry(.24,.24,.24),faces.slice());d.castShadow=true;d.userData.hit=hit;G.add(d);hits.push(d);dice.push(d);put(i,-1,0)}
  OB.push({x:X,z:Z,r:1.6});if(S)paint();
- sign=document.createElement('div');sign.className='w7 w7g h3sign';sign.dataset.g='cub';sign.innerHTML='🎲 <b>Cubilete</b><small>sin partidas</small>';sign.onclick=()=>CUB3.open();}
+ sign=document.createElement('div');sign.className='ui ui-fx ui-glass h3sign';sign.dataset.g='cub';sign.innerHTML='🎲 <b>Cubilete</b><small>sin partidas</small>';sign.onclick=()=>CUB3.open();}
 // v: cara de arriba (-1: dado guardado en el cubilete); h: apartado
 function put(i,v,h){const d=dice[i],T=E.TH+.17;if(v<0){d.visible=false;return}d.visible=true;
  const m=d.material;for(let k=0;k<6;k++)m[k]=faces[(v+k+1)%6];m[2]=faces[v];   // +y = la cara que salió
@@ -37,17 +37,16 @@ function step(now,toPx,W,here){if(!E)return;if(!here){if(sign)sign.style.display
 function out(){const o=q;q=null;return o}
 const send=(op,x)=>{q=Object.assign({op},x||{});sfx('tick')};
 function hud(busy){ if(!open||busy||!S)return '';const c=S,mine=c.p.find(p=>p.id===me),turn=c.st=='play'?c.p[c.ti]:null,my=turn&&turn.id===me;
- const die=(v,i,h)=>`<button class="w7b cubd${h?' on':''}" ${my&&c.rolls>0&&c.rolls<3?`onclick="CUB3.a('hold',${i})"`:'disabled'} aria-label="Dado ${FN[v]}">${v<0?'·':FN[v]}</button>`;
+ const die=(v,i,h)=>`<button class="ui-rb cubd${h?' on':''}" ${my&&c.rolls>0&&c.rolls<3?`onclick="CUB3.a('hold',${i})"`:'disabled'} aria-label="Dado ${FN[v]}">${v<0?'·':FN[v]}</button>`;
  let st=c.msg?'🏆 '+esc(c.msg):c.st=='play'?(my?'<b>¡Tu turno!</b> '+(c.rolls?'Toca los dados que quieres apartar y vuelve a tirar, o plántate':'Tira los dados'):'Turno de '+nm(turn)+'…')
   :c.p.length<2?'Se juega de 2 o más. Espera a que alguien se una.':'Listos para empezar.';
- let h=`<div id="h3win" class="w7 w7win" role="dialog" aria-labelledby="cubt"><div class="wt"><span id="cubt">🎲 Cubilete</span><button class="wx" onclick="CUB3.close()" aria-label="Cerrar">✕</button></div><div class="wb">
+ let h=GHUD.win('🎲 Cubilete',`
   <div class="h3d">Dados de póker: 9, 10, J, Q, K, A. Hasta 3 tiros por turno. Cada ronda todos ponen ${c.ante} fichas; la mejor jugada se lleva el bote.
    <span class="h3n">Quintilla › Póker › Full › Corrida › Tercia › Dos pares › Par</span></div>
   <div class="cubp">${c.p.map(p=>`<div class="${turn&&turn.id===p.id?'on':''}${c.w.includes(p.id)?' w':''}"><span>${nm(p)}${p.id===me?' (tú)':''}</span><small>${p.r?esc(p.r.t):''}</small><b>🪙 ${p.f}</b></div>`).join('')||'<div><small>Nadie en la mesa todavía</small></div>'}</div>
   ${c.pot?`<div class="h3n">Bote: 🪙 ${c.pot}</div>`:''}<div class="h3d">${st}</div>
-  ${my?`<div class="cubr">${c.dice.map((v,i)=>die(v,i,c.held[i])).join('')}</div><div class="h3b"><button class="w7b dflt" onclick="CUB3.a('roll')"${c.rolls>=3?' disabled':''}>🎲 Tirar (${c.rolls}/3)</button>${c.rolls?`<button class="w7b" onclick="CUB3.a('stand')">✋ Plantarme</button>`:''}</div>`:''}
-  <div class="h3b">${!mine?`<button class="w7b dflt" onclick="CUB3.a('join')">Sentarme a jugar</button>`:c.st!='play'?`${c.p.length>=2?`<button class="w7b dflt" onclick="CUB3.a('start')">▶ ${c.rn?'Otra ronda':'Empezar'} (${c.ante} fichas)</button>`:''}<button class="w7b" onclick="CUB3.a('leave')">Levantarme</button>`:''}</div>
- </div></div>`;return h}
+  ${my?`<div class="cubr">${c.dice.map((v,i)=>die(v,i,c.held[i])).join('')}</div><div class="h3b"><button class="ui-btn" onclick="CUB3.a('roll')"${c.rolls>=3?' disabled':''}>🎲 Tirar (${c.rolls}/3)</button>${c.rolls?`<button class="ui-btn sec" onclick="CUB3.a('stand')">✋ Plantarme</button>`:''}</div>`:''}
+  <div class="h3b">${!mine?`<button class="ui-btn" onclick="CUB3.a('join')">Sentarme a jugar</button>`:c.st!='play'?`${c.p.length>=2?`<button class="ui-btn" onclick="CUB3.a('start')">▶ ${c.rn?'Otra ronda':'Empezar'} (${c.ante} fichas)</button>`:''}<button class="ui-btn sec" onclick="CUB3.a('leave')">Levantarme</button>`:''}</div>`,'CUB3.close()');return h}
 window.CUB3={get X(){return X},get Z(){return Z},n:()=>S?S.p.length:0,play:()=>!!(S&&S.st=='play'),build,sync,step,out,hud,a:(op,i)=>{send(op,i!=null?{i}:null);if(op=='leave')open=false},
  open:()=>{open=true;if(window.JG3)JG3.close(1);if(typeof casaClose=='function')casaClose();else render()},close:()=>{open=false;sfx('tick');render()},isOpen:()=>open};
 })();
