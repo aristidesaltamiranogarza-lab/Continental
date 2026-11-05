@@ -65,30 +65,37 @@ window.RMU={
  vista(){stage().cam('vista')}};
 // ---- HUD: barra de arriba, narración, botones del turno, resumen y menú ----
 function txt(){const n=Date.now();return aviso&&n-avT<4500?aviso:say&&n-sayT<5500?say:''}
-function hud(){syncTurn();syncOrder();const G=V.G,m=me(),fin=G.phase!='play',my=myTurn(),L=G.log[G.log.length-1];
+function hud(){syncTurn();syncOrder();const G=V.G,m=me(),fin=G.phase!='play',my=myTurn(),L=G.log[G.log.length-1],ic=n=>UI.ico(n);
  if(L&&L.n!==logN){if(logN>=0||G.log.length==1){say=L.t;sayT=Date.now()}logN=L.n}
- const chips=G.ord.map(k=>`<span class="rm-p${k===G.turn&&!fin?' t':''}${G.out[k]?' o':''}${k===m?' yo':''}">${nm(k)} <b>${cnt(k)}</b></span>`).join('');
- let h=`<div class="rm-hud"><div class="rm-top">🀄 <b>Rummy</b><span class="rm-ps">${chips}</span><span title="Fichas en la bolsa">👜 ${G.nb}</span><button class="rm-ib" onclick="RMU.menu(1)" aria-label="Menú">☰</button>${fin?'':'<i id="rmclk"></i>'}</div>`;
- const t=txt();h+=`<div id="rmsay" class="rm-say${t?' on':''}">${es(t)}</div>`;
- if(my){const b=RU.bajada(base,work);h+=`<div class="rm-bot">${G.down[m]?'':`<span class="rm-baj${b>=RU.MIN1?' ok':''}" title="Primera bajada">${b} / ${RU.MIN1}</span>`}`
-  +`<button class="rm-b" onclick="RMU.sort()">⇅ Ordenar</button><button class="rm-b" onclick="RMU.undo()"${hist.length?'':' disabled'}>↶ Deshacer</button>`
-  +`<button class="rm-b pri" onclick="RMU.end()"${busy?' disabled':''}>✔ Terminar turno${placed.size?'':'<small>robas 1</small>'}</button>`
-  +(is3()?'<button class="rm-b" onclick="RMU.vista()">👁 Cambiar vista</button>':'')+(big?'<button class="rm-b" onclick="RMU.rack(0)">↩</button>':'')+`</div>`}
- else if(big)h+=`<div class="rm-bot"><button class="rm-b" onclick="RMU.rack(0)">↩ Vista normal</button></div>`;
- if(fin){const rows=G.ord.slice().sort((a,b)=>(b===G.win)-(a===G.win)||G.pts[a]-G.pts[b]).map(k=>`<tr class="${k===G.win?'w':''}"><td>${k===G.win?'🏆 ':''}${nm(k)}${G.out[k]?' <small>(se fue)</small>':''}</td><td>${G.racks[k].length} ${G.racks[k].length==1?'ficha':'fichas'}</td><td><b>${G.pts[k]}</b> pts</td></tr>`).join('');
-  h+=`<div class="rm-fin"><div class="rm-big">${G.win==null?'Nadie ganó':G.win===m?'🏆 ¡Ganaste!':'🏆 Ganó '+nm(G.win)}</div><table>${rows}</table><div class="rm-s">Puntos que quedaron en mano (el comodín vale ${RU.JV}).</div>`
-   +`<div class="rm-acts">${V.host?'<button class="rm-b pri" onclick="RMU.again()">🔁 Jugar otra vez</button>':'<span class="rm-s">El host puede empezar otra.</span>'}<button class="rm-b" onclick="leave()">🏠 Volver a la casa</button></div></div>`}
- if(menu)h+=`<div class="rm-menu"><div class="rm-mt">🀄 Rummy</div>${GM.rummy.rules}${window.RMS?`<button class="rm-b" onclick="RMU.radio()">📻 ${RMS.radioOn?'Apagar':'Prender'} la radio</button> `:''}${window.R3?`<button class="rm-b" onclick="RMU.mode()">${is3()?'Ver en 2D':'Ver en 3D'}</button>`:''}`
-  +`<div class="rm-acts"><button class="rm-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button><button class="rm-b" onclick="RMU.menu(0)">Cerrar</button></div></div>`;
+ // arriba: juego y bolsa, turno y ☰ (con el reloj del turno); debajo los jugadores con sus fichas
+ const chips=G.ord.map(k=>`<span class="ui-pill rm-p${k===G.turn&&!fin?' t':''}${G.out[k]?' o':''}${k===m?' yo':''}">${nm(k)} <b>${cnt(k)}</b></span>`).join('');
+ let h=`<div class="rm-hud">`+GHUD.top({st:`🀄 <b>Rummy</b> <span class="rm-nb" title="Fichas en la bolsa">👜 ${G.nb}</span>`,turn:(fin?'Fin de la partida':my?'¡Tu turno!':'Turno de '+nm(G.turn))+(fin?'':'<i id="rmclk"></i>'),me:my,open:menu,menu:`RMU.menu(${menu?0:1})`});
+ h+=`<div class="ui rm-ps">${chips}</div>`;
+ const t=txt();h+=`<div id="rmsay" class="ui rm-say${t?' on':''}">${es(t)}</div>`;
+ let b='';
+ if(my){const bj=RU.bajada(base,work);b=(G.down[m]?'':`<span class="gj-note rm-baj${bj>=RU.MIN1?' ok':''}" title="Primera bajada">${bj} / ${RU.MIN1}</span>`)
+  +`<button class="ui-btn sec" onclick="RMU.sort()">${ic('ordenar')}Ordenar</button><button class="ui-btn sec" onclick="RMU.undo()"${hist.length?'':' disabled'}>Deshacer</button>`
+  +`<button class="ui-btn go rm-end" onclick="RMU.end()"${busy?' disabled':''}>${ic('ok')}<span>Terminar turno${placed.size?'':'<small>robas 1</small>'}</span></button>`
+  +(is3()?`<button class="ui-btn sec" onclick="RMU.vista()">${ic('ojo')}Cambiar vista</button>`:'')+(big?`<button class="ui-btn sec" onclick="RMU.rack(0)" aria-label="Vista normal">${ic('cuadrar')}</button>`:'')}
+ else if(big)b=`<button class="ui-btn sec" onclick="RMU.rack(0)">${ic('cuadrar')}Vista normal</button>`;
+ if(b)h+=GHUD.bar(b);
+ if(fin){const rows=G.ord.slice().sort((a,b)=>(b===G.win)-(a===G.win)||G.pts[a]-G.pts[b]).map(k=>`<div class="${k===G.win?'w':''}"><span>${k===G.win?'🏆 ':''}${nm(k)}${G.out[k]?' <small>(se fue)</small>':''}</span><small>${G.racks[k].length} ${G.racks[k].length==1?'ficha':'fichas'}</small><b>${G.pts[k]} pts</b></div>`).join('');
+  h+=`<div class="ui ui-card gj-win rm-fin" role="dialog" aria-label="Fin de la partida"><div class="ui-hd"><h2 class="ui-h">Fin de la partida</h2></div><div class="ui-bd"><div class="rm-big">${G.win==null?'Nadie ganó':G.win===m?'🏆 ¡Ganaste!':'🏆 Ganó '+nm(G.win)}</div><div class="rm-res">${rows}</div><p class="ui-sub rm-s">Puntos que quedaron en mano (el comodín vale ${RU.JV}).</p>`
+   +`<div class="gj-btns">${V.host?`<button class="ui-btn full" onclick="RMU.again()">${ic('nuevo')}Jugar otra vez</button>`:'<span class="ui-sub">El host puede empezar otra.</span>'}<button class="ui-btn sec full" onclick="leave()">${ic('casa')}Volver a la casa</button></div></div></div>`}
+ // menú ☰: un solo panel con pestañas (ajustes y reglas)
+ if(menu){const rg=String(GM.rummy.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
+  const aj=GHUD.ajustes(window.RMS?GHUD.row('musica','Radio',GHUD.sw(!!RMS.radioOn,'RMU.radio()','Radio')):'',
+   (window.R3?`<button class="ui-btn sec full" onclick="RMU.mode()">${ic('pantalla')}${is3()?'Ver en 2D':'Ver en 3D'}</button>`:'')+`<button class="ui-btn sec full" onclick="leave()">${ic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`);
+  h+=GHUD.sheet('Rummy',[['aj','Ajustes',aj],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'RMU.menu(0)')}
  return h+'</div>'}
-function ins(){const t=document.querySelector('.rm-top'),b=document.querySelector('.rm-bot');return {t:t?Math.round(t.getBoundingClientRect().bottom+6):0,b:b?Math.round(innerHeight-b.getBoundingClientRect().top+4):0}}
+function ins(){const t=document.querySelector('.rm-ps')||document.getElementById('gjTop'),b=document.querySelector('#gjBar .gj-bb');return {t:t?Math.round(t.getBoundingClientRect().bottom+6):0,b:b?Math.round(innerHeight-b.getBoundingClientRect().top+4):0}}
 // ---- enganche con game.js ----
-GM.rummy.body=function(){if(!active())return origBody();try{ok=true;return hud()}catch(e){console.warn('Rummy UI:',e);ok=false;return origBody()}};
+GM.rummy.body=function(){if(!active())return origBody();GHUD.save();try{ok=true;return hud()}catch(e){console.warn('Rummy UI:',e);ok=false;return origBody()}};
 GM.rummy.after=function(){if(!active()||!ok){off();return}
  if(!on){on=true;document.documentElement.classList.add('rmui');if(window.RMS)RMS.amb(true)}if(V!==lastV){lastV=V;dl=Date.now()+(V.G.left||0);fxSnd()}
  const s=stage();if(s!==R2)R2.show(false);if(window.R3&&s!==R3)R3.show(false);s.show(true);
  if(s!==R2&&!s.ok())return render();   // el 3D no pudo arrancar: queda el 2D
- s.layout(ins());s.sync(view())};
+ GHUD.restore();s.layout(ins());s.sync(view())};
 function off(){if(!on)return;on=false;document.documentElement.classList.remove('rmui');R2.cam('home');R2.show(false);if(window.R3)R3.show(false);menu=false;key='';order=[];sel=null;big=false;hist=[];logN=-1;aviso='';say='';lastF=-1;lastTn=null;if(window.RMS)RMS.amb(false)}
 // reloj y narración sin volver a dibujar todo
 setInterval(()=>{if(on&&!active())return off();if(!on)return;const G=V.G,c=document.getElementById('rmclk');
@@ -98,27 +105,24 @@ let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=set
 addEventListener('keydown',e=>{if(!on)return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();RMU.undo()}else if(e.key=='Escape'){if(menu)RMU.menu(0);else if(sel!=null){sel=null;render()}}});
 // ---- estilos ----
 const css=document.createElement('style');css.textContent=`
-html.rmui,html.rmui body{overflow:hidden;height:100%;overscroll-behavior:none}html.rmui body{background:#b9654a}
 html.rmui #app{pointer-events:none;max-width:none;margin:0;padding:0}html.rmui #app>:not(.rm-hud){display:none!important}
-.rm-hud{position:fixed;inset:0;z-index:2;pointer-events:none;color:#3a2412;font:15px/1.35 system-ui,sans-serif}
-.rm-top{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;padding:6px 8px 7px 12px;border-radius:14px;background:rgba(255,246,230,.9);
- border:1px solid rgba(150,90,40,.25);box-shadow:0 3px 10px rgba(80,40,10,.2);pointer-events:auto;white-space:nowrap;max-width:calc(100% - 16px);overflow-x:auto;overflow-y:hidden;box-sizing:border-box}
-.rm-ps{display:flex;gap:4px}.rm-p{padding:2px 8px;border-radius:999px;background:rgba(150,90,40,.12);font-size:13px}.rm-p b{font-weight:800;margin-left:2px}
-.rm-p.t{background:#ffb300;box-shadow:0 0 0 2px rgba(255,179,0,.35)}.rm-p.o{opacity:.4;text-decoration:line-through}.rm-p.yo{font-weight:700}
-.rm-ib{border:0;background:none;font-size:18px;cursor:pointer;padding:0 4px;color:inherit}
-#rmclk{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#2e8b57;transition:width .2s linear}#rmclk.w{background:#d63a2a}
-.rm-say{position:absolute;top:58px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);padding:5px 12px;border-radius:12px;background:rgba(58,36,18,.85);color:#fff6e6;font-size:14px;text-align:center;opacity:0;transition:opacity .3s}
+.rm-hud{position:fixed;inset:0;z-index:2;pointer-events:none}
+.rm-nb{margin-left:6px;color:var(--ui-sub)}
+.gj-turn{position:relative;overflow:hidden}
+#rmclk{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--ui-accent);transition:width .2s linear}.gj-turn.me #rmclk{background:var(--ui-on)}#rmclk.w{animation:gjPop .5s ease-in-out infinite alternate}
+.rm-ps{position:fixed;z-index:12;top:calc(env(safe-area-inset-top,0px) + 68px);left:calc(14px + env(safe-area-inset-left,0px));right:calc(14px + env(safe-area-inset-right,0px));display:flex;gap:6px;overflow-x:auto;pointer-events:auto;scrollbar-width:none}
+.rm-p{height:34px;padding:0 12px;font-size:13px;flex:none;cursor:default}.rm-p b{font-weight:800;margin-left:4px;color:var(--ui-accent)}
+.rm-p.t{background:var(--ui-accent);color:var(--ui-on);border-color:transparent}.rm-p.t b{color:inherit}.rm-p.o{opacity:.45;text-decoration:line-through}.rm-p.yo{font-weight:800}
+.rm-say{position:fixed;z-index:12;top:calc(env(safe-area-inset-top,0px) + 112px);left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);padding:8px 16px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);font-size:14px;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none}
 .rm-say.on{opacity:1}
-.rm-bot{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;pointer-events:auto;max-width:calc(100% - 12px)}
-.rm-b{border:0;border-radius:12px;padding:9px 14px;font:700 14px/1.15 system-ui,sans-serif;background:#fff6e6;color:#3a2412;box-shadow:0 2px 0 #c79a6a,0 3px 8px rgba(60,30,10,.25);cursor:pointer;white-space:nowrap}
-.rm-b:disabled{opacity:.5;cursor:default}.rm-b.pri{background:#2e8b57;color:#fff;box-shadow:0 2px 0 #1d5e3a,0 3px 8px rgba(60,30,10,.25)}.rm-b small{display:block;font-size:10px;font-weight:600;opacity:.85}
-.rm-baj{padding:6px 10px;border-radius:10px;background:rgba(255,246,230,.92);font:800 14px system-ui,sans-serif;color:#b03a2e}.rm-baj.ok{color:#2e8b57}
-.rm-fin,.rm-menu{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;box-sizing:border-box;padding:18px;border-radius:18px;
- background:#fff6e6;box-shadow:0 10px 40px rgba(40,20,5,.45);pointer-events:auto;text-align:center}
-.rm-big{font:800 22px system-ui,sans-serif;margin-bottom:10px}.rm-fin table{width:100%;border-collapse:collapse;margin:6px 0}
-.rm-fin td{padding:6px 4px;border-bottom:1px solid rgba(150,90,40,.2);text-align:left}.rm-fin td:last-child{text-align:right}.rm-fin tr.w{background:rgba(255,179,0,.18)}
-.rm-s{font-size:12px;opacity:.75;margin:4px 0}.rm-acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-.rm-menu details{text-align:left;font-size:14px;margin-bottom:10px}.rm-mt{font:800 18px system-ui,sans-serif;margin-bottom:8px}
-@media (max-width:560px){.rm-b{padding:8px 9px;font-size:13px}.rm-top{gap:6px;font-size:14px}.rm-say{top:54px;font-size:13px}}`;
+.rm-baj{color:var(--ui-accent);font-weight:800}.rm-baj.ok{background:var(--ui-accent);color:var(--ui-on)}
+.rm-end span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}.rm-end small{font-size:11px;font-weight:600;opacity:.85}
+.rm-fin{top:50%;transform:translate(-50%,-50%);width:min(400px,calc(100% - 28px));max-height:calc(100% - 40px)}
+.rm-big{font-size:1.3em;font-weight:800;margin-bottom:6px}
+.rm-res{align-self:stretch;display:flex;flex-direction:column;gap:4px}
+.rm-res div{display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px;border-radius:14px;background:var(--ui-chip)}.rm-res span{flex:1}.rm-res small{color:var(--ui-sub)}
+.rm-res .w{background:var(--ui-accent);color:var(--ui-on)}.rm-res .w small{color:inherit}
+.rm-s{font-size:12px;margin:6px 0 0;text-align:center}
+`;
 document.head.appendChild(css);
 })();
