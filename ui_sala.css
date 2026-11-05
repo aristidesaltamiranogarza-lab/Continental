@@ -1,0 +1,188 @@
+/* Sala de espera en la casa 3D (c_sala.js): el "boleto" sobre la casa, teñido con el color del juego (--sl-c).
+   Celular: hoja de abajo que crece con "Juego, reglas y música". Compu (>=768px): tarjeta a la derecha. */
+@property --sl-c{syntax:'<color>';inherits:true;initial-value:#C2512A}
+#sala{position:fixed;inset:0;z-index:25;pointer-events:none;--sl-c:#C2512A;transition:--sl-c .7s ease;
+ --sl-bg:color-mix(in srgb,var(--sl-c) 8%,#FBF9F5);--sl-ok:#2E9A5E;--sl-mal:#C8402F;
+ --ui-text:#24201B;--ui-sub:#5F5850;--ui-line:rgba(30,24,18,.13);--ui-chip:color-mix(in srgb,var(--sl-c) 10%,transparent);--ui-sheet:#FFFFFF;--ui-field:#FFFFFF}
+html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);--sl-ok:#5BC98A;--sl-mal:#F07A6A;
+ --ui-text:#F3F0EA;--ui-sub:rgba(243,240,234,.68);--ui-line:rgba(255,255,255,.11);--ui-chip:rgba(255,255,255,.07);--ui-sheet:color-mix(in srgb,var(--sl-c) 18%,#1B1C1F);--ui-field:rgba(255,255,255,.06)}
+#sala:not(.in):not(.sale){visibility:hidden;transition:visibility 0s .6s,--sl-c .7s}
+.sl-vig{position:absolute;inset:0;background:radial-gradient(130% 95% at 50% 22%,transparent 46%,rgba(10,6,4,.45));opacity:0;transition:opacity 1.2s}
+#sala.in .sl-vig{opacity:1}
+
+/* ---- la hoja ---- */
+.sl-sh{position:absolute;left:0;right:0;bottom:0;max-height:86%;display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;
+ background:var(--sl-bg);color:var(--ui-text);font-family:var(--ui-font);border-radius:26px 26px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.35);
+ transform:translateY(112%);transition:transform .5s cubic-bezier(.5,0,.75,0),height .45s cubic-bezier(.2,.8,.2,1)}
+#sala.in .sl-sh{transform:none;transition:transform .8s cubic-bezier(.16,1.15,.3,1) .15s,height .45s cubic-bezier(.2,.8,.2,1)}
+.sl-handle{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:2;width:84px;height:24px;padding:0;border:0;background:transparent;cursor:pointer}
+.sl-handle i{display:block;width:42px;height:5px;margin:9px auto 0;border-radius:9px;background:rgba(255,255,255,.55)}
+
+/* cabecera = la tapa de la caja del juego */
+.sl-hd{position:relative;flex:none;display:flex;align-items:center;gap:12px;padding:24px 16px 16px;color:#FFF8EE;
+ background:linear-gradient(160deg,color-mix(in srgb,var(--sl-c) 70%,#fff) -30%,var(--sl-c) 50%,color-mix(in srgb,var(--sl-c) 78%,#000) 130%)}
+.sl-hd::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.17),transparent 42%);pointer-events:none}
+.sl-ic{width:58px;height:58px;flex:none;display:grid;place-items:center;border-radius:18px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.sl-ic svg{width:48px;height:48px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.sl-ic.pop svg,.sl-ic.pop .sl-emo{animation:slPop .6s cubic-bezier(.2,1.6,.4,1) both}
+.sl-emo{font-size:32px;line-height:1}
+.sl-t{flex:1;min-width:0;position:relative;z-index:1}
+.sl-code{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0;border:0;background:transparent;cursor:pointer;
+ font:800 12px var(--ui-font);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,248,238,.8)}
+.sl-code b{color:#fff;letter-spacing:.16em}
+.sl-code .ui-ico{width:15px;height:15px}
+.sl-t h2{margin:0;font:900 24px/1.1 var(--ui-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+#sala .sl-inv{position:relative;z-index:1;flex:none;min-height:44px;padding:0 14px;font-size:14px;gap:6px;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);box-shadow:none}
+#sala .sl-inv .ui-ico{width:18px;height:18px}
+
+/* cuerpo */
+.sl-bd{flex:1;min-height:0;overflow:auto;padding:14px 18px 22px;display:flex;flex-direction:column;gap:18px;scrollbar-width:none;overscroll-behavior:contain;
+ -webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
+.sl-bd::-webkit-scrollbar{display:none}
+.sl-x{display:none}
+#sala.open .sl-x{display:block;animation:slUp .4s cubic-bezier(.2,.9,.3,1) both}
+#sala.open .sl-x:nth-of-type(4){animation-delay:.04s}
+#sala.open .sl-x:nth-of-type(5){animation-delay:.08s}
+#sala.open .sl-x:nth-of-type(6){animation-delay:.12s}
+.sl-gente{display:flex;align-items:center;gap:14px}
+.sl-avs{display:flex;padding-left:8px;flex:none}
+.sl-av{width:36px;height:36px;margin-left:-8px;flex:none;display:grid;place-items:center;border-radius:50%;border:2.5px solid var(--sl-bg);background:var(--c);
+ color:#fff;font:900 14px var(--ui-font);font-style:normal;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+.sl-av.ai{background:var(--ui-chip);color:var(--ui-sub);border:2px dashed var(--ui-line);font-size:11px;text-shadow:none}
+.sl-av.nuevo{animation:slPop .55s cubic-bezier(.2,1.6,.4,1) both}
+.sl-res{font-size:14px;line-height:1.35;color:var(--ui-sub)}
+.sl-res b{color:var(--ui-text)}
+.sl-mas{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 16px;border:0;border-radius:999px;cursor:pointer;
+ background:var(--ui-chip);color:var(--ui-text);font:800 14px var(--ui-font)}
+.sl-mas .ui-ico{width:16px;height:16px;transform:rotate(180deg);transition:transform .3s}
+#sala.open .sl-mas .ui-ico{transform:none}
+#sala .ui-lbl{display:block;margin-bottom:8px}
+.sl-nota{margin:2px 0 0;font-size:13px}
+
+/* cajas de juegos */
+.sl-cajas{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -18px;padding:10px 18px 12px;scroll-padding-inline:18px;scrollbar-width:none}
+.sl-cajas::-webkit-scrollbar{display:none}
+.sl-caja{position:relative;overflow:hidden;flex:0 0 94px;height:112px;scroll-snap-align:start;padding:10px 10px 11px;cursor:pointer;
+ display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;color:#FFF8EE;
+ border:1px solid rgba(255,255,255,.2);border-radius:18px;background:linear-gradient(165deg,color-mix(in srgb,var(--f) 78%,#fff),var(--f) 70%);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -3px 0 rgba(0,0,0,.16),0 3px 8px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s}
+.sl-caja::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.18),transparent 42%);pointer-events:none}
+.sl-caja .ic svg{display:block;width:44px;height:44px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
+.sl-caja .ic .sl-emo{font-size:30px}
+.sl-caja b{position:relative;font:900 13px/1.1 var(--ui-font);text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.sl-caja:active{transform:scale(.96)}
+.sl-caja.on{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 0 3px var(--sl-bg),0 0 0 5.5px var(--ui-accent),0 6px 12px rgba(0,0,0,.2)}
+.sl-caja:focus-visible{outline:none;box-shadow:0 0 0 3px var(--sl-bg),0 0 0 5.5px var(--ui-accent)}
+
+/* reglas de cada juego (su lobby de siempre, con otra ropa) */
+.sl-reglas br{display:none}
+.sl-reglas .top{display:block;margin:12px 0 8px;font:700 14px/1.35 var(--ui-font);color:var(--ui-sub);opacity:1}
+.sl-reglas .top b{color:var(--ui-text)}
+#sala .sl-reglas .b{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;margin:0 6px 6px 0;cursor:pointer;
+ border-radius:999px;background:var(--ui-chip);border:1px solid var(--ui-line);color:var(--ui-text);font:800 14px var(--ui-font);transition:background .2s,color .2s,transform .1s}
+#sala .sl-reglas .b.on{background:var(--sl-c);border-color:transparent;color:#fff;box-shadow:0 3px 10px color-mix(in srgb,var(--sl-c) 45%,transparent)}
+#sala .sl-reglas .b:active{transform:scale(.95)}
+#sala .sl-reglas .b:focus-visible{outline:3px solid var(--ui-accent);outline-offset:2px}
+#sala .sl-reglas .b[disabled]{opacity:.45;cursor:default}
+#sala .sl-reglas select,#sala .sl-reglas input{min-height:42px;padding:0 12px;border-radius:12px;border:1px solid var(--ui-line);background:var(--ui-field);color:var(--ui-text);font:700 14px var(--ui-font)}
+
+/* gente */
+.sl-pl{display:flex;align-items:center;gap:12px;min-height:52px;border-top:1px solid var(--ui-line)}
+.sl-pl:first-child{border-top:0}
+.sl-pl .sl-av{margin:0;border:0;width:34px;height:34px}
+.sl-pl .sl-av.ai{border:2px dashed var(--ui-line)}
+.sl-pl span{flex:1;min-width:0;font:700 15px var(--ui-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-pl em{font-style:normal;color:var(--ui-sub)}
+.sl-chip{padding:4px 10px;border-radius:999px;background:var(--ui-chip);color:var(--ui-sub);font:800 12px var(--ui-font)}
+.sl-dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--ui-line)}
+.sl-dot.on{background:var(--sl-ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--sl-ok) 22%,transparent)}
+#sala .sl-kick{min-height:36px;padding:0 12px;font-size:13px}
+#sala .sl-pl+.ui-sub,#sala #slLista>.ui-sub{margin:8px 0 0;font-size:13px}
+
+/* música y lo demás */
+.sl-aj{display:flex!important;flex-direction:column}
+#sala:not(.open) .sl-aj{display:none!important}
+.sl-row{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px;padding:0;border:0;border-top:1px solid var(--ui-line);background:transparent;cursor:pointer;
+ font:700 15px var(--ui-font);color:var(--ui-text);text-align:left}
+.sl-row .ui-ico{width:20px;height:20px;color:var(--ui-sub)}
+.sl-row.sl-peligro{color:var(--sl-mal)}
+
+/* abajo: empezar */
+.sl-ft{flex:none;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--ui-line);background:var(--sl-bg)}
+#sala .sl-go{position:relative;overflow:hidden;min-height:58px;font-size:18px;gap:10px;box-shadow:0 5px 0 color-mix(in srgb,var(--ui-accent) 55%,#000),0 12px 26px color-mix(in srgb,var(--ui-accent) 35%,transparent);transition:transform .1s,box-shadow .1s}
+#sala .sl-go::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);animation:slBrillo 3.4s ease-in-out 1.4s infinite}
+#sala .sl-go:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--ui-accent) 55%,#000)}
+#sala .sl-go[disabled]{opacity:.5;box-shadow:none;cursor:default}
+#sala .sl-go[disabled]::after{display:none}
+.sl-hint{margin:0;text-align:center;font-size:13px}
+.sl-hint:empty{display:none}
+.sl-err{margin:0;text-align:center;color:var(--sl-mal);font:700 13px var(--ui-font)}
+.sl-espera{display:flex;align-items:center;justify-content:center;gap:6px;min-height:54px;border-radius:999px;background:var(--ui-chip);color:var(--ui-sub);font:800 15px var(--ui-font)}
+.sl-espera i{width:7px;height:7px;border-radius:50%;background:var(--sl-c);animation:slPunto 1.2s ease-in-out infinite}
+html[data-tema=noche] .sl-espera i{background:color-mix(in srgb,var(--sl-c) 50%,#fff)}
+.sl-espera i:nth-child(2){animation-delay:.15s}
+.sl-espera i:nth-child(3){animation-delay:.3s}
+.sl-espera span{margin-left:6px}
+
+/* entrada escalonada */
+#sala.in .sl-hd>*{animation:slUp .5s cubic-bezier(.2,.9,.3,1) both}
+#sala.in .sl-hd>:nth-child(1){animation-delay:.35s}
+#sala.in .sl-hd>:nth-child(2){animation-delay:.42s}
+#sala.in .sl-hd>:nth-child(3){animation-delay:.49s}
+#sala.in .sl-gente,#sala.in .sl-mas{animation:slUp .5s cubic-bezier(.2,.9,.3,1) .52s both}
+#sala.in .sl-ft{animation:slUp .5s cubic-bezier(.2,.9,.3,1) .6s both}
+
+/* nombres sobre los Miis */
+.sl-tags{position:absolute;inset:0;overflow:hidden;transition:opacity .4s}
+#sala:not(.in) .sl-tags{opacity:0}
+.sl-tag{position:absolute;left:0;top:0;padding:4px 10px;border-radius:999px;white-space:nowrap;will-change:transform;
+ background:var(--ui-panel);color:var(--ui-text);font:800 12px var(--ui-font);box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.sl-tag.yo{background:var(--ui-accent);color:var(--ui-on)}
+.sl-tag.ai{background:rgba(20,16,12,.35);color:#fff;border:1.5px dashed rgba(255,255,255,.7);box-shadow:none;backdrop-filter:blur(3px)}
+.sl-tag.hi::before{content:"👋";position:absolute;left:50%;bottom:calc(100% + 2px);font-size:22px;animation:slHola 2.3s ease-out both}
+.sl-sello{position:absolute;left:50%;top:36%;opacity:0;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);
+ font:900 clamp(44px,10vw,88px)/1 var(--ui-font);color:#FFF8EE;text-shadow:0 5px 0 var(--sl-c),0 16px 36px rgba(0,0,0,.55)}
+.sl-sello.on{animation:slSello 1.25s cubic-bezier(.2,1.3,.4,1) both}
+
+/* invitar y reglas */
+.sl-modal{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:16px;pointer-events:auto;background:rgba(10,6,4,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);animation:slFade .25s both}
+.sl-modal[hidden]{display:none}
+.sl-card{box-sizing:border-box;width:min(340px,100%);max-height:calc(100% - 16px);display:flex;flex-direction:column;align-items:center;gap:12px;padding:22px;text-align:center;
+ background:var(--sl-bg);color:var(--ui-text);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.45);animation:slPop .45s cubic-bezier(.2,1.4,.4,1) both}
+.sl-card h3{margin:0;font:900 21px var(--ui-font)}
+.sl-card .ui-sub{margin:0}
+.sl-qr{padding:12px;border-radius:16px;background:#FFFFFF;box-shadow:0 0 0 1px var(--ui-line)}
+.sl-qr img,.sl-qr canvas{display:block;width:176px;height:176px}
+.sl-big{margin-right:-.2em;font:900 36px var(--ui-font);letter-spacing:.2em;color:var(--sl-c)}
+html[data-tema=noche] .sl-big{color:color-mix(in srgb,var(--sl-c) 45%,#fff)}
+.sl-link{font-size:13px;color:var(--ui-sub);word-break:break-all;user-select:all}
+.sl-dos{display:flex;gap:8px;width:100%}
+#sala .sl-dos .ui-btn{flex:1;min-width:0;padding:0 10px;font-size:14px;gap:6px}
+#sala .sl-dos .ui-ico{width:17px;height:17px}
+.sl-rul{width:min(560px,100%);max-height:min(82vh,720px);align-items:stretch;gap:0;padding:0;overflow:hidden;text-align:left}
+.sl-rh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 14px 14px 20px;border-bottom:1px solid var(--ui-line)}
+.sl-rb{overflow:auto;padding:14px 20px 22px;font-size:15px;line-height:1.5}
+.sl-rb summary{display:none}
+
+@media (min-width:768px){
+ .sl-sh{left:auto;top:16px;right:16px;bottom:16px;width:392px;max-height:none;border-radius:26px;box-shadow:0 18px 50px rgba(0,0,0,.4);transform:translateX(calc(100% + 40px))}
+ .sl-hd{padding-top:18px}
+ .sl-handle,.sl-mas{display:none}
+ .sl-x{display:block}
+ #sala:not(.open) .sl-aj{display:flex!important}
+ .sl-sello{left:calc((100% - 408px)/2)}
+}
+@keyframes slUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slPop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@keyframes slFade{from{opacity:0}to{opacity:1}}
+@keyframes slBrillo{0%{left:-60%}55%,100%{left:130%}}
+@keyframes slPunto{0%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-5px);opacity:1}}
+@keyframes slHola{0%{opacity:0;transform:translate(-50%,8px) scale(.5)}15%{opacity:1;transform:translate(-50%,0) scale(1.1) rotate(-14deg)}30%{transform:translate(-50%,0) rotate(14deg)}
+ 45%{transform:translate(-50%,0) rotate(-10deg)}60%{transform:translate(-50%,0) rotate(8deg)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-8px)}}
+@keyframes slSello{0%{opacity:0;transform:translate(-50%,-50%) scale(2.3) rotate(-8deg)}22%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-3deg)}75%{opacity:1;transform:translate(-50%,-50%) scale(1.04) rotate(-3deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2) rotate(-3deg)}}
+@media (prefers-reduced-motion:reduce){#sala,#sala *,#sala *::before,#sala *::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;transition-delay:0s!important}}
+/* el chat de la sala (game.js) queda junto al boleto: arriba de la hoja en celular, a su izquierda en compu */
+html.sala3d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
+@media (min-width:768px){html.sala3d #chat{bottom:16px;right:424px}}
+#sala .sl-reglas .box{all:unset;display:block}
+#sala .sl-reglas .box>.top:first-child{margin-top:0}

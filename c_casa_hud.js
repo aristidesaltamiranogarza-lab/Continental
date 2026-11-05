@@ -37,7 +37,7 @@ const P={
   return sheet('Ajustes',`<div class="uh-name">${av(c.name)}<label><span class="ui-lbl">Tu nombre</span><input id="uiName" class="ui-in" maxlength="14" value="${es(c.name)}" oninput="pname=this.value;casaName()" autocomplete="nickname" spellcheck="false"></label></div>
   ${window.BIEN?`<span class="ui-lbl">Calidad</span>${seg([['ligero','Ligero'],['medio','Medio'],['completo','Completo']],q,'cal')}<small class="ui-sub uh-hint">${QH[q]||''}</small>`:''}
   <span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'tema')}
-  ${mus!=null?`<span class="ui-lbl">Música</span>${seg([['apagada','No'],['baja','Baja'],['media','Media'],['alta','Alta']],mus,'mus')}`:''}
+  ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
   <div class="uh-sws"><div class="ui-row"><span>${I('sonido')}Sonidos</span>${sw(snd,'CHUD.snd(this.checked)','Sonidos')}</div>
   ${c.canFp?`<div class="ui-row"><span>${I('ojo')}Primera persona${c.touchy?'':' <small class="ui-sub">(V)</small>'}</span>${sw(c.fp,'CHUD.fp()','Primera persona')}</div>`:''}</div>
   <div class="uh-2"><button class="ui-btn sec" onclick="CHUD.tog('ayuda')">${I('ayuda')}Cómo se juega</button><button class="ui-btn sec" onclick="CHUD.salir()">${I('salir')}Salir de la casa</button></div>`,'der')},

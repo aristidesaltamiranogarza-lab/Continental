@@ -1,8 +1,10 @@
 // Música de fondo hecha con Web Audio (sin archivos): una canción para el menú y una para cada juego.
 // Se carga después de game.js. musSync() elige la canción según la pantalla; musCyc() cambia el volumen.
 (function(){
-let mlvl=2;try{const x=localStorage.getItem('cont_mus');if(x!=null)mlvl=+x}catch(e){}
-const LV=[0,.16,.3,.48],LN=['apagada','baja','media','alta'];
+// volumen continuo 0–1 (cont_musv); el de antes eran 4 niveles (cont_mus). musName()/musCyc() siguen hablando en niveles para los radios de la casa
+const PRE=[0,.54,.74,.93],LN=['apagada','baja','media','alta'],gainOf=v=>.55*v*v;
+let vol=.74;try{const x=localStorage.getItem('cont_musv'),o=localStorage.getItem('cont_mus');if(x!=null)vol=Math.max(0,Math.min(1,+x||0));else if(o!=null)vol=PRE[+o]||0}catch(e){}
+let volU=vol||.74;const lvl=()=>vol<=0?0:vol<.64?1:vol<.84?2:3;
 let ctx=null,master=null,bus=null,cur=null,timer=null,noise=null;const buf={};
 const hz=m=>440*Math.pow(2,(m-69)/12);
 
@@ -112,7 +114,7 @@ const SONGS={
 
 // ---------- reproducción ----------
 function init(){if(ctx)return true;if(typeof AC=='undefined'||!AC)return false;ctx=AC;
- master=ctx.createGain();master.gain.value=LV[mlvl];master.connect(ctx.destination);bus=ctx.createGain();bus.connect(master);
+ master=ctx.createGain();master.gain.value=gainOf(vol);master.connect(ctx.destination);bus=ctx.createGain();bus.connect(master);
  // reverb suave
  const sr=ctx.sampleRate,n=sr*1.8|0,ir=ctx.createBuffer(2,n,sr);for(let c=0;c<2;c++){const a=ir.getChannelData(c);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}
  const cv=ctx.createConvolver(),wet=ctx.createGain();cv.buffer=ir;wet.gain.value=.22;bus.connect(cv);cv.connect(wet);wet.connect(master);return true}
@@ -123,11 +125,20 @@ function start(id){if(cur&&cur.id===id)return;const now=ctx.currentTime;
  if(cur){const g=cur.g;g.gain.cancelScheduledValues(now);g.gain.setValueAtTime(g.gain.value,now);g.gain.linearRampToValueAtTime(0,now+1.2);setTimeout(()=>g.disconnect(),1600)}
  if(!id){cur=null;return}const g=ctx.createGain();g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+1.6);g.connect(bus);
  cur={id,g,i:0,next:now+.1};if(!timer)timer=setInterval(tick,30)}
-function want(){if(!mlvl||document.hidden)return null;if(typeof S=='undefined'||!S||!V||!V.G)return 'menu';return SONGS[V.game]?V.game:'menu'}
+function want(){if(!vol||document.hidden)return null;if(typeof S=='undefined'||!S||!V||!V.G)return 'menu';return SONGS[V.game]?V.game:'menu'}
 window.musSync=function(){if(!init())return;let w=want();if(window.MP3)try{if(MP3.sync(w==='menu',ctx,master))w=null}catch(e){}start(w)};   // MP3: canciones mp3 de la casa (music_mp3.js)
-window.musCyc=function(){mlvl=(mlvl+1)%4;try{localStorage.setItem('cont_mus',mlvl)}catch(e){}if(init()){master.gain.setTargetAtTime(LV[mlvl],ctx.currentTime,.1);musSync()}render()};
-window.musName=()=>LN[mlvl];
-window.musUI=()=>`<button class="b g sm2" onclick="musCyc()">${mlvl?'🎵':'🔇'} Música: ${LN[mlvl]}</button>`;
+// musVol(v): sin render() (si no, el slider se rehace a media arrastrada); los sliders .ui-vol se ponen al día solos
+window.musVol=function(v){v=Math.max(0,Math.min(1,+v||0));const was=vol>0;vol=v;if(v>0)volU=v;try{localStorage.setItem('cont_musv',v)}catch(e){}
+ if(init()){master.gain.setTargetAtTime(gainOf(v),ctx.currentTime,.04);if(was!==(v>0))musSync()}
+ const p=Math.round(v*100);document.querySelectorAll('.ui-vol').forEach(e=>{e.classList.toggle('off',!p);e.style.setProperty('--v',p+'%');const i=e.querySelector('input'),b=e.querySelector('b');if(i&&document.activeElement!==i)i.value=p;if(b)b.textContent=p})};
+window.musV=()=>vol;
+window.musMute=()=>musVol(vol>0?0:volU);
+window.musCyc=function(){musVol(PRE[(lvl()+1)%4]);render()};
+window.musName=()=>LN[lvl()];
+// slider de volumen (casa 3D, estilos .ui-vol de ui.css): quitar/poner el sonido y arrastrar de muy bajito al máximo
+window.musSlider=()=>{const p=Math.round(vol*100),ic=window.UI?UI.ico('musica'):'♪';
+ return `<div class="ui-vol${p?'':' off'}" style="--v:${p}%"><button class="ui-rb" onclick="musMute()" aria-label="Quitar o poner la música">${ic}</button><input type="range" min="0" max="100" step="1" value="${p}" aria-label="Volumen de la música" oninput="musVol(this.value/100)"><b aria-hidden="true">${p}</b></div>`};
+window.musUI=()=>window.UI?`<div class="ui ui-musrow">${musSlider()}</div>`:`<button class="b g sm2" onclick="musCyc()">${vol?'🎵':'🔇'} Música: ${LN[lvl()]}</button>`;
 // el navegador solo deja sonar audio después de que el jugador toca algo
 ['pointerdown','keydown'].forEach(e=>document.addEventListener(e,()=>{setTimeout(musSync,0)}));
 document.addEventListener('visibilitychange',()=>{if(ctx)musSync()});

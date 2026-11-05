@@ -22,5 +22,5 @@ Servidor Node sin dependencias + cliente JS puro. Arranque: `npm start`.
 - Mérida en Venta: merida_data.js (datos), c_merida.js (lobby), c_meridaui.js (UI), c_merida3d.js / c_merida2d.js (tableros, misma API M3/M2).
 - Casa: c_casa3d.js (pisos PB/FL/goFloor), c_casa_glb.js (CGLB.pon; catálogo modelos/modelos.json), preparar_modelos.js (hd/ y medio/ en KTX2), c_casa_medidor.js (F3 o ?medir), c_casa_cielo.js (CIELO), c_casa_ventanas.js (VENT), c_casa_pb.js (CPB: muros, CPB.kit/CPB.corte), c_casa_calle.js (CCALLE), c_casa_patio.js (CPAT), c_casa_lote.js (LOTE), c_casa_casco.js (CASCO), c_casa_res.js (RES), c_casa_luces.js (LUZ), c_casa_fondo.js (FONDO: la casa de fondo en Continental, Uno, Mérida y YuCATÁN).
 - Sótano: c_ruleta3d.js (cuarto), c_sotano.js (SOT), c_sotano_salon.js (SAL), c_billar3d.js (BIL), c_casino3d.js (CAS3).
-- UI: ui.css, ui_casa.css, c_ui.js (UI), c_casa_hud.js (CHUD), c_casa_mesa.js (CMESA).
+- UI: ui.css, ui_casa.css, c_ui.js (UI), c_casa_hud.js (CHUD), c_casa_mesa.js (CMESA), c_sala.js + ui_sala.css (SALA: sala de espera sobre la casa, cámara en CASA3D.sala). Música: musSlider()/musVol() en music.js.
 - Pendientes: PENDIENTES.md y ROADMAP_CASA.md (leer solo la sección necesaria).

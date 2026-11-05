@@ -36,7 +36,7 @@ const row=(ic,t,ctl)=>`<div class="ui-row"><span>${ic?I(ic):''}${t}</span>${ctl}
 // pestaña Ajustes: tema, música y sonidos de siempre + filas del juego (rows) + botones (btns)
 function ajustes(rows,btns){const mus=typeof musName=='function'?musName():null,snd=!(typeof mute!='undefined'&&mute);
  return `<span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'GHUD.tema')}
- ${mus!=null?`<span class="ui-lbl">Música</span>${seg([['apagada','No'],['baja','Baja'],['media','Media'],['alta','Alta']],mus,'GHUD.mus')}`:''}
+ ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
  <div class="gj-sws">${row('sonido','Sonidos',sw(snd,'GHUD.snd(this.checked)','Sonidos'))}${rows||''}</div>
  ${btns?`<div class="gj-btns">${btns}</div>`:''}`}
 // ventanita de una mesa de la casa (Conecta 4, Backgammon, Cubilete, Ir a…): tarjeta a la derecha en compu, hoja de abajo en celular

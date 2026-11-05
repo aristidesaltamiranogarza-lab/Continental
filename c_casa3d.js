@@ -217,9 +217,10 @@ function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Mat
  u.body.scale.y=1+.012*Math.sin(now/650+s.seed);u.head.rotation.y=.45*Math.sin(t*.35);u.head.rotation.x=.25;
  u.arms.forEach(m=>{const k=m.s>0?r:0;m.h.set(m.s*.34-m.s*.12*k,.36+.15*k,.72+.6*k);K.ik(m.sh,m.h,u.l1,u.l2,POLE[m.s>0?1:0].clone(),m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
 function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))}));
+ if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>want.set('sala:'+j+':'+n,{t,j,n,pop:1}))}}
  seated.forEach((s,k)=>{if(!want.has(k)){disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
  want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1),fs=w.t.fl===FL?SC:w.t.fl.SC;if(fs)fs.add(g);c.visible=false;
-  g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10})})}
+  g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);const k0=g.scale.x;if(w.pop)g.scale.setScalar(.001);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10,p0:w.pop?performance.now():0,k0})})}
 function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.max(b[2],Math.min(b[3],p.z));
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}});
  // muros (FL.WL: segmentos [ax,az,bx,bz,r] sin los vanos, de c_casa_pb.js)
@@ -390,11 +391,12 @@ function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(cent
 
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}
-function loop(now){requestAnimationFrame(loop);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none')){root.style.display=lay.style.display=a?'block':'none';if(a)back();if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}}document.documentElement.classList.toggle('h3on',a);
+function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready&&!!window.SALA&&SALA.on(),m=a?1:lb?2:0,dt=Math.min(100,now-(lastNow||now));lastNow=now;
+ if(root.style.display!==(m?'block':'none')||m!==lpM){const m0=lpM;lpM=m;root.style.display=m?'block':'none';lay.style.display=a?'block':'none';if(m)back();if(m0===2&&m!==2)salaFin(a);   // lb: sala de espera (c_sala.js) con la casa detrás
+  if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni()}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
  // en una partida del sótano la escena es la misma: los Miis que caminan se esconden (la Ruleta pone a los suyos en las sillas)
  document.documentElement.classList.toggle('h3lock',a&&document.pointerLockElement===cv);
- if(!a){keys.clear();if(document.pointerLockElement===cv)document.exitPointerLock();if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
+ if(!a){keys.clear();if(document.pointerLockElement===cv)document.exitPointerLock();if(lb)return salaPaso(now,dt);if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
  if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);
  if(innerWidth!==W||innerHeight!==H){layout();camStep(dt,true)}
  net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);if(window.CCAM)CCAM.apply(CA,now);if(window.CHOV)CHOV.step(dt,TB,window.ETQ&&ETQ.act(),CA);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
@@ -429,7 +431,9 @@ function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||
  R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
  if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
  const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
-window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,ancla,fondo,arranca};
+window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,ancla,fondo,arranca,
+ sala:{gente:(g,n)=>{salaPs=n&&n.length?{g,n}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
+  sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+c.position.x,TH+1.02,t.z+c.position.z)):[]}}};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g){if(window.CMESA)CMESA.abrir();return}goTable(g)};
@@ -444,8 +448,31 @@ function sit(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x.g==
   if(!active()){CCAM.release(CA,0);CCAM.fade(0,500)}                                   // ya entraste: se ve el juego
   else if(msg!==m0||performance.now()-t0>2500){sitP=null;CCAM.release(CA,700);CCAM.fade(0,400)}   // no se pudo: te levantas
   else setTimeout(w,80)};w()}),750)}
-window.casaPlay=mode=>{if(!sel)return;pgame=sel;sit(()=>mk(mode))};
-window.casaJoin=c=>{code=c;sit(()=>joinR())};
+// sala de espera (c_sala.js): la cámara vuela a rodear la mesa y ahí se queda girando despacio mientras llega la gente; tus Miis y los de la sala
+// aparecen sentados (pop). SALA.hueco() dice cuánto tapa el boleto: el encuadre se corre (setViewOffset) para que la mesa quede a la vista.
+let lpM=0,salaT=null,salaA=0,salaT0=0,salaDive=0,salaPs=null;const sD=new THREE.PerspectiveCamera(),sP=v3(0,0,0),sL=v3(0,0,0),sOff={x:0,y:0,t:0};
+// lejos lo justo para que quepa la mesa con sus sillas en lo que deja libre el boleto (sOff), sin pasar de t.r+8 (paredes); d: a la altura de tu silla
+function salaPose(t,a,d){let r=t.r+1.25,h=TH+1.05;
+ if(!d){const R=t.r+1.2,el=.55,tv=Math.tan(CA.fov*Math.PI/360),fx=Math.max(.3,(W-2*sOff.x)/W),fy=Math.max(.3,(H-2*sOff.y)/H),
+  dd=Math.min(t.r+8,Math.max(t.r+4.2,1.05*R/(tv*CA.aspect*fx),(R*Math.sin(el)+1)/(tv*fy)));r=dd*Math.cos(el);h=TH+dd*Math.sin(el)}
+ sP.set(t.x+Math.sin(a)*r,h,t.z+Math.cos(a)*r);sL.set(t.x,TH+(d?.15:0),t.z);
+ sD.position.copy(sP);sD.up.set(0,1,0);sD.lookAt(sL);return sD}
+function sitSala(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x.g===sel);if(!t)return go();if(window.CMESA)CMESA.cerrar();
+ const m0=msg;salaPose(t,Math.atan2(CA.position.x-t.x,CA.position.z-t.z),0);CCAM.fly(CA,[CCAM.at(sP.clone(),sL.clone())],1050);
+ setTimeout(()=>{go();const t0=performance.now(),w=()=>{if(!active())CCAM.release(CA,0);else if(msg!==m0||performance.now()-t0>2500)CCAM.release(CA,700);else setTimeout(w,80)};w()},850)}
+function salaIni(){salaT=null;salaDive=0;sOff.x=sOff.y=0;sitP=null;if(window.CCAM)CCAM.release(CA,0);const g=SALA.g();if(g&&!TB.find(x=>x.g===g&&!x.door))arranca(g)}
+function salaFin(a){CA.clearViewOffset();layout();salaT=null;salaDive=0;salaPs=null;seatSync();if(a&&window.CCAM)CCAM.blendIn(CA,CCAM.pose(CA),1100)}
+function salaPaso(now,dt){if(innerWidth!==W||innerHeight!==H)layout();if(W/H<.95&&CA.fov!==62){CA.fov=62;CA.updateProjectionMatrix()}const g=SALA.g();   // celular parado: más ángulo para que quepa la mesa
+ if(!salaT||salaT.g!==g){salaT=TB.find(x=>x.g===g&&!x.door)||null;salaT0=now;if(salaT)salaA=Math.atan2(CA.position.x-salaT.x,CA.position.z-salaT.z);else if(!fBusy&&now-sOff.t>2000){sOff.t=now;arranca(g)}}   // cambiaron de juego: su mesa puede estar en otro piso
+ me.g.visible=false;others.forEach(o=>o.g.visible=false);
+ if(salaT){const RM=window.CCAM&&CCAM.RM,c=salaPose(salaT,salaA+(RM?0:(now-salaT0)*4e-5),salaDive),f=1-Math.exp(-dt/(salaDive?190:420));CA.position.lerp(c.position,f);CA.quaternion.slerp(c.quaternion,f)}
+ const o=SALA.hueco(),k=1-Math.exp(-dt/260);sOff.x+=(o.x-sOff.x)*k;sOff.y+=(o.y-sOff.y)*k;
+ if(Math.abs(sOff.x)+Math.abs(sOff.y)>.5)CA.setViewOffset(W,H,sOff.x,sOff.y,W,H);else CA.clearViewOffset();CA.updateMatrixWorld();
+ seated.forEach(s=>{poseSeated(s,now);if(s.p0){const q=Math.min(1,(now-s.p0)/650),e=q-1;s.g.scale.setScalar(s.k0*Math.max(.001,1+2.7*e*e*e+1.7*e*e));if(q>=1)s.p0=0}});
+ if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.VENT)VENT.paso(FL.id,R,CA);
+ const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
+window.casaPlay=mode=>{if(!sel)return;pgame=sel;(window.SALA?sitSala:sit)(()=>mk(mode))};
+window.casaJoin=c=>{code=c;(window.SALA?sitSala:sit)(()=>joinR())};
 window.casaWatch=c=>sit(()=>watchR(c));
 window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};
 window.casaSay=x=>{const t=String(x||'').trim().slice(0,80);if(!t)return;outSay=t;bubble(me,t);sfx('tick')};window.casaFp=()=>fpTog();
