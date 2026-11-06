@@ -18,7 +18,6 @@ const cab=(k,sub,der)=>`<div class="lb-cab" style="--c:${COL[k]||'#C2512A'}"><sp
 const tema=()=>`<button class="ui-rb" onclick="LOBBY.tema()" aria-label="Cambiar a tema ${window.UI&&UI.noche()?'de día':'de noche'}">${I(window.UI&&UI.noche()?'sol':'luna')}</button>`;
 const top=()=>`<header class="lb-top"><div class="lb-marca"><span class="lb-logo">${I('casa')}</span><div><small>Casa de juegos</small><h1>Juegos de cartas</h1></div></div>${tema()}</header>`;
 
-// estilo de la mesa 2D (fondo, cartas, reverso; en Uno la letra del color)
 // solo Continental (fondo, cartas, reverso) y Uno (letra del color) tienen estilo de mesa 2D; va en un plegable chico
 let abre=false;
 function mesa(){const g=typeof gnow=='function'?gnow():pgame;if(g!='continental'&&g!='uno')return '';
