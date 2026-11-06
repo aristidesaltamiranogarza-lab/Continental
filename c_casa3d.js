@@ -405,7 +405,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
  if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
- if(!active())return origHome()+(on?'':`<button class="b g" onclick="casaToggle()">🏠 Entrar a la casa 3D</button>`);
+ if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 // "Ir a…" (c_casa_ir.js): fundido y apareces junto a esa mesa (o el Cubilete / los juegos sueltos), cambiando de piso si hace falta
 function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:1.15}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1});if(!t)return;
