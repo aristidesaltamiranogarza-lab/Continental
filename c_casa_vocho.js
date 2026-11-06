@@ -18,9 +18,11 @@ const sdRR=(x,y,cx,cy,hx,hy,r)=>{const qx=Math.abs(x-cx)-hx+r,qy=Math.abs(y-cy)-
  sdPoly=(V,x,y)=>{let d=1e9,s=1;for(let i=0,j=V.length-1;i<V.length;j=i++){const [ax,ay]=V[j],[bx,by]=V[i],ex=bx-ax,ey=by-ay,wx=x-ax,wy=y-ay,
   h=Math.max(0,Math.min(1,(wx*ex+wy*ey)/(ex*ex+ey*ey)));d=Math.min(d,(wx-ex*h)**2+(wy-ey*h)**2);
   const c1=y>=ay,c2=y<by,c3=ex*wy>ey*wx;if((c1&&c2&&c3)||(!c1&&!c2&&!c3))s=-s}return s*Math.sqrt(d)};
-const PUE=[[-1.05,1.36],[.45,1.36],[.45,.73],[-.7,.73]],CUA=[[.79,1.3],[1.62,1.3],[1.2,.78],[.79,.78]];
+// ventanas laterales en (x, altura): base horizontal y tope que sigue el techo
+const PUE=[[-1.05,1.69],[.45,1.69],[.45,2.3],[-.72,2.3]],CUA=[[.79,1.69],[1.6,1.69],[1.2,2.28],[.79,2.28]],
+ lat=(V,r,x,a,y)=>Math.max(sdPoly(V,x,y)-r,y-cr(XS,YT,x)+.17,.55-a);
 // [vidrio (<0 dentro; 0–.035 marco cromado), costura (<0), reflejo]
-function mask(x,a,y){const g=Math.min(sdRR(x,a,-1.095,0,.23,.55,.1),sdRR(x,a,1.74,0,.25,.4,.17),sdPoly(PUE,x,a)-.07,sdPoly(CUA,x,a)-.12);
+function mask(x,a,y){const g=Math.min(sdRR(x,a,-1.095,0,.23,.55,.1),sdRR(x,a,1.74,0,.25,.4,.17),lat(PUE,.07,x,a,y),lat(CUA,.12,x,a,y));
  let s=Math.min(sdSeg(x,a,-1.2,1.47,-1.2,2.75),sdSeg(x,a,.58,1.47,.58,2.75),Math.abs(sdRR(x,a,-2.35,0,.85,.78,.35)),Math.abs(sdRR(x,a,2.78,0,.5,.55,.25)))-.008;
  for(let k=0;k<5;k++)s=Math.min(s,sdRR(x,a,2.38+k*.055,0,.012,.28,.01));
  return [g,s,Math.min(1,Math.max(0,(y-1.6)/.9))]}
@@ -67,7 +69,7 @@ function hazlo(col){const G=new THREE.Group(),B={P:[],M:[],I:[]};
    CH.box(.08,.4,.08,cro,x-d*.04,.82,s*.42);NG.box(.2,.06,.08,0x222222,x+d*.12,.72,s*.55)});
   CH.geo(new THREE.CylinderGeometry(.05,.05,.25,12),cro,3.3,.5,s*.45,0,0,Math.PI/2);
   const m=pt(.3,1.53);CH.box(.17,.035,.045,cro,m[0],m[1],s*(m[2]+.02))});   // manijas
- {const b=pt(-.98,1.42);CH.box(.03,.03,.2,cro,b[0],b[1]+.05,b[2]+.08,0,-.5);CH.geo(new THREE.CylinderGeometry(.09,.09,.03,18),cro,b[0],b[1]+.11,b[2]+.18,0,0,Math.PI/2)}
+ [1,-1].forEach(s=>{const b=pt(-.98,1.42);CH.box(.03,.03,.2,cro,b[0],b[1]+.05,s*(b[2]+.08),0,-.5*s);CH.geo(new THREE.CylinderGeometry(.09,.09,.03,18),cro,b[0],b[1]+.11,s*(b[2]+.18),0,0,Math.PI/2)});   // retrovisores
  {const e=pt(-3.05,0);CH.geo(new THREE.SphereGeometry(1,14,8).scale(.06,.03,.06),cro,e[0],e[1],0)}
  NG.box(5.2,.3,1.8,0x1a1a1a,-.05,.55,0);
  G.add(CH.mesh(new THREE.MeshStandardMaterial({roughness:.18,metalness:.5})),NG.mesh(new THREE.MeshStandardMaterial({roughness:.9})),
