@@ -62,7 +62,7 @@ function sala(g){on();const v=V,k=v.game,host=!!v.host,me=v.me;
   <div class="lb-ft">${ft}${err()}<button class="ui-btn ghost full" onclick="LOBBY.salir()">${I('salir')}${host?'Cerrar sala':v.watch?'Dejar de mirar':'Salir de la sala'}</button></div></section>
  ${juego}${rr}${gente}${ajustes()}${reglas(g)}</div>`}
 
-window.LOBBY={home,sala,abre:x=>{abre=x},
+window.LOBBY={home,sala,carga:t=>{on();return `<div class="lb-carga" role="progressbar" aria-label="${es(t)}"><span class="lb-logo">${I('casa')}</span><i class="lb-barra"></i></div>`},abre:x=>{abre=x},
  elige:k=>{pgame=k;render()},
  juego:k=>{if(V&&V.host&&k!==V.game)send({t:'game',g:k})},
  tema:()=>{if(window.UI)UI.setTema(UI.noche()?'dia':'noche');render()},

@@ -9,6 +9,16 @@ html.lbon #app{max-width:640px;padding:0 16px calc(28px + env(safe-area-inset-bo
 .lb .ui-in:focus{border-color:var(--ui-accent)}
 .lb .ui-ico{width:20px;height:20px;flex:none}
 
+/* cargando: solo el logo y una barra */
+.lb-carga{min-height:80vh;min-height:80dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.lb-carga .lb-logo{width:64px;height:64px;border-radius:20px;animation:lbL 1.6s ease-in-out infinite}
+.lb-carga .lb-logo svg{width:34px;height:34px}
+.lb-barra{position:relative;display:block;width:min(180px,50vw);height:6px;border-radius:999px;background:var(--ui-chip);box-shadow:inset 0 0 0 1px var(--ui-line);overflow:hidden}
+.lb-barra::after{content:"";position:absolute;inset:0 auto 0 0;width:40%;border-radius:999px;background:var(--ui-accent);animation:lbB 1.1s ease-in-out infinite}
+@keyframes lbB{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+@keyframes lbL{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.lb-carga .lb-logo{animation:none}.lb-barra::after{animation-duration:2.4s}}
+
 /* cabecera */
 .lb-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 4px}
 .lb-marca{display:flex;align-items:center;gap:12px;min-width:0}
