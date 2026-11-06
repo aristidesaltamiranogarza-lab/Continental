@@ -135,7 +135,13 @@ function plist(){return `<div class="box"><b>Jugadores</b> (${V.players.filter(p
 function home(){const g=GM[pgame]||GM.continental;return `${H1('🎴 Juegos de cartas')}<input placeholder="Tu nombre" maxlength="14" value="${esc(pname)}" oninput="pname=this.value">
  <div class="box"><b>Crear una sala</b><br>Juego: ${Object.keys(GM).map(k=>`<button class="b g sm2${pgame==k?' on':''}" onclick="pgame='${k}';render()">${GM[k].emoji} ${window.lobbyName?lobbyName(k):GM[k].name}</button>`).join('')}<br><button class="b" onclick="mk('listo')">Listo</button><button class="b g" onclick="mk('host')">Host</button><br><span class="top"><b>Listo</b>: creas la sala y juegas. <b>Host</b>: solo administras, no juegas.</span></div>
  <div class="box"><b>Unirme a una sala</b><br><input placeholder="Código" maxlength="5" value="${esc(code)}" oninput="code=this.value.toUpperCase()" style="text-transform:uppercase;width:120px"><button class="b" onclick="joinR()">Unirme</button></div><div class="msg">${msg}</div><div class="box">${typeof musUI=='function'?musUI():''}</div>`+styleUI()+g.rules}
-function render(){theme();document.documentElement.classList.remove('lbon');if(typeof musSync=='function')musSync();if(!S){A.innerHTML=home();return}
+// mientras el dedo desliza un panel del HUD (o sigue la inercia) no se redibuja: cambiar el HTML a media gesto corta el deslizado en celular. Se redibuja al soltar
+let rHold=0,rLast=0,rPend=0;const rIn=t=>t&&t.closest&&A.contains(t)&&t.closest(".ui-bd,.ui-sheet,.mu-sc,.gj-win,[data-scroll]");
+const rBusy=()=>rHold||Date.now()-rLast<180,rLater=()=>{if(rPend)return;rPend=setTimeout(function f(){if(rBusy()){rPend=setTimeout(f,90);return}rPend=0;render()},90)};
+document.addEventListener("touchstart",e=>{if(rIn(e.target))rHold=1},{passive:true,capture:true});
+for(const k of ["touchend","touchcancel"])document.addEventListener(k,e=>{if(!e.touches.length)rHold=0},{passive:true,capture:true});
+document.addEventListener("scroll",e=>{if(rIn(e.target))rLast=Date.now()},{passive:true,capture:true});
+function render(){if(rBusy()){rLater();return}theme();document.documentElement.classList.remove('lbon');if(typeof musSync=='function')musSync();if(!S){A.innerHTML=home();return}
  if(!V){A.innerHTML=window.LOBBY&&!(window.SALA&&SALA.on())?LOBBY.carga(online?'Entrando a la sala':'Reconectando'):`${H1('🎴 Juegos de cartas')}<p>${online?'Entrando a la sala…':'Reconectando…'}</p>`;return}
  if(window.SALA&&SALA.tapa())return;   // casa 3D (c_sala.js): al empezar, la cámara baja a tu silla antes de mostrar el juego
  const g=GM[V.game]||GM.continental,G=V.G,cdn=Math.ceil((cdEnd-Date.now())/1000),cd=cdn>0&&Date.now()>=rlEnd?`<div class="cd">${cdn}</div>`:'',off=online?'':'<div class="box msg">⚠ Reconectando con el servidor… tu lugar y tus cartas se conservan.</div>';let h;

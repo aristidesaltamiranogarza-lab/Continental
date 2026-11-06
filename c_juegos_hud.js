@@ -26,8 +26,8 @@ function cam(IC,open,mini){if(!open)return '';const b=(c,t)=>`<button class="ui-
 const view=(fn,mini)=>`<button id="gjView" class="ui ui-pill gj-view${mini?' mini':''}" onclick="${fn}" style="display:none" title="Regresar a la vista de siempre (Esc)">${I('cuadrar')}Cuadrar</button>`;
 
 // panel del ☰: hoja de abajo en celular, tarjeta a la derecha en compu. tabs=[[clave,'Título',html],…]; close='fn()'
-function sheet(title,tabs,close){if(!tabs.some(t=>t[0]==tab))tab=tabs[0][0];const cur=tabs.find(t=>t[0]==tab);
- return `<div class="ui-scrim ligero" onclick="${close}"></div><div class="ui ui-sheet der gj-sheet" role="dialog" aria-label="${title}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div>
+function sheet(title,tabs,close){if(!tabs.some(t=>t[0]==tab))tab=tabs[0][0];const cur=tabs.find(t=>t[0]==tab),ya=document.querySelector('.gj-sheet')?' ya':'';   // ya abierto: no se vuelve a animar al redibujar
+ return `<div class="ui-scrim ligero${ya}" onclick="${close}"></div><div class="ui ui-sheet der gj-sheet${ya}" role="dialog" aria-label="${title}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div>
  ${tabs.length>1?`<div class="ui-seg full gj-tabs" role="tablist">${tabs.map(([k,t])=>`<button type="button" role="tab" class="${k==tab?'on':''}" aria-selected="${k==tab}" onclick="GHUD.tab('${k}')">${t}</button>`).join('')}</div>`:''}
  <div class="ui-bd" id="gjBd">${cur[2]}</div></div>`}
 const seg=(L,cur,fn)=>`<div class="ui-seg full" role="group">${L.map(([v,t])=>`<button type="button" class="${v===cur?'on':''}" aria-pressed="${v===cur}" onclick="${fn}('${v}')">${t}</button>`).join('')}</div>`;
@@ -40,7 +40,7 @@ function ajustes(rows,btns){const mus=typeof musName=='function'?musName():null,
  <div class="gj-sws">${row('sonido','Sonidos',sw(snd,'GHUD.snd(this.checked)','Sonidos'))}${rows||''}</div>
  ${btns?`<div class="gj-btns">${btns}</div>`:''}`}
 // ventanita de una mesa de la casa (Conecta 4, Backgammon, Cubilete, Ir a…): tarjeta a la derecha en compu, hoja de abajo en celular
-const win=(title,body,close,cls)=>`<div id="h3win" class="ui ui-sheet h3w${cls?' '+cls:''}" role="dialog" aria-label="${title.replace(/<[^>]+>/g,'').replace(/"/g,'')}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div><div class="ui-bd">${body}</div></div>`;
+const win=(title,body,close,cls)=>`<div id="h3win" class="ui ui-sheet h3w${cls?' '+cls:''}${$('h3win')?' ya':''}" role="dialog" aria-label="${title.replace(/<[^>]+>/g,'').replace(/"/g,'')}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div><div class="ui-bd">${body}</div></div>`;
 // el scroll del panel no se pierde al redibujar: save() antes de armar el HTML, restore() después
 function save(){const b=$('gjBd');scroll=b?b.scrollTop:0}
 function restore(){const b=$('gjBd');if(b)b.scrollTop=scroll}
