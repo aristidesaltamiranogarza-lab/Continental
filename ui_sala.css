@@ -23,7 +23,7 @@ html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);-
  background:linear-gradient(160deg,color-mix(in srgb,var(--sl-c) 70%,#fff) -30%,var(--sl-c) 50%,color-mix(in srgb,var(--sl-c) 78%,#000) 130%)}
 .sl-hd::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.17),transparent 42%);pointer-events:none}
 .sl-ic{width:58px;height:58px;flex:none;display:grid;place-items:center;border-radius:18px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
-.sl-ic svg{width:48px;height:48px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.sl-ic svg,.sl-ic img{width:48px;height:48px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .sl-ic.pop svg,.sl-ic.pop .sl-emo{animation:slPop .6s cubic-bezier(.2,1.6,.4,1) both}
 .sl-emo{font-size:32px;line-height:1}
 .sl-t{flex:1;min-width:0;position:relative;z-index:1}
@@ -67,7 +67,7 @@ html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);-
  border:1px solid rgba(255,255,255,.2);border-radius:18px;background:linear-gradient(165deg,color-mix(in srgb,var(--f) 78%,#fff),var(--f) 70%);
  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -3px 0 rgba(0,0,0,.16),0 3px 8px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s}
 .sl-caja::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.18),transparent 42%);pointer-events:none}
-.sl-caja .ic svg{display:block;width:44px;height:44px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
+.sl-caja .ic svg,.sl-caja .ic img{display:block;width:44px;height:44px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
 .sl-caja .ic .sl-emo{font-size:30px}
 .sl-caja b{position:relative;font:900 13px/1.1 var(--ui-font);text-shadow:0 1px 2px rgba(0,0,0,.35)}
 .sl-caja:active{transform:scale(.96)}

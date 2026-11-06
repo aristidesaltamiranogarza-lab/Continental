@@ -93,6 +93,7 @@ function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p])return SM.envia(req,res,path.join(__dirname,files[p][0]),files[p][1],files[p][1]=='audio/mpeg'?'public, max-age=604800':'no-store');   // por partes (srv_modelos.js)
  if(p.startsWith('/modelos/'))return SM.modelos(req,res,p);
+ if(/^\/iconos\/[a-z0-9_]+\.png$/.test(p))return SM.envia(req,res,path.join(__dirname,p),'image/png','public, max-age=86400');
  if(p=='/poll'){const R=rooms[q.get('c')],tok=q.get('t');if(!R)return out(res,{gone:1});
   if(R.kk.includes(tok))return out(res,{kicked:1});
   const pl=R.players.find(x=>x.tok==tok),sp=specOf(R,tok);if(!pl&&R.host!=tok&&!sp)return out(res,{gone:1});
