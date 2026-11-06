@@ -129,7 +129,7 @@ function qr(u){const box=$('slQr');if(!box)return;const mk=()=>{const b=$('slQr'
  if(window.QRCode)return mk();if(qrPide)return;qrPide=true;const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
  s.onload=mk;s.onerror=()=>{qrPide=false;const b=$('slQr');if(b)b.remove()};document.head.appendChild(s)}
 function modal(h){const m=$('slModal');m.innerHTML=h;m.hidden=false;snd('tick');const b=m.querySelector('button');if(b)b.focus({preventScroll:true})}
-window.SALA={sync,tapa,hueco,
+window.SALA={ico,sync,tapa,hueco,
  on:()=>shown||sale>0||!!(st()&&!vv()&&H3()),   // también mientras entras (todavía sin datos de la sala): la casa sigue viva
  g:()=>{const v=vv();return v?v.game:typeof pgame!='undefined'?pgame:null},
  mas,copiaL,

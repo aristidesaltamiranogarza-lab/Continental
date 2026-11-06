@@ -16,7 +16,7 @@ function info(g){const H=window.CASA3D;
  if(g=='cub'){if(!window.CUB3)return null;const n=CUB3.n();return {e:ICO('cub'),t:'Cubilete',s:n?n+(CUB3.play()?' jugando':' en la mesa'):'sin partidas',on:n>0}}
  if(SUELTOS[g])return window.JG3&&JG3.P&&JG3.P[g]?{e:SUELTOS[g][0],t:SUELTOS[g][1],s:'',on:false}:null;
  const G=typeof GM!='undefined'&&GM[g];if(!G)return null;const {pl,op}=H.tinfo(g);
- return {e:G.emoji,t:window.lobbyName?lobbyName(g):G.name,s:[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas',on:pl>0||op.length>0}}
+ return {e:window.SALA&&SALA.ico?SALA.ico(g):G.emoji,t:window.lobbyName?lobbyName(g):G.name,s:[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas',on:pl>0||op.length>0}}
 const dhOn=()=>!!(window.DH&&DH.isOpen());
 function btn(){const o=open||dhOn();return `<button class="ui-rb${o?' on':''}" onclick="CIR.tog()" title="Ir a…" aria-label="Ir a…" aria-expanded="${o}">🧭</button>`}
 function hud(busy){if(busy){open=false;if(dhOn())setTimeout(()=>DH.close())}if(!open||!window.CASA3D)return '';const H=window.CASA3D,here=H.piso();

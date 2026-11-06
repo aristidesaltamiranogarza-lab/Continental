@@ -54,6 +54,7 @@ const css=document.createElement('style');css.textContent=`
 .dhm{position:relative;display:flex;flex-wrap:wrap;gap:6px}
 .dht{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:6px;align-items:center;text-align:left;min-width:132px;flex:1 1 132px;padding:6px 9px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.32);color:inherit;font:inherit;cursor:pointer}
 .dht b{grid-row:1/3;font-size:22px;font-weight:400}
+.dht b svg,.dht b img{display:block;width:32px;height:32px}
 .dht small{opacity:.7;font-size:12px}
 .dht.on{border-color:#7ad48a;background:rgba(40,90,50,.45)}.dht.on small{opacity:1;color:#9ff0ad}
 .dhv{opacity:.6}
