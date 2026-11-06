@@ -19,7 +19,7 @@ const sdRR=(x,y,cx,cy,hx,hy,r)=>{const qx=Math.abs(x-cx)-hx+r,qy=Math.abs(y-cy)-
   h=Math.max(0,Math.min(1,(wx*ex+wy*ey)/(ex*ex+ey*ey)));d=Math.min(d,(wx-ex*h)**2+(wy-ey*h)**2);
   const c1=y>=ay,c2=y<by,c3=ex*wy>ey*wx;if((c1&&c2&&c3)||(!c1&&!c2&&!c3))s=-s}return s*Math.sqrt(d)};
 // ventanas laterales en (x, altura): base horizontal y tope que sigue el techo
-const PUE=[[-1.05,1.69],[.45,1.69],[.45,2.3],[-.72,2.3]],CUA=[[.79,1.69],[1.6,1.69],[1.2,2.28],[.79,2.28]],
+const PUE=[[-.95,1.88],[.45,1.88],[.45,2.3],[-.72,2.3]],CUA=[[.79,1.88],[1.42,1.88],[1.16,2.26],[.79,2.26]],
  lat=(V,r,x,a,y)=>Math.max(sdPoly(V,x,y)-r,y-cr(XS,YT,x)+.17,.55-a);
 // [vidrio (<0 dentro; 0–.035 marco cromado), costura (<0), reflejo]
 function mask(x,a,y){const g=Math.min(sdRR(x,a,-1.095,0,.23,.55,.1),sdRR(x,a,1.74,0,.25,.4,.17),lat(PUE,.07,x,a,y),lat(CUA,.12,x,a,y));
@@ -42,10 +42,10 @@ function pintura(col){const m=new THREE.MeshStandardMaterial({color:col,roughnes
  m.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 aM;\nvarying vec3 vM;').replace('#include <begin_vertex>','#include <begin_vertex>\nvM=aM;');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vM;\nfloat mG,mC;')
    .replace('#include <color_fragment>',`#include <color_fragment>
-    float fg=max(fwidth(vM.x),1e-4),fs=max(fwidth(vM.y),1e-4);mG=1.-smoothstep(-fg,fg,vM.x);mC=(1.-mG)*(1.-smoothstep(.035-fg,.035+fg,vM.x));
+    float fg=max(fwidth(vM.x),1e-4),fs=max(fwidth(vM.y),1e-4);mG=1.-smoothstep(-fg,fg,vM.x);mC=(1.-mG)*(1.-smoothstep(.025-fg,.025+fg,vM.x));
     float sm=(1.-smoothstep(-fs,fs,vM.y))*(1.-mG);
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.86,.87,.89),mC);
-    diffuseColor.rgb=mix(diffuseColor.rgb,mix(vec3(.03,.04,.06),vec3(.3,.38,.46),vM.z),mG);
+    diffuseColor.rgb=mix(diffuseColor.rgb,mix(vec3(.03,.04,.06),vec3(.14,.18,.23),vM.z),mG);
     diffuseColor.rgb*=1.-.75*sm;`)
    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.1,max(mG,mC));')
    .replace('#include <metalnessmap_fragment>','#include <metalnessmap_fragment>\nmetalnessFactor=mix(metalnessFactor,.45,mC);')};return m}
@@ -68,8 +68,8 @@ function hazlo(col){const G=new THREE.Group(),B={P:[],M:[],I:[]};
   [[-3.3,1],[3.28,-1]].forEach(([x,d])=>{CH.box(.09,.16,2,cro,x,.74,0);CH.box(.09,.16,.32,cro,x+d*.07,.74,s*1.14,s*d*.46);
    CH.box(.08,.4,.08,cro,x-d*.04,.82,s*.42);NG.box(.2,.06,.08,0x222222,x+d*.12,.72,s*.55)});
   CH.geo(new THREE.CylinderGeometry(.05,.05,.25,12),cro,3.3,.5,s*.45,0,0,Math.PI/2);
-  const m=pt(.3,1.53);CH.box(.17,.035,.045,cro,m[0],m[1],s*(m[2]+.02))});   // manijas
- [1,-1].forEach(s=>{const b=pt(-.98,1.42);CH.box(.03,.03,.2,cro,b[0],b[1]+.05,s*(b[2]+.08),0,-.5*s);CH.geo(new THREE.CylinderGeometry(.09,.09,.03,18),cro,b[0],b[1]+.11,s*(b[2]+.18),0,0,Math.PI/2)});   // retrovisores
+  const m=pt(.3,1.5);CH.box(.17,.035,.045,cro,m[0],m[1],s*(m[2]+.02))});   // manijas
+ [1,-1].forEach(s=>{const b=pt(-.9,1.45);CH.box(.04,.04,.26,cro,b[0],b[1]+.06,s*(b[2]+.11),0,-.45*s);CH.geo(new THREE.CylinderGeometry(.12,.12,.05,22).scale(1,1,.8),cro,b[0],b[1]+.15,s*(b[2]+.25),0,0,Math.PI/2)});   // retrovisores
  {const e=pt(-3.05,0);CH.geo(new THREE.SphereGeometry(1,14,8).scale(.06,.03,.06),cro,e[0],e[1],0)}
  NG.box(5.2,.3,1.8,0x1a1a1a,-.05,.55,0);
  G.add(CH.mesh(new THREE.MeshStandardMaterial({roughness:.18,metalness:.5})),NG.mesh(new THREE.MeshStandardMaterial({roughness:.9})),
