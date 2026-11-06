@@ -87,6 +87,9 @@
 .h3toast{padding:8px 16px}
 .t3msg{padding:10px 18px;border-radius:18px;top:calc(env(safe-area-inset-top,0px) + 76px)}
 #h3inv{top:calc(env(safe-area-inset-top,0px) + 72px);padding:6px 6px 6px 16px}
+#h3inv{display:flex;flex-wrap:wrap;width:max-content;align-items:center;justify-content:center;gap:6px 8px;max-width:calc(100vw - 32px);box-sizing:border-box;border-radius:24px;white-space:normal}
+#h3inv>span{padding:0 4px}
+#h3inv>i{display:flex;gap:6px;font-style:normal}
 .h3sign{padding:6px 14px 7px;border-radius:16px;font-family:var(--ui-font);font-weight:700}
 .h3sign small{color:var(--ui-sub);font-weight:700}
 .h3sign.on{border-color:var(--ui-accent);box-shadow:0 0 0 3px var(--ui-accent),var(--ui-shadow)}

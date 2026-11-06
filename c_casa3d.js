@@ -365,6 +365,11 @@ const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r=
  fp:ic('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
  home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
 function tinfo(g){const pl=rooms.filter(r=>r.g==g&&r.st=='play').reduce((a,r)=>a+r.n,0),op=rooms.filter(r=>r.g==g&&r.st=='lobby');return {pl,op}}
+// la invitación sólo viene del enlace (#CÓDIGO); se va al aceptarla o rechazarla
+let casaInv=(location.hash.slice(1)||'').toUpperCase().slice(0,5);
+function casaInvFin(){casaInv='';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+window.casaInvSi=()=>{code=casaInv;casaInvFin();joinR()};
+window.casaInvNo=()=>{casaInvFin();code='';render()};
 function hud(){const g=sel&&GM[sel],n=others.size+1;
  // la mesa que picaste: aviso "Jugar…" y, al tocarlo (o E), su panel (c_casa_mesa.js)
  let mh='';if(window.CMESA){let c=null;if(g){const {pl,op}=tinfo(sel);c={g:sel,G:g,name:window.lobbyName?lobbyName(sel):g.name,desc:DESC[sel]||'',pl,op,pr:rooms.filter(r=>r.g==sel&&r.st=='play'&&r.w),code,msg}}mh=CMESA.html(c)}
@@ -375,7 +380,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
   o+=`<div class="ui ui-fx ui-glass h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')"><b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
  if(msg&&!busy)o+=`<div class="ui ui-fx t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
- if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass">Te invitaron a la sala <b>${esc(code)}</b><button class="ui-btn" onclick="joinR()">Unirme</button></div>`;
+ if(!g&&!S&&casaInv.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass"><span>Te invitaron a la sala <b>${esc(casaInv)}</b></span><i><button class="ui-btn" onclick="casaInvSi()">Unirme</button><button class="ui-btn sec" onclick="casaInvNo()">No, gracias</button></i></div>`;
  o+=mh;
  if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
  if(window.CIR)o+=CIR.hud(busy);
