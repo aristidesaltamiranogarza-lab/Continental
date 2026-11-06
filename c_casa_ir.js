@@ -21,7 +21,7 @@ function info(g){const H=window.CASA3D;
  const G=typeof GM!='undefined'&&GM[g];if(!G)return null;const {pl,op}=H.tinfo(g);
  return {e:window.SALA&&SALA.ico?SALA.ico(g):G.emoji,t:window.lobbyName?lobbyName(g):G.name,s:[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas',on:pl>0||op.length>0}}
 const dhOn=()=>!!(window.DH&&DH.isOpen());
-function btn(){const o=open||dhOn();return `<button class="ui-rb${o?' on':''}" onclick="CIR.tog()" title="Ir a…" aria-label="Ir a…" aria-expanded="${o}">🧭</button>`}
+function btn(){const o=open||dhOn();return `<button class="ui-rb${o?' on':''}" onclick="CIR.tog()" title="Ir a…" aria-label="Ir a…" aria-expanded="${o}">${window.UI?UI.ico('brujula'):'🧭'}</button>`}
 function hud(busy){if(busy){open=false;if(dhOn())setTimeout(()=>DH.close())}if(!open||!window.CASA3D)return '';const H=window.CASA3D,here=H.piso();
  const sec=PISOS.map(p=>{if(!H.can(p.id))return '';const it=p.g.map(g=>{const i=info(g);if(!i)return '';
    return `<button class="ui-btn sec cirb${i.on?' on':''}" onclick="CIR.go('${p.id}','${g}')"><span>${i.e} ${es(i.t)}</span><small>${es(i.s)}</small></button>`}).join('');

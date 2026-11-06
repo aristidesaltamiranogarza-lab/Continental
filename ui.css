@@ -45,7 +45,7 @@ html[data-tema=noche]{--ui-panel:rgba(40,27,20,.90);--ui-sheet:#2A1D16;--ui-line
 .ui-sheet{position:fixed;z-index:31;left:0;right:0;bottom:0;max-height:86%;display:flex;flex-direction:column;background:var(--ui-sheet);color:var(--ui-text);
  border:1px solid var(--ui-line);border-bottom:0;border-radius:var(--ui-r) var(--ui-r) 0 0;box-shadow:var(--ui-shadow);padding:8px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:uiUp .22s ease-out}
 .ui-sheet::before{content:"";align-self:center;width:40px;height:5px;border-radius:999px;background:var(--ui-line);margin:0 0 8px;flex:none}
-.ui-sheet .ui-bd{overflow:auto;min-height:0;-webkit-overflow-scrolling:touch}
+.ui-sheet .ui-bd{overflow:auto;overflow-x:hidden;min-height:0;-webkit-overflow-scrolling:touch}
 .ui-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .ui-x{width:44px;height:44px;border-radius:999px;border:0;background:var(--ui-chip);color:var(--ui-text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
 /* en computadora: tarjeta a la derecha (.der) o panel abajo a la izquierda (.izq) */
@@ -123,7 +123,7 @@ html[data-tema=noche] .ui-sw i::after{background:var(--ui-sub)}
 .ui-vol .ui-rb{flex:none;width:44px;height:44px;color:var(--ui-icon)}
 .ui-vol.off .ui-rb{color:var(--ui-sub);opacity:.75}
 .ui-vol.off .ui-rb::after{content:"";position:absolute;width:24px;height:2.5px;border-radius:2px;background:currentColor;transform:rotate(-45deg)}
-.ui-vol input{flex:1;min-width:0;height:44px;margin:0;padding:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer;touch-action:pan-y}
+.ui-vol input[type=range]{flex:1;min-width:0;width:auto;border:0;border-radius:0;box-shadow:none;height:44px;margin:0;padding:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer;touch-action:pan-y}
 .ui-vol input:focus{outline:none}
 .ui-vol input::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(90deg,var(--ui-accent) var(--v),var(--ui-chip) var(--v));box-shadow:inset 0 0 0 1px var(--ui-line)}
 .ui-vol input::-moz-range-track{height:8px;border-radius:999px;background:linear-gradient(90deg,var(--ui-accent) var(--v),var(--ui-chip) var(--v));box-shadow:inset 0 0 0 1px var(--ui-line)}

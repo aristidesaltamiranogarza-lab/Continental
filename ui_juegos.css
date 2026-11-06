@@ -164,7 +164,7 @@ html.c3c4 .gj-seat,html.c3c4 .gj-pl{opacity:0;pointer-events:none}
 /* ===== Monopoly Deal en la casa 3D (c_mdeal_hud.js pone html.mdui; el modo 2D Ligero no lo usa) ===== */
 html.mdui body{background:#F3E7D3;color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
 html.mdui[data-tema=noche] body{background:#1E1510}
-html.mdui body::before,html.mdui body::after{display:none}
+html.mdui body::before,html.mdui body::after,html[data-game="md"] body::before{display:none}
 html.mdui[data-game="md"] #app{padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 0}
 .md-menu{position:fixed;z-index:22;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(14px + env(safe-area-inset-right,0px));width:46px;height:46px}
 html.mdui[data-game="md"] h1{font:800 1.6em var(--ui-font);color:var(--ui-text);text-align:center}
