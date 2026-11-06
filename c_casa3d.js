@@ -175,7 +175,7 @@ function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G
  const rim=new THREE.Mesh(new THREE.TorusGeometry(t.r,.13,12,64),new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7}));rim.rotation.x=Math.PI/2;rim.position.y=TH+.06;rim.castShadow=true;G.add(rim);rim.userData.hit=hit;
  t.pie=[cyl(.25,.35,TH-.1,wood,0,(TH-.1)/2,0,G),cyl(1,1.1,.1,wood,0,.05,0,G)];   // el pie se queda cuando un juego pone su mesa encima (c_casa_fondo.js)
  // cartitas encima
- (DECO[t.g]||[]).forEach(([k,bg,fg,tx],i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(.55,.77),new THREE.MeshStandardMaterial({map:miniCard(k,bg,fg,tx),roughness:.6,transparent:true}));
+ if(!(window.MINI&&MINI.pon(G,t.g,TH+.07,hit)))(DECO[t.g]||[]).forEach(([k,bg,fg,tx],i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(.55,.77),new THREE.MeshStandardMaterial({map:miniCard(k,bg,fg,tx),roughness:.6,transparent:true}));
   const a=i/5*Math.PI*2+.4,d=i==4?0:1.1;m.rotation.set(-Math.PI/2,0,a*1.7);m.position.set(Math.cos(a)*d,TH+.08+i*.002,Math.sin(a)*d);m.receiveShadow=true;G.add(m)});
  // sillas alrededor (cuando alguien está jugando en esa mesa, su Mii ocupa la silla)
  t.chairs=[];for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4,cx=Math.cos(a)*(t.r+.9),cz=Math.sin(a)*(t.r+.9),ch=new THREE.Group();ch.position.set(cx,0,cz);ch.rotation.y=Math.atan2(-cx,-cz);G.add(ch);
