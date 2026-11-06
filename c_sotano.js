@@ -93,7 +93,7 @@ function drop(){try{localStorage.removeItem('casa_seat')}catch(e){}}
 function seat(){let s=null;try{s=JSON.parse(localStorage.getItem('casa_seat')||'null')}catch(e){}if(s&&!(Date.now()-s.ts<SEAT_MS)){drop();return null}return s}
 const left=s=>{const t=Math.max(0,Math.ceil((SEAT_MS-(Date.now()-s.ts))/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
 function seatHud(){const s=seat();if(!s)return '';const G=typeof GM!='undefined'&&GM[s.g];
- return `<div id="h3seat" class="ui ui-fx ui-glass" role="status"><span>🧍 Tu lugar en ${G?G.emoji+' '+es(G.name):'la mesa'} te espera <b id="h3seatT">${left(s)}</b></span><button class="ui-btn" onclick="casaVolver()">Volver a mi lugar</button><button class="ui-btn sec" onclick="casaSoltar()" title="El bot se queda con tu asiento">Dejarlo</button></div>`}
+ return `<div id="h3seat" class="ui ui-fx ui-glass" role="status"><span>Tu lugar en ${G?(window.SALA&&SALA.ico?'<i class="h3s-ic">'+SALA.ico(s.g)+'</i>':G.emoji)+' '+es(G.name):'la mesa'} te espera <b id="h3seatT">${left(s)}</b></span><button class="ui-btn" onclick="casaVolver()">Volver a mi lugar</button><button class="ui-btn sec" onclick="casaSoltar()" title="El bot se queda con tu asiento">Dejarlo</button></div>`}
 let sT=0;
 function seatTick(now){if(now-sT<500)return;sT=now;const el=document.getElementById('h3seat');if(!el)return;const s=seat();
  if(s){const b=document.getElementById('h3seatT');if(b)b.textContent=left(s)}else if(typeof render=='function')render()}

@@ -5,6 +5,7 @@
 (function(){
 const I=(n,c)=>UI.ico(n,c),$=id=>document.getElementById(id);
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const gico=c=>window.SALA&&SALA.ico?SALA.ico(c.g):c.G.emoji;
 const touchy=matchMedia('(pointer:coarse)').matches;
 let open=false,last=null,cod=false;
 const rr=()=>{if(typeof render=='function')render()},tick=()=>{if(typeof sfx=='function')sfx('tick')};
@@ -14,10 +15,10 @@ const nombres=(L,n)=>{const a=L.slice(0,3);return n>3?a.join(', ')+` y ${n-3} m�
 const estado=c=>[c.pl?c.pl+' jugando':'',c.op.length?c.op.length+(c.op.length>1?' salas esperando':' sala esperando'):''].filter(Boolean).join(' · ');
 
 function aviso(c){const s=estado(c);
- return `<button class="ui uh-aviso" onclick="CMESA.abrir()" aria-label="Jugar ${es(c.name)}${s?' · '+s:''}"><span class="uh-ai" aria-hidden="true">${c.G.emoji}</span>
+ return `<button class="ui uh-aviso" onclick="CMESA.abrir()" aria-label="Jugar ${es(c.name)}${s?' · '+s:''}"><span class="uh-ai" aria-hidden="true">${gico(c)}</span>
  <span class="uh-at"><b>Jugar ${es(c.name)}</b><small>${s||'Sin partidas'}${touchy?' · toca para entrar':''}</small></span>${touchy?'':'<kbd>E</kbd>'}</button>`}
 function panel(c){const op=c.op.slice(0,5),pr=c.pr.slice(0,5);
- let b=`<div class="uh-mh"><span class="uh-mi" aria-hidden="true">${c.G.emoji}</span><span><h2 class="ui-h">${es(c.name)}</h2><small class="ui-sub">${es(c.desc)} Hasta ${c.G.max} jugadores.</small></span>
+ let b=`<div class="uh-mh"><span class="uh-mi" aria-hidden="true">${gico(c)}</span><span><h2 class="ui-h">${es(c.name)}</h2><small class="ui-sub">${es(c.desc)} Hasta ${c.G.max} jugadores.</small></span>
   <button class="ui-x" onclick="CMESA.cerrar()" aria-label="Cerrar">${I('x')}</button></div>`;
  if(op.length)b+=`<span class="ui-lbl">Salas esperando jugadores</span><div class="uh-ls">${op.map(r=>`<div class="uh-li">${avs([r.host])}<span><b>Sala de ${es(r.host)}</b><small class="ui-sub">${r.n} de ${r.max} jugadores</small></span>
   <button class="ui-btn" onclick="casaJoin('${es(r.c)}')">Unirme</button></div>`).join('')}</div>`;
