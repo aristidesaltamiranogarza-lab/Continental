@@ -383,8 +383,11 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  return o}
 // letreros: siguen a su mesa en la pantalla
 function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0,afuera=FL===PB&&!!window.CASCO&&CASCO.fuera();   // afuera la casa tiene techo: sin letreros de mesas
- document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
-  el.style.display=vis&&!afuera?'':'none';el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(y0+el.offsetHeight,y)}px) translate(-50%,-100%)`})}   // nunca debajo de la barra de arriba
+ const L=[];document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
+  el.style.display=vis&&!afuera?'':'none';if(vis&&!afuera)L.push({el,x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(y0+el.offsetHeight,y),hw,h:el.offsetHeight+4})});   // nunca debajo de la barra de arriba
+ // si dos letreros se enciman (Billar y Blackjack en el sótano), el de más lejos (más arriba en pantalla) se sube; si no cabe arriba, se baja
+ L.sort((a,b)=>b.y-a.y);const P=[];for(const l of L){for(let n=0;n<4;n++){const c=P.find(p=>Math.abs(p.x-l.x)<p.hw+l.hw&&Math.abs(p.y-l.y)<Math.max(p.h,l.h));if(!c)break;l.y=c.y-c.h>=y0+l.h?c.y-c.h:c.y+l.h}P.push(l);
+  l.el.style.transform=`translate(${l.x}px,${l.y}px) translate(-50%,-100%)`}}
 // tamaño, transparencia y empalmes de todas las etiquetas (c_etiquetas.js)
 function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(center(VW))||1,tb=$id('uiTop');
  ETQ.step({y0:tb?tb.getBoundingClientRect().bottom+4:0,ratio:g=>{const a=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z}:window.JG3&&JG3.P&&JG3.P[g]||window.SAL&&SAL.P[g]);return a?Math.hypot(cp.x-a.x,cp.y-TH,cp.z-a.z)/ref:1}})}
@@ -424,13 +427,19 @@ function ancla(g){const t=ready&&on&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)re
 const PISOJ={continental:'pb',uno:'pb',merida:'alta',haciendas:'alta'};
 function arranca(g){if(!on)return false;if(!ready)try{init()}catch(e){console.warn('Casa 3D:',e);return false}const p=PISOJ[g];if(p&&p!==FL.id&&!fBusy)irA(p,g);return true}
 function fondoFin(){const t=fzT;if(!t)return;fzT=null;t.G.children.forEach(o=>{if(o.userData.fz){o.visible=true;delete o.userData.fz}});seated.forEach(s=>{if(s.t===t)s.g.visible=true})}
+// muebles chicos (cajas de menos de 2.5 m) que se esconden si la cámara del juego queda dentro de ellos (se veía todo rojo dentro del puff). Se rearma cada 4 s (llegan modelos)
+let fzB=null,fzBF=null,fzBt=0;const fzBox=new THREE.Box3(),fzV=new THREE.Vector3();
+function fzCaja(now){if(fzB&&fzBF===FL&&now-fzBt<4000)return;fzB=[];fzBF=FL;fzBt=now;SC.updateMatrixWorld();
+ SC.traverse(o=>{if(!o.isMesh||!o.visible)return;fzBox.setFromObject(o);fzBox.getSize(fzV);if(fzBox.isEmpty()||Math.max(fzV.x,fzV.y,fzV.z)>2.5)return;fzB.push({o,b:fzBox.clone().expandByScalar(.15)})})}
 function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)return false;const now=performance.now();
  if(fzT!==t){fondoFin();fzT=t;fzN=0;fzP.set(t.x,0,t.z);t.G.children.forEach(o=>{if(o.visible&&!o.isLight&&!t.pie.includes(o)&&!(sillas&&t.chairs.includes(o))){o.visible=false;o.userData.fz=1}})}
  fzN++;me.g.visible=false;others.forEach(o=>o.g.visible=false);if(!sillas)seated.forEach(s=>{if(s.t===t)s.g.visible=false});
  CA.position.copy(cam.position);CA.quaternion.copy(cam.quaternion);CA.updateMatrixWorld();   // los módulos del piso (vigas, corte, LUZ) leen CASA3D.cam()
  R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
  if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
- const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
+ const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}
+  fzCaja(now);const hid=[];for(const e of fzB)if(e.o.visible&&e.b.containsPoint(cam.position)){e.o.visible=false;hid.push(e.o)}
+  R.render(SC,cam);for(const o of hid)o.visible=true;R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
 window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,ancla,fondo,arranca,
  sala:{gente:(g,n)=>{salaPs=n&&n.length?{g,n}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
   sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+c.position.x,TH+1.02,t.z+c.position.z)):[]}}};

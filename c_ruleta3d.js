@@ -42,11 +42,14 @@ function textures(){const ct=CH.ctex;
   for(let i=0;i<16;i++){const x=Math.random()*w,y0=Math.random()*h*.35,l=140+Math.random()*160,gr=g.createLinearGradient(0,y0,0,y0+l);gr.addColorStop(0,'rgba(28,24,14,.4)');gr.addColorStop(1,'rgba(28,24,14,0)');g.fillStyle=gr;g.fillRect(x,y0,3+Math.random()*9,l)}
   for(let i=0;i<1800;i++){const y=h-Math.pow(Math.random(),2)*h*.38;g.fillStyle=`rgba(226,222,205,${Math.random()*.3})`;g.fillRect(Math.random()*w,y,1+Math.random()*3,1+Math.random()*2)}},1);
  // cemento sucio con grietas y manchas de aceite
- T.floor=ct('rrfloor',512,512,(g,w,h)=>{g.fillStyle='#4d4a44';g.fillRect(0,0,w,h);
-  for(let i=0;i<9000;i++){g.fillStyle=Math.random()<.5?'rgba(0,0,0,.09)':'rgba(255,250,235,.06)';g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2)}
-  for(let i=0;i<10;i++){const x=Math.random()*w,y=Math.random()*h,gr=g.createRadialGradient(x,y,4,x,y,30+Math.random()*80);gr.addColorStop(0,'rgba(14,12,9,.5)');gr.addColorStop(1,'rgba(14,12,9,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}
-  for(let i=0;i<8;i++){const x=Math.random()*w,y=Math.random()*h,gr=g.createRadialGradient(x,y,4,x,y,60+Math.random()*90);gr.addColorStop(0,'rgba(120,104,78,.16)');gr.addColorStop(1,'rgba(120,104,78,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}
-  g.strokeStyle='rgba(12,10,8,.7)';for(let i=0;i<7;i++){let x=Math.random()*w,y=Math.random()*h,a=Math.random()*7;g.lineWidth=1+Math.random()*1.5;g.beginPath();g.moveTo(x,y);for(let k=0;k<14;k++){a+=rnd(-.7,.7);x+=Math.cos(a)*12;y+=Math.sin(a)*12;g.lineTo(x,y)}g.stroke()}},1);
+  // 1024 px y repetido poco (1.3 veces de ancho de cuarto): con 512 px repetido 3 veces las manchas se veían en cuadrícula
+ T.floor=ct('rrfloor',1024,1024,(g,w,h)=>{g.fillStyle='#4d4a44';g.fillRect(0,0,w,h);
+  for(let i=0;i<36000;i++){g.fillStyle=Math.random()<.5?'rgba(0,0,0,.09)':'rgba(255,250,235,.06)';g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2)}
+  // manchas que dan la vuelta por las orillas: si se cortan, al repetirse la textura se ve una cuadrícula
+   const blob=(x,y,R,c0,c1)=>{for(const dx of[-w,0,w])for(const dy of[-h,0,h]){const gr=g.createRadialGradient(x+dx,y+dy,4,x+dx,y+dy,R);gr.addColorStop(0,c0);gr.addColorStop(1,c1);g.fillStyle=gr;g.fillRect(0,0,w,h)}};
+   for(let i=0;i<22;i++)blob(Math.random()*w,Math.random()*h,40+Math.random()*120,'rgba(14,12,9,.5)','rgba(14,12,9,0)');
+  for(let i=0;i<16;i++)blob(Math.random()*w,Math.random()*h,80+Math.random()*160,'rgba(120,104,78,.16)','rgba(120,104,78,0)');
+  g.strokeStyle='rgba(12,10,8,.7)';for(let i=0;i<16;i++){let x=Math.random()*w,y=Math.random()*h,a=Math.random()*7;g.lineWidth=1+Math.random()*1.5;g.beginPath();g.moveTo(x,y);for(let k=0;k<14;k++){a+=rnd(-.7,.7);x+=Math.cos(a)*12;y+=Math.sin(a)*12;g.lineTo(x,y)}g.stroke()}},1);
  T.ceil=ct('rrceil',256,256,(g,w,h)=>{g.fillStyle='#24211d';g.fillRect(0,0,w,h);for(let i=0;i<3000;i++){g.fillStyle=Math.random()<.5?'rgba(0,0,0,.15)':'rgba(255,255,240,.04)';g.fillRect(Math.random()*w,Math.random()*h,2,2)}},1);
  // madera de la mesa: vetas, rayones, quemaduras de cigarro y marcas de vasos
  T.table=ct('rrtable',512,512,(g,w,h)=>{g.fillStyle='#5a3a20';g.fillRect(0,0,w,h);
@@ -66,7 +69,7 @@ const std=(c,r,o)=>CH.std(c,r,o),box=(w,h,d,m,x,y,z,p)=>CH.box(w,h,d,m,x,y,z,p||
 // tubo recto de a a b
 function tube(a,b,r,m,p){const d=b.clone().sub(a),me=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),12),m);me.position.copy(a).addScaledVector(d,.5);me.quaternion.setFromUnitVectors(v3(0,1,0),d.normalize());me.castShadow=me.receiveShadow=true;(p||SC).add(me);return me}
 function buildRoom(){
- const fx=RW/(W*2),fl=new THREE.Mesh(new THREE.PlaneGeometry(RW,W*2),std(0xffffff,.93,{map:rep(T.floor,3*fx,3),bumpMap:rep(T.floor,3*fx,3),bumpScale:.02}));fl.rotation.x=-Math.PI/2;fl.position.x=CX;fl.receiveShadow=true;SC.add(fl);
+ const fx=RW/(W*2),fl=new THREE.Mesh(new THREE.PlaneGeometry(RW,W*2),std(0xffffff,.93,{map:rep(T.floor,1.3*fx,1.3),bumpMap:rep(T.floor,1.3*fx,1.3),bumpScale:.02}));fl.rotation.x=-Math.PI/2;fl.position.x=CX;fl.receiveShadow=true;SC.add(fl);
  [[CX,-W,0,RW],[CX,W,Math.PI,RW],[XL,0,Math.PI/2,W*2],[W,0,-Math.PI/2,W*2]].forEach(([x,z,ry,w],i)=>{const t=rep(T.wall,2*w/(W*2),1,i*.37),m=new THREE.Mesh(new THREE.PlaneGeometry(w,HT),std(0xffffff,.96,{map:t,bumpMap:t,bumpScale:.035}));
   m.position.set(x,HT/2,z);m.rotation.y=ry;m.receiveShadow=true;SC.add(m)});
  // techo: se esconde cuando caminas en la casa con la cámara de arriba (modo 'casa')

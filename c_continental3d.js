@@ -738,7 +738,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Dejar de mirar</button>`:''}`;
  else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer cambio</button>`;
    b+=`<button class="ui-btn${sel.size==1&&!rd?' go':' sec'}" onclick="discard()">Descartar</button>`}
-  else if(drw)b+=`<span class="gj-note">Toca el mazo o el descarte</span>`;
+  else if(drw&&mini)b+=`<span class="gj-note">Toca el mazo o el descarte</span>`;   // sin modo compacto ya lo dice el aviso de arriba
   if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<span class="gj-note">Pediste comprar…</span><button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar (+1)</button>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;
   if(dn)b=`<span class="gj-note">✓ Bajaste</span>`+b}
@@ -825,12 +825,13 @@ function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
 function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
-  el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh+(L.top||24)-20,Math.min(H-hh,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
+  const X=Math.max(hw,Math.min(W-hw,x)),y0=(L.top||24)-20,Y=GHUD.dodge(X,Math.max(hh+y0,Math.min(H-hh,y)),hw,hh,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
- const pl=(id,p)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,0)`};
+ const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
  if(peekId!=null){const t=V.G.disc[V.G.disc.length-1];if(t!==peekId){peekId=null;peek(t!=null)}peekPos()}
- const dz=CH*L.ps/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+dz));pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
+ // si el descarte queda debajo del mazo en pantalla, el nombre del mazo va arriba de él (si no, tapa la carta del descarte)
+  const dz=CH*L.ps/2+.12;if(L.deck){const up=Math.abs(L.disc.x-L.deck.x)<CW*L.ps*1.5&&L.disc.z>L.deck.z;pl('t3pdk',v3(L.deck.x,0,L.deck.z+(up?-dz:dz)),up);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
 
 // ---------- engancharse a la vista de siempre ----------
 function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase==='play'}

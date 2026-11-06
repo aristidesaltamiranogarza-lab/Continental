@@ -115,9 +115,10 @@ function glow(key,pos,w,h,col,lvl,hit,ry){let g=glows.get(key);
  if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:glowTex(),transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.renderOrder=1;SC.add(g);glows.set(key,g)}
  g.visible=true;g.position.copy(pos);g.rotation.z=ry||0;g.scale.set(w/GI,h/GI,1);g.material.color.set(col);g.userData.lvl=lvl;g.userData.hit=hit||null;g.userData.used=1;if(hit)hits.push(g);return g}
 function pulse(now){const p=.65+.35*Math.sin(now/260);glows.forEach(g=>{g.material.opacity=g.userData.lvl*(g.userData.lvl>.5?p:1)})}   // >.5 = parpadea
-// brillo pegado detrás de una carta de tu mano (las que sí puedes jugar)
+// brillo pegado detrás de una carta de tu mano (las que sí puedes jugar). No es transparent: así se pinta antes que las cartas (renderOrder 5)
+// y solo asoma alrededor de la mano; antes se pintaba encima de la carta vecina y los brillos se sumaban
 function selGlow(m,onn,col){let g=m.userData.sg;if(!g&&!onn)return;
- if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(CW*1.2/GI,CH*1.14/GI),new THREE.MeshBasicMaterial({map:glowTex(),opacity:.55,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.position.y=-CT;m.add(g);g.layers.set(m.userData.ly||0);m.userData.sg=g}
+ if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(CW*1.2/GI,CH*1.14/GI),new THREE.MeshBasicMaterial({map:glowTex(),opacity:.4,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.position.y=-CT;m.add(g);g.layers.set(m.userData.ly||0);m.userData.sg=g}
  g.visible=!!onn;if(onn)g.material.color.set(col)}
 
 // ---------- escena y mesa ----------
@@ -220,7 +221,8 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+((k-me+n)%n)*(2*Math.PI/n)}
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 // abanico de tu mano: las que puedes jugar se asoman un poco, la que robaste se asoma más
-function fan(ids,play,drawn){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=W-20,cx=W/2,out=[];
+// av: ancho para la mano; se le resta lo que las cartas de las orillas sobresalen al girar (en celular parado se salían por la izquierda)
+function fan(ids,play,drawn){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=W-24-ch*.3,cx=W/2,out=[];
  let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>10&&stp<cw*.26){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/(W/2),ok=play.has(id);
   let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.18-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;
@@ -275,12 +277,12 @@ function sync(){if(!ready||!L||!active())return;
  for(let i=0;i<nv;i++){const key='dk'+i,m=ens(key,null);live.add(key);m.userData.hit={t:'deck'};hits.push(m);m.userData.nw=0;
   target(m,SC,v3(L.deck.x+(i%2)*.006,.012+i*CT*L.ps*1.5,L.deck.z),Qe(0,(i%3-1)*.012,Math.PI),L.ps*1.1,{ms:250})}
  const hand=me>=0&&Array.isArray(G.hands[me])?G.hands[me]:[],canD=mine&&G.step=='play'&&!G.ad,play=new Set(mine&&!G.ad?hand.filter(uok):[]);
- glow('deck',v3(L.deck.x,.004,L.deck.z),CW*L.ps*1.4,CH*L.ps*1.3,0xffd54a,canD?(play.size?.3:.95):0,{t:'deck'});
+ glow('deck',v3(L.deck.x,.004,L.deck.z),CW*L.ps*1.4,CH*L.ps*1.3,0xffd54a,canD?(play.size?.25:.7):0,{t:'deck'});
  // descarte: las últimas cartas que han caído, un poco desordenadas
  if(top!=null&&pile[pile.length-1]!==top){pile=pile.filter(x=>x!==top);pile.push(top);if(pile.length>7)pile.shift()}
  pile.forEach((id,i)=>{const key='c'+id,h=hh(id),fk=from[id],m=ens(key,id,fk!=null&&fk!==me?seatW(fk):null);live.add(key);m.userData.hit={t:'disc'};hits.push(m);
   go(m,SC,v3(L.disc.x+((h%13)-6)*.022,.012+i*CT*L.ps*1.6,L.disc.z+(((h>>5)%11)-5)*.022),Qe(0,((h>>9)%41-20)*.02,0),L.ps*1.1,{spin:fk!=null?Math.PI*2:0})});
- glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.55,CH*L.ps*1.45,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.8:.45,{t:'disc'});
+ glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.55,CH*L.ps*1.45,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
  for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
@@ -336,7 +338,7 @@ function pMove(e){if(!active())return;
  if(!drag)return;const m=drag.m;m.position.copy(loc(e.clientX,e.clientY-L.ch*.15,D-.5));m.quaternion.setFromAxisAngle(X,Math.PI/2-.1);m.scale.setScalar(m.userData.T.s*1.08);
  // ¿encima del descarte?
  const t=pick(e,hits.filter(o=>o.userData.hit&&o.userData.hit.t=='disc'));drag.tgt=t;
- const g=glows.get('disc');if(g)g.userData.lvl=t?.95:.45}
+ const g=glows.get('disc');if(g)g.userData.lvl=t?.7:.3}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}
  if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}
@@ -401,7 +403,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  return o}
 function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
  document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
-  el.style.transform=`translate(${Math.max(hw,Math.min(W-hw,x))}px,${Math.max(hh2+y0,Math.min(H-hh2,y))}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
+  const X=Math.max(hw,Math.min(W-hw,x)),Y=GHUD.dodge(X,Math.max(hh2+y0,Math.min(H-hh2,y)),hw,hh2,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
  // nombres de las pilas: abajo de cada una (en celular parado, el del mazo va arriba de él)
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
  const dz=CH*L.ps*1.1/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+(L.por?-dz:dz)),L.por);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}

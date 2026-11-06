@@ -41,11 +41,14 @@ function ajustes(rows,btns){const mus=typeof musName=='function'?musName():null,
  ${btns?`<div class="gj-btns">${btns}</div>`:''}`}
 // ventanita de una mesa de la casa (Conecta 4, Backgammon, Cubilete, Ir a…): tarjeta a la derecha en compu, hoja de abajo en celular
 const win=(title,body,close,cls)=>`<div id="h3win" class="ui ui-sheet h3w${cls?' '+cls:''}${$('h3win')?' ya':''}" role="dialog" aria-label="${title.replace(/<[^>]+>/g,'').replace(/"/g,'')}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div><div class="ui-bd">${body}</div></div>`;
+// nombre de un jugador (centro x,y; medio ancho y alto hw,hh) que caería encima del botón Cuadrar: se sube o se baja, lo que quede más cerca (sin pasar de y0)
+function dodge(x,y,hw,hh,y0){const e=$('gjView'),r=e&&e.style.display!='none'&&e.getBoundingClientRect();if(!r||!r.height)return y;
+ if(x+hw<r.left||x-hw>r.right||y+hh<r.top||y-hh>r.bottom)return y;const up=r.top-hh-4,dn=r.bottom+hh+4;return up-hh>=(y0||0)&&y-up<dn-y?up:dn}
 // el scroll del panel no se pierde al redibujar: save() antes de armar el HTML, restore() después
 function save(){const b=$('gjBd');scroll=b?b.scrollTop:0}
 function restore(){const b=$('gjBd');if(b)b.scrollTop=scroll}
 
-window.GHUD={win,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,save,restore,
+window.GHUD={win,dodge,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,save,restore,
  tab:k=>{tab=k;const b=$('gjBd');if(b)b.scrollTop=0;tick();rr()},
  tema:t=>{UI.setTema(t);tick();rr()},
  mus:n=>{if(typeof musCyc!='function')return;for(let i=0;i<4&&musName()!==n;i++)musCyc();rr()},

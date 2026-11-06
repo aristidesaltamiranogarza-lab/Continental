@@ -5,14 +5,7 @@ Lista corta de lo que falta. El plan completo está en ROADMAP_CASA.md.
 ## Lista del 6 nov 2026 (de las fotos del celular), en orden
 Probar todo en celular **vertical y horizontal, también en 21:9** (360×840 y 840×360).
 
-**Tanda 1 · bugs rápidos que se ven feo**
-- Piso del sótano con cuadriculado raro.
-- Cartas de UNO demasiado iluminadas, peor cuando están juntas (el brillo se suma).
-- "Cuadrar" se pone encima del nombre del rival (Continental y Uno); en Uno vertical tapa el nombre ("papiari / 7 carta") y asoma un "¡UNO!" detrás.
-- Continental: las pastillas "Mazo · 91" y "Descarte" tapan las cartas; el aviso para robar sale dos veces (arriba y abajo de la mano).
-- Continental: la cámara puede quedar metida dentro del puff rojo (pantalla roja completa).
-- Sótano: barra negra vacía a la izquierda bajo el botón de sonido; "Billar" encimado con "Blackjack"; la mesa de Ruleta Rusa se ve sin su foco.
-- Uno vertical: el aviso "¡UNO! Ana" cubre casi toda la pantalla; la mano se sale por la izquierda; el botón "¡UNO!" se ve deslavado.
+**Tanda 1 · hecha (6 nov)**: piso del sótano sin cuadrícula, brillo de UNO bajo las cartas, nombres que esquivan Cuadrar, pastillas del mazo, aviso doble, cámara dentro de muebles, letreros encimados, mano de Uno en vertical y aviso ¡UNO! en Cálida. La "barra negra" de la izquierda era la isla dinámica del iPhone (no es del juego). Falta confirmarlo en el celular.
 
 **Tanda 2 · tomates**: se quedan (dan risa), pero que nunca tapen la mano, los botones ni bloqueen jugar.
 
