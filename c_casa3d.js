@@ -125,7 +125,7 @@ function buildHouse(){
  if(window.CPB)CPB.build({SC,OB,hits,std,box,cyl,ctex,HX,ZB,ZF,PB});
  // letrero de la casa en la pared del fondo
  const logo=ctex('logo',512,128,(g,w,h)=>{g.fillStyle='#2a1a10';rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#c9a24a';g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
-  g.font='bold 54px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4d58a';g.fillText('🎴 Casa de juegos',w/2,h/2+3)});
+  g.font='bold 54px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4d58a';g.fillText('gamemash',w/2,h/2+3)});
  const lg=new THREE.Mesh(new THREE.PlaneGeometry(6,1.5),std(0xffffff,.6,{map:logo}));lg.position.set(0,6.6,ZB+.08);SC.add(lg);
  // sofá a la derecha, librero a la izquierda, plantas en las esquinas
  const sofa=std(0x2f4a5a,.85),sx=HX-1.4,sz=8.2;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=-Math.PI/2;SC.add(so);
@@ -372,7 +372,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  let o=window.CHUD?CHUD.html({piso:FL.id,n,name:pname,touchy,fp:fpOn(),canFp:!!window.CAV,busy,
   people:[{n:(pname||'').trim()||'Tú',f:FL.id,me:1},...[...others.values()].map(a=>({n:a.name,f:a.f}))]}):'';
  TB.forEach(t=>{const G=GM[t.g],{pl,op}=tinfo(t.g),sub=t.g===sel?'aquí':[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas';
-  o+=`<div class="ui ui-fx ui-glass h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')">${G.emoji} <b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
+  o+=`<div class="ui ui-fx ui-glass h3sign${t.g===sel?' on':''}${op.length?' open':''}" data-g="${t.g}" onclick="casaGo('${t.g}')"><b>${window.lobbyName?lobbyName(t.g):G.name}</b><small>${sub}</small></div>`});
  if(msg&&!busy)o+=`<div class="ui ui-fx t3msg">${esc(msg)}</div>`;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&code&&code.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass">Te invitaron a la sala <b>${esc(code)}</b><button class="ui-btn" onclick="joinR()">Unirme</button></div>`;

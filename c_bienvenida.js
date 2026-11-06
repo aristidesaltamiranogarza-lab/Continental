@@ -51,7 +51,7 @@ const pend=()=>!!document.getElementById('bnv');
 function show(){
  let q=saved||(touchy?'medio':'completo');
  const el=document.createElement('div');el.id='bnv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','bnvt');
- el.innerHTML=`<div class="bnv-box"><h1 id="bnvt">🏠 Casa de juegos</h1>
+ el.innerHTML=`<div class="bnv-box"><h1 id="bnvt">gamemash</h1>
  <label class="bnv-l" for="bnvn">¿Cómo te llamas?</label>
  <div class="bnv-n"><input id="bnvn" maxlength="14" autocomplete="nickname" spellcheck="false"><button type="button" class="bnv-dado" title="Otro nombre al azar" aria-label="Otro nombre al azar">🎲</button></div>
  <div class="bnv-e" id="bnve" aria-live="polite"></div>

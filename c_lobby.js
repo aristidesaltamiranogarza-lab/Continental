@@ -16,7 +16,7 @@ const avc=n=>{let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))|0;return
 const cajas=(sel,fn)=>`<div class="lb-cajas" role="radiogroup" aria-label="Juego">${lista().map(k=>`<button class="lb-caja${k===sel?' on':''}" style="--f:${COL[k]||'#C2512A'}" role="radio" aria-checked="${k===sel}" onclick="${fn}('${k}')"><span class="ic">${ico(k)}</span><b>${es(nom(k))}</b></button>`).join('')}</div>`;
 const cab=(k,sub,der)=>`<div class="lb-cab" style="--c:${COL[k]||'#C2512A'}"><span class="lb-ic">${ico(k)}</span><div class="lb-t"><small>${sub}</small><b>${es(nom(k))}</b></div>${der||''}</div>`;
 const tema=()=>`<button class="ui-rb" onclick="LOBBY.tema()" aria-label="Cambiar a tema ${window.UI&&UI.noche()?'de día':'de noche'}">${I(window.UI&&UI.noche()?'sol':'luna')}</button>`;
-const top=()=>`<header class="lb-top"><div class="lb-marca"><span class="lb-logo">${I('casa')}</span><div><small>Casa de juegos</small><h1>Juegos de cartas</h1></div></div>${tema()}</header>`;
+const top=()=>`<header class="lb-top"><div class="lb-marca"><span class="lb-logo">${I('casa')}</span><div><small>gamemash</small><h1>Juegos de cartas</h1></div></div>${tema()}</header>`;
 
 // solo Continental (fondo, cartas, reverso) y Uno (letra del color) tienen estilo de mesa 2D; va en un plegable chico
 let abre=false;
@@ -66,7 +66,7 @@ window.LOBBY={home,sala,carga:t=>{on();return `<div class="lb-carga" role="progr
  elige:k=>{pgame=k;render()},
  juego:k=>{if(V&&V.host&&k!==V.game)send({t:'game',g:k})},
  tema:()=>{if(window.UI)UI.setTema(UI.noche()?'dia':'noche');render()},
- invita:()=>{if(!V)return;const u=location.origin+'/#'+V.code;if(navigator.share)navigator.share({title:'Casa de juegos',text:'¡Ven a jugar '+nom(V.game)+' conmigo! Código '+V.code,url:u}).catch(()=>{});
+ invita:()=>{if(!V)return;const u=location.origin+'/#'+V.code;if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(V.game)+' conmigo! Código '+V.code,url:u}).catch(()=>{});
   else if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>banner('Enlace copiado ✓'),()=>copyT(u));else copyT(u)},
  salir:()=>{if(!V)return;if(V.host){if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}}else leave()}};
 window.home=LOBBY.home;   // c_casa3d.js la envuelve (se carga después)
