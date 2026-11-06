@@ -106,7 +106,7 @@ function calle(k){const {ctex}=k,RT=new THREE.Group();RT.name='calle';CIELO.mund
  const pat=ctex('patina',256,256,(g,w,h)=>{const r=sr(9);g.fillStyle='#f4f1ea';g.fillRect(0,0,w,h);
   for(let i=0;i<40;i++){g.fillStyle=i%3?'rgba(90,70,50,.05)':'rgba(255,255,255,.08)';g.beginPath();g.ellipse(r()*w,r()*h,10+r()*50,8+r()*30,r()*3,0,7);g.fill()}
   for(let i=0;i<14;i++){const x=r()*w,l=20+r()*70,gr=g.createLinearGradient(0,0,0,l);gr.addColorStop(0,'rgba(70,60,50,.14)');gr.addColorStop(1,'rgba(70,60,50,0)');g.fillStyle=gr;g.fillRect(x,0,3+r()*6,l)}});
- const LA=LOTE(),LB=LOTE(),L=LOTE(),LF=LOTE(),VL=LOTE(),LV=LOTE();
+ const LA=LOTE(),LB=LOTE(),L=LOTE(),LF=LOTE(),VL=LOTE();
  const plano=(Lx,x0,x1,z0,z1,y)=>{const w=x1-x0,d=z1-z0,g=new THREE.PlaneGeometry(w,d),u=g.attributes.uv;for(let i=0;i<u.count;i++)u.setXY(i,u.getX(i)*w,u.getY(i)*d);
   g.rotateX(-Math.PI/2);Lx.geo(g,0xffffff,(x0+x1)/2,y,(z0+z1)/2)};
  // arroyo, calles de las esquinas, banquetas con su guarnición
@@ -133,21 +133,13 @@ function calle(k){const {ctex}=k,RT=new THREE.Group();RT.name='calle';CIELO.mund
   L.cyl(.32,.46,6.2,0x7a6a58,x,3.3,z,10);L.cyl(.48,.48,1.5,0xf4f1ea,x,.95,z,10);
   for(let i=0;i<4;i++)L.rama(0x6a5a48,x,5.6,z,3.2,.22,.12,i/4*Math.PI*2+.4,.75);
   for(let i=0;i<18;i++)LF.bola(1.3+rnd()*.8,1.15,.85,1.15,pick([0x2f5a2a,0x3a6b32,0x2a4f25,0x447a38]),x+(rnd()-.5)*7,8.4+rnd()*3.6,Math.min(25.4,Math.max(21.6,z+.8+(rnd()-.5)*4.4)))}
- // vocho estacionado junto a la banqueta
- {const X=7.5,Y=YA,Z=25.2,C=0x5fb3c9,CH=0xd0d2d4,GL=0x1d2832,v=(w,h,d,c,x,y,z,ry,rx,rz)=>LV.box(w,h,d,c,X+x,Y+y,Z+z,ry,rx,rz),
-   sp=(sx,sy,sz,c,x,y,z,half)=>LV.geo(new THREE.SphereGeometry(1,20,12,0,Math.PI*2,0,half?Math.PI/2:Math.PI).scale(sx,sy,sz),c,X+x,Y+y,Z+z);
-  v(5.4,.62,2.1,C,-.1,.95,0);sp(2.1,1.3,1.1,C,.3,1.26,0,1);sp(1.6,.72,1.02,C,-1.9,1.2,0,1);sp(1.25,.95,1.02,C,2.1,1.2,0,1);
-  [[-2.05,1],[-2.05,-1],[2.1,1],[2.1,-1]].forEach(([x,s])=>{sp(.95,.62,.42,C,x,.98,s);
-   LV.geo(new THREE.CylinderGeometry(.6,.6,.42,16),0x161616,X+x,Y+.6,Z+s*1.06,0,Math.PI/2,0);LV.geo(new THREE.CylinderGeometry(.3,.3,.44,12),CH,X+x,Y+.6,Z+s*1.06,0,Math.PI/2,0)});
-  v(.03,.62,1.42,GL,-1.4,2,0,0,0,-.62);v(.03,.42,1,GL,2.05,2.02,0,0,0,.72);
-  [-1,1].forEach(s=>{v(2.3,.55,.03,GL,.38,1.98,s*.97,0,-s*.3,0);v(2.3,.1,.26,0x222222,.1,.72,s*1.17);
-   LV.geo(new THREE.SphereGeometry(.2,10,8),0xf4f0d8,X-2.78,Y+1.42,Z+s);v(.08,.22,.16,0xc62828,3.2,1.32,s*.98)});
-  v(.16,.17,2.3,CH,-3.42,.84,0);v(.16,.17,2.3,CH,3.32,.84,0);v(.04,.3,.9,0xf2f2ea,-3.52,.84,0);v(.04,.3,.9,0xf2f2ea,3.42,.84,0)}
+ // vocho estacionado junto a la banqueta (c_casa_vocho.js)
+ if(window.VOCHO){const V=VOCHO.hazlo(0xf5c518);V.position.set(7.5,YA,25.2);RT.add(V)}
  // luces de noche: el poste de la casa y los faroles del portón
  const lp=new THREE.PointLight(0xffd9a0,0,34,1.2);lp.position.set(POS[0],10.1,POS[1]+2.6);RT.add(lp);luz(lp,70);
  const lz=new THREE.PointLight(0xffc98a,0,16,1.5);lz.position.set(0,6.2,FZ+1.4);RT.add(lz);luz(lz,24);
  const cop=LF.mesh(new THREE.MeshLambertMaterial({flatShading:true}));zona([cop],[LAU[0]-5.2,LAU[0]+5.2,6.6,13.8,19.2,27.8]);   // la copa del laurel se esconde si tapa a tu Mii
- RT.add(LA.mesh(new THREE.MeshLambertMaterial({map:asf})),LB.mesh(new THREE.MeshLambertMaterial({map:ban})),L.mesh(new THREE.MeshLambertMaterial()),cop,vidrio(VL.mesh(new THREE.MeshBasicMaterial()),0xd8d2c0),LV.mesh(new THREE.MeshStandardMaterial({roughness:.4,metalness:.1})));
+ RT.add(LA.mesh(new THREE.MeshLambertMaterial({map:asf})),LB.mesh(new THREE.MeshLambertMaterial({map:ban})),L.mesh(new THREE.MeshLambertMaterial()),cop,vidrio(VL.mesh(new THREE.MeshBasicMaterial()),0xd8d2c0));
  // los vecinos: de este lado (con árboles en sus patios) y enfrente; cada bloque se esconde si tapa a tu Mii
  const mC=new THREE.MeshLambertMaterial({map:pat}),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
  const lado=(xs,s,arb,b)=>{const Lc=LOTE(),Lv=LOTE(),Lf=LOTE();xs.forEach(([a,c])=>fila(Lc,Lv,Lf,a,c,s,arb));const G=new THREE.Group();
@@ -166,19 +158,20 @@ function casa(L,V,F,x0,x1,s,arb){const zf=s>0?FZ:ZE,w=x1-x0,cx=(x0+x1)/2,o=k=>zf
   dd=14+rnd()*12,c=pick(PAL),cr=rnd()<.7?CR:0xf7f2e6,mad=pick(MADS),lejos=Math.abs(cx)>95;
  L.box(w,hr,dd,c,cx,hr/2,o(-dd/2));L.box(w,.12,dd-.3,pick(AZO),cx,hr+.06,o(-dd/2-.15));          // la casa y su azotea
  L.box(w,1,.3,c,cx,hr+.5,o(-.15));L.box(w+.04,.14,.44,cr,cx,hr+1.07,o(-.1));                     // pretil
- L.box(w,.36,.34,cr,cx,hr-.3,o(.17));L.box(w,.16,.2,cr,cx,hr-.62,o(.1));L.box(w,1,.1,dk(c),cx,.5,o(.05));   // cornisa y zócalo
+ L.box(w,.36,.34,cr,cx,hr-.3,o(.17));L.box(w,.16,.2,cr,cx,hr-.62,o(.1));   // cornisa (el zócalo va al final, sin pasar por la puerta)
  [x0+.25,x1-.25].forEach(px=>L.box(.5,hr-.8,.12,cr,px,(hr-.8)/2,o(.06)));if(dos)L.box(w,.3,.16,cr,cx,8.9,o(.08));
  if(rnd()<.55)L.cyl(.75,.75,1.5,0x1c1c1c,cx+(rnd()-.5)*(w-2.5),hr+.87,o(-2-rnd()*(dd-4)),12);   // tinaco
- const n=w>10.5?3:2,pd=(rnd()*n)|0,paso=(w-1.6)/n;
- for(let i=0;i<n;i++){const px=x0+.8+paso*(i+.5);if(i===pd)puerta(L,px,o,mad,cr);else ventana(L,V,px,o,mad,cr,lejos,.9,Math.min(hr-2.4,4.2+rnd()*.7));
+ const n=w>10.5?3:2,pd=(rnd()*n)|0,paso=(w-1.6)/n;let dr=null;
+ for(let i=0;i<n;i++){const px=x0+.8+paso*(i+.5);if(i===pd)dr=puerta(L,px,o,mad,cr);else ventana(L,V,px,o,mad,cr,lejos,.9,Math.min(hr-2.4,4.2+rnd()*.7));
   if(dos){L.box(2.7,.2,.95,cr,px,9.7,o(.47));if(!lejos){for(let j=0;j<9;j++)L.box(.04,1.1,.04,HI,px-1.28+j*.32,10.35,o(.9));L.box(2.7,.06,.06,HI,px,10.92,o(.9))}
    ventana(L,V,px,o,mad,cr,lejos,9.9,Math.min(hr-11.4,3.6))}}
+ (dr?[[x0,dr[0]],[dr[1],x1]]:[[x0,x1]]).forEach(([a,b])=>{if(b-a>.02)L.box(b-a,1,.1,dk(c),(a+b)/2,.5,o(.05))});   // zócalo
  if(arb&&rnd()<.6){const tz=Math.max(-40,zf-dd-3-rnd()*9),tx=cx+(rnd()-.5)*(w-3),h=4.5+rnd()*3,fl=rnd()<.25;L.cyl(.24,.34,h,0x6b5a48,tx,h/2,tz,7);
   for(let i=0;i<6;i++)F.bola(1.5+rnd()*.9,1.2,.9,1.2,fl&&i%2?pick([0xe8401c,0xf2562a]):pick(VERD),tx+(rnd()-.5)*3.2,h+rnd()*2.4,tz+(rnd()-.5)*3.2)}}
 function puerta(L,px,o,mad,cr){const dw=2+rnd()*.5,dh=4.6+rnd()*.5;
  L.box(dw,dh,.02,0x120e0a,px,dh/2,o(.01));L.box(dw-.08,dh-.06,.06,mad,px,dh/2,o(.04));
  [-1,1].forEach(k=>[.3,.72].forEach(f=>L.box(dw/2-.35,dh*.3,.03,dk(mad,.8),px+k*dw/4,dh*f,o(.085))));
- L.box(.3,dh+.35,.14,cr,px-dw/2-.15,(dh+.35)/2,o(.07));L.box(.3,dh+.35,.14,cr,px+dw/2+.15,(dh+.35)/2,o(.07));L.box(dw+.9,.42,.18,cr,px,dh+.35,o(.09))}
+ L.box(.3,dh+.35,.14,cr,px-dw/2-.15,(dh+.35)/2,o(.07));L.box(.3,dh+.35,.14,cr,px+dw/2+.15,(dh+.35)/2,o(.07));L.box(dw+.9,.42,.18,cr,px,dh+.35,o(.09));return [px-dw/2-.3,px+dw/2+.3]}
 function ventana(L,V,px,o,mad,cr,lejos,y0,wh){const ww=1.5+rnd()*.5,yc=y0+wh/2;
  L.box(ww,wh,.02,0x15110d,px,yc,o(.01));
  if(rnd()<.5)[-1,1].forEach(k=>L.box(ww/2-.04,wh-.08,.05,mad,px+k*ww/4,yc,o(.035)));
