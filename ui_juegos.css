@@ -162,8 +162,8 @@ html.c3c4 .gj-seat,html.c3c4 .gj-pl{opacity:0;pointer-events:none}
 @media (max-width:600px){.t3apg{grid-template-columns:repeat(3,1fr)}}
 
 /* ===== Monopoly Deal en la casa 3D (c_mdeal_hud.js pone html.mdui; el modo 2D Ligero no lo usa) ===== */
-html.mdui body{background:#F3E7D3;color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
-html.mdui[data-tema=noche] body{background:#1E1510}
+html.mdui body{background:var(--g2bg,#F3E7D3);color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
+html.mdui[data-tema=noche] body{background:var(--g2bg,#1E1510)}
 html.mdui body::before,html.mdui body::after,html[data-game="md"] body::before{display:none}
 html.mdui[data-game="md"] #app{padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 0}
 .md-menu{position:fixed;z-index:22;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(14px + env(safe-area-inset-right,0px));width:46px;height:46px}
@@ -236,10 +236,17 @@ html.mdui[data-game="md"] .mdhb{font:700 14px var(--ui-font);gap:6px}
 .ban{top:24%;width:max-content;max-width:calc(100% - 32px);margin:0 auto;padding:10px 22px;border-radius:999px;background:var(--ui-panel);color:var(--ui-text);font:800 clamp(18px,4.6vw,28px)/1.2 var(--ui-font);text-shadow:none;box-shadow:var(--ui-shadow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 🍅 en los juegos 3D: a media altura a la derecha, donde no hay mano, atril ni botones (abajo tapaba las fichas del Rummy en vertical). Mérida y YuCATÁN (.mrui) lo acomodan ellos */
 html:not(.mrui) #tombtn{bottom:auto;top:calc(50% - 28px);right:calc(env(safe-area-inset-right,0px) + 12px)}
-/* ===== Continental y UNO en "Vista clásica 2D" dentro de la casa (c_juegos2d.js pone html.g2dui; el 2D Ligero no carga este archivo) ===== */
+/* ===== Pantallas clásicas de Continental, UNO y Monopoly Deal dentro de la casa (c_juegos2d.js pone html.g2dui y html[data-gcol]; el 2D Ligero no carga este archivo) ===== */
+/* color de cada juego (también en su 3D y en su sala) */
+html[data-gcol=continental]{--ui-accent:#2F7A4D;--ui-icon:#2F7A4D;--ui-chip:rgba(47,122,77,.12);--g2bg:#ECEAD6}
+html[data-tema=noche][data-gcol=continental]{--ui-accent:#6CC48F;--ui-icon:#7FD3A0;--ui-chip:rgba(108,196,143,.10);--g2bg:#14201A}
+html[data-gcol=uno]{--ui-accent:#C8322A;--ui-icon:#C8322A;--ui-chip:rgba(200,50,42,.10);--g2bg:#F6E3D6}
+html[data-tema=noche][data-gcol=uno]{--ui-accent:#FF7B66;--ui-icon:#FF8E7C;--ui-chip:rgba(255,123,102,.10);--g2bg:#25130F}
+html[data-gcol=monopolydeal]{--ui-accent:#1F6E8C;--ui-icon:#1F6E8C;--ui-chip:rgba(31,110,140,.11);--g2bg:#ECE8DC}
+html[data-tema=noche][data-gcol=monopolydeal]{--ui-accent:#6DB8D6;--ui-icon:#82C6E0;--ui-chip:rgba(109,184,214,.10);--g2bg:#121B20}
 html.g2dui:root[data-game]{--bg:#F3E7D3;--panel:var(--ui-sheet);--ink:var(--ui-text);--acc:var(--ui-accent);--sel:var(--ui-accent);--seatbg:var(--ui-sheet)}
-html.g2dui[data-game] body{background:#F3E7D3;color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
-html.g2dui[data-game][data-tema=noche] body{background:#1E1510}
+html.g2dui[data-game] body{background:var(--g2bg,#F3E7D3);color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
+html.g2dui[data-game][data-tema=noche] body{background:var(--g2bg,#1E1510)}
 html.g2dui body::before,html.g2dui body::after{display:none}
 html.g2dui #app{padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 14px}
 html.g2dui #app h1{font:800 1.6em var(--ui-font);color:var(--ui-text);-webkit-text-stroke:0;text-shadow:none;text-align:center}
@@ -276,3 +283,7 @@ html.g2dui #app .slot.over{background:var(--ui-chip);border-color:var(--ui-accen
 html.g2dui #app .slot .sl,html.g2dui #app .slot .ph{font-family:var(--ui-font)}
 html.g2dui #app .sw{border:3px solid var(--ui-line)}
 html.g2dui #app .sw.on{border-color:var(--ui-accent);box-shadow:0 0 0 2px var(--ui-sheet)}
+html.g2dui #app table{font:600 14px/1.3 var(--ui-font);color:var(--ui-text)}
+html.g2dui #app th{color:var(--ui-sub);font-weight:800}
+html.g2dui #app th,html.g2dui #app td{border-color:var(--ui-line)}
+html.g2dui #app tr:last-child th,html.g2dui #app tr:last-child td{color:var(--ui-accent);font-weight:800}

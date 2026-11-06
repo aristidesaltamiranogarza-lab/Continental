@@ -9,7 +9,7 @@ Probar todo en celular **vertical y horizontal, también en 21:9** (360×840 y 8
 
 **Tanda 2 · hecha (6 nov)**: tomatazos a ti chicos, en la franja de en medio, transparentes y máximo 4 (la "pantalla roja" de las fotos eran tomates, no la cámara en el puff). En Rummy y Ruleta ya llegan al nombre del jugador. En los 3D el botón 🍅 va a media altura a la derecha.
 
-**Tanda 3 · hecha (6 nov)**: la "Vista clásica 2D" de Continental y UNO dentro de la casa va en Cálida (c_juegos2d.js pone html.g2dui; estilos en ui_juegos.css, sin tocar el 2D Ligero). Monopoly Deal ya lo estaba (c_mdeal_hud.js). Falta verlo en el celular.
+**Tanda 3 · hecha (6 nov)**: todas las pantallas clásicas de Continental, UNO y Monopoly Deal dentro de la casa (fin de ronda, final, sala, "Vista clásica 2D") van en Cálida con un color por juego: Continental verde, UNO rojo, Monopoly Deal azul (c_juegos2d.js pone html.g2dui y data-gcol; estilos en ui_juegos.css, sin tocar el 2D Ligero). Falta verlo en el celular.
 
 **Tanda 4 · Miis, última mejora** (los definitivos). Antes de la Ruleta. Falta que Aris diga qué cambiar.
 
