@@ -408,7 +408,7 @@ home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la b
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 // "Ir a…" (c_casa_ir.js): fundido y apareces junto a esa mesa (o el Cubilete / los juegos sueltos), cambiando de piso si hace falta
-function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:1.15}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1});if(!t)return;
+function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:.8}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1});if(!t)return;
   const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;picked=t.door?null:g;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,1.57,p.z);
   Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}

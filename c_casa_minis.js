@@ -1,4 +1,4 @@
-// Maquetas sobre las mesas de la casa (en vez de las cartitas): Mérida en Venta, YuCATÁN, Continental, Uno y Monopoly Deal.
+// Maquetas sobre las mesas de la casa (en vez de las cartitas): Mérida en Venta, YuCATÁN, Continental, Uno, Monopoly Deal y Rummy.
 // Todo con InstancedMesh y geometrías/materiales compartidos: ~8 draw calls por mesa. MINI.pon(G, juego, alturaDeLaMesa, hit) → true si puso algo.
 (function(){
 const T=()=>window.THREE,TAU=Math.PI*2;let K=null;
@@ -240,6 +240,46 @@ function monopolydeal(P){const k=kit(),rn=rnd(3),L=[],hs=[],q=Math.PI/4,B=1,M=v=
  cartas(P,atlas('monopolydeal',[canto('#f3eee2','#d2c8b2'),dorsoDeal,...DV.map(dinero),...DP.map(propiedad),comodin(DP[1][0],DP[0][0]),renta(DP[4][0],DP[5][0]),salida]),L);
  inst(k.house,k.pl,hs,P);taza(P,-1.5,-.05,.6)}
 
-window.MINI={pon(G,g,y,hit){const f={merida,haciendas:yucatan,continental,uno,monopolydeal}[g];if(!f||!T())return false;const P=new (T().Group)();P.position.y=y;P.rotation.y={merida:.18,haciendas:-.12}[g]||0;f(P);
+// ---------- Rummy: fichas de madera en sus atriles, series y escaleras al centro, la bolsa del pozo, el reloj de arena y una horchata ----------
+const RI=['#b3122e','#1f5fa8','#2b2b2b','#e08a0c'];
+function maderaR(g,w,h,s){const r=rnd(s||7),gr=g.createLinearGradient(0,0,w*.4,h);gr.addColorStop(0,'#f6e7c4');gr.addColorStop(1,'#e2c48f');g.fillStyle=gr;g.fillRect(0,0,w,h);
+ for(let i=0;i<14;i++){g.strokeStyle=`rgba(150,100,50,${.04+r()*.08})`;g.lineWidth=.8+r()*1.6;const y=r()*h;g.beginPath();g.moveTo(-4,y);g.bezierCurveTo(w*.3,y+(r()-.5)*16,w*.7,y+(r()-.5)*16,w+4,y+(r()-.5)*14);g.stroke()}
+ g.strokeStyle='rgba(120,80,40,.35)';g.lineWidth=8;g.strokeRect(0,0,w,h)}
+const fichaR=(n,c)=>(g,w,h)=>{maderaR(g,w,h,n*5+c+3);g.save();g.translate(w/2,h/2+4);
+ if(!n){g.fillStyle='#f6c34a';g.strokeStyle='#b5462a';g.lineWidth=5;g.beginPath();g.arc(0,-4,38,0,TAU);g.fill();g.stroke();g.fillStyle='#3a2a1a';[-13,13].forEach(x=>{g.beginPath();g.arc(x,-14,6,0,TAU);g.fill()});
+  g.lineWidth=6;g.lineCap='round';g.beginPath();g.arc(0,-2,21,.25,Math.PI-.25);g.stroke()}
+ else{g.rotate(((n*7+c*3)%5-2)*.02);txt(g,''+n,0,0,n>9?84:100,RI[c]);g.globalAlpha=.3;txt(g,''+n,2,-2,n>9?84:100,RI[c]);g.globalAlpha=1;if(n==6||n==9){g.fillStyle=RI[c];g.fillRect(-14,46,28,6)}}
+ g.restore()};
+function rummy(P){const THREE=T(),rn=rnd(5),L=[],k=kit(),q=Math.PI/4,TW=.17,TL=.23,TT=.045,TIL=.3;
+ const F=[],FI={},I=(n,c)=>{const key=n+'-'+c;if(FI[key]==null){FI[key]=2+F.length;F.push(fichaR(n,c))}return FI[key]},tf=(x,z,ry,top,y,b)=>L.push([x,(y||0)+TT/2,z,ry,[TW,TT,TL],null,0,0,[top,b==null?1:b,0]]);
+ // jugadas al centro (filas a lo largo de x, legibles desde la cámara)
+ [[-.62,-.5,[[3,0],[4,0],[5,0],[6,0],[7,0]]],[-.45,-.12,[[7,2],[7,1],[7,3]]],[-.7,.26,[[9,1],[10,1],[0,0],[12,1]]],[.28,.26,[[1,3],[2,3],[3,3]]],[.2,-.12,[[11,0],[11,2],[11,3]]]]
+  .forEach(([x0,z,f])=>f.forEach(([n,c],j)=>tf(x0+j*(TW+.012)+(rn()-.5)*.01,z+(rn()-.5)*.012,(rn()-.5)*.05,I(n,c))));
+ // atriles: tabla, escalón y tope (rack-local: el dueño en -z, el centro en +z)
+ [[2,2],[5,1],[8,3],[13,0],[1,2],[12,3],[4,1],[10,2],[6,3],[13,1]].forEach(([n,c])=>I(n,c));   // más fichas para los atriles (≤ 30 en el atlas)
+ const RB=[],W=10*(TW+.01)+.08,RV=Object.values(FI);
+ for(let s=0;s<4;s++){const a=(2*s+1)*q,th=-a-Math.PI/2,[cx,cz]=pos(a,1.62,0),ct=Math.cos(th),st=Math.sin(th),
+   at=(lx,ly,lz)=>[cx+ct*lx+st*lz,ly,cz-st*lx+ct*lz];
+  RB.push([...at(0,.0175,0),th,[W,.035,.34]],[...at(0,.055,.12),th,[W,.11,.1]],[...at(0,.05,-.15),th,[W,.03,.035]],[...at(-W/2+.015,.06,0),th,[.03,.12,.34]],[...at(W/2-.015,.06,0),th,[.03,.12,.34]]);
+  const n=s==1?8:10;for(let i=0;i<n;i++){const lx=(i-(n-1)/2)*(TW+.01),[x,y,z]=at(lx,.035+TL/2*Math.cos(TIL)-.004,-.08+TL/2*Math.sin(TIL));
+   L.push([x,y,z,th+Math.PI,[TW,TT,TL],null,Math.PI/2-TIL,0,[RV[(s*7+i*5)%RV.length],1,0]])}}
+ inst(k.box,mat(0x9a6438,.55),RB,P);
+ // fichas bocabajo junto a la bolsa del pozo
+ for(let i=0;i<7;i++){const a=rn()*TAU,d=.18+rn()*.3;tf(-1.38+Math.cos(a)*d+.22,.02+Math.sin(a)*d*.8,rn()*TAU,1,i>4?TT:0,1)}
+ cartas(P,atlas('rummy',[canto('#ead2a2','#d6b98a'),(g,w,h)=>maderaR(g,w,h,99),...F]),L);
+ // la bolsa de tela del pozo con su cordón
+ if(!K.bolsa){const p=[[0,0],[.13,.004],[.19,.04],[.205,.1],[.18,.165],[.11,.215],[.045,.245],[.036,.258],[.055,.272],[.095,.3],[.112,.322],[.1,.327],[.066,.302],[.032,.278]];
+  K.bolsa=new THREE.LatheGeometry(p.map(v2),36);{const a=K.bolsa.attributes.position;for(let i=0;i<a.count;i++){const x=a.getX(i),y=a.getY(i),z=a.getZ(i),f=1+Math.sin(Math.atan2(z,x)*9+y*14)*(y>.25?.14:.05);a.setX(i,x*f);a.setZ(i,z*f)}K.bolsa.computeVertexNormals()}const t=cv(128,128,g=>{g.fillStyle='#7a1f2b';g.fillRect(0,0,128,128);g.strokeStyle='rgba(255,220,180,.14)';g.lineWidth=1;for(let i=0;i<128;i+=3){g.beginPath();g.moveTo(i,0);g.lineTo(i,128);g.moveTo(0,i);g.lineTo(128,i);g.stroke()}});
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(6,3);K.bolsaM=mat(0xffffff,.95,{map:t,side:THREE.DoubleSide});K.cordon=new THREE.TorusGeometry(.04,.011,6,20)}
+ const b=new THREE.Mesh(K.bolsa,K.bolsaM);b.position.set(-1.42,0,-.16);b.rotation.set(.08,.6,-.1);b.castShadow=b.receiveShadow=true;P.add(b);
+ const cr=new THREE.Mesh(K.cordon,mat(0xe9c46a,.6));cr.rotation.x=Math.PI/2;cr.position.set(0,.257,0);b.add(cr);
+ // reloj de arena: tapas y postes de madera (un draw call), vidrio y arena
+ const hx=1.42,hz=-.08,hh=.3,RW=[[hx,.0125,hz,0,[.1,.025,.1]],[hx,hh-.0125,hz,0,[.1,.025,.1]]];for(let i=0;i<3;i++){const a=i/3*TAU;RW.push([hx+Math.cos(a)*.075,hh/2,hz+Math.sin(a)*.075,0,[.012,hh,.012]])}
+ if(!K.cil)K.cil=new THREE.CylinderGeometry(1,1,1,14);inst(K.cil,mat(0x6e4424,.5),RW,P);
+ const gl=new THREE.Mesh(new THREE.LatheGeometry([[0,.025],[.05,.03],[.058,.07],[.04,.12],[.009,.15],[.04,.18],[.058,.23],[.05,.27],[0,.275]].map(v2),18),mat(0xeef7f8,.05,{transparent:true,opacity:.3,depthWrite:false}));
+ const ar=new THREE.Mesh(new THREE.LatheGeometry([[0,.026],[.052,.032],[.046,.06],[0,.1],[0,.2],[.03,.215],[.007,.15],[0,.15]].map(v2),14),mat(0xe0b060,.9));
+ [gl,ar].forEach(m=>{m.position.set(hx,0,hz);P.add(m)});ar.renderOrder=-1;
+ vaso(P,.18,-1.38,0xf1e6cf,.09)}
+window.MINI={pon(G,g,y,hit){const f={merida,haciendas:yucatan,continental,uno,monopolydeal,rummy}[g];if(!f||!T())return false;const P=new (T().Group)();P.position.y=y;P.rotation.y={merida:.18,haciendas:-.12}[g]||0;f(P);
  P.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh&&hit)o.userData.hit=hit});G.add(P);return true}};
 })();
