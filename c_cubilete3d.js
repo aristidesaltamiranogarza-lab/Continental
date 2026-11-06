@@ -17,7 +17,7 @@ function build(e){if(E)return;E=e;if(e.x!=null){X=e.x;Z=e.z}const {THREE,SC,hits
   g.fillStyle=FC[v];g.font='bold '+(v==1?58:72)+'px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(FN[v],w/2,h/2+4)})}));
  for(let i=0;i<5;i++){const d=new THREE.Mesh(new THREE.BoxGeometry(.24,.24,.24),faces.slice());d.castShadow=true;d.userData.hit=hit;G.add(d);hits.push(d);dice.push(d);put(i,-1,0)}
  OB.push({x:X,z:Z,r:1.6});if(S)paint();
- sign=document.createElement('div');sign.className='ui ui-fx ui-glass h3sign';sign.dataset.g='cub';sign.innerHTML='🎲 <b>Cubilete</b><small>sin partidas</small>';sign.onclick=()=>CUB3.open();}
+ sign=document.createElement('div');sign.className='ui ui-fx ui-glass h3sign';sign.dataset.g='cub';sign.innerHTML='<img class="gic" src="iconos/cub.png" alt=""> <b>Cubilete</b><small>sin partidas</small>';sign.onclick=()=>CUB3.open();}
 // v: cara de arriba (-1: dado guardado en el cubilete); h: apartado
 function put(i,v,h){const d=dice[i],T=E.TH+.17;if(v<0){d.visible=false;return}d.visible=true;
  const m=d.material;for(let k=0;k<6;k++)m[k]=faces[(v+k+1)%6];m[2]=faces[v];   // +y = la cara que salió
@@ -40,7 +40,7 @@ function hud(busy){ if(!open||busy||!S)return '';const c=S,mine=c.p.find(p=>p.id
  const die=(v,i,h)=>`<button class="ui-rb cubd${h?' on':''}" ${my&&c.rolls>0&&c.rolls<3?`onclick="CUB3.a('hold',${i})"`:'disabled'} aria-label="Dado ${FN[v]}">${v<0?'·':FN[v]}</button>`;
  let st=c.msg?'🏆 '+esc(c.msg):c.st=='play'?(my?'<b>¡Tu turno!</b> '+(c.rolls?'Toca los dados que quieres apartar y vuelve a tirar, o plántate':'Tira los dados'):'Turno de '+nm(turn)+'…')
   :c.p.length<2?'Se juega de 2 o más. Espera a que alguien se una.':'Listos para empezar.';
- let h=GHUD.win('🎲 Cubilete',`
+ let h=GHUD.win('<img class="gic" src="iconos/cub.png" alt=""> Cubilete',`
   <div class="h3d">Dados de póker: 9, 10, J, Q, K, A. Hasta 3 tiros por turno. Cada ronda todos ponen ${c.ante} fichas; la mejor jugada se lleva el bote.
    <span class="h3n">Quintilla › Póker › Full › Corrida › Tercia › Dos pares › Par</span></div>
   <div class="cubp">${c.p.map(p=>`<div class="${turn&&turn.id===p.id?'on':''}${c.w.includes(p.id)?' w':''}"><span>${nm(p)}${p.id===me?' (tú)':''}</span><small>${p.r?esc(p.r.t):''}</small><b>🪙 ${p.f}</b></div>`).join('')||'<div><small>Nadie en la mesa todavía</small></div>'}</div>

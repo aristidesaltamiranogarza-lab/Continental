@@ -20,7 +20,7 @@ function build(e){if(!K||!K.mkC4)return;if(!E)E=e;const {SC,hits,OB,std}=e,cyl=(
  const ct=std(0x4a2c18,.5),{x:tx,z:tz}=BGP;box(4,.14,2.9,ct,tx,1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>box(.14,.95,.14,ct,tx+a,.48,tz+b));
  [-1,1].forEach(s=>{cyl(.75,.8,.9,std(0x7a2a2a,.85),tx+s*2.9,.45,tz,null,24);OB.push({x:tx+s*2.9,z:tz,r:.9})});
  BG=K.mkBG(SC,v3(tx,1.09,tz));hits.push(...BG.hits);OB.push({x:tx-1,z:tz,r:1.7},{x:tx+1,z:tz,r:1.7})}
- if(!signs.c4)[['c4','🔴','Conecta 4'],['bg','🎲','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='ui ui-fx ui-glass h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s});
+ if(!signs.c4)[['c4','<img class="gic" src="iconos/c4.png" alt="">','Conecta 4'],['bg','<img class="gic" src="iconos/bg.png" alt="">','Backgammon']].forEach(([t,ic,n])=>{const s=document.createElement('div');s.className='ui ui-fx ui-glass h3sign';s.dataset.g=t;s.innerHTML=`${ic} <b>${n}</b><small>sin partidas</small>`;s.onclick=()=>JG3.open(t);signs[t]=s});
  if(J){c4sync();bgSync()}}
 // ---------- estado ----------
 function sync(j,e){if(e)err=e;if(!j)return false;const k=JSON.stringify(j);if(k===snap)return !!e;const o=J;J=j;snap=k;
@@ -69,7 +69,7 @@ function hud(busy){if(!open||busy||!J)return '';const t=open,N=t=='c4'?'Conecta 
   else st=g.w==2?'Empate: se llenó el tablero':g.w==mi?(g.why?`🏆 ${nmk(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nmk(op)}</b>`);
   b=`<div class="h3d">${st}</div><div class="h3n">${chip(0)} ${nmk(g.p[0])}${t=='bg'?` (${g.off[0]}/15)`:''} vs ${chip(1)} ${nmk(g.p[1])}${t=='bg'?` (${g.off[1]}/15)`:''}</div>
    <div class="h3b">${t=='bg'&&my&&!g.mv.length?`<button class="ui-btn" onclick="${a('pass')}">Pasar turno</button>`:''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte?'))${a('end')}">Rendirse</button>`:`<button class="ui-btn" onclick="${a('inv',op)}">Revancha</button><button class="ui-btn sec" onclick="${a('end')}">Nueva partida</button>`}</div>`}
- return GHUD.win(`${t=='c4'?'🔴':'🎲'} ${N}`,b+(err?`<div class="h3m">${esc(err)}</div>`:''),'JG3.close()')}
+ return GHUD.win(`<img class="gic" src="iconos/${t}.png" alt=""> ${N}`,b+(err?`<div class="h3m">${esc(err)}</div>`:''),'JG3.close()')}
 // ---------- animación y letreros ----------
 // fl: el piso donde estás (solo se anima y se ve el letrero del juego de ese piso)
 function step(now,toPx,W,fl){const here=t=>(t=='c4'?C4:BG)&&FLG[t]===(fl||'pb');

@@ -9,11 +9,11 @@ const PISOS=[
  {id:'alta',n:'📚 Planta alta',g:['merida','haciendas','bg']},
  {id:'pb',n:'🏠 Planta baja',g:['continental','uno','monopolydeal']},
  {id:'sot',n:'🕯️ Sótano',g:['ruleta','cub']}];
-const ICO=k=>`<img class="cir-ic" src="iconos/${k}.png" alt="" style="width:22px;height:22px;vertical-align:middle">`;
+const ICO=k=>`<img class="gic" src="iconos/${k}.png" alt="">`;
 const SUELTOS={cub:[ICO('cub'),'Cubilete'],c4:[ICO('c4'),'Conecta 4'],bg:[ICO('bg'),'Backgammon']};
 const es=s=>typeof esc=='function'?esc(s):String(s);
 function info(g){const H=window.CASA3D;
- if(g=='cub'){if(!window.CUB3)return null;const n=CUB3.n();return {e:'🎲',t:'Cubilete',s:n?n+(CUB3.play()?' jugando':' en la mesa'):'sin partidas',on:n>0}}
+ if(g=='cub'){if(!window.CUB3)return null;const n=CUB3.n();return {e:ICO('cub'),t:'Cubilete',s:n?n+(CUB3.play()?' jugando':' en la mesa'):'sin partidas',on:n>0}}
  if(SUELTOS[g])return window.JG3&&JG3.P&&JG3.P[g]?{e:SUELTOS[g][0],t:SUELTOS[g][1],s:'',on:false}:null;
  const G=typeof GM!='undefined'&&GM[g];if(!G)return null;const {pl,op}=H.tinfo(g);
  return {e:G.emoji,t:window.lobbyName?lobbyName(g):G.name,s:[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas',on:pl>0||op.length>0}}
