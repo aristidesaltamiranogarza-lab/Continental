@@ -136,3 +136,5 @@ html[data-tema=noche] .uh-ai{background:rgba(0,0,0,.14)}
 .uh-cod .ui-in{border-radius:999px;text-transform:uppercase;letter-spacing:.12em}
 .uh-err{margin:10px 2px 0;color:var(--ui-accent);font-weight:800}
 .gic{width:1.5em;height:1.5em;vertical-align:-.4em;object-fit:contain}
+span.gic{display:inline-block}span.gic svg{width:100%;height:100%;display:block}
+.pic{width:1.2em;height:1.2em;vertical-align:-.22em;margin-right:.15em}

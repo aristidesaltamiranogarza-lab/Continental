@@ -11,7 +11,7 @@ function floors(){const H=window.CASA3D,here=H.piso();
   const t=can?p.g.map(g=>{const i=CIR.info(g);if(!i)return '';
    return `<button class="dht${i.on?' on':''}" data-k="${p.id}:${g}" onclick="DH.go('${p.id}','${g}')" aria-label="${es(i.t)}: ${es(i.s||'mesa')}"><b>${i.e}</b><span>${es(i.t)}</span><small>${es(i.s||'mesa')}</small></button>`}).join(''):'';
   return `<div class="dhf dh-${p.id}${me?' here':''}${can?'':' off'}"${can?` onclick="if(event.target===this)DH.go('${p.id}')"`:''}>
-<button class="dhn" data-k="${p.id}" ${can?`onclick="DH.go('${p.id}')"`:'disabled'} aria-label="${es(p.n)}${me?', estás aquí':''}">${p.n}${me?' <em>📍 estás aquí</em>':can?'':' <em>pronto</em>'}</button>
+<button class="dhn" data-k="${p.id}" ${can?`onclick="DH.go('${p.id}')"`:'disabled'} aria-label="${es(p.n)}${me?', estás aquí':''}">${p.i||''} ${p.n}${me?' <em>📍 estás aquí</em>':can?'':' <em>pronto</em>'}</button>
 <div class="dhm">${t||(can?'<small class="dhv">sin mesas</small>':'')}</div></div>`+(p.id==='pb'?'<div class="dhg" aria-hidden="true"></div>':'')}).join('')}
 function paint(){if(!el)return;const s=floors();if(s===last)return;last=s;
  const k=document.activeElement&&el.contains(document.activeElement)&&document.activeElement.dataset.k,b=el.querySelector('.dhb');b.innerHTML=s;

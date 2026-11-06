@@ -64,7 +64,7 @@ function floor(S,b,holes,mat){const s=new THREE.Shape();s.moveTo(b[0],-b[3]);s.l
  const m=new THREE.Mesh(new THREE.ShapeGeometry(s),mat);m.rotation.x=-Math.PI/2;m.receiveShadow=true;S.add(m);return m}
 
 // ---------- el plano: corte de la casa con sus 4 pisos y "estás aquí" ----------
-const PS=[['ter','🌅 Terraza',46,94],['alta','📚 Planta alta',99,157],['pb','🏠 Planta baja',161,219],['sot','🕯️ Sótano',226,276]];
+const PS=[['ter','Terraza',46,94],['alta','Planta alta',99,157],['pb','Planta baja',161,219],['sot','Sótano',226,276]];
 function draw(g,w,h,here){g.fillStyle='#efe3c4';g.fillRect(0,0,w,h);g.strokeStyle='#8a6a3a';g.lineWidth=3;g.strokeRect(8,8,w-16,h-16);
  g.fillStyle='#4a2814';g.font='bold 22px Georgia,serif';g.textAlign='center';g.fillText('Casa de juegos',w/2,34);
  const P=PS.find(p=>p[0]===here);if(P){g.fillStyle='rgba(224,122,16,.3)';g.fillRect(30,P[2]+1,196,P[3]-P[2]-2)}

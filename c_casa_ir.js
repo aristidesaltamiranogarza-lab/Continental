@@ -5,11 +5,14 @@
 let open=false;
 // g: juego de GM (mesa o puerta), o 'cub' / 'c4' / 'bg' (Cubilete, Conecta 4 y Backgammon, sin salas)
 const PISOS=[
- {id:'ter',n:'🌅 Terraza',g:['rummy','c4']},
- {id:'alta',n:'📚 Planta alta',g:['merida','haciendas','bg']},
- {id:'pb',n:'🏠 Planta baja',g:['continental','uno','monopolydeal']},
- {id:'sot',n:'🕯️ Sótano',g:['ruleta','cub']}];
-const ICO=k=>`<img class="gic" src="iconos/${k}.png" alt="">`;
+ {id:'ter',n:'Terraza',g:['rummy','c4']},
+ {id:'alta',n:'Planta alta',g:['merida','haciendas','bg']},
+ {id:'pb',n:'Planta baja',g:['continental','uno','monopolydeal']},
+ {id:'sot',n:'Sótano',g:['ruleta','cub']}];
+// Icono de cada piso: la casa en corte con ese piso pintado
+const PHL={ter:['<rect x="4" y="3" width="16" height="5" rx="1"/>','#F2B23A'],alta:['<rect x="5" y="8" width="14" height="5"/>','#A88BE0'],pb:['<rect x="5" y="13" width="14" height="5"/>','#E8834F'],sot:['<rect x="6" y="19.5" width="12" height="3.5" rx=".8"/>','#B9A08A']};
+PISOS.forEach(p=>{const h=PHL[p.id];p.i='<svg class="pic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><g opacity=".45"><path d="M5 8V4.5M12 8V4.5M19 8V4.5M4 4.5h16M5 13h14M2 18.5h20"/><rect x="5" y="8" width="14" height="10"/><rect x="6.5" y="20" width="11" height="2.5" stroke-dasharray="2 1.5"/></g><g fill="'+h[1]+'" stroke="currentColor">'+h[0]+'</g></svg>'});
+const ICO=k=>window.SALA&&SALA.ico?'<span class="gic">'+SALA.ico(k)+'</span>':`<img class="gic" src="iconos/${k}.png" alt="">`;
 const SUELTOS={cub:[ICO('cub'),'Cubilete'],c4:[ICO('c4'),'Conecta 4'],bg:[ICO('bg'),'Backgammon']};
 const es=s=>typeof esc=='function'?esc(s):String(s);
 function info(g){const H=window.CASA3D;
@@ -22,7 +25,7 @@ function btn(){const o=open||dhOn();return `<button class="ui-rb${o?' on':''}" o
 function hud(busy){if(busy){open=false;if(dhOn())setTimeout(()=>DH.close())}if(!open||!window.CASA3D)return '';const H=window.CASA3D,here=H.piso();
  const sec=PISOS.map(p=>{if(!H.can(p.id))return '';const it=p.g.map(g=>{const i=info(g);if(!i)return '';
    return `<button class="ui-btn sec cirb${i.on?' on':''}" onclick="CIR.go('${p.id}','${g}')"><span>${i.e} ${es(i.t)}</span><small>${es(i.s)}</small></button>`}).join('');
-  return it?`<div class="cirp"><span>${p.n}${p.id===here?' <small>(aquí)</small>':''}</span>${it}</div>`:''}).join('');
+  return it?`<div class="cirp"><span>${p.i} ${p.n}${p.id===here?' <small>(aquí)</small>':''}</span>${it}</div>`:''}).join('');
  return GHUD.win('🧭 Ir a…',sec,'CIR.tog()','cirw')}
 window.CIR={btn,hud,info,PISOS,show:()=>{if(!open&&!dhOn())window.CIR.tog()},   // show: el plano junto a cada escalera (c_casa_esc.js)
  tog:()=>{if(!open&&window.DH)try{if(DH.ok())return DH.toggle()}catch(e){console.warn('DH',e);try{DH.close()}catch(_){}}
