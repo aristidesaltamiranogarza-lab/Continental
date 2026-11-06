@@ -81,7 +81,7 @@ function plano(e){const h=H(),{S,hits,OB}=e,G=new THREE.Group();G.position.set(e
  const wd=h.std(0x4a2814,.45),gold=h.std(0xc9a24a,.35,{metalness:.7}),box=(a,b,c,m,x,y,z)=>h.box(a,b,c,m,x,y,z,G);
  const pic=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.5),h.std(0xffffff,.8,{map:h.ctex('plano-'+e.here,256,320,(g,w,hh)=>draw(g,w,hh,e.here))}));pic.position.set(0,2.55,.075);G.add(pic);
  box(1.24,1.54,.06,wd,0,2.55,.02);[[0,3.36,1.4,.12],[0,1.74,1.4,.12],[-.64,2.55,.12,1.74],[.64,2.55,.12,1.74]].forEach(([x,y,a,b])=>box(a,b,.1,gold,x,y,.07));
- [-.45,.45].forEach(x=>{box(.07,2.1,.07,wd,x,1.02,.04).rotation.z=x>0?-.1:.1});box(.07,2.4,.07,wd,0,1.15,-.42).rotation.x=.36;box(1.3,.06,.2,wd,0,1.74,.14);
+ [-.45,.45].forEach(x=>{box(.07,1.8,.07,wd,x,.9,0).rotation.z=x>0?.1:-.1});   // abren hacia abajo y terminan bajo el marco (no tocan la imagen)box(.07,2.4,.07,wd,0,1.15,-.42).rotation.x=.36;box(1.3,.06,.2,wd,0,1.74,.14);
  hitAll(G,hits,{t:'fn',f:()=>{if(window.CIR)CIR.show()}});OB.push({x:e.x,z:e.z,r:.45*(e.s||1)});return G}
 
 window.ESC={up,down,exit,floor,plano,sign};
