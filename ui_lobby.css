@@ -78,6 +78,16 @@ html .lb .lb-marca h1{-webkit-text-stroke:0;text-shadow:none;font:800 clamp(22px
 .lb-fila > span{display:flex;flex-direction:column;gap:2px}
 .lb-fila small{display:block;font-size:13px}
 
+.lb-mas{margin-top:12px;border-top:1px solid var(--ui-line)}
+.lb-mas > summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none;color:var(--ui-sub);font:800 14px var(--ui-font)}
+.lb-mas > summary::-webkit-details-marker{display:none}
+.lb-mas > summary .ui-ico{width:18px;height:18px}
+.lb-mas > summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.lb-mas[open] > summary::after{transform:rotate(225deg)}
+.lb-mas[open]{padding-bottom:4px}
+.lb-mas > .ui-lbl:nth-child(2),.lb-mas > .lb-fila{margin-top:4px}
+html[data-game] .lb-mas,html[data-game] .lb-mas > summary{background:none;border-radius:0;padding-left:0;padding-right:0}
+
 /* gente */
 .lb-pl{display:flex;align-items:center;gap:12px;min-height:52px;padding:4px 0;border-bottom:1px solid var(--ui-line)}
 .lb-pl:last-of-type{border-bottom:0}

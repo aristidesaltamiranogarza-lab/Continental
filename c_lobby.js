@@ -19,7 +19,11 @@ const tema=()=>`<button class="ui-rb" onclick="LOBBY.tema()" aria-label="Cambiar
 const top=()=>`<header class="lb-top"><div class="lb-marca"><span class="lb-logo">${I('casa')}</span><div><small>Casa de juegos</small><h1>Juegos de cartas</h1></div></div>${tema()}</header>`;
 
 // estilo de la mesa 2D (fondo, cartas, reverso; en Uno la letra del color)
-function mesa(){const g=typeof gnow=='function'?gnow():pgame;if(g=='monopolydeal')return '';
+// solo Continental (fondo, cartas, reverso) y Uno (letra del color) tienen estilo de mesa 2D; va en un plegable chico
+let abre=false;
+function mesa(){const g=typeof gnow=='function'?gnow():pgame;if(g!='continental'&&g!='uno')return '';
+ return `<details class="lb-mas"${abre?' open':''} ontoggle="LOBBY.abre(this.open)"><summary>${I('ajustes')}Estilo de las cartas</summary>${est(g)}</details>`}
+function est(g){
  if(g=='uno')return `<div class="ui-row lb-fila"><span>Letra del color en cada carta<small class="ui-sub">Ayuda si confundes colores</small></span><label class="ui-sw"><input type="checkbox"${cbl?' checked':''} onchange="setCb(this.checked)"><i></i></label></div>`;
  const sw=(O,cur,f)=>`<div class="lb-sws">${Object.keys(O).map(k=>`<button class="lb-sw${cur==k?' on':''}" style="background:${O[k]}" onclick="${f}('${k}')" aria-label="${k}" aria-pressed="${cur==k}"></button>`).join('')}</div>`;
  return `<span class="ui-lbl">Fondo de la mesa</span>${sw(BGS,sbg,'setBg')}<span class="ui-lbl">Cartas</span><div class="ui-seg lb-seg">${[['classic','Clásicas'],['big','Grandes'],['black','Negras'],['retro','Retro'],['contrast','Contraste']].map(([k,n])=>`<button class="${scards==k?'on':''}" onclick="setCards('${k}')">${n}</button>`).join('')}</div><span class="ui-lbl">Reverso</span>${sw(BKS,sback,'setBack')}`}
@@ -59,7 +63,7 @@ function sala(g){on();const v=V,k=v.game,host=!!v.host,me=v.me;
   <div class="lb-ft">${ft}${err()}<button class="ui-btn ghost full" onclick="LOBBY.salir()">${I('salir')}${host?'Cerrar sala':v.watch?'Dejar de mirar':'Salir de la sala'}</button></div></section>
  ${juego}${rr}${gente}${ajustes()}${reglas(g)}</div>`}
 
-window.LOBBY={home,sala,
+window.LOBBY={home,sala,abre:x=>{abre=x},
  elige:k=>{pgame=k;render()},
  juego:k=>{if(V&&V.host&&k!==V.game)send({t:'game',g:k})},
  tema:()=>{if(window.UI)UI.setTema(UI.noche()?'dia':'noche');render()},
