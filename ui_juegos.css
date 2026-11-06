@@ -236,3 +236,43 @@ html.mdui[data-game="md"] .mdhb{font:700 14px var(--ui-font);gap:6px}
 .ban{top:24%;width:max-content;max-width:calc(100% - 32px);margin:0 auto;padding:10px 22px;border-radius:999px;background:var(--ui-panel);color:var(--ui-text);font:800 clamp(18px,4.6vw,28px)/1.2 var(--ui-font);text-shadow:none;box-shadow:var(--ui-shadow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 🍅 en los juegos 3D: a media altura a la derecha, donde no hay mano, atril ni botones (abajo tapaba las fichas del Rummy en vertical). Mérida y YuCATÁN (.mrui) lo acomodan ellos */
 html:not(.mrui) #tombtn{bottom:auto;top:calc(50% - 28px);right:calc(env(safe-area-inset-right,0px) + 12px)}
+/* ===== Continental y UNO en "Vista clásica 2D" dentro de la casa (c_juegos2d.js pone html.g2dui; el 2D Ligero no carga este archivo) ===== */
+html.g2dui:root[data-game]{--bg:#F3E7D3;--panel:var(--ui-sheet);--ink:var(--ui-text);--acc:var(--ui-accent);--sel:var(--ui-accent);--seatbg:var(--ui-sheet)}
+html.g2dui[data-game] body{background:#F3E7D3;color:var(--ui-text);font:600 15px/1.4 var(--ui-font)}
+html.g2dui[data-game][data-tema=noche] body{background:#1E1510}
+html.g2dui body::before,html.g2dui body::after{display:none}
+html.g2dui #app{padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 14px}
+html.g2dui #app h1{font:800 1.6em var(--ui-font);color:var(--ui-text);-webkit-text-stroke:0;text-shadow:none;text-align:center}
+html.g2dui #app h1.ulogo{display:block;background:none;border:0;box-shadow:none;transform:none;padding:0;margin:.3em 0}
+html.g2dui #app h1.ulogo span{font:italic 900 clamp(34px,10vw,52px)/1.1 var(--ui-font);color:var(--ui-accent);-webkit-text-stroke:0;text-shadow:none}
+html.g2dui #app .b{min-height:44px;margin:4px 4px 4px 0;padding:0 18px;border:1px solid transparent;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);box-shadow:none;text-shadow:none;text-transform:none;letter-spacing:0;font:800 15px/1 var(--ui-font);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;touch-action:manipulation;transition:transform .08s}
+html.g2dui #app .b .ui-ico{width:20px;height:20px}
+html.g2dui #app .b:active{transform:scale(.96);box-shadow:none}
+html.g2dui #app .b.g{background:var(--ui-chip);color:var(--ui-text);border-color:var(--ui-line)}
+html.g2dui #app .b.g.on{background:var(--ui-accent);color:var(--ui-on);outline:0}
+html.g2dui #app .b.sm2{padding:0 14px;font-size:14px}
+html.g2dui #app .b:disabled{filter:none;opacity:.5}
+html.g2dui #app .b.uno,html.g2dui #app .b.ucatch{background:var(--ui-accent);color:var(--ui-on);border-color:transparent;box-shadow:var(--ui-shadow)}
+html.g2dui #app .b.uno.big{display:flex;width:100%;margin:0 0 10px;padding:18px 10px;border-radius:var(--ui-r);font:900 clamp(30px,10vw,52px)/1 var(--ui-font);letter-spacing:.06em}
+html.g2dui #app .b.ucatch{display:flex;width:100%;margin:0;font-size:clamp(16px,5vw,20px)}
+html.g2dui #app .b.uno:disabled,html.g2dui #app .b.ucatch:disabled{background:var(--ui-chip);color:var(--ui-sub);border-color:var(--ui-line);box-shadow:none;opacity:.7}
+html.g2dui #app .box{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:18px;box-shadow:var(--ui-shadow);padding:10px}
+html.g2dui #app .box.felt{background:var(--ui-chip);border:1px solid var(--ui-line);border-radius:18px;box-shadow:none}
+html.g2dui #app .piles{text-shadow:none}
+html.g2dui #app .top,html.g2dui #app>.msg:not(:empty),html.g2dui #app>p{background:none;color:var(--ui-sub);font:600 13px/1.35 var(--ui-font);text-shadow:none;padding:0 2px;margin:4px 0}
+html.g2dui #app .pstat{color:var(--ui-text);font-size:14px}
+html.g2dui #app .msg{color:var(--ui-accent);font:700 14px var(--ui-font)}
+html.g2dui #app .myturn{background:var(--ui-accent);color:var(--ui-on);border-radius:999px;padding:2px 10px;animation:none}
+html.g2dui #app details{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:16px;padding:8px 12px}
+html.g2dui #app input{border:1px solid var(--ui-line);border-radius:14px;background:var(--ui-field);color:var(--ui-text);font-family:var(--ui-font)}
+html.g2dui #app .log{background:var(--ui-sheet);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:16px;font-family:var(--ui-font)}
+html.g2dui #app .log div:first-child{color:var(--ui-accent)}
+html.g2dui #app .seat{background:var(--ui-sheet);color:var(--ui-text);border-width:2px;border-radius:16px;font-family:var(--ui-font)}
+html.g2dui #app .seat small{color:var(--ui-accent)}
+html.g2dui #app .seat .dn{color:var(--ui-sub)}
+html.g2dui #app .seat.on{box-shadow:0 0 0 3px var(--ui-accent)}
+html.g2dui #app .slot{border:2px dashed var(--ui-line);background:var(--ui-chip);border-radius:14px}
+html.g2dui #app .slot.over{background:var(--ui-chip);border-color:var(--ui-accent)}
+html.g2dui #app .slot .sl,html.g2dui #app .slot .ph{font-family:var(--ui-font)}
+html.g2dui #app .sw{border:3px solid var(--ui-line)}
+html.g2dui #app .sw.on{border-color:var(--ui-accent);box-shadow:0 0 0 2px var(--ui-sheet)}

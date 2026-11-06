@@ -852,7 +852,7 @@ function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
- if(!active()){const G=V&&V.G;return (G&&G.phase=='play'?`<button class="b g sm2" onclick="c3dToggle()">${on?'🖼 Vista clásica 2D':'🎲 Vista 3D'}</button>`:'')+orig()}
+ if(!active()){const G=V&&V.G;return (G&&G.phase=='play'?`<button class="b g sm2" onclick="c3dToggle()">${UI.ico('ojo')}${on?'Vista clásica 2D':'Vista 3D'}</button>`:'')+orig()}
  // guardo lo abierto y el scroll para que no se pierda al redibujar
  GHUD.save();
  try{init();return hud()}catch(e){console.warn('Continental 3D:',e);on=false;return orig()}};

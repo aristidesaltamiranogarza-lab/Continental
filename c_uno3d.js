@@ -436,7 +436,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
 function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;if(V&&V.G)sync()}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0')}catch(e){}render()}
 GM.uno.body=function(){
- if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?`<button class="b g sm2" onclick="u3dToggle()">${on?'🖼 Vista clásica 2D':'🎲 Vista 3D'}</button>`:'')+orig()}
+ if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?`<button class="b g sm2" onclick="u3dToggle()">${UI.ico('ojo')}${on?'Vista clásica 2D':'Vista 3D'}</button>`:'')+orig()}
  // guardo lo abierto y el scroll del menú para que no se pierda al redibujar
  GHUD.save();
  try{init();return hud()}catch(e){console.warn('Uno 3D:',e);on=false;return orig()}};
