@@ -5,9 +5,9 @@ Lista corta de lo que falta. El plan completo está en ROADMAP_CASA.md.
 ## Lista del 6 nov 2026 (de las fotos del celular), en orden
 Probar todo en celular **vertical y horizontal, también en 21:9** (360×840 y 840×360).
 
-**Tanda 1 · hecha (6 nov)**: piso del sótano sin cuadrícula, brillo de UNO bajo las cartas, nombres que esquivan Cuadrar, pastillas del mazo, aviso doble, cámara dentro de muebles, letreros encimados, mano de Uno en vertical y aviso ¡UNO! en Cálida. La "barra negra" de la izquierda era la isla dinámica del iPhone (no es del juego). Falta confirmarlo en el celular.
+**Tanda 1 · hecha (6 nov)**: piso del sótano sin cuadrícula, brillo de UNO bajo las cartas, nombres que esquivan Cuadrar, pastillas del mazo, aviso doble, letreros encimados, mano de Uno en vertical y aviso ¡UNO! en Cálida. La "barra negra" de la izquierda era la isla dinámica del iPhone (no es del juego). Falta confirmarlo en el celular.
 
-**Tanda 2 · tomates**: se quedan (dan risa), pero que nunca tapen la mano, los botones ni bloqueen jugar.
+**Tanda 2 · hecha (6 nov)**: tomatazos a ti chicos, en la franja de en medio, transparentes y máximo 4 (la "pantalla roja" de las fotos eran tomates, no la cámara en el puff). En Rummy y Ruleta ya llegan al nombre del jugador. En los 3D el botón 🍅 va a media altura a la derecha.
 
 **Tanda 3 · UI 2D en estilo Cálida**: UNO y Monopoly Deal (y la 2D de Continental, que sigue con botones dorados, "COMPRAR (+1 DE CASTIGO)", "CERRAR SALA").
 

@@ -151,7 +151,8 @@ function mkP(k,c,name){const [a,b]=CH.look(name),g=K.mkAvatar(a,b,{});g.traverse
  const pv=new THREE.Group(),p=spos(c),out=p.clone().normalize(),sd=v3(-out.z,0,out.x).multiplyScalar(Math.random()<.5?1:-1),d=out.clone().multiplyScalar(.75).add(sd.multiplyScalar(.66)).normalize();
  pv.position.copy(p);pv.rotation.order='YXZ';pv.rotation.y=Math.atan2(d.x,d.z);SC.add(pv);g.position.y=1.55;g.rotation.y=face(c)-pv.rotation.y;pv.add(g);pv.updateMatrixWorld(true);
  const u=g.userData,bx=new THREE.Box3().setFromObject(u.head),hr=(bx.max.y-bx.min.y)*.45,eye=bx.getCenter(new THREE.Vector3()),F=u.arms[0].hand.parent,ws=F.getWorldScale(new THREE.Vector3()).x||1;
- const tag=document.createElement('div');tag.className='rr-tag';lay.appendChild(tag);
+ const tag=document.createElement('div');tag.className='rr-tag';tag.dataset.seat=k;   // data-seat: ahí llegan los tomates (game.js)
+ lay.appendChild(tag);
  return {k,c,pv,g,u,hr,hrL:hr/ws,eye,out,d,fw:out.clone().negate(),gs:hr*2.3/.42,dead:0,fall:null,seed:Math.random()*10,tag}}
 // tu mano con el revólver (primera persona): la mano y la manga de tu Mii
 function buildMyHand(p){myHand=new THREE.Group();gunV.add(myHand);const am=p.u.arms.find(m=>m.s>0)||p.u.arms[0];

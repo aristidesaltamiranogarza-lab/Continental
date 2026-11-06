@@ -68,7 +68,7 @@ function txt(){const n=Date.now();return aviso&&n-avT<4500?aviso:say&&n-sayT<550
 function hud(){syncTurn();syncOrder();const G=V.G,m=me(),fin=G.phase!='play',my=myTurn(),L=G.log[G.log.length-1],ic=n=>UI.ico(n);
  if(L&&L.n!==logN){if(logN>=0||G.log.length==1){say=L.t;sayT=Date.now()}logN=L.n}
  // arriba: juego y bolsa, turno y ☰ (con el reloj del turno); debajo los jugadores con sus fichas
- const chips=G.ord.map(k=>`<span class="ui-pill rm-p${k===G.turn&&!fin?' t':''}${G.out[k]?' o':''}${k===m?' yo':''}">${nm(k)} <b>${cnt(k)}</b></span>`).join('');
+ const chips=G.ord.map(k=>`<span class="ui-pill rm-p${k===G.turn&&!fin?' t':''}${G.out[k]?' o':''}${k===m?' yo':''}" data-seat="${k}">${nm(k)} <b>${cnt(k)}</b></span>`).join('');
  let h=`<div class="rm-hud">`+GHUD.top({st:`🀄 <b>Rummy</b> <span class="rm-nb" title="Fichas en la bolsa">👜 ${G.nb}</span>`,turn:(fin?'Fin de la partida':my?'¡Tu turno!':'Turno de '+nm(G.turn))+(fin?'':'<i id="rmclk"></i>'),me:my,open:menu,menu:`RMU.menu(${menu?0:1})`});
  h+=`<div class="ui rm-ps">${chips}</div>`;
  const t=txt();h+=`<div id="rmsay" class="ui rm-say${t?' on':''}">${es(t)}</div>`;

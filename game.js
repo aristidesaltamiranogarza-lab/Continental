@@ -116,13 +116,17 @@ setInterval(()=>{const G=S&&V&&V.G,k=G?G.turn:null,p=G&&V.players[k],ok=!!(G&&G.
 TOMB.textContent='🍅';
 const ctr=el=>{const r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]};
 // el tomate vuela (desde el asiento de quien lo lanzó, o desde abajo) hasta el nombre del que se tarda y se embarra
-function tomFly(f){if(f.k===V.me)return tomMe(f.from);const tg=document.querySelector(`[data-seat="${f.k}"]`);if(!tg)return;
- const fi=V.G.players.findIndex(p=>p.name==f.from),fe=fi>=0&&fi!==V.me&&document.querySelector(`[data-seat="${fi}"]`),[x0,y0]=fe?ctr(fe):[innerWidth/2,innerHeight-70],[x1,y1]=ctr(tg);
+// seatEl(k): la etiqueta visible de ese jugador (en los 3D se esconde la que queda fuera de cámara). Sin etiqueta: arriba al centro, para que el tomate siempre se vea
+const seatEl=k=>[...document.querySelectorAll(`[data-seat="${k}"]`)].find(e=>{const r=e.getBoundingClientRect();return r.width&&r.height});
+function tomFly(f){if(f.k===V.me)return tomMe(f.from);const tg=seatEl(f.k);
+ const fi=V.G.players.findIndex(p=>p.name==f.from),fe=fi>=0&&fi!==V.me&&seatEl(fi),[x0,y0]=fe?ctr(fe):[innerWidth/2,innerHeight-70],[x1,y1]=tg?ctr(tg):[innerWidth/2,innerHeight*.28];
  const e=document.createElement('div');e.className='tomfly';e.textContent='🍅';document.body.appendChild(e);const mx=(x0+x1)/2,my=Math.min(y0,y1)-120;
  const a=e.animate([{transform:`translate(${x0}px,${y0}px) rotate(0)`},{transform:`translate(${mx}px,${my}px) rotate(260deg)`},{transform:`translate(${x1}px,${y1}px) rotate(520deg)`}],{duration:RM?1:650,easing:'ease-in'});
  a.onfinish=()=>{e.remove();const s=document.createElement('div');s.className='tomsplat';s.style.cssText=`left:${x1}px;top:${y1}px`;s.innerHTML=`<small>${esc(f.from)}</small>`;document.body.appendChild(s);setTimeout(()=>s.remove(),2700);sfx('splat')}}
-// a ti: tomatazo en la pantalla, sin texto (si te llueven varios, cada uno cae en otro lugar)
-function tomMe(from){const e=document.createElement('div');e.className='tomme';e.innerHTML='<i></i>';e.firstChild.style.transform=`translate(${(Math.random()-.5)*36}vw,${(Math.random()-.5)*36}vh) rotate(${Math.random()*360|0}deg) scale(${(.65+Math.random()*.5).toFixed(2)})`;document.body.appendChild(e);setTimeout(()=>e.remove(),2900);sfx('splat');if(navigator.vibrate)navigator.vibrate([60,40,60])}
+// a ti: tomatazo en la pantalla, sin texto. Chico, en la franja de en medio (nunca sobre tu mano, los botones de abajo ni la barra de arriba),
+// un poco transparente y máximo 4 a la vez: dan risa pero te dejan jugar (antes eran de 80vw y con varios no se veía nada)
+function tomMe(from){const ya=document.querySelectorAll('.tomme');if(ya.length>=4)ya[0].remove();const e=document.createElement('div');e.className='tomme';e.innerHTML='<i></i>';const i=e.firstChild;
+ i.style.left=(14+Math.random()*72)+'%';i.style.top=(22+Math.random()*28)+'%';i.style.transform=`translate(-50%,-50%) rotate(${Math.random()*360|0}deg) scale(${(.75+Math.random()*.35).toFixed(2)})`;document.body.appendChild(e);setTimeout(()=>e.remove(),2300);sfx('splat');if(navigator.vibrate)navigator.vibrate([60,40,60])}
 const kick=id=>{if(confirm('¿Expulsar a este jugador?'))send({t:'kick',id})};
 const hc=k=>{const h=V.G.hands[k];return Array.isArray(h)?h.length:h};
 const nm=i=>esc(V.G.players[i].name);

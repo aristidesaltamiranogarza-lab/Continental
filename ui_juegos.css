@@ -234,3 +234,5 @@ html.mdui[data-game="md"] .mdhb{font:700 14px var(--ui-font);gap:6px}
 .ui-sheet.ya,.ui-scrim.ya{animation:none}
 /* avisos grandes (banner de game.js: "¡UNO! Ana", etc.) en Cálida: pastilla centrada, no letras de 7vw encima de la mesa */
 .ban{top:24%;width:max-content;max-width:calc(100% - 32px);margin:0 auto;padding:10px 22px;border-radius:999px;background:var(--ui-panel);color:var(--ui-text);font:800 clamp(18px,4.6vw,28px)/1.2 var(--ui-font);text-shadow:none;box-shadow:var(--ui-shadow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 🍅 en los juegos 3D: a media altura a la derecha, donde no hay mano, atril ni botones (abajo tapaba las fichas del Rummy en vertical). Mérida y YuCATÁN (.mrui) lo acomodan ellos */
+html:not(.mrui) #tombtn{bottom:auto;top:calc(50% - 28px);right:calc(env(safe-area-inset-right,0px) + 12px)}
