@@ -23,7 +23,8 @@ function cam(IC,open,mini){if(!open)return '';const b=(c,t)=>`<button class="ui-
  return `<div id="gjCam" class="ui ui-card gj-cam${mini?' mini':''}" role="group" aria-label="Cámara">${b('rl','Girar a la izquierda (Q)')}${b('rr','Girar a la derecha (E)')}${b('zi','Acercar (+)')}${b('zo','Alejar (−)')}${b('tu','Ver más desde arriba (R)')}${b('td','Ver más de lado (F)')}
  <button class="ui-btn sec gj-w" data-cam="home" title="Cuadrar la cámara (Esc)">${I('cuadrar')}Cuadrar</button></div>`}
 // botón para regresar a la vista de siempre (el juego lo muestra y le pone el texto)
-const view=(fn,mini)=>`<button id="gjView" class="ui ui-pill gj-view${mini?' mini':''}" onclick="${fn}" style="display:none" title="Regresar a la vista de siempre (Esc)">${I('cuadrar')}Cuadrar</button>`;
+// botón redondo Cuadrar arriba a la derecha (va en top.right; el juego lo muestra y le pone el title)
+const view=fn=>`<button id="gjView" class="ui-rb gj-view" onclick="${fn}" style="display:none" title="Cuadrar (Esc)" aria-label="Cuadrar">${I('cuadrar')}</button>`;
 
 // panel del ☰: hoja de abajo en celular, tarjeta a la derecha en compu. tabs=[[clave,'Título',html],…]; close='fn()'
 function sheet(title,tabs,close){if(!tabs.some(t=>t[0]==tab))tab=tabs[0][0];const cur=tabs.find(t=>t[0]==tab),ya=document.querySelector('.gj-sheet')?' ya':'';   // ya abierto: no se vuelve a animar al redibujar

@@ -20,7 +20,7 @@ const hh=n=>(Math.imul(n+7,2654435761)>>>0);   // "azar" fijo por carta (cómo c
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
 // mismas preferencias que el Continental 3D (barra de cámara, barra de arriba, modo oscuro)
-let camOpen=lsGet('cont_cam')=='1',mini=lsGet('cont_mini')=='1';
+let camOpen=false,mini=lsGet('cont_mini')=='1';
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
 const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
 // colores de las cartas (más vivos que en la vista 2D) y su sombra
@@ -366,7 +366,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  const inf=fin?`🏆 <b>${w>=0?nm(w):'—'}</b> gana`:`${chipC(G.color)}<b>${UCN[G.color]}</b> ${G.dir>0?'↻':'↺'}${pend?` <b class="gj-tag">+${G.pend}</b>`:''}`;
  const trn=fin?'Fin de la partida':G.ad>0?(mine?'Robando…':nm(t)+' roba…'):mine?'¡Tu turno!':'Turno de '+nm(t);
  const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
- let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:GHUD.camTog(camOpen)});
+ let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:GHUD.view('u3dHome()')});
  if(!mini)o+=GHUD.hint(mine||fin||!lgT?hint:lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
@@ -389,7 +389,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   b+=`<button class="ui-btn${my1?' go':''}${said?' sec u3ok':''}" ${my1?'':'disabled'} onclick="uuno()" title="Tecla U">${said?uic('ok'):''}¡UNO!</button>`;
   if(vk>=0)b+=`<button class="ui-btn go" onclick="ucatch()">Cobrar UNO a ${nm(vk)}</button>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${uic('ordenar')}${manual?'Mi orden':sortS?'Por número':'Por color'}</button>`}
- o+=GHUD.bar(b)+GHUD.view('u3dHome()',mini)+GHUD.cam(IC,camOpen,mini);
+ o+=GHUD.bar(b);
  // ventana para elegir el color del comodín (sugiere el color que más tienes)
  if(upick!=null&&mine){const cnt=[0,0,0,0];h.forEach(x=>{const c=U(x);if(x!==upick&&c.c<4)cnt[c.c]++});const best=cnt.indexOf(Math.max(...cnt));
   o+=`<div class="ui-scrim" onclick="upick=null;render()"></div><div id="u3pick" class="ui ui-sheet mid" role="dialog" aria-modal="true" aria-labelledby="u3pt"><div class="ui-hd"><h2 class="ui-h" id="u3pt">Elige el color</h2><button class="ui-x" onclick="upick=null;render()" aria-label="Cancelar">${uic('x')}</button></div>
@@ -409,8 +409,8 @@ function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id
  const dz=CH*L.ps*1.1/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+(L.por?-dz:dz)),L.por);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
 // botón Cuadrar y clases de la página
 function viewBtn(){const r=document.documentElement;if(window.UI)dark=UI.noche();r.classList.toggle('c3dark',dark);r.classList.toggle('u3mini',mini);
- const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0)?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=p?`${uic('ojo')}<b>${esc(p.name)}</b> · Cuadrar`:`${uic('cuadrar')}Cuadrar`;
+ const el=document.getElementById('gjView');if(!el)return;const k=viewed()?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=p?'Viendo a '+p.name+' · Cuadrar (Esc)':'Cuadrar (Esc)';
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 // cartita del descarte abajo a la izquierda: solo cuando la pila no se ve (cámara movida o mirando a alguien)
 function dpv(){if(!dpvEl)return;const G=V&&V.G,id=G&&G.disc.length?G.disc[G.disc.length-1]:null;let show=false;

@@ -21,7 +21,7 @@ const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THR
 let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,camOpen=false,camTip=false,camRep=null,ap=null;
 let c4found=false,mini=false,c4open=false,c4was=false,c4snap='';   // c4: ventana de Conecta 4 abierta, última ficha animada, estado anterior (para sonidos)
    // barra de arriba oculta (modo minimalista)
-try{camOpen=localStorage.getItem('cont_cam')=='1';mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
+try{mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 c4found=lsGet('cont_c4f')=='1';   // ¿ya descubriste el Conecta 4 en este dispositivo?
 // menús en modo oscuro: si nunca lo has elegido, sigue al sistema
@@ -723,7 +723,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  const hint=i<0?mirTxt():mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
  // arriba: ronda y contrato, turno, cámara y ☰; abajo de ellas la ayuda o la última jugada
  const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
- let h=GHUD.top({st:`${G.round+1}/7 · <b>${conTxt(G.round)}</b>`,turn:mine?'¡Tu turno!':'Turno de '+nm(t),me:mine,open:menu,menu:'c3dMenu()',right:GHUD.camTog(camOpen)});
+ let h=GHUD.top({st:`${G.round+1}/7 · <b>${conTxt(G.round)}</b>`,turn:mine?'¡Tu turno!':'Turno de '+nm(t),me:mine,open:menu,menu:'c3dMenu()',right:GHUD.view('c3dHome()')});
  if(!mini)h+=GHUD.hint(mine||!lgT?hint:lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
@@ -742,7 +742,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
   if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<span class="gj-note">Pediste comprar…</span><button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar (+1)</button>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;
   if(dn)b=`<span class="gj-note">✓ Bajaste</span>`+b}
- h+=GHUD.bar(b)+GHUD.view('c3dHome()',mini)+GHUD.cam(IC,camOpen,mini);
+ h+=GHUD.bar(b);
  if(camOpen&&camTip)h+=`<div class="ui ui-card gj-tip${mini?' mini':''}">${touchy?'<b>Con los dedos</b><br>Arrastra la mesa para moverla<br>Pellizca para acercar<br>Gira dos dedos para rotar':'<b>Con el ratón</b><br>Clic derecho y arrastra: mover<br>Rueda: acercar<br>Clic de rueda (o Shift + clic derecho): girar e inclinar<br>Teclado: W A S D, Q / E, R / F'}</div>`;
  if(ap)h+=apUI();
  // ayuda sobre lo seleccionado y nombres de las siluetas
@@ -847,8 +847,8 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
 // sin su cuarto en la casa: ni el Conecta 4 ni el Backgammon escondidos; los Miis a tamaño de casa
 function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;[C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&(!camOpen||VT.who>=0||VT.c4||VT.bg)?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.innerHTML=VT.bg?`${BGIC} Backgammon · ${UI.ico('cuadrar')}Volver a la mesa`:VT.c4?`${C4IC} Conecta 4 · ${UI.ico('cuadrar')}Volver a la mesa`:p?`${UI.ico('ojo')}<b>${esc(p.name)}</b> · ${UI.ico('cuadrar')}Cuadrar`:`${UI.ico('cuadrar')}Cuadrar`;
+function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa (Esc)':p?'Viendo a '+p.name+' · Cuadrar (Esc)':'Cuadrar (Esc)';
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
