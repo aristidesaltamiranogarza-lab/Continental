@@ -146,7 +146,7 @@ document.addEventListener("touchstart",e=>{if(rIn(e.target))rHold=1},{passive:tr
 for(const k of ["touchend","touchcancel"])document.addEventListener(k,e=>{if(!e.touches.length)rHold=0},{passive:true,capture:true});
 document.addEventListener("scroll",e=>{if(rIn(e.target))rLast=Date.now()},{passive:true,capture:true});
 function render(){if(rBusy()){rLater();return}theme();document.documentElement.classList.remove('lbon');if(typeof musSync=='function')musSync();if(!S){A.innerHTML=home();return}
- if(!V){A.innerHTML=window.LOBBY&&!(window.SALA&&SALA.on())?LOBBY.carga(online?'Entrando a la sala':'Reconectando'):`${H1('🎴 Juegos de cartas')}<p>${online?'Entrando a la sala…':'Reconectando…'}</p>`;return}
+ if(!V){A.innerHTML=window.LOBBY?LOBBY.carga(online?'Entrando a la sala':'Reconectando'):`<p>${online?'Entrando a la sala…':'Reconectando…'}</p>`;return}
  if(window.SALA&&SALA.tapa())return;   // casa 3D (c_sala.js): al empezar, la cámara baja a tu silla antes de mostrar el juego
  const g=GM[V.game]||GM.continental,G=V.G,cdn=Math.ceil((cdEnd-Date.now())/1000),cd=cdn>0&&Date.now()>=rlEnd?`<div class="cd">${cdn}</div>`:'',off=online?'':'<div class="box msg">⚠ Reconectando con el servidor… tu lugar y tus cartas se conservan.</div>';let h;
  // sala de espera: el host elige el juego (la misma sala sirve para todos). En la casa 3D la dibuja SALA (c_sala.js) con la casa detrás
