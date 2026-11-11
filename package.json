@@ -2,7 +2,8 @@
   "name": "continental",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server3d.js"
+    "start": "node server3d.js",
+    "test": "node tests/blackjack.js && node tests/rummy.js"
   },
   "engines": {
     "node": ">=18"
