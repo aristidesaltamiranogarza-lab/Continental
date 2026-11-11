@@ -6,9 +6,11 @@
 # pose (Reposo, AgarreFrente, ManoCabeza, PistolaSien) y de dedos (Agarre_I / Agarre_D: cuadro 1 =
 # relajada, cuadro 10 = agarra; en three.js se usa el tiempo como cantidad de agarre). Las acciones
 # de pose no tocan los dedos (salvo ManoCabeza: mano izquierda plana); se combinan con Agarre_x. Empties Sien_I/Sien_D (hijos del hueso
-# cabeza, en la superficie del pelo, +Z local = hacia afuera) y una pistola de prueba en mano_D.
+# cabeza, en la superficie del pelo, +Z local = hacia afuera), el revolver de revolver.py en mano_D (Rig_Pistola, solo
+# para las revisiones; no se exporta) y el empty Rig_Agarre (hijo de mano_D: ahi va Rev_Agarre de revolver.glb).
+# K['REV']: PRM para revolver.py si hay que crearlo.
 # Uso: exec(open(r'C:/Users/aris1/code/Continental/blender/rig.py').read(), {'PRM': {...}})
-import bpy, math, json, struct, os
+import bpy, bmesh, math, json, struct, os
 from mathutils import Vector as V, Matrix, Quaternion
 from mathutils.bvhtree import BVHTree
 
@@ -27,6 +29,8 @@ K = dict(
     DECIMA_FIN={'Brazos': 0.62},   # reduccion despues de la subdivision (mangas: lo mas caro de cada prenda)
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
+    # PistolaSien: el canon apunta a la sien (alto = grados hacia arriba); el alcance sale de ladear tronco y cabeza
+    PS_ALTO=range(-15, 31, 5), PS_TRONCO=(0, 8, 16), PS_HOMBRO=(0, 15, 30), PS_CABEZA=(0, -10, -20, -30),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
     ROPA=range(2, 4),                      # figuras Ropa_n de ropa.py: parte -> pieza (Piernas es una sola, sin numero)
     ROPA_PIEZA={'Playera': 'Arriba', 'Brazos': 'Mangas', 'Capucha': 'Arriba', 'Bolsa': 'Arriba', 'Cordones': 'Arriba',
@@ -365,7 +369,7 @@ def mano_cabeza(az, el, off):
     E2, W2 = ik(S2, Wt, V((1, 0.5, -0.3)))
     return dict(pose_brazos({'_I': (S2, E2, W2, fC, dr)})[0], **PLANA_I), (Wt - S2).length < (K['L1'] + K['L2']) * 0.995
 
-# ---------- pistola de prueba (en el marco del hueso mano_D) ----------
+# ---------- revolver (revolver.py) en el marco del hueso mano_D ----------
 lado = -1; S, E, Wr, f, n = REST['_D']
 Rm = bones['mano_D'].matrix_local; Ri = Rm.inverted()
 fr1 = mano_frames(Wr, f, n, lado, 1.0)
@@ -373,45 +377,62 @@ pts = [Ri @ fr1[k][0] for k in ('dedos1', 'dedos2', 'dedos3')] + [Ri @ fr1['dedo
 pts.append(Ri @ (fr1['dedos1'][0] - fr1['mano'][2] * K['PALMA'][1] / 2))
 cg = sum(pts, V()) / len(pts); cg.x = 0                     # centro de la culata
 u = V((lado, 0, 0))                                          # lado del pulgar (arriba con la pistola)
-caj = [(cg + u * 0.01, (0.115, 0.032, 0.026)),               # culata a lo largo de u
-       (cg + u * 0.082 + V((0, 0.035, 0)), (0.036, 0.15, 0.03))]   # corredera y canon hacia +y
-BOCA = cg + u * 0.082 + V((0, 0.11, 0))
-mp = bpy.data.meshes.new('Rig_Pistola'); vs, fs = [], []
-for c, (a, b, d) in caj:
-    k0 = len(vs)
-    for i in range(8):
-        sx, sy, sz = (1 if i & 1 else -1), (1 if i & 2 else -1), (1 if i & 4 else -1)
-        vs.append(c + V((sx * a / 2, sy * b / 2, sz * d / 2)))
-    fs += [[k0 + i for i in q] for q in ((0, 2, 3, 1), (4, 5, 7, 6), (0, 1, 5, 4), (2, 6, 7, 3), (0, 4, 6, 2), (1, 3, 7, 5))]
-mp.from_pydata([tuple(v) for v in vs], [], fs); mp.update()
-mat = bpy.data.materials.get('chibi_pistola') or bpy.data.materials.new('chibi_pistola')
-mat.use_nodes = True
-next(nd for nd in mat.node_tree.nodes if nd.type == 'BSDF_PRINCIPLED').inputs['Base Color'].default_value = (0.08, 0.08, 0.09, 1)
-mp.materials.append(mat)
-pis = bpy.data.objects.new('Rig_Pistola', mp); col.objects.link(pis)
-aplicar({}); pis.parent = arm; pis.parent_type = 'BONE'; pis.parent_bone = 'mano_D'
-bpy.context.view_layer.update(); pis.matrix_world = arm.matrix_world @ Rm
+if not bpy.data.objects.get('Rev_Agarre'):
+    exec(open(os.path.join(os.path.dirname(K['GLB']), 'revolver.py'), encoding='utf-8').read(),
+         {'PRM': dict(K.get('REV', {}), EXPORTAR=False)})
+bpy.context.view_layer.update()
+REV = [bpy.data.objects[nm] for nm in ('Rev_Cuerpo', 'Rev_Cacha', 'Rev_Tambor', 'Rev_Martillo', 'Rev_Gatillo', 'Rev_Puerta', 'Rev_Varilla')]
+AgW = bpy.data.objects['Rev_Agarre'].matrix_world.copy()
+Gm = Matrix((V((0, 0, -lado)), V((0, 1, 0)), u)).transposed().to_4x4()   # Rev_Agarre (X, Y = canon, Z = arriba) en la mano
+def en_mano(dc):                                             # mundo del revolver -> marco de mano_D
+    M = Gm.copy(); M.translation = cg + dc; return M @ AgW.inverted()
 
-# puntos de prueba de mano+pistola en el marco de mano_D (con agarre completo)
+# palma contra la cacha: el desplazamiento que menos mete la mano cerrada en la cacha, el armazon y el gatillo
 aplicar({}, {'_D': 1.0})
 iMano = sel_de(('mano', 'dedos', 'pulgar'), '_D'); iBrazo = sel_de(('hombro', 'brazo', 'antebrazo'), '_D')
 Pm = arm.pose.bones['mano_D'].matrix.inverted()
 MANO_L = [Pm @ p for p in defo(iMano)]
-def caja_pts(c, dims, nn=5):
-    a, b, d = dims; out = []
-    for i in range(nn):
-        for j in range(nn):
-            for k in range(nn):
-                if 0 in (i, j, k) or nn - 1 in (i, j, k):
-                    out.append(c + V((a * (i / (nn - 1) - .5), b * (j / (nn - 1) - .5), d * (k / (nn - 1) - .5))))
-    return out
-def en_caja(c, dm): return sum(1 for p in MANO_L if all(abs((p - c)[i]) < dm[i] / 2 for i in range(3)))
-ch, dy, dz = min((en_caja(caj[0][0] + V((0, y / 1000, z / 1000)), caj[0][1]), y / 1000, z / 1000)
-                 for y in range(-24, 25, 3) for z in range(-24, 25, 3))
-dc = V((0, dy, dz)); caj = [(c + dc, dm) for c, dm in caj]; BOCA = BOCA + dc
-for v in mp.vertices: v.co += dc
-mp.update(); choque_culata = ch
-PIS_L = [p for c, dm in caj for p in caja_pts(c, dm)]
+def bvh_de(o):
+    W = o.matrix_world
+    return BVHTree.FromPolygons([W @ v.co for v in o.data.vertices], [list(p.vertices) for p in o.data.polygons])
+CHOQ = [bvh_de(o) for o in (REV[0], REV[1], REV[4])]
+def dentro_arma(p):
+    for b in CHOQ:
+        h = b.find_nearest(p)
+        if h[0] is not None and (p - h[0]).dot(h[1]) < -0.0005: return True
+    return False
+def choques(dc):
+    Mi = en_mano(dc).inverted(); return sum(1 for p in MANO_L[::2] if dentro_arma(Mi @ p))
+def rejilla(c, paso, n):
+    return min((choques(V((du * lado, dy, dz)) / 1000), abs(du) + abs(dy) + abs(dz), (du, dy, dz))
+               for du in [c[0] + paso * i for i in range(-n, n + 1)] for dy in [c[1] + paso * i for i in range(-n, n + 1)]
+               for dz in [c[2] + paso * i for i in range(-n, n + 1)])
+mejor = rejilla((0, 0, 0), 6, 4); mejor = rejilla(mejor[2], 2, 2)
+choque_culata = mejor[0]; DC = V((mejor[2][0] * lado, mejor[2][1], mejor[2][2])) / 1000
+MG = en_mano(DC)
+print('revolver en la mano: desplazamiento mm', mejor[2], 'verts de mano dentro', choque_culata, 'de', len(MANO_L[::2]))
+
+# Rig_Pistola: copia fija del revolver (para las revisiones de choque); el juego cuelga revolver.glb de Rig_Agarre
+bm = bmesh.new(); mats = []
+for o in REV:
+    me = o.data.copy(); me.transform(MG @ o.matrix_world); n0 = len(bm.faces); bm.from_mesh(me)
+    idx = []
+    for m in me.materials:
+        if m not in mats: mats.append(m)
+        idx.append(mats.index(m))
+    for fc in list(bm.faces)[n0:]: fc.material_index = idx[fc.material_index] if idx else 0
+    bpy.data.meshes.remove(me)
+mp = bpy.data.meshes.new('Rig_Pistola'); bm.to_mesh(mp); bm.free()
+for m in mats: mp.materials.append(m)
+pis = bpy.data.objects.new('Rig_Pistola', mp); col.objects.link(pis)
+aplicar({}); pis.parent = arm; pis.parent_type = 'BONE'; pis.parent_bone = 'mano_D'
+bpy.context.view_layer.update(); pis.matrix_world = arm.matrix_world @ Rm
+agr = bpy.data.objects.new('Rig_Agarre', None); col.objects.link(agr)
+agr.empty_display_type = 'ARROWS'; agr.empty_display_size = 0.05
+agr.parent = arm; agr.parent_type = 'BONE'; agr.parent_bone = 'mano_D'
+bpy.context.view_layer.update(); agr.matrix_world = arm.matrix_world @ Rm @ MG @ AgW
+BOCA = MG @ bpy.data.objects['Rev_Boca'].matrix_world.translation
+PIS_L = [v.co.copy() for v in list(mp.vertices)[::max(1, len(mp.vertices) // 200)]]
 
 # ---------- pistola en la sien ----------
 def sien(sx):
@@ -420,15 +441,16 @@ def sien(sx):
 def buscar_pistola():
     Sd, nd = sien(-1); Si, ni = sien(1)
     hc = bones['cabeza'].head_local
-    mejor = None; ST = dict(n=0, ok=0); hD = bones['hombro_D']
-    for sh in (0, 15, 30):                                     # hombro encogido (sube el hombro)
-        H = Matrix.Translation(hD.head_local) @ Matrix.Rotation(math.radians(sh), 4, 'Y') @ Matrix.Translation(-hD.head_local)
-        S = H @ V((-hx, hy, hz))
-        for tau in (0, -8, -16, -24):                          # cabeza ladeada hacia la pistola
-            T = Matrix.Translation(hc) @ Matrix.Rotation(math.radians(tau), 4, 'Y') @ Matrix.Translation(-hc); Ti = T.inverted()
+    mejor = None; ST = dict(n=0, ok=0); hD = bones['hombro_D']; hcol = bones['columna'].head_local
+    for lean, sh, tau in [(l, s_, t_) for l in K['PS_TRONCO'] for s_ in K['PS_HOMBRO'] for t_ in K['PS_CABEZA']]:
+        L = Matrix.Translation(hcol) @ Matrix.Rotation(math.radians(-lean), 4, 'Y') @ Matrix.Translation(-hcol)   # tronco ladeado
+        H = L @ Matrix.Translation(hD.head_local) @ Matrix.Rotation(math.radians(sh), 4, 'Y') @ Matrix.Translation(-hD.head_local)
+        S = H @ V((-hx, hy, hz))                               # hombro encogido (sube el hombro)
+        if True:                                               # cabeza ladeada hacia la pistola
+            T = L @ Matrix.Translation(hc) @ Matrix.Rotation(math.radians(tau), 4, 'Y') @ Matrix.Translation(-hc); Ti = T.inverted()
             Sw = T @ Sd; nw = (T.to_3x3() @ nd).normalized(); d0 = -nw
             up0 = (V((0, 0, 1)) - d0 * d0.z).normalized(); hz_ = d0.cross(up0)
-            for al in range(-20, 61, 5):                       # canon inclinado hacia arriba (brazo corto)
+            for al in K['PS_ALTO']:                            # canon hacia la sien: poco inclinado
                 for be in range(-50, 51, 10):
                     d = rot(rot(d0, hz_, al), up0, be)
                     for fi in range(-60, 61, 15):
@@ -441,7 +463,7 @@ def buscar_pistola():
                             E, W2 = ik(S, W, pole)
                             if E.x > -0.25: continue
                             dob = math.degrees((W - E).angle(d))
-                            pena = dob + abs(tau) * 0.5 + sh * 0.3 + max(0, abs(al) - 10) * 0.8; ST['ok'] += 1
+                            pena = dob + abs(tau) * 0.4 + sh * 0.3 + lean * 0.4 + max(0, abs(al) - 10) * 1.5 + abs(be) * 0.2; ST['ok'] += 1
                             if mejor and (mejor[0], mejor[1]) <= (0, pena): continue
                             M = R.to_4x4(); M.translation = W
                             prueba = [M @ p for p in MANO_L[::3] + PIS_L]
@@ -453,11 +475,12 @@ def buscar_pistola():
                                 nin += inside(p, Ti)
                                 if nin > tope: break
                             if mejor and (nin, pena) >= (mejor[0], mejor[1]): continue
-                            mejor = (nin, pena, dict(muneca=round(dob), cabeza=tau, hombro=sh, alto=al, frente=be, giro=fi), S, E, W, d, x.cross(d), T, H)
-    nin, pena, info, S, E, W, d, nz, T, H = mejor
+                            mejor = (nin, pena, dict(muneca=round(dob), tronco=lean, cabeza=tau, hombro=sh, alto=al, frente=be, giro=fi), S, E, W, d, x.cross(d), T, H, L)
+    nin, pena, info, S, E, W, d, nz, T, H, L = mejor
     print('pistola sien:', ST, 'puntos dentro', nin, info)
     cab = T @ bones['cabeza'].matrix_local
-    qPS, _ = pose_brazos({'_D': (S, E, W, d, nz)}, {'cabeza': cab, 'hombro_D': H @ hD.matrix_local})
+    qPS, _ = pose_brazos({'_D': (S, E, W, d, nz)}, {'cabeza': cab, 'hombro_D': H @ hD.matrix_local,
+                                                   'columna': L @ bones['columna'].matrix_local})
     return qPS, Sd, nd, Si, ni, T
 qPS, Sd, nd, Si, ni, T = buscar_pistola()
 
@@ -546,7 +569,7 @@ if os.path.exists(_em): exec(open(_em, encoding='utf-8').read(), {'PRM': {'RIG':
 # ---------- exportar GLB ----------
 aplicar({})
 for o in bpy.context.view_layer.objects: o.select_set(False)
-for o in [arm, pis] + SIENES + list(piezas.values()): o.hide_set(False); o.select_set(True)
+for o in [arm, agr] + SIENES + list(piezas.values()): o.hide_set(False); o.select_set(True)
 bpy.context.view_layer.objects.active = arm
 loc = arm.location.copy(); arm.location = (0, 0, 0); bpy.context.view_layer.update()
 props = bpy.ops.export_scene.gltf.get_rna_type().properties.keys()

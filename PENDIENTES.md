@@ -128,13 +128,17 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 ## Ruleta Rusa con los personajes nuevos (plan del 11 nov 2026)
 Orden: revólver → personajes → animaciones → pulido. Cada paso depende del anterior (las poses salen de la forma de la cacha). Hoy `c_ruleta3d.js` (46 KB) arma Miis con `mkAvatar` + IK (`seg`/`ik`), el arma con `mkGun()` (~línea 136, cubos) en dos copias: `gunW` (mundo) y `gunV` (vista en primera persona, hijo de la cámara `CA`); `buildMyHand(p)` (~158) arma la mano en primera persona con brazos Mii; los modos de pose son `null`/'hold'/'aim'/'head' (~185–215); los eventos `spin`/`click`/`bang` (~170) disparan sonido, sacudida y `death()`.
 
+Decidido (11 nov): western clásico de acción simple (martillo grande, tambor fijo, puerta de carga, varilla eyectora); niquelado claro + cacha de madera miel; tamaño ~1.15× real (que se note sin exagerar); primera persona en tu turno; carga animada de la bala al inicio y tras cada bang; giro del tambor con la mano izquierda; muerte al frente sobre la mesa con ragdoll híbrido; el arma se avienta y se desliza por la mesa al siguiente.
+
 ### R1 · Revólver en Blender (blender/revolver.py, nuevo)
-- [ ] Script con parámetros en `K` (como los demás .py), se corre con exec() vía MCP. Estilo chibi: robusto y algo grande, bordes redondeados (bevel), sin esquinas filosas; 2–3 k tris.
-- [ ] Piezas separadas: `Rev_Cuerpo` (armazón + cañón), `Rev_Tambor` (6 recámaras, girará en código), `Rev_Martillo`, `Rev_Gatillo`, `Rev_Cacha` (madera).
-- [ ] Empties: `Rev_Agarre` (donde va la palma; +Y del empty = hacia el cañón), `Rev_Boca` (salida del fogonazo/humo), `Rev_EjeTambor` (pivote del tambor), `Rev_EjeMartillo`, `Rev_EjeGatillo`.
-- [ ] Materiales: acero claro con brillo visible (el arma actual se ve negra: subir base color y bajar metalness o dar roughness media), cacha de madera cálida, detalles (tornillos, mira) en latón o acero oscuro. Nombres de material `rev_*`.
-- [ ] Exportar `blender/revolver.glb` (y copiarlo a `modelos/` si va por jsDelivr, ver memoria modelos-3d: etiqueta `modelos-vN`).
-- [ ] Reemplazar la "pistola de prueba" de rig.py por el revólver (unirlo al hueso de la mano con `Rev_Agarre`) y rehacer `PistolaSien` y `PistolaSien_n` para los 7 peinados; revisar choques con melena/largo (antes 238/461 vértices) y los empties `Sien_I_n`/`Sien_D_n`.
+- [x] Piezas extra para la carga: `Rev_Puerta` (puerta de carga, lado derecho, eje `Rev_EjePuerta`), `Rev_Varilla` (varilla eyectora, se desliza), `Rev_Bala` y `Rev_Casquillo` (sueltas); empty `Rev_Recamara` (recámara alineada con la puerta).
+- [x] Script con parámetros en `K` (como los demás .py), se corre con exec() vía MCP. Estilo chibi: robusto y algo grande, bordes redondeados (bevel), sin esquinas filosas; 2–3 k tris.
+- [x] Piezas separadas: `Rev_Cuerpo` (armazón + cañón), `Rev_Tambor` (6 recámaras, girará en código), `Rev_Martillo`, `Rev_Gatillo`, `Rev_Cacha` (madera).
+- [x] Empties: `Rev_Agarre` (donde va la palma; +Y del empty = hacia el cañón), `Rev_Boca` (salida del fogonazo/humo), `Rev_EjeTambor` (pivote del tambor), `Rev_EjeMartillo`, `Rev_EjeGatillo`.
+- [x] Materiales: acero claro con brillo visible (el arma actual se ve negra: subir base color y bajar metalness o dar roughness media), cacha de madera cálida, detalles (tornillos, mira) en latón o acero oscuro. Nombres de material `rev_*`.
+- [x] Exportar `blender/revolver.glb` (y copiarlo a `modelos/` si va por jsDelivr, ver memoria modelos-3d: etiqueta `modelos-vN`).
+- [x] Reemplazar la "pistola de prueba" de rig.py por el revólver (unirlo al hueso de la mano con `Rev_Agarre`) y rehacer `PistolaSien` y `PistolaSien_n` para los 7 peinados; revisar choques con melena/largo (antes 238/461 vértices) y los empties `Sien_I_n`/`Sien_D_n`.
+- Hecho: blender/revolver.py → blender/revolver.glb (7.5k tris, ESC 1.15). rig.py: Rig_Pistola es la copia fija (no se exporta) y Rig_Agarre (hijo de mano_D) es donde va Rev_Agarre; PistolaSien con el cañón hacia la sien (alto ≤ 30°, PS_* en K). Falta pasar chibi_prueba.glb a modelos/personaje/chibi.glb (R2).
 
 ### R2 · Personajes en la Ruleta
 - [ ] Quitar los Miis: sentar personajes con AV/MPJ alrededor de la mesa de la Ruleta (no es MESA; usar las posiciones de silla actuales de `c_ruleta3d.js`). Mismo código de personaje que en Continental/Uno (`AV.crear`/`AV.crearYa`, `AV.cambiar`).
@@ -145,8 +149,10 @@ Orden: revólver → personajes → animaciones → pulido. Cada paso depende de
 
 ### R3 · Animaciones
 Reparto: poses clave horneadas en Blender (actuación) + mezcla, apuntado y mecánica del arma en three.js.
-- [ ] Aris detalla la secuencia de momentos. Propuesta para revisar: tomar el arma → girar el tambor → mirar a los demás → a la sien → aguantar la tensión → clic o bang → reacción (alivio / muerte) → pasar el arma.
-- [ ] Acciones nuevas en rig.py (todas con `_n` por peinado si tocan la cabeza): `TomaArma`, `GiraTambor` (mano izquierda gira, derecha sostiene), `ApuntaI`/`ApuntaC`/`ApuntaD` (tres poses de apuntar: izquierda, centro, derecha), `Alivio` (exhala, hombros caen), `Muerte` (desplome; definir: hacia el frente sobre la mesa / hacia atrás / caricatura), `PasaArma`, `ReposoNervioso` (en la mesa, inquieto).
+- [ ] Secuencia (decidida): tomar el arma → [girar el tambor con la mano izquierda, solo si elige girar] → mirar a los demás (rápido, sin frenar el juego) → a la sien → amartillar con el pulgar → aguantar la tensión (acercamiento lento, latido, temblor) → clic o bang → reacción (alivio / muerte) → aventar el arma a la mesa, que se desliza girando hasta el siguiente (sirve en lados opuestos).
+- [ ] Carga (al inicio y justo después de un bang): abrir la puerta, varilla saca el casquillo (si hubo bang), meter la bala, cerrar y girar el tambor.
+- [ ] Acciones nuevas en rig.py (todas con `_n` por peinado si tocan la cabeza): `TomaArma`, `CargaBala`, `GiraTambor` (mano izquierda gira, derecha sostiene), `Amartilla` (pulgar), `ApuntaI`/`ApuntaC`/`ApuntaD` (tres poses de apuntar: izquierda, centro, derecha), `Alivio` (exhala, hombros caen), `Muerte` (solo el impulso del balazo, ~0.2 s), `AvientaArma`, `ReposoNervioso` (en la mesa, inquieto).
+- [ ] Ragdoll híbrido (c_ragdoll.js, sin librerías): tras `Muerte`, verlet con ~14 cuerpos (cadera, columna, cabeza, brazos, antebrazos, manos, muslos, piernas), límites de codo/cuello/rodilla, choque con mesa, silla y piso; cae al frente sobre la mesa. Solo visual, cada cliente lo simula. El revólver se suelta con física simple (la misma del deslizamiento).
 - [ ] En código: crossfade entre poses; apuntar a cualquier jugador = mezclar `ApuntaI/C/D` según el ángulo + giro pequeño de columna/cabeza encima; todos miran a quien tiene el arma (ya existe, adaptar).
 - [ ] Mecánica del arma en código: tambor gira con `spin` (hoy `userData.spin`), martillo se amartilla antes del disparo, gatillo se jala en `click`/`bang`, retroceso; fogonazo y humo en `Rev_Boca`.
 
