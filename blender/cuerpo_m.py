@@ -1,5 +1,5 @@
 # Cuerpo de mujer del chibi (mismo esqueleto): la playera de Frente con cintura marcada y la falda que se
-# abre hasta medio muslo (malla 'playera_m'), y el pantalon un poco mas ancho de cadera ('pantalon_m').
+# abre hasta medio muslo, mas delgada y con busto (malla 'playera_m'), y piernas mas delgadas ('pantalon_m').
 # Deja la figura de muestra 'Mujer' (copia ligada de Frente con esas piezas y el peinado MUJER_PELO).
 # Uso: exec(open(r'C:/Users/aris1/code/Continental/blender/cuerpo_m.py').read(), {'PRM': {...}})
 import bpy, bmesh, math
@@ -8,9 +8,10 @@ K = dict(
     HOMBRO=1.35,                 # arriba de aqui la playera no se estira (solo se angosta)
     BAJO=0.62,                   # nuevo borde de abajo (medio muslo); antes 0.924
     # escala (x, y) segun la z nueva: hombros un poco mas angostos, cintura, cadera y vuelo abajo
-    PERFIL=[(1.70, 0.93, 0.95), (1.50, 0.93, 0.95), (1.35, 0.90, 0.94), (1.08, 0.82, 0.88),
-            (0.90, 1.00, 1.00), (0.62, 1.22, 1.12)],
-    CADERA_PANT=(1.10, 1.06),    # pantalon arriba de la rodilla
+    PERFIL=[(1.70, 0.92, 0.94), (1.50, 0.90, 0.92), (1.35, 0.84, 0.88), (1.08, 0.74, 0.82),
+            (0.90, 0.88, 0.90), (0.62, 1.06, 1.00)],
+    CADERA_PANT=(1.0, 1.0),      # pantalon arriba de la rodilla (x, y)
+    PIERNA=(0.095, 0.88),        # centro de cada pierna en x y grosor de la pierna (alrededor de su centro)
     # busto: el pecho se empuja hacia afuera desde el eje (radial en xy) con peso cos(angulo desde el frente)**CP:
     # en la seccion es casi correr el pecho hacia adelante, asi queda un solo volumen redondo sin surco a los
     # lados. Centro en z = BZ; alto arriba SZ_A, abajo SZ_B (mas largo: la tela cae del busto); A = cuanto sale
@@ -59,6 +60,8 @@ nm_ = copia(bpy.data.objects['Frente_Pantalon'].data, 'pantalon_m')
 for v in nm_.vertices:
     t = max(0.0, min(1.0, (v.co.z - 0.45) / 0.4))
     v.co.x *= 1 + (K['CADERA_PANT'][0] - 1) * t; v.co.y *= 1 + (K['CADERA_PANT'][1] - 1) * t
+    cx, s = K['PIERNA']; ax = abs(v.co.x)
+    v.co.x = math.copysign(cx + (ax - cx) * s, v.co.x); v.co.y *= s
 
 col = bpy.data.collections.get('Peinados') or bpy.context.scene.collection
 E = bpy.data.objects.get('Mujer')
