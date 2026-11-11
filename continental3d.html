@@ -14,18 +14,8 @@ html.c3on,html.c3on body{overflow:hidden;height:100%;overscroll-behavior:none}
 html.c3on #app{pointer-events:none}
 #c3root{position:fixed;inset:0;z-index:1;display:none;background:radial-gradient(ellipse at 50% 42%,#1e5038 0%,#0c2a1c 52%,#03100a 100%);touch-action:none;-webkit-user-select:none;user-select:none}
 #c3root canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
-.w7{pointer-events:auto;position:fixed;z-index:10;box-sizing:border-box;font:500 clamp(13px,.55vw + 10px,16px)/1.25 "Segoe UI","Noto Sans",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
-/* vidrio Aero */
-.w7g{background:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.16) 46%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.18) 100%),rgba(58,104,146,.42);-webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);border:1px solid rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.75),0 6px 22px rgba(0,0,0,.5);border-radius:8px;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.85),0 1px 2px #000}
-/* botones Windows 7 */
-.w7b{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;min-width:42px;padding:0 14px;border:1px solid #707070;border-radius:4px;background:linear-gradient(#f2f2f2 0%,#ebebeb 48%,#dddddd 52%,#cfcfcf 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);color:#111;text-shadow:none;font:600 1em "Segoe UI","Noto Sans",system-ui,sans-serif;cursor:pointer;touch-action:manipulation;white-space:nowrap}
-@media (hover:hover){.w7b:hover{border-color:#3c7fb1;background:linear-gradient(#eaf6fd 0%,#d9f0fc 48%,#bee6fd 52%,#a7d9f5 100%)}}
-.w7b:active{border-color:#2c628b;background:linear-gradient(#e5f4fc 0%,#c4e5f6 48%,#98d1ef 52%,#68b3db 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
-.w7b[disabled]{opacity:.5;pointer-events:none}
-.w7b.p{border-color:#3c7fb1;animation:w7glow 1.6s ease-in-out infinite}
-@keyframes w7glow{0%,100%{box-shadow:inset 0 0 0 1px #fff,0 0 4px 1px rgba(80,180,255,.55)}50%{box-shadow:inset 0 0 0 1px #fff,0 0 12px 4px rgba(80,190,255,.95)}}
-/* globo de aviso (estilo Windows 7) */
-.t3msg{top:calc(env(safe-area-inset-top,0px) + 84px);left:50%;transform:translateX(-50%);max-width:min(520px,calc(100% - 24px));padding:10px 14px;border:1px solid #767676;border-radius:6px;background:linear-gradient(#fff,#e4e5f0);color:#000;box-shadow:0 4px 14px rgba(0,0,0,.45);text-align:center;pointer-events:none;animation:t3fade 4.5s forwards}
+/* globo de aviso (lo viste ui_casa.css) */
+.t3msg{top:calc(env(safe-area-inset-top,0px) + 84px);left:50%;transform:translateX(-50%);max-width:min(520px,calc(100% - 24px));text-align:center;pointer-events:none;animation:t3fade 4.5s forwards}
 @keyframes t3fade{0%{opacity:0;transform:translate(-50%,-6px)}6%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
 /* etiquetas de los jugadores y del mazo (las coloca el JS encima de la mesa) */
 .t3pl{left:0;top:0;color:#fff;font-size:.8em;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:0 1px 3px #000,0 0 6px #000;will-change:transform}

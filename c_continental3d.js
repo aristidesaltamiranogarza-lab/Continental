@@ -189,7 +189,7 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
    const bk=B(.62,hh,t,std(BC[(rnd()*BC.length)|0],.7),bx+.05,y+.06+hh/2,z+t/2);if(rnd()<.12)bk.rotation.x=.2;z+=t+.02}}
  // escritorio con computadora (fondo de pantalla tipo Windows 7), lámpara y silla, en la pared izquierda
  const dz=por?2:-.5,dx=-X+1.3,dk=std(0x5a3a22,.55);B(2.2,.14,4.6,dk,dx,FY+1.55,dz);[[-.95,-2.1],[.95,-2.1],[-.95,2.1],[.95,2.1]].forEach(([a,b])=>B(.12,1.5,.12,dk,dx+a,FY+.75,dz+b));
- const scr=ctex('w7wall',256,160,(g,w,h)=>{const gr=g.createRadialGradient(w*.55,h*.45,10,w*.5,h*.5,w*.7);gr.addColorStop(0,'#3fa4e8');gr.addColorStop(.6,'#155a9c');gr.addColorStop(1,'#0a2a5a');g.fillStyle=gr;g.fillRect(0,0,w,h);
+ const scr=ctex('pantalla',256,160,(g,w,h)=>{const gr=g.createRadialGradient(w*.55,h*.45,10,w*.5,h*.5,w*.7);gr.addColorStop(0,'#3fa4e8');gr.addColorStop(.6,'#155a9c');gr.addColorStop(1,'#0a2a5a');g.fillStyle=gr;g.fillRect(0,0,w,h);
   [['#f25022',-1,-1],['#7fba00',1,-1],['#00a4ef',-1,1],['#ffb900',1,1]].forEach(([c,a,b])=>{g.fillStyle=c;g.beginPath();g.ellipse(w*.5+a*15,h*.45+b*13,13,11,a*b*.2,0,7);g.fill()});
   g.fillStyle='rgba(20,40,70,.85)';g.fillRect(0,h-14,w,14);g.fillStyle='#4aa0e0';g.beginPath();g.arc(10,h-7,6,0,7);g.fill()});
  const mon=new THREE.Group();mon.position.set(dx-.35,FY+1.62,dz);mon.rotation.y=Math.PI/2;R.add(mon);const blk=std(0x1b1b1f,.35);

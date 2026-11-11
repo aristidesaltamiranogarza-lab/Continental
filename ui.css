@@ -94,30 +94,7 @@ html[data-tema=noche] .ui-sw i::after{background:var(--ui-sub)}
 @keyframes uiIn{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.ui-sheet,.ui-scrim,.ui-toast{animation:none}}
 
-/* ===== alias de las clases viejas .w7… (los juegos las siguen usando) ===== */
-.w7{font:700 clamp(13px,.55vw + 10px,16px)/1.3 var(--ui-font);color:var(--ui-text)}
-.w7g,.ui-glass{background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);border-radius:var(--ui-r);box-shadow:var(--ui-shadow);color:var(--ui-text);text-shadow:none}
-.w7b{min-height:44px;min-width:44px;padding:0 16px;border:1px solid var(--ui-line);border-radius:999px;background:var(--ui-chip);box-shadow:none;color:var(--ui-text);font:700 1em var(--ui-font)}
-@media (hover:hover){.w7b:hover{border-color:var(--ui-accent);background:var(--ui-chip);filter:brightness(1.04)}}
-.w7b:active{border-color:var(--ui-accent);background:var(--ui-chip);box-shadow:none;transform:scale(.97)}
-.w7b.p,.w7win .ft .dflt{border-color:transparent;background:var(--ui-accent);color:var(--ui-on);box-shadow:none;animation:none}
-.w7g .w7b{background:var(--ui-field)}
-.w7win{padding:0 12px 12px;border-radius:var(--ui-r);border:1px solid var(--ui-line);background:var(--ui-sheet);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:var(--ui-shadow);color:var(--ui-text)}
-.w7win .wt{height:48px;padding-left:6px;color:var(--ui-text);font-weight:800;text-shadow:none}
-.w7win .wx{width:36px;height:36px;margin:0;align-self:center;border:0;border-radius:999px;background:var(--ui-chip);color:var(--ui-text);font:800 15px/1 var(--ui-font);text-shadow:none;box-shadow:none}
-@media (hover:hover){.w7win .wx:hover{background:var(--ui-accent);color:var(--ui-on)}}
-.w7win .wb{background:none;border:0;border-radius:0;padding:4px;color:var(--ui-text);font-weight:600}
-.w7win .tabs{gap:2px;padding:3px;margin-bottom:8px;border-radius:999px;background:var(--ui-chip)}
-.w7win .tab{min-height:36px;padding:0 14px;margin:0;border:0;border-radius:999px;background:none;color:var(--ui-text);font:700 14px/1 var(--ui-font)}
-@media (hover:hover){.w7win .tab:hover{background:var(--ui-chip)}}
-.w7win .tab.on{padding-top:0;margin-top:0;border:0;background:var(--ui-accent);color:var(--ui-on)}
-.w7win .pane{background:var(--ui-field);border:1px solid var(--ui-line);border-radius:16px}
-.w7win .hd{color:var(--ui-accent);font-weight:800}
-.w7win .opt{border-radius:14px;color:var(--ui-text);font-weight:700}
-@media (hover:hover){.w7win .opt:hover{border-color:var(--ui-line);background:var(--ui-chip)}}
-.w7win .opt.on{border-color:var(--ui-accent);background:var(--ui-chip);box-shadow:none}
-.w7win .nt{color:var(--ui-sub)}
-.w7win .ft .w7b{min-height:44px;font-weight:700}
+.ui-glass{background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);border-radius:var(--ui-r);box-shadow:var(--ui-shadow);color:var(--ui-text);text-shadow:none}
 /* slider de volumen (musSlider en music.js): botón para quitar/poner y arrastrar de 0 a 100 */
 .ui-vol{display:flex;align-items:center;gap:10px;min-height:48px;--v:74%}
 .ui-vol .ui-rb{flex:none;width:44px;height:44px;color:var(--ui-icon)}
