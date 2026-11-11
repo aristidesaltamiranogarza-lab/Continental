@@ -20,7 +20,7 @@ const A={
  silla:1.55,                       // altura del marco del personaje sobre la silla (MPJ lo baja 1.27)
  cerca:4.2,                        // distancia al centro de la mesa para el aviso "Jugar Blackjack"
  cam:{ojo:2.3,adelante:.45,mira:.3,zoom:3.2,giro:1.5,sube:.9,baja:.7,sens:.005,blend:700,   // primera persona: altura de los ojos, cuánto te inclinas hacia la mesa, punto que ves (0 tus cartas … 1 las del crupier), zoom máximo, límites al mirar y sensibilidad
-  arriba:{alto:4.4,z:3.7,mira:.4}}   // vista Arriba: altura sobre la mesa, distancia detrás de las sillas y punto que ve
+  arriba:{alto:2.25,z:2.5,mira:.05,fov:1.3}}   // vista Arriba: altura sobre la mesa (el techo del sótano está a 3.9, sus vigas tapan si te pasas), distancia hacia las sillas, punto que ve y campo más abierto
 };
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),CZ=.55,LUGAR=window.BJC?BJC.LUGAR:[0,.47],ZAP=[.76,.2],DESC=[-.76,.2],CHAR=[0,.19];
 const PALO=['♠','♥','♦','♣'],RANGO=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -129,7 +129,7 @@ function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares
  else{const a=K.arriba;Pc.set(0,TH+a.alto,a.z);m.G.localToWorld(Pc);Lc.set(0,TH,a.mira);m.G.localToWorld(Lc)}
  Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.5,Math.min(.5,pa+look.p));
  Dv.set(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));CD.position.copy(Pc);CD.lookAt(Lc.copy(Pc).add(Dv));
- if(!fov0)fov0=C.fov;const f=fov0/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
+ if(!fov0)fov0=C.fov;const f=Math.min(100,fov0*(vista==='arriba'?K.arriba.fov:1))/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
  if(!p0){p0=C.position.clone();q0=C.quaternion.clone();camT=now}const e=ease(Math.min(1,(now-camT)/K.blend));
  C.position.lerpVectors(p0,Pc,e);C.quaternion.slerpQuaternions(q0,CD.quaternion,e);C.updateMatrixWorld()}   // los globitos se proyectan con esta cámara
 function ver(v){const C=H()&&H().cam();vista=v==null?(vista==='yo'?'arriba':'yo'):v;Object.assign(look,{y:0,p:0,z:1});if(C){p0=C.position.clone();q0=C.quaternion.clone();camT=performance.now()}mk='';rr()}
