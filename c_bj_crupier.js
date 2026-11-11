@@ -6,7 +6,7 @@
 // BJC.LUGAR = dónde van sus cartas (espacio de la mesa, +z hacia los jugadores).
 (function(){
 if(typeof THREE==='undefined')return;
-const COD='s1p2c2b1n1a1d1-1268',LUGAR=[0,.33];   // código AV: camisa vino y pantalón oscuro
+const COD='s1p2c2b1n1a1d1-1268',LUGAR=[0,.47];   // código AV: camisa vino y pantalón oscuro
 // gestos encima de AV.GE (radianes desde AgarreFrente; medidos con la mano sobre el paño, el zapato y su carta):
 // apo la izquierda apoyada, zap la izquierda sobre el zapato, rep la derecha lanza al frente, vol la derecha sobre su carta, gir le gira la muñeca
 const GES={apo:{I:[-.6,-.7,-1,-.4]},zap:{I:[-1.5,1,-.4,-.4],D:[-.7,.5,0,0]},rep:{D:[-1.1,-1,.6,0],I:[-.35,0,0,0]},vol:{D:[-.1,.9,-.1,0]},gir:{D:[0,0,0,-1.6]}};

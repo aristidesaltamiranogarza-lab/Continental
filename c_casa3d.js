@@ -89,10 +89,11 @@ function init(){if(ready)return;ready=true;
  addEventListener('keydown',e=>{if(window.CCAM&&active()&&!typing(e))CCAM.cut();if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
   else if(k=='e'&&sel&&window.CMESA&&CMESA.key('e'))e.preventDefault()
+  else if(k=='e'&&window.BJ3&&BJ3.key('e'))e.preventDefault()
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
   else if(k=='v'){e.preventDefault();fpTog()}
-  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
+  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(window.BJ3&&BJ3.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
   else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
@@ -275,7 +276,7 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
  if(mv>.001&&!fBusy){const d=TB.find(x=>x.to&&canGo(x.to)&&Math.hypot(p.x-x.x,p.z-x.z)<x.r+1.05)||LK.find(l=>Math.hypot(p.x-l.x,p.z-l.z)<l.r);if(d&&goFloor(d.to))return}
  if(closed&&closed!==near)closed=null;if(picked&&!tgtG&&near!==picked)picked=null;const want=near&&near===picked&&near!==closed?near:null;if(want!==sel){sel=want;if(sel){sfx('tick');if(document.pointerLockElement)document.exitPointerLock()}render()}}
 // los demás: se deslizan suave hacia la última posición que mandó el servidor
-function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{a.g.visible=(a.f||'pb')===FL.id;const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
+function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach((a,id)=>{a.g.visible=(a.f||'pb')===FL.id&&!(window.BJ3&&BJ3.sentado(id));const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
  a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g),a.pos.z);pose(a,now,false)});
  seated.forEach(s=>{if(!s.av)poseSeated(s,now)});if(window.OCUP)OCUP.paso(now)}
 function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}
@@ -290,8 +291,8 @@ function inputBusy(){const a=document.activeElement;return !!(a&&/INPUT|TEXTAREA
 async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
  const av=window.AV?AV.mio():'';if(av!==me.av){me.av=av;refresh(me)}   // si lo cambió en Mi personaje
  const b={id:myId,av,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0,f:FL.id};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
- if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}if(window.JG3){const j=JG3.out();if(j)b.jg=j}
- try{const d=await api('casa',b);if(active()){netSync(d);if(window.BJC)BJC.estado(d.bj);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
+ if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}if(window.JG3){const j=JG3.out();if(j)b.jg=j}if(window.BJ3){const j=BJ3.out();if(j)b.bj=j}
+ try{const d=await api('casa',b);if(active()){netSync(d);if(window.BJC)BJC.estado(d.bj);if(window.BJ3)BJ3.estado(d.bj,d.bjerr);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
   if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
@@ -413,7 +414,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&!S&&casaInv.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass"><span>Te invitaron a la sala <b>${esc(casaInv)}</b></span><i><button class="ui-btn" onclick="casaInvSi()">Unirme</button><button class="ui-btn sec" onclick="casaInvNo()">No, gracias</button></i></div>`;
  o+=mh;
- if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
+ if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(busy);if(window.BJ3&&FL.id==='sot')o+=BJ3.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
  if(window.CIR)o+=CIR.hud(busy);
  if(window.SOT)o+=SOT.seatHud();
  return o}
@@ -480,7 +481,7 @@ function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||
  R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
  if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
  const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
-window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,ancla,fondo,arranca,
+window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,myId:()=>myId,quien:id=>id===myId?me:others.get(id),ancla,fondo,arranca,
  sala:{gente:(g,n,av,yo)=>{salaPs=n&&n.length?{g,n,av:av||[],me:yo>0?yo:0}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
   sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+cp(c).x,TH+1.02,t.z+cp(c).z)):[]}}};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
