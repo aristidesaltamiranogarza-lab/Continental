@@ -567,6 +567,9 @@ print('vs copia Pose (mm medio, max): mano_D', compara(qAF, {'_D': 1.0}, iMano, 
       'brazo_D', compara(qAF, {'_D': 1.0}, iBrazo, 'Brazos'),
       'mano_I', compara(qMC, {}, iManoI, 'Manos'))
 
+# ---------- poses de la Ruleta Rusa (poses_ruleta.py: TomaArma, Apunta*, CargaBala, Amartilla_D...) ----------
+exec(open(os.path.join(os.path.dirname(K['GLB']), 'poses_ruleta.py'), encoding='utf-8').read(), globals())
+
 # ---------- bailes de Mixamo (emotes.py, con los FBX de blender/emotes; acciones Capoeira, Twerk...) ----------
 _em = os.path.join(os.path.dirname(K['GLB']), 'emotes.py')
 if os.path.exists(_em): exec(open(_em, encoding='utf-8').read(), {'PRM': {'RIG': arm.name}})

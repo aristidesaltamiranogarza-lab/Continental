@@ -135,7 +135,7 @@ function buildBulb(){const pv=new THREE.Group();pv.position.set(0,HT,0);SC.add(p
 // ---------- los jugadores: personajes AV (c_avatar.js) sentados en su silla; el revólver es revolver.glb (c_rr_pj.js) ----------
 let P=[],sig='',me=-1,G0=null,stg=null,lastFx=-1,shk=0,nv=0,brStop=null,deadT=-1,look={y:0,p:0},drag=null,camE=null,camA=null,avP=null;
 const tv=OK3?new THREE.Vector3():null,tv2=OK3?new THREE.Vector3():null,ray=OK3?new THREE.Raycaster():null,P2=OK3?new THREE.Vector2():null;
-function clearPlayers(){RRPJ.enMano(gunW,null);P.forEach(p=>{AV.quita(p.av);SC.remove(p.pv);p.hit.geometry.dispose();p.tag.remove()});P=[];
+function clearPlayers(){RRPJ.enMano(gunW,null);P.forEach(p=>{RAG.quita(p.av);AV.quita(p.av);SC.remove(p.pv);p.hit.geometry.dispose();p.tag.remove()});P=[];
  chairs.forEach((c,i)=>{c.position.copy(spos(i));c.rotation.set(0,face(i),0)})}
 // código AV de cada quien: el suyo (sala) o uno fijo según su nombre
 function avCod(p){const r=(V.players||[]).find(x=>x.id===p.id);return (r&&r.av)||(window.MPJ?MPJ.codigo(p.name):AV.codigoDef)}
@@ -149,14 +149,23 @@ function mkP(k,c,cod){const {av,agr}=RRPJ.pj(cod);
  lay.appendChild(tag);
  return {k,c,cod,pv,av,agr,hit,hr,eye,out,d:out.clone().negate(),fw:out.clone().negate(),cy:0,dead:0,fall:null,seed:Math.random()*10,tag}}
 // alguien muere: sangre y se desploma sobre la mesa. quiet: ya estaba muerto al llegar (sin animación ni sonido)
-function death(p,quiet){if(p.fall)return;p.dead=1;const now=performance.now();p.fall={t:quiet?-1e9:now,sd:Math.random()<.5?1:-1};p.av.visible=true;
+function death(p,quiet){if(p.fall)return;p.dead=1;const now=performance.now();p.fall={t:quiet?-1e9:now};p.av.visible=true;
+ ragdoll(p,quiet);
  const h=p.eye,o=p.out,tx=Math.abs(o.x)>1e-4?((o.x<0?XL:W)-h.x)/o.x:1e9,tz=Math.abs(o.z)>1e-4?(W*Math.sign(o.z)-h.z)/o.z:1e9,t=Math.min(tx,tz);
  const wall={p:h.clone().addScaledVector(o,t),n:tx<tz?v3(-Math.sign(o.x),0,0):v3(0,0,-Math.sign(o.z))};
  RRG.kill({head:h.clone(),out:o.clone(),wall,tableY:TH,tableR:TBR,center:v3(0,0,0),floor:p.pv.position.clone().addScaledVector(p.fw,.45),quiet});
  if(quiet)return;setTimeout(()=>RRS.snd('caida'),480);
  if(p.k===me){deadT=now;RRG.screen(1.3)}else if(me>=0&&P[me]&&!P[me].dead){const dc=Math.abs(p.c-P[me].c);if(Math.min(dc,NS-dc)<=1)RRG.screen(.6)}}
+// el golpe del balazo (pose Muerte, ~0.2 s) y luego cae al frente con el ragdoll; se empuja lejos de quien disparó (o de su sien derecha)
+function ragdoll(p,quiet){const a=p.av;AV.gesto(a,null);AV.amartilla(a,0);AV.agarre(a,'D',0);AV.pose(a,'Muerte',quiet?0:.06);
+ const sh=stg?stg.sh:-1,src=sh!==p.k&&P[sh]?P[sh].eye:null;let imp;
+ if(src)imp=p.eye.clone().sub(src).setY(0).normalize().multiplyScalar(.6).addScaledVector(p.fw,2.2);
+ else imp=a.localToWorld(v3(1,0,0)).sub(a.getWorldPosition(v3(0,0,0))).multiplyScalar(.9).addScaledVector(p.fw,2);
+ const go=()=>{if(P.includes(p)&&a.userData.av)RAG.crea(a,{mesa:{y:TH,r:TBR,c:v3(0,0,0)},piso:0,imp,rh:p.hr,ya:quiet})};
+ if(quiet)go();else setTimeout(go,180)}
+const ctx=(now,dt)=>({P,s:stg,G:G0,me,now,dt,gunW,gunV,CA,SC,TH,TBR,yaw});
 // efectos que manda el servidor (G.fx): giro, clic, disparo
-function fxGo(f){const now=performance.now();
+function fxGo(f){const now=performance.now();RRA.fx(f,ctx(now,0));
  if(f.t=='spin'){RRS.snd('giro');gunW.userData.spin=gunV.userData.spin=now}
  else if(f.t=='click'){RRS.snd('clic');shk=Math.max(shk,.15);gunW.userData.fire=gunV.userData.fire=now;bulb.vx+=rnd(-.05,.05)}
  else if(f.t=='bang'){RRS.snd('disparo');const mz=(gunV.visible?gunV:gunW).userData.mz;mz.updateWorldMatrix(true,false);const mp=mz.getWorldPosition(new THREE.Vector3()),dir=new THREE.Vector3(0,0,-1).transformDirection(mz.matrixWorld);
@@ -167,42 +176,15 @@ function onStage(prev,s){if(brStop&&!(s.st=='nerv'&&s.sh===me)){brStop();brStop=
 function sync(G){const key=G.players.map(p=>p.id).join(',');
  // los personajes salen hasta que cargan los GLB (personaje y revólver); entonces se vuelve a llamar sync
  if(key!==sig&&!RRPJ.ya()){if(!avP)avP=RRPJ.listo().then(()=>{if(G0)sync(G0)}).catch(()=>{avP=null});if(P.length)clearPlayers()}
- else if(key!==sig){sig=key;clearPlayers();RRG.reset();lastFx=-1;stg=null;deadT=-1;camE=null;const n=G.players.length;P=G.players.map((p,k)=>mkP(k,Math.floor(k*NS/n),avCod(p)))}
+ else if(key!==sig){sig=key;clearPlayers();RRG.reset();lastFx=-1;stg=null;deadT=-1;camE=null;const n=G.players.length;P=G.players.map((p,k)=>mkP(k,Math.floor(k*NS/n),avCod(p)));G0=G;RRA.reset(ctx(performance.now(),0))}
  me=V.me;G0=G;if(me>=0&&P[me])RRPJ.vista(gunV,P[me].cod);
  if(!stg||stg.tc!==G.tc){const now=performance.now(),prev=stg;stg={tc:G.tc,st:G.st,sh:G.sh,tg:G.tg,forced:G.forced,res:G.res,t0:now-G.el,t1:G.left?now+G.left:0};onStage(prev,stg)}
  const first=lastFx<0;G.fx.forEach(f=>{if(f.n>lastFx){lastFx=f.n;if(!first&&f.ago<5000)fxGo(f)}});if(first)lastFx=Math.max(0,lastFx);
  P.forEach((p,k)=>{if(G.dead[k]===2){p.pv.visible=false;p.tag.classList.add('left')}else if(G.dead[k]===1&&!p.fall)death(p,true)})}
 
-// ---------- poses ----------
-// mode: null (manos en la mesa) · 'hold' (el arma en la mano) · 'aim' (apunta a tgt) · 'head' (a la sien). f: cuánto lleva del movimiento; amp: temblor
-// pose de Blender (AgarreFrente o PistolaSien) + gestos por código (AV.gesto): apuntar = brazo al frente y torso girado hacia el blanco
+// ---------- poses y revólver: la coreografía del turno está en c_rr_anim.js (RRA) ----------
 function yaw(p,w){p.av.updateMatrixWorld();const l=p.av.worldToLocal(tv2.copy(w));return Math.atan2(l.x,l.z)}
-function poseAV(p,now,mode,tgt,f,amp,mira){const a=p.av;AV.pose(a,mode=='head'&&f>.2?'PistolaSien':'AgarreFrente',.45);AV.agarre(a,'D',mode?1:.3);
- if(mira)p.cy+=(cl(yaw(p,mira),-1,1)-p.cy)*.08;   // todos miran a quien tiene el arma (o a ti, si eres tú)
- const g={cy:mode=='head'?p.cy*(1-f):p.cy,cx:0};
- if(mode=='aim'&&tgt){const y=cl(yaw(p,tgt),-1.2,1.2);g.est=f;g.gy=y*.85*f;g.cy=g.cy*(1-f)+y*.15*f}
- if(amp){g.cx+=(Math.random()-.5)*amp*2;g.cy+=(Math.random()-.5)*amp*2}
- AV.gesto(a,g)}
-function stepPlayers(now){const G=G0,s=stg,sh=G.phase=='play'?G.sh:-1;let held=null;
- P.forEach((p,k)=>{if(!p.pv.visible)return;
-  if(p.fall){const x=ease((now-p.fall.t)/750);if(!p.fall.r){p.fall.r=1;AV.pose(p.av,'Reposo',.3);AV.agarre(p.av,'D',0)}AV.gesto(p.av,{col:1.05*x,cx:.55*x,cy:.3*x*p.fall.sd});return}
-  if(k===me){p.av.visible=false;return}
-  const hp=P[sh],mira=hp&&k!==sh?(sh===me?CA.position:hp.eye):null;
-  if(k!==sh){poseAV(p,now,null,null,0,0,mira);return}
-  const el=now-s.t0,dur=Math.max(1,s.t1-s.t0),tg=P[s.tg],tgt0=tg?(s.tg===me?CA.position.clone():tg.eye):null;let mode='hold',f=1,amp=0,tgt=null;
-  if(s.st=='fire'||(s.st=='res'&&s.res&&s.res.v!==sh)){mode='aim';tgt=tgt0;f=s.st=='fire'?ease(el/700):1}
-  else if(s.st=='nerv'){mode='head';f=ease(el/1100);amp=.015+.07*cl(el/dur,0,1)}
-  else if(s.st=='res'&&s.res&&s.res.v===sh){mode='head';f=1-ease((el-900)/600);amp=.01}
-  poseAV(p,now,mode,tgt,f,amp,mode=='aim'?null:tgt);held=p});
- // el revólver: en la mano de quien tiene el turno (colgado de su Rig_Agarre), en la tuya (primera persona) o sobre la mesa
- const mine=!!(sh===me&&me>=0&&P[me]&&!P[me].dead);RRPJ.ver(gunV,mine);RRPJ.ver(gunW,!mine);RRPJ.enMano(gunW,held&&!mine?held.agr:null);
- if(!mine&&!held){const p=P[sh>=0?sh:G.win!=null?G.win:0],o=p?p.out:v3(0,0,1);gunW.position.set(o.x*(TBR-.5),TH+.04,o.z*(TBR-.5));gunW.rotation.set(0,Math.atan2(o.x,o.z)+1.9,Math.PI/2)}
- if(mine){const el=now-s.t0,dur=Math.max(1,s.t1-s.t0),pos=tv.set(.24,-.27,-.62);let at=CA.localToWorld(tv2.set(-.06,.14,-6)),amp=.002;
-  if(s.st=='fire'||(s.st=='res'&&s.res&&s.res.v!==me)){const tg=P[s.tg];if(tg){pos.lerp(v3(.12,-.17,-.6),ease(el/600));at=tg.eye.clone()}}
-  else if(s.st=='nerv'||(s.st=='res'&&s.res&&s.res.v===me)){const f=s.st=='nerv'?ease(el/1200):1-ease((el-900)/700);pos.lerp(v3(.33,.01,-.12),f);at=CA.localToWorld(tv2.set(.33-f*1.4,0,-.12-(1-f)*5));amp=s.st=='nerv'?.002+.012*cl(el/dur,0,1):.002}
-  gunV.position.copy(pos).add(new THREE.Vector3(Math.random()-.5,Math.random()-.5,0).multiplyScalar(amp));gunV.lookAt(at);RRPJ.pasoVista(gunV)}
- // tambor que gira, martillo amartillado (+40°) que pega al disparar
- [gunW,gunV].forEach(g=>{const d=g.userData,st=now-d.spin;if(st<1200)d.drum.rotation.z+=(1-st/1200)*.6;const ft=now-(d.fire||-1e9);d.hammer.rotation.x=ft<120?0:s&&(s.st=='fire'||s.st=='nerv')?.7:0})}
+function stepPlayers(now,dt){RRA.paso(ctx(now,dt))}
 
 // ---------- cámara: en primera persona desde tu silla; muerto (o mirando) desde arriba, en gris ----------
 function camStep(now,dt){const s=stg,alive=me>=0&&P[me]&&!P[me].dead;let eye,at;
@@ -240,7 +222,7 @@ function labels(){const G=G0;P.forEach((p,k)=>{const t=p.tag;if(!p.pv.visible)re
 let humT=0;
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  const b=root.getBoundingClientRect();if(b.width!==Wd||b.height!==Hd){Wd=b.width;Hd=b.height;R.setSize(Wd,Hd,false);CA.aspect=Wd/Math.max(1,Hd);CA.fov=Wd<Hd?84:70;CA.updateProjectionMatrix()}
- try{if(G0&&stg){stepRoom(now,dt);camStep(now,dt);stepPlayers(now);RRG.step(dt);labels()}R.render(SC,CA)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false);if(typeof render=='function')render()}
+ try{if(G0&&stg){stepRoom(now,dt);camStep(now,dt);stepPlayers(now,dt);RRG.step(dt);labels()}R.render(SC,CA)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false);if(typeof render=='function')render()}
  if(now-humT>1000){humT=now;RRS.hum(shown)}}
 // tocar a alguien en tu turno = dispararle; arrastrar = mirar alrededor; doble clic = mirar al frente
 function tap(e){const G=G0;if(!G||G.phase!='play'||G.turn!==me||G.st!='aim')return;const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);

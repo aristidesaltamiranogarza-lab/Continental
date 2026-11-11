@@ -4,7 +4,7 @@
 // Código: s cuerpo (1 H, 2 M), p pelo 1–7, c cejas, b boca, n nariz, a arriba, d abajo (1–3); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb?v=4',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=6',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],
@@ -29,7 +29,7 @@ let baseP=null,alto=2.6;
 function listo(){return baseP||(baseP=Promise.all([CGLB.cargador(),CGLB.mod('utils/SkeletonUtils.js')]).then(([L,SU])=>new Promise((ok,mal)=>L.load(URL_GLB,g=>ok({g,SU}),null,mal))).then(({g,SU})=>{
  const clips={};
  for(const c of g.animations){let tr;
-  if(/^Agarre_[ID]$/.test(c.name)){const l=c.name.slice(-1);tr=c.tracks.filter(t=>{const m=t.name.match(DEDOS);return m&&m[2]===l})}
+  if(/^(Agarre|Amartilla)_[ID]$/.test(c.name)){const l=c.name.slice(-1);tr=c.tracks.filter(t=>{const m=t.name.match(DEDOS);return m&&m[2]===l})}
   else tr=c.tracks.filter(t=>!DEDOS.test(t.name));   // las poses no mueven los dedos (eso es del agarre)
   clips[c.name]=new THREE.AnimationClip(c.name,c.duration,tr)}
  g.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true}});
@@ -49,13 +49,14 @@ function aplica(p,cod){const u=p.userData.av,o=leer(cod),M=o.s===2?'_M':'';u.o=o
 
 function crearYa(cod){if(!base)return null;const {escena,clips,SU}=base;
  const p=SU.clone(escena);p.name='Personaje';
- const u=p.userData.av={piezas:new Map(),mat:{},acc:{},actual:null,hasta:0};
+ const u=p.userData.av={piezas:new Map(),mat:{},acc:{},obj:null,vel:4,hasta:0};
  p.traverse(o=>{if(/^(Pelo|Cejas|Boca|Nariz|Arriba|Abajo|Mangas|Piernas)/.test(o.name)&&o.parent&&o.parent.name==='Rig')u.piezas.set(o.name,o);
   if(o.isMesh){const cl=m=>{if(!RANURA.includes(m.name))return m;return u.mat[m.name]||(u.mat[m.name]=m.clone())};
    o.material=Array.isArray(o.material)?o.material.map(cl):cl(o.material)}});
  const pis=p.getObjectByName('Rig_Pistola');if(pis)pis.visible=false;u.pistola=pis;
  u.mixer=new THREE.AnimationMixer(p);
- for(const l of 'ID'){const a=u.mixer.clipAction(clips['Agarre_'+l]);a.play();a.paused=true;a.time=0;u.acc['Agarre_'+l]=a}
+ for(const l of 'ID'){const a=u.mixer.clipAction(clips['Agarre_'+l]);a.play();a.paused=true;a.time=0;a.dedo=1;u.acc['Agarre_'+l]=a}
+ if(clips.Amartilla_D){const a=u.mixer.clipAction(clips.Amartilla_D);a.play();a.paused=true;a.time=clips.Amartilla_D.duration*.999;a.setEffectiveWeight(0);a.dedo=1;u.acc.Amartilla_D=a}
  aplica(p,cod);pose(p,'Reposo',0);return p}
 let base=null;
 function crear(cod){return listo().then(b=>{base=b;return crearYa(cod)})}
@@ -66,13 +67,13 @@ const vivos=new Set();let raf=0,t0=0;
 const QS=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),QR=QS.clone().invert();
 // el mixer solo escribe un hueso si su valor cambió: antes de cada vuelta se deshacen los giros por código de la anterior (u.toc)
 function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.quaternion.copy(q);
- u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-(m&&m.dn||0)):0;
+ pesa(u,dt);u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-(m&&m.dn||0)):0;
  u.ti=(u.ti||Math.random()*30)+dt;u.idl=(u.idl||0)+(ob-(u.idl||0))*Math.min(1,dt*6);
- if(!u.sentado&&!u.mov&&!u.ges&&u.idl<.002){u.toc=null;return}
+ if(!u.sentado&&!u.mov&&!u.ges&&u.idl<.002){u.toc=null;if(u.post)u.post(dt);return}
  if(!u.toc){u.toc=new Map();for(const n of HM){const b=p.getObjectByName(n);if(b)u.toc.set(b,new THREE.Quaternion())}}
  for(const [b,q] of u.toc)q.copy(b.quaternion);
  if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QR);if(r)r.quaternion.multiply(QS)}
- if(u.mov||u.idl>=.002)mov(p,u);if(u.ges)ges(p,u)}
+ if(u.mov||u.idl>=.002)mov(p,u);if(u.ges)ges(p,u);if(u.post)u.post(dt)}
 // parado en 'Reposo' (sin sentar ni bailar) respira: pecho y hombros suben, se mece un poco, ladea la cabeza y de vez en cuando voltea;
 // Los brazos se acercan al cuerpo (la pose de Blender los trae abiertos 24°), un poco al frente y con el codo flojo; eso se queda
 // al caminar y el resto se apaga (u.idl, 0–1, con fundido, solo baja al sentarse o bailar). Cada personaje con su propia fase.
@@ -111,7 +112,7 @@ function mueve(p,m){const u=p&&p.userData.av;if(!u)return;const on=!!m&&((m.w||0
 // (+ hacia su izquierda), cx la agacha (+ abajo), est 0–1 estira el brazo derecho al frente, col inclina el torso al frente, gy lo gira (+ a su izquierda), mano 0–1 levanta la mano derecha, arr 0–1 los dos brazos arriba.
 // cartas 0–1: las dos manos juntas frente al pecho (sostiene el abanico); cede ante los demás gestos de ese brazo.
 // GE (AV.GE para probar): por gesto y lado, radianes [brazo X, brazo Z, antebrazo X, antebrazo Z] desde 'AgarreFrente' sentado; C inclina el torso.
-const GE={cartas:{I:[-2.5,-2.375,1.5,0],D:[0,.25,0,0]},est:{D:[-.5,.25,0,0],C:.25},mano:{D:[-2,.625,0,0]},arr:{D:[-2,.625,0,0],I:[-.125,2,0,0]}};
+const GE={cartas:{I:[-2.5,-2.375,1.5,0],D:[0,.25,0,0]},est:{D:[-.5,.25,0,0],C:.25},mano:{D:[-2,.625,0,0]},arr:{D:[-2,.625,0,0],I:[-.125,2,0,0]},ret:{D:[-.4,0,-.35,0]}};
 function gesto(p,g){const u=p&&p.userData.av;if(!u||(!g&&!u.ges))return;u.ges=g||null;u.hasta=Math.max(u.hasta,performance.now()+150);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function ges(p,u){const g=u.ges,h=u.ej||(u.ej=ejes(p));gira(h,'cabeza',1,g.cy||0);gira(h,'cabeza',0,g.cx||0);let col=0;
  for(const n in GE)if(GE[n].C&&g[n])col+=GE[n].C*g[n];gira(h,'columna',0,col+(g.col||0));gira(h,'columna',1,g.gy||0);
@@ -123,35 +124,50 @@ function despierta(p,ms){const u=p.userData.av;upd(p,0);u.hasta=Math.max(u.hasta
 function paso(t){const dt=Math.min(.1,(t-t0)/1000);t0=t;
  for(const p of vivos){const u=p.userData.av;upd(p,dt);if(t>u.hasta&&!quieto(u)&&u.idl<.002)vivos.delete(p)}
  raf=vivos.size?requestAnimationFrame(paso):0}
-// pose: 'Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien' (usa la variante del peinado si existe)
-function pose(p,nom,fade=.25){const u=p.userData.av;if(!u||!base)return;const c=base.clips[nom+'_'+u.o.p]||base.clips[nom];if(!c)return console.warn('[AV] sin pose',nom);
- if(u.emo)emote(p,null,fade);
- let a=u.acc[c.name];if(!a){a=u.acc[c.name]=u.mixer.clipAction(c);a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}
- if(u.actual===a)return;a.reset().play();
- if(u.actual&&fade>0)u.actual.crossFadeTo(a,fade,false);else if(u.actual)u.actual.stop();
- u.actual=a;u.nomPose=nom;despierta(p,(c.duration+fade)*1000+50)}
+// poses por pesos: u.obj (acción → peso meta, suman 1); cada cuadro los pesos van hacia la meta a razón de u.vel por segundo
+// (fade en segundos) y, si suman menos de 1, se reparten para no caer a la pose de descanso. Las de dedos (a.dedo) van aparte.
+function accion(u,c,rep){let a=u.acc[c.name];if(!a){a=u.acc[c.name]=u.mixer.clipAction(c);if(rep)a.setLoop(THREE.LoopRepeat,Infinity);else{a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}}
+ if(!a.isScheduled()){a.reset().play();a.setEffectiveWeight(0)}return a}
+function pesa(u,dt){const o=u.obj;if(!o)return;for(const [a] of o)if(!a.isScheduled()){a.reset().play();a.setEffectiveWeight(0)}
+ const k=dt*u.vel;let tot=0;const on=[];
+ for(const n in u.acc){const a=u.acc[n];if(a.dedo||!a.isScheduled())continue;const m=o.get(a)||0,w=a.getEffectiveWeight(),d=m-w;
+  const nw=Math.abs(d)<=k?m:w+Math.sign(d)*k;if(nw<=0&&m<=0){a.stop();continue}a.setEffectiveWeight(nw);tot+=nw;on.push(a)}
+ if(tot>0&&tot<.999)for(const a of on)a.setEffectiveWeight(a.getEffectiveWeight()/tot)}
+// mezcla(p,{ApuntaI:.3,ApuntaC:.7},fade): varias poses a la vez (usa la variante del peinado si existe); quita el baile
+function mezcla(p,pesos,fade=.25){const u=p&&p.userData.av;if(!u||!base)return;const obj=new Map();let tot=0,top=null,tw=0;
+ for(const nom in pesos){const w=+pesos[nom]||0;if(w<=0)continue;const c=base.clips[nom+'_'+u.o.p]||base.clips[nom];if(!c){console.warn('[AV] sin pose',nom);continue}
+  obj.set(accion(u,c),w);tot+=w;if(w>tw){tw=w;top=nom}}
+ if(!tot)return;for(const [a,w] of obj)obj.set(a,w/tot);
+ if(u.emo){u.emo=null;u.hasta=0}u.obj=obj;u.mez=pesos;u.nomPose=top;u.vel=fade>0?1/fade:0;
+ if(fade<=0)for(const n in u.acc){const a=u.acc[n];if(a.dedo)continue;const w=obj.get(a)||0;if(w)a.setEffectiveWeight(w);else a.stop()}
+ despierta(p,Math.max(0,fade)*1000+80)}
+// pose: 'Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien', y las de la Ruleta (poses_ruleta.py)
+function pose(p,nom,fade=.25){const u=p&&p.userData.av;if(!u||!base)return;if(u.nomPose===nom&&!u.emo&&u.obj&&u.obj.size===1)return;mezcla(p,{[nom]:1},fade)}
 // baile en bucle ('Capoeira', 'Twerk'; blender/emotes.py) encima de la pose; AV.emote(p,null) regresa a la pose.
 // Da false si el GLB no lo trae. Los clips cierran en bucle sin brinco; entrar y salir es con fundido.
 function emote(p,nom,fade=.3){const u=p&&p.userData.av;if(!u||!base)return false;fade=Math.max(.02,fade);const c=nom?base.clips[nom]:null;if(nom&&!c)return false;
- const ya=u.emo;if((ya?ya.getClip():null)===c)return !!c;
- if(c){let a=u.acc[c.name];if(!a){a=u.acc[c.name]=u.mixer.clipAction(c);a.setLoop(THREE.LoopRepeat,Infinity)}
-  a.reset().play();const de=ya||u.actual;if(de)de.crossFadeTo(a,fade,false);u.emo=a;u.hasta=Infinity;despierta(p,0)}
- else{const a=u.actual;u.emo=null;u.hasta=0;if(a){a.reset().play();ya.crossFadeTo(a,fade,false)}else ya.fadeOut(fade);despierta(p,fade*1000+50)}
+ const ya=u.emo;if((ya?ya.getClip():null)===c)return !!c;u.vel=1/fade;
+ if(c){const a=accion(u,c,true);if(!ya)u.objPose=u.obj;u.obj=new Map([[a,1]]);u.emo=a;u.hasta=Infinity;despierta(p,0)}
+ else{u.emo=null;u.obj=u.objPose||null;u.hasta=0;despierta(p,fade*1000+80)}
  return !!c}
 const dur=nom=>{const c=base&&base.clips[nom];return c?c.duration:0};
 // agarre de la mano lado 'I' o 'D', t de 0 (relajada) a 1 (cerrada)
 function agarre(p,lado,t){const u=p.userData.av;if(!u)return;const a=u.acc['Agarre_'+(lado==='I'?'I':'D')];
  a.time=Math.max(0,Math.min(1,+t||0))*a.getClip().duration*.999;despierta(p,40)}
+// pulgar derecho hacia el martillo (Amartilla_D), t de 0 a 1; se mezcla con el agarre (a 1 queda ~98 % en el martillo)
+function amartilla(p,t){const u=p&&p.userData.av,a=u&&u.acc.Amartilla_D;if(!a)return;t=Math.max(0,Math.min(1,+t||0));a.setEffectiveWeight(t/(1.02-t));despierta(p,40)}
+// post(p,fn): fn(dt) corre cada cuadro después de poses y gestos (el ragdoll pone ahí los huesos); null lo quita
+function post(p,fn){const u=p&&p.userData.av;if(!u)return;u.post=fn||null;u.hasta=fn?Infinity:0;despierta(p,40)}
 function sien(p,lado){const u=p.userData.av;if(!u)return null;const n='Sien_'+(lado==='I'?'I':'D');return p.getObjectByName(n+'_'+u.o.p)||p.getObjectByName(n)}
 function pistola(p,si){const u=p.userData.av;if(u&&u.pistola)u.pistola.visible=!!si}
 function cambiar(p,cod){const u=p.userData.av;if(!u)return p;const pelo=u.o.p;aplica(p,cod);
- if(u.o.p!==pelo&&u.nomPose){const n=u.nomPose,em=u.emo&&u.emo.getClip().name;u.actual=null;u.emo=null;u.hasta=0;
-  for(const k in u.acc)if(!/^Agarre/.test(k))u.acc[k].stop();pose(p,n,0);if(em)emote(p,em,0)}   // la pose depende del peinado
+ if(u.o.p!==pelo&&u.mez){const mz=u.mez,em=u.emo&&u.emo.getClip().name;u.emo=null;u.obj=null;u.hasta=0;
+  for(const k in u.acc)if(!u.acc[k].dedo)u.acc[k].stop();mezcla(p,mz,0);if(em)emote(p,em,0)}   // la pose depende del peinado
  return p}
 function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.stopAllAction();u.mixer.uncacheRoot(p);
  for(const k in u.mat)u.mat[k].dispose();if(p.parent)p.parent.remove(p);p.userData.av=null}
 
-window.AV={PAL,RP,GE,gesto,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
+window.AV={PAL,RP,GE,gesto,mezcla,amartilla,post,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},get alto(){return alto},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
  mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}
