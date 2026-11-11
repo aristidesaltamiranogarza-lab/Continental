@@ -11,10 +11,10 @@ function crea(o){const VT=o.vt;let toque=-1e9,cut=null,hd=0,tl=0,tap=null;
  const c={
   toca(){toque=performance.now();if(cut){cut=null;o.home()}},
   // corte: solo desde tu vista y si no acabas de tocar (forzar: cerrar la ronda)
-  corte(v,ms,forzar){if(RMo()||cut||(!forzar&&(performance.now()-toque<2000||o.viewed())))return false;
+  corte(v,ms,forzar){if(RMo()||cut||VT.top||(!forzar&&(performance.now()-toque<2000||o.viewed())))return false;
    cut={hasta:performance.now()+(ms||1600)};Object.assign(VT,{who:-1,c4:false,bg:false,top:false},v);o.snap();return true},
   get cortando(){return !!cut},
-  arriba(si){toque=performance.now();cut=null;if(!si)return o.home();Object.assign(VT,{x:0,z:0,a:0,k:.8,t:1.45-o.el(),who:-1,top:true,c4:false,bg:false})},
+  arriba(si){toque=performance.now();cut=null;if(!si)return o.home();Object.assign(VT,{x:0,z:0,a:0,k:o.kTop?o.kTop():.8,t:1.45-o.el(),who:-1,top:true,c4:false,bg:false})},
   dobleToque(x,y){const t=performance.now(),d=!!tap&&t-tap.t<330&&Math.hypot(x-tap.x,y-tap.y)<40;tap=d?null:{t,x,y};if(d)c.arriba(!VT.top);return d},
   paso(now,s){const dt=Math.min(100,now-(tl||now));tl=now;
    if(cut&&now>cut.hasta){cut=null;o.home();o.snap()}

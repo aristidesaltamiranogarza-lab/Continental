@@ -237,7 +237,7 @@ function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?T
  const conAv=w=>w.av&&avYa();
  if([...want.values()].some(w=>w.av))pideAv();
  seated.forEach((s,k)=>{const w=want.get(k);if(!w||(!s.av&&conAv(w))){if(s.av)AV.quita(s.g);else disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
- want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],fs=w.t.fl===FL?SC:w.t.fl.SC,ya=conAv(w),g=ya?AV.crearYa(w.av):mkG(w.n,1);if(fs)fs.add(g);c.visible=!ya;   // el personaje se sienta en la silla; el Mii trae la suya
+ want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],fs=w.t.fl===FL?SC:w.t.fl.SC,ya=conAv(w),g=ya?AV.crearYa(w.av):mkG(w.n,1);if(fs)fs.add(g);c.visible=ya;   // el personaje se sienta en la silla de la casa; el Mii trae la suya
   const ry=Math.atan2(-c.position.x,-c.position.z);g.rotation.y=ry;
   if(ya){AV.sentar(g,true);AV.pose(g,w.pop?'Reposo':'AgarreFrente',0);g.position.set(w.t.x+c.position.x-.2*Math.sin(ry),.24,w.t.z+c.position.z-.2*Math.cos(ry))}   // cadera sobre el asiento, un poco hacia el respaldo
   else g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);

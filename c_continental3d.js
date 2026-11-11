@@ -127,7 +127,7 @@ function init(){if(ready)return;ready=true;
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   const c={q:'rl',e:'rr',r:'tu',f:'td',w:'up',arrowup:'up',s:'dn',arrowdown:'dn',a:'lf',arrowleft:'lf',d:'rt',arrowright:'rt','+':'zi','=':'zi','-':'zo'}[e.key.toLowerCase()];
   if(c){e.preventDefault();if(mc)mc.toca();camStep(c)}});
- mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1}):null;
+ mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1,kTop:()=>L&&L.kTop||.8}):null;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js): crece con los jugadores y es la misma en vertical y horizontal (la cámara se aleja para que quepa)
@@ -389,7 +389,10 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
   let a=1e9,b=-1e9,c=1e9,e=-1e9;pts.forEach(p=>{const q=p.clone().project(CA);a=Math.min(a,q.x);b=Math.max(b,q.x);c=Math.min(c,q.y);e=Math.max(e,q.y)});return [a,b,c,e]};
  let lo=3,hi=120;for(let i=0;i<32;i++){const m=(lo+hi)/2,x=ext(m);((x[1]-x[0])/2<.98&&(x[3]-x[2])/2<.97)?hi=m:lo=m}
  const x=ext(hi),cx=(x[0]+x[1])/2,cy=(x[2]+x[3])/2;
- L.el=el;L.d=hi;CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();lampY();clampV();cam()}
+ L.el=el;L.d=hi;
+ // vista de arriba: en vertical la mesa llena el alto (se corta a los lados; se arrastra para ver lo demás)
+ if(por){const tp=pts.map(p=>p.clone().setY(0));let a=3,b=120;CA.aspect=w/rh;for(let i=0;i<32;i++){const m=(a+b)/2;CA.position.set(0,Math.sin(1.45)*m,Math.cos(1.45)*m);CA.lookAt(0,0,0);CA.updateMatrixWorld();let c=1e9,e=-1e9;tp.forEach(p=>{const q=p.clone().project(CA);c=Math.min(c,q.y);e=Math.max(e,q.y)});((e-c)/2<.95)?b=m:a=m}L.kTop=Math.max(.8,hi/b)}else L.kTop=.8;
+ CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();lampY();clampV();cam()}
 // ---------- mover la cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
 // la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
@@ -456,7 +459,7 @@ function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+(
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   // asiento de la mesa (0 = el tuyo)
 // abanico de tu mano en la parte de abajo de la pantalla (las cartas son hijas de la cámara)
-function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];
+function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch*(VT.top?.68:1),cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];
  let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>9&&stp<cw*.2){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/((x1-x0)/2);
   let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.22-(rows==2&&!r?ch*.42:0);if(sel.has(id))y-=ch*.2;else if(hov===id)y-=ch*.08;
@@ -628,7 +631,7 @@ function pMove(e){if(!active())return;if(mc&&(st||pin))mc.toca();
  if(!st){if(e.pointerType==='mouse'){const h=pick(e),id=h&&h.t=='hand'?h.id:null;peek(!!h&&h.t=='disc');c4hover(h&&h.t=='c4'?h.c:-1);cv.style.cursor=h?'pointer':'default';if(id!==hov){hov=id;sync()}}return}
  if(e.pointerId!==st.pid)return;const h=st.hit;
  if(st.peek)return;if(st.lp&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){clearTimeout(st.lp);st.lp=null}
- if(!drag&&!st.pan&&!st.rot&&!st.g&&(!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){Object.assign(st,{rot:true,a0:VW.a,t0:VW.t,x:e.clientX,y:e.clientY});VT.who=-1;VT.top=false;cv.style.cursor='grabbing'}   // arrastrar gira alrededor de la mesa
+ if(!drag&&!st.pan&&!st.rot&&!st.g&&!VT.top&&(!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){Object.assign(st,{rot:true,a0:VW.a,t0:VW.t,x:e.clientX,y:e.clientY});VT.who=-1;VT.top=false;cv.style.cursor='grabbing'}   // arrastrar gira alrededor de la mesa
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;VT.who=-1;snap();return}
  // arrastrar la mesa: el punto que agarraste se queda bajo el dedo
  if(!drag&&(st.g||((st.pan||!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10))){if(!st.g){st.g=ground(st.x,st.y);VT.who=-1;if(!st.pan)cv.style.cursor='grabbing'}
@@ -685,7 +688,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  G.players.forEach((p,k)=>{if(k===i)return;const o=V.players[k],on=G.turn==k;
   const nj=G.melds.filter(m=>m.owner==k).length;
   h+=`<div class="ui gj-seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${o.on?' on':''}"></i><small>${o.out?'expulsado':(hc(k)+' cartas'+(nj?' · ✓ '+nj+(nj>1?' juegos':' juego'):'')+(on?(G.step=='draw'?' · robando…':' · jugando…'):''))}</small></div>`});
- h+=`<div class="ui gj-pl" id="t3pdk">Mazo · ${G.deck}</div><div class="ui gj-pl" id="t3pds">Descarte</div>`;
+ h+=`<div class="ui gj-pl" id="t3pdk" title="Mazo">M ${G.deck}</div><div class="ui gj-pl" id="t3pds" title="Descarte">D</div>`;
  // botones de abajo
  let b='';const ic=n=>UI.ico(n);
  if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Dejar de mirar</button>`:''}`;
@@ -804,7 +807,8 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
 function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;   // en la casa las sillas a su tamaño; tu personaje también se ve sentado
  [C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){const ab=document.querySelector('.gj-arr'),mv=viewed()&&!VT.top;   // uno a la vez: Arriba (en tu vista o en la de arriba) o Recentrar (cámara movida)
+let topWas=false;
+function viewBtn(){if(!!VT.top!==topWas){topWas=!!VT.top;document.documentElement.classList.toggle('c3top',topWas);if(V&&V.G)sync()}const ab=document.querySelector('.gj-arr'),mv=viewed()&&!VT.top;   // uno a la vez: Arriba (en tu vista o en la de arriba) o Recentrar (cámara movida)
  if(ab){if(ab.classList.contains('on')!==!!VT.top){ab.classList.toggle('on',!!VT.top);ab.setAttribute('aria-pressed',!!VT.top)}const dsp=mv?'none':'';if(ab.style.display!==dsp)ab.style.display=dsp}if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&!VT.top?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa (Esc)':p?'Viendo a '+p.name+' · Recentrar (Esc)':'Recentrar (Esc)';
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}

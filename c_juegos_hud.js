@@ -58,4 +58,6 @@ window.GHUD={win,dodge,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,r
 // chat de las salas (game.js, lo comparte el 2D Ligero): en la página 3D el botón lleva el icono de trazo en vez del emoji; estilos en ui_juegos.css
 (function(){const f=()=>{const b=document.getElementById('cb'),n=document.getElementById('cn');if(!b||b.dataset.ui||!window.UI)return;b.dataset.ui=1;
  b.textContent='';b.insertAdjacentHTML('afterbegin',UI.ico('chat'));if(n)b.appendChild(n);b.setAttribute('aria-label','Chat');b.title='Chat'};
- f();document.addEventListener('DOMContentLoaded',f)})();
+ f();document.addEventListener('DOMContentLoaded',f);
+ // botón de tomates (game.js): icono de trazo, como el del chat
+ const t=()=>{const b=document.getElementById('tombtn');if(!b||b.dataset.ui||!window.UI)return;b.dataset.ui=1;b.innerHTML=UI.ico('tomate')};t();document.addEventListener('DOMContentLoaded',t)})();

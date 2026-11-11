@@ -231,8 +231,6 @@ html.mdui[data-game="md"] .mdhb{font:700 14px var(--ui-font);gap:6px}
 .ui-sheet.ya,.ui-scrim.ya{animation:none}
 /* avisos grandes (banner de game.js: "¡UNO! Ana", etc.) en Cálida: pastilla centrada, no letras de 7vw encima de la mesa */
 .ban{top:24%;width:max-content;max-width:calc(100% - 32px);margin:0 auto;padding:10px 22px;border-radius:999px;background:var(--ui-panel);color:var(--ui-text);font:800 clamp(18px,4.6vw,28px)/1.2 var(--ui-font);text-shadow:none;box-shadow:var(--ui-shadow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* 🍅 en los juegos 3D: a media altura a la derecha, donde no hay mano, atril ni botones (abajo tapaba las fichas del Rummy en vertical). Mérida y YuCATÁN (.mrui) lo acomodan ellos */
-html:not(.mrui) #tombtn{bottom:auto;top:calc(50% - 28px);right:calc(env(safe-area-inset-right,0px) + 12px)}
 /* ===== Pantallas clásicas de Continental, UNO y Monopoly Deal dentro de la casa (c_juegos2d.js pone html.g2dui y html[data-gcol]; el 2D Ligero no carga este archivo) ===== */
 /* color de cada juego (también en su 3D y en su sala) */
 html[data-gcol=continental]{--ui-accent:#2F7A4D;--ui-icon:#2F7A4D;--ui-chip:rgba(47,122,77,.12);--g2bg:#ECEAD6}
@@ -284,3 +282,9 @@ html.g2dui #app table{font:600 14px/1.3 var(--ui-font);color:var(--ui-text)}
 html.g2dui #app th{color:var(--ui-sub);font-weight:800}
 html.g2dui #app th,html.g2dui #app td{border-color:var(--ui-line)}
 html.g2dui #app tr:last-child th,html.g2dui #app tr:last-child td{color:var(--ui-accent);font-weight:800}
+/* botón de tomates (game.js): como el del chat, encima de él, rojo y de un color */
+html:not(.mrui) #tombtn{top:auto;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);border:1px solid transparent;background:#d6453a;color:#fff;box-shadow:var(--ui-shadow);animation:none}
+#tombtn .ui-ico{width:28px;height:28px}
+#tombtn:active{transform:scale(.96);box-shadow:var(--ui-shadow)}
+/* vista de arriba: solo la mesa (sin etiquetas de jugadores) */
+html.c3top #app .gj-seat{display:none}
