@@ -3,7 +3,7 @@
 // Las cartas vuelan desde la mano del crupier cuando él las suelta (BJC.al) y al acabar la ronda se barren a los descartes; pagos: fichas de la charola a la casilla
 // o de la casilla a la charola. Sentarse: E o tocar la mesa (el lugar libre más cerca); levantarse: Esc o caminar. Sentados con MPJ (sillas de CAS3);
 // cámara sobre tu hombro que voltea un poco al turno (MCAM). c_casa3d.js: BJ3.estado(v,err), BJ3.out(), BJ3.hud(busy), BJ3.key(k), BJ3.sentado(id).
-// SAL.step llama BJ3.paso(). Para B4 (interfaz): BJ3.act(op,extra) manda una jugada, BJ3.v la última vista, BJ3.yo() tu asiento (-1 si no).
+// SAL.step llama BJ3.paso(). La interfaz va en c_blackjack_hud.js (BJH): usa BJ3.act(op,extra), BJ3.v, BJ3.yo(), BJ3.cerca() y BJ3.pt(s,h,nh) (globitos).
 (function(){
 if(typeof THREE==='undefined')return;
 // ---------- ajustes: tiempos en ms, medidas en el espacio de la mesa (+z hacia los jugadores) ----------
@@ -86,7 +86,7 @@ function cartas(v,snap,nueva){const now=performance.now(),T=[];
   if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=caraMat(t.c);if(snap)pon(x,L);else x.volt=now;return}   // su carta tapada: se voltea cuando él la voltea
   if(snap)pon(x,L);else if(cambio&&!x.pend&&!x.volt)ir(x,L.p,L.ry,L.f,320,{arc:.02})})}
 function vuela(x){const L=x.L,Q=PEND[x.s];x.pend=0;if(Q){const i=Q.indexOf(x);if(i>=0)Q.splice(i,1)}
- x.o.position.copy(desde());x.o.rotation.y=L.ry+(x.s<0?0:.6);x.m.rotation.z=PI;x.o.visible=true;
+ x.o.position.copy(desde());x.o.rotation.y=L.ry+(x.s<0?0:.6);x.m.rotation.z=PI;x.o.visible=true;if(typeof sfx=='function')sfx('card');
  const MP=window.MPJ&&mpjOk&&x.s>=0?MPJ:null;if(MP&&x.j>=2)MP.estira(x.s,mundo(L.p));
  ir(x,L.p,L.ry,L.f,A.vuelo,{arc:A.alto,fin:()=>{if(MP)MP.mira(x.s,mundo(L.p),900)}})}
 function voltea(x){x.volt=0;ir(x,x.L.p,x.L.ry,0,A.volteo,{arc:.05})}
@@ -139,7 +139,7 @@ function sentar(){const m=M();if(!m||!V||yo()>=0||pide>=0)return;const me=quien(
  if(b<0)return window.SAL&&SAL.aviso('La mesa está llena');pide=b;pideT=performance.now();act('sentar',{s:b});if(typeof sfx=='function')sfx('tick')}
 function levantarse(){if(yo()<0)return;act('parar');parando=true;suelta();rr()}
 
-function estado(v,err){if(err&&window.SAL)SAL.aviso(err);if(err)pide=-1;if(!v||!v.as)return;V=v;BJ3.v=v;
+function estado(v,err){if(err&&window.SAL)SAL.aviso(err);if(err)pide=-1;if(!v||!v.as)return;v.t0=performance.now();V=v;BJ3.v=v;
  if(parando&&mio()<0)parando=false;if(pide>=0&&performance.now()-pideT>4000)pide=-1;if(ini)sync(false)}
 function arma(){const m=M();if(!m||!H())return false;if(R&&R.parent)R.parent.remove(R);CAR.length=0;TW.length=0;PILAS.clear();SIL.length=0;for(const k in PEND)delete PEND[k];
  M0=m;TH=m.D.TH||1.5;R=new THREE.Group();m.G.add(R);m.sillas.forEach(c=>{const w=new THREE.Group();w.position.y=A.silla;c.add(w);SIL.push(w)});
@@ -153,10 +153,12 @@ function paso(){const now=performance.now();if((!ini||M()!==M0)&&!arma())return;
  const s=yo(),me=quien(yoId());
  if(s>=0){if(!ancla)sienta(s);if(me&&ancla){if(Math.hypot(me.pos.x-ancla.x,me.pos.z-ancla.z)>.4)levantarse();else{if(mpjOk)me.g.visible=false;camara(now,s)}}}
  else if(ancla)suelta();
- const k=[s,s<0&&cerca(),s>=0?V.as[s].f:V.as.filter(Boolean).length].join('|');if(k!==hk){hk=k;rr()}}
+ const k=[s,s<0&&cerca(),s>=0?V.as[s].f:V.as.filter(Boolean).length,window.BJH?BJH.firma(V,s):''].join('|');if(k!==hk){hk=k;rr()}
+ if(window.BJH)BJH.paso(V,s,now)}
 
 // ---------- aviso de la mesa (al centro abajo, como CMESA) ----------
 function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s=yo(),I=n=>window.UI?UI.ico(n):'';
+ if(s>=0&&window.BJH)return BJH.hud(V,s);
  if(s>=0)return `<button class="ui uh-aviso" onclick="BJ3.levantarse()" aria-label="Levantarse de la mesa de Blackjack"><span class="uh-ai" aria-hidden="true">${I('salir')}</span>
   <span class="uh-at"><b>Blackjack · ${mon(V.as[s].f)} en fichas</b><small>Levantarse</small></span>${touchy?'':'<kbd>Esc</kbd>'}</button>`;
  if(!cerca())return '';const n=V.as.filter(Boolean).length;
@@ -165,5 +167,6 @@ function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s
 function key(k){if(k==='escape'&&yo()>=0){levantarse();return true}if(k==='e'&&yo()<0&&cerca()){sentar();return true}return false}
 
 const BJ3=window.BJ3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},
+ cerca,pt:(s,h,nh)=>{if(!R)return null;const p=s<0?v3(LUGAR[0],TH,LUGAR[1]):lugar({s,h:h||0,j:0,nh:nh||1,c:0}).p;p.y=TH+.2;return mundo(p)},
  sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
 })();
