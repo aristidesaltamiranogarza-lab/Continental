@@ -11,9 +11,10 @@ K = dict(
     PERFIL=[(1.70, 0.93, 0.95), (1.50, 0.93, 0.95), (1.35, 0.90, 0.94), (1.08, 0.82, 0.88),
             (0.90, 1.00, 1.00), (0.62, 1.22, 1.12)],
     CADERA_PANT=(1.10, 1.06),    # pantalon arriba de la rodilla
-    # busto: un solo volumen al frente, ancho BX (Q > 2 lo hace parejo de lado a lado), centro en z = BZ; alto arriba SZ_A,
+    # busto: un solo volumen al frente, ancho BX (Q > 2 lo hace parejo de lado a lado; LADOS lo carga hacia +-x
+    # para que no quede en punta al centro), centro en z = BZ; alto arriba SZ_A,
     # abajo SZ_B (mas largo que arriba: la tela cae del busto, sin repliegue); A hacia -y
-    BX=0.17, Q=4.0, BZ=1.36, SZ_A=0.14, SZ_B=0.17, A=0.15,
+    BX=0.18, Q=4.0, LADOS=0.5, BZ=1.36, SZ_A=0.15, SZ_B=0.30, A=0.10,
     CORTES=[1.46, 1.42, 1.38, 1.31],   # aros extra (antes de subdividir) para que el busto tenga forma
     X=-2.9, MUJER_PELO='pelo_5', MUJER_EXTRA=None)
 K.update(globals().get('PRM', {}))
@@ -48,12 +49,13 @@ tmp = bpy.data.objects.new('tmp_playera_m', pm); bpy.context.scene.collection.ob
 tmp.modifiers.new('s', 'SUBSURF').levels = 1
 dg = bpy.context.evaluated_depsgraph_get(); sub = bpy.data.meshes.new_from_object(tmp.evaluated_get(dg))
 bpy.data.objects.remove(tmp, do_unlink=True); bpy.data.meshes.remove(pm); sub.name = 'playera_m'; pm = sub
-ymax = max(-v.co.y for v in pm.vertices)
+def suave(a, b, t): t = max(0.0, min(1.0, (t - a) / (b - a))); return t * t * (3 - 2 * t)
 for v in pm.vertices:
     if v.co.y >= 0: continue
-    dz = v.co.z - K['BZ']; sz = K['SZ_A'] if dz > 0 else K['SZ_B']
-    w = (math.exp(-(abs(v.co.x) / K['BX']) ** K['Q'] - (dz / sz) ** 2)
-         * (-v.co.y / ymax) ** 2)
+    dz = v.co.z - K['BZ']; sz = K['SZ_A'] if dz > 0 else K['SZ_B']; u = abs(v.co.x) / K['BX']
+    # parejo en todo el frente (por el angulo desde el frente, no por la profundidad) y un poco mas lleno hacia +-x
+    w = (math.exp(-u ** K['Q'] - (dz / sz) ** 2) * (1 + K['LADOS'] * u * u)
+         * suave(0.3, 0.8, -v.co.y / max(1e-6, math.hypot(v.co.x, v.co.y))))
     v.co.y -= K['A'] * w
 nm_ = copia(bpy.data.objects['Frente_Pantalon'].data, 'pantalon_m')
 for v in nm_.vertices:
