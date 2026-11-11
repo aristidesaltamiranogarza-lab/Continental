@@ -118,9 +118,40 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 ## Otros pendientes (de la lista anterior)
 - [ ] FPS bajan cerca de las dos mesas altas del sótano (cantina, `mesa_cantina`): medir ocultando vasos, rockola y luces de esa zona.
 - [ ] Un cuadro de 244 ms al entrar al sótano (`CASA3D.ir('sot')`): probablemente armar el piso o compilar shaders.
-- [ ] Ruleta Rusa: rehacer las animaciones (Aris va a detallar). El registro de la izquierda repite el aviso grande y la pistola se ve muy oscura.
+- [ ] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
 - [ ] D7 medición en dispositivos: celular y PC modesta, en Medio y Completo (FPS, memoria, si Safari recarga la página). Para el iPhone: `http://<IP de la PC>:3000/?medir` en la misma Wi‑Fi.
 - [ ] Paso 5 de la UI (prompt_ui.md), en pausa.
 - [ ] 4d Mesas ocupadas: animación genérica de mesa con partida en curso.
 - [ ] Monopoly Deal en su mesa (hoy es pantalla 2D).
 - [ ] Fase 5: Póker y Blackjack jugables en el sótano. Billar jugable (BIL.D ya trae las medidas) y quitar los letreros "próximamente".
+
+## Ruleta Rusa con los personajes nuevos (plan del 11 nov 2026)
+Orden: revólver → personajes → animaciones → pulido. Cada paso depende del anterior (las poses salen de la forma de la cacha). Hoy `c_ruleta3d.js` (46 KB) arma Miis con `mkAvatar` + IK (`seg`/`ik`), el arma con `mkGun()` (~línea 136, cubos) en dos copias: `gunW` (mundo) y `gunV` (vista en primera persona, hijo de la cámara `CA`); `buildMyHand(p)` (~158) arma la mano en primera persona con brazos Mii; los modos de pose son `null`/'hold'/'aim'/'head' (~185–215); los eventos `spin`/`click`/`bang` (~170) disparan sonido, sacudida y `death()`.
+
+### R1 · Revólver en Blender (blender/revolver.py, nuevo)
+- [ ] Script con parámetros en `K` (como los demás .py), se corre con exec() vía MCP. Estilo chibi: robusto y algo grande, bordes redondeados (bevel), sin esquinas filosas; 2–3 k tris.
+- [ ] Piezas separadas: `Rev_Cuerpo` (armazón + cañón), `Rev_Tambor` (6 recámaras, girará en código), `Rev_Martillo`, `Rev_Gatillo`, `Rev_Cacha` (madera).
+- [ ] Empties: `Rev_Agarre` (donde va la palma; +Y del empty = hacia el cañón), `Rev_Boca` (salida del fogonazo/humo), `Rev_EjeTambor` (pivote del tambor), `Rev_EjeMartillo`, `Rev_EjeGatillo`.
+- [ ] Materiales: acero claro con brillo visible (el arma actual se ve negra: subir base color y bajar metalness o dar roughness media), cacha de madera cálida, detalles (tornillos, mira) en latón o acero oscuro. Nombres de material `rev_*`.
+- [ ] Exportar `blender/revolver.glb` (y copiarlo a `modelos/` si va por jsDelivr, ver memoria modelos-3d: etiqueta `modelos-vN`).
+- [ ] Reemplazar la "pistola de prueba" de rig.py por el revólver (unirlo al hueso de la mano con `Rev_Agarre`) y rehacer `PistolaSien` y `PistolaSien_n` para los 7 peinados; revisar choques con melena/largo (antes 238/461 vértices) y los empties `Sien_I_n`/`Sien_D_n`.
+
+### R2 · Personajes en la Ruleta
+- [ ] Quitar los Miis: sentar personajes con AV/MPJ alrededor de la mesa de la Ruleta (no es MESA; usar las posiciones de silla actuales de `c_ruleta3d.js`). Mismo código de personaje que en Continental/Uno (`AV.crear`/`AV.crearYa`, `AV.cambiar`).
+- [ ] Arma en la mano: `AV.pistola(p,true)` o colgar el GLB del revólver del hueso de la mano usando `Rev_Agarre`; dedos con `AV.agarre(p,'D',1)`.
+- [ ] Mano en primera persona (viewmodel): exportar desde Blender solo mano de mitón + manga (ropa y colores del jugador) o recortarla del GLB del avatar; sustituye `buildMyHand`. Sin sombras, hija de la cámara como `gunV`.
+- [ ] Muerte: el personaje se desploma (pose) en vez de lo que hace hoy `death()`; nametag atenuado.
+- [ ] Borrar `mkGun`, `buildMyHand` viejo y el uso de `mkAvatar`/`seg`/`ik` en la Ruleta (siguen exportados en C3D para Rummy y la casa; quitarlos de C3D solo cuando Rummy también migre).
+
+### R3 · Animaciones
+Reparto: poses clave horneadas en Blender (actuación) + mezcla, apuntado y mecánica del arma en three.js.
+- [ ] Aris detalla la secuencia de momentos. Propuesta para revisar: tomar el arma → girar el tambor → mirar a los demás → a la sien → aguantar la tensión → clic o bang → reacción (alivio / muerte) → pasar el arma.
+- [ ] Acciones nuevas en rig.py (todas con `_n` por peinado si tocan la cabeza): `TomaArma`, `GiraTambor` (mano izquierda gira, derecha sostiene), `ApuntaI`/`ApuntaC`/`ApuntaD` (tres poses de apuntar: izquierda, centro, derecha), `Alivio` (exhala, hombros caen), `Muerte` (desplome; definir: hacia el frente sobre la mesa / hacia atrás / caricatura), `PasaArma`, `ReposoNervioso` (en la mesa, inquieto).
+- [ ] En código: crossfade entre poses; apuntar a cualquier jugador = mezclar `ApuntaI/C/D` según el ángulo + giro pequeño de columna/cabeza encima; todos miran a quien tiene el arma (ya existe, adaptar).
+- [ ] Mecánica del arma en código: tambor gira con `spin` (hoy `userData.spin`), martillo se amartilla antes del disparo, gatillo se jala en `click`/`bang`, retroceso; fogonazo y humo en `Rev_Boca`.
+
+### R4 · Pulido y bugs
+- [ ] El registro de la izquierda repite el aviso grande: dejar uno solo.
+- [ ] Verificar el arma clara en la luz del foco (`bulb`) y en primera persona.
+- [ ] Probar con 2–6 jugadores y bots, celular 21:9 y horizontal; `node --check c_ruleta3d.js`.
+
