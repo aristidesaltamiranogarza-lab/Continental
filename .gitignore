@@ -1,2 +1,4 @@
 # originales de los modelos 3D (pesados); solo se suben las versiones hd/ y medio/ que genera preparar_modelos.js
 modelos/originales/
+# bailes de Mixamo (FBX): solo se pueden usar dentro del juego, no redistribuir; van horneados en modelos/personaje/chibi.glb
+blender/emotes/

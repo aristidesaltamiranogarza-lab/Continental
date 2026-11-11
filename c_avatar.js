@@ -4,7 +4,7 @@
 // Código: s cuerpo (1 H, 2 M), p pelo 1–7, c cejas, b boca, n nariz, a arriba, d abajo (1–3); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb',location.href).href;
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=2',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],
@@ -101,22 +101,33 @@ function paso(t){const dt=Math.min(.1,(t-t0)/1000);t0=t;
  raf=vivos.size?requestAnimationFrame(paso):0}
 // pose: 'Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien' (usa la variante del peinado si existe)
 function pose(p,nom,fade=.25){const u=p.userData.av;if(!u||!base)return;const c=base.clips[nom+'_'+u.o.p]||base.clips[nom];if(!c)return console.warn('[AV] sin pose',nom);
+ if(u.emo)emote(p,null,fade);
  let a=u.acc[c.name];if(!a){a=u.acc[c.name]=u.mixer.clipAction(c);a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}
  if(u.actual===a)return;a.reset().play();
  if(u.actual&&fade>0)u.actual.crossFadeTo(a,fade,false);else if(u.actual)u.actual.stop();
  u.actual=a;u.nomPose=nom;despierta(p,(c.duration+fade)*1000+50)}
+// baile en bucle ('Capoeira', 'Twerk'; blender/emotes.py) encima de la pose; AV.emote(p,null) regresa a la pose.
+// Da false si el GLB no lo trae. Los clips cierran en bucle sin brinco; entrar y salir es con fundido.
+function emote(p,nom,fade=.3){const u=p&&p.userData.av;if(!u||!base)return false;fade=Math.max(.02,fade);const c=nom?base.clips[nom]:null;if(nom&&!c)return false;
+ const ya=u.emo;if((ya?ya.getClip():null)===c)return !!c;
+ if(c){let a=u.acc[c.name];if(!a){a=u.acc[c.name]=u.mixer.clipAction(c);a.setLoop(THREE.LoopRepeat,Infinity)}
+  a.reset().play();const de=ya||u.actual;if(de)de.crossFadeTo(a,fade,false);u.emo=a;u.hasta=Infinity;despierta(p,0)}
+ else{const a=u.actual;u.emo=null;u.hasta=0;if(a){a.reset().play();ya.crossFadeTo(a,fade,false)}else ya.fadeOut(fade);despierta(p,fade*1000+50)}
+ return !!c}
+const dur=nom=>{const c=base&&base.clips[nom];return c?c.duration:0};
 // agarre de la mano lado 'I' o 'D', t de 0 (relajada) a 1 (cerrada)
 function agarre(p,lado,t){const u=p.userData.av;if(!u)return;const a=u.acc['Agarre_'+(lado==='I'?'I':'D')];
  a.time=Math.max(0,Math.min(1,+t||0))*a.getClip().duration*.999;despierta(p,40)}
 function sien(p,lado){const u=p.userData.av;if(!u)return null;const n='Sien_'+(lado==='I'?'I':'D');return p.getObjectByName(n+'_'+u.o.p)||p.getObjectByName(n)}
 function pistola(p,si){const u=p.userData.av;if(u&&u.pistola)u.pistola.visible=!!si}
 function cambiar(p,cod){const u=p.userData.av;if(!u)return p;const pelo=u.o.p;aplica(p,cod);
- if(u.o.p!==pelo&&u.nomPose){const n=u.nomPose;u.actual=null;for(const k in u.acc)if(!/^Agarre/.test(k))u.acc[k].stop();pose(p,n,0)}   // la pose depende del peinado
+ if(u.o.p!==pelo&&u.nomPose){const n=u.nomPose,em=u.emo&&u.emo.getClip().name;u.actual=null;u.emo=null;u.hasta=0;
+  for(const k in u.acc)if(!/^Agarre/.test(k))u.acc[k].stop();pose(p,n,0);if(em)emote(p,em,0)}   // la pose depende del peinado
  return p}
 function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.stopAllAction();u.mixer.uncacheRoot(p);
  for(const k in u.mat)u.mat[k].dispose();if(p.parent)p.parent.remove(p);p.userData.av=null}
 
-window.AV={PAL,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,sentar,mueve,agarre,sien,pistola,quita,
+window.AV={PAL,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},get alto(){return alto},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
  mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}

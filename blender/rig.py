@@ -533,6 +533,10 @@ print('vs copia Pose (mm medio, max): mano_D', compara(qAF, {'_D': 1.0}, iMano, 
       'brazo_D', compara(qAF, {'_D': 1.0}, iBrazo, 'Brazos'),
       'mano_I', compara(qMC, {}, iManoI, 'Manos'))
 
+# ---------- bailes de Mixamo (emotes.py, con los FBX de blender/emotes; acciones Capoeira, Twerk...) ----------
+_em = os.path.join(os.path.dirname(K['GLB']), 'emotes.py')
+if os.path.exists(_em): exec(open(_em, encoding='utf-8').read(), {'PRM': {'RIG': arm.name}})
+
 # ---------- exportar GLB ----------
 aplicar({})
 for o in bpy.context.view_layer.objects: o.select_set(False)

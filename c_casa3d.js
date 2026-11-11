@@ -204,8 +204,12 @@ function dropAv(a){dropG(a.g);if(a.tag)a.tag.remove();if(a.bub)a.bub.remove()}
 const POLE=[v3(-1.2,-.4,-.7),v3(1.2,-.4,-.7)],tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),wv=new THREE.Vector3();
 // pasos: piernas y brazos se mecen al caminar (w = qué tanto camina, ph = fase del paso); con un emote, la mano derecha saluda.
 // Bailes (parado): 💃 brazos arriba y cadera de lado a lado; 🕺 de disco, señalando arriba y abajo con la otra mano en la cintura
-const dancing=(a,now)=>{const t=now-a.danceT;return a.dance&&t>=0&&t<DMS&&a.w<.3?Math.min(1,t/300,(DMS-t)/300):0};
-function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),bt=now/1000*Math.PI*2*1.1;
+// Con personaje (c_avatar.js) los bailes son clips de Mixamo (blender/emotes.py) y duran lo que el más largo (el otro da la vuelta sin brinco)
+const DCLIP={'💃':'Twerk','🕺':'Capoeira'};let dmsPj=0;
+const dms=()=>dmsPj||(avYa()&&(dmsPj=Math.max(...Object.values(DCLIP).map(n=>AV.dur(n)))*1000))||DMS;
+const dancing=(a,now)=>{const t=now-a.danceT,D=dms();return a.dance&&t>=0&&t<D&&a.w<.3?Math.min(1,t/300,(D-t)/300):0};
+function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,bt=now/1000*Math.PI*2*1.1,clip=AV.dur(DCLIP[a.dance])?DCLIP[a.dance]:null;
+ AV.emote(a.g,clip&&dancing(a,now+300)>0?clip:null);const dn=clip?0:dancing(a,now);   // el clip se va con un fundido de .3 s que acaba justo al terminar el baile
  AV.mueve(a.g,{w,ph:a.ph,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y=-Math.abs(Math.sin(a.ph))*.1*w+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
 function pose(a,now,lookDown){if(a.g.userData.av)return posePj(a,now);const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
  u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650)+Math.abs(Math.sin(bt))*.12*dn;u.body.rotation.x=.06*w;
