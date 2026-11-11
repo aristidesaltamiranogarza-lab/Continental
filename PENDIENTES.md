@@ -122,8 +122,8 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 - [ ] D7 medición en dispositivos: celular y PC modesta, en Medio y Completo (FPS, memoria, si Safari recarga la página). Para el iPhone: `http://<IP de la PC>:3000/?medir` en la misma Wi‑Fi.
 - [ ] Paso 5 de la UI (prompt_ui.md), en pausa.
 - [x] 4d Mesas ocupadas: c_casa_ocupada.js (OCUP), mazo, pila, cartas que vuelan y aro de turno.
-- [ ] Monopoly Deal en su mesa (hoy es pantalla 2D).
-- [ ] Fase 5: Póker y Blackjack jugables en el sótano. Billar jugable (BIL.D ya trae las medidas) y quitar los letreros "próximamente".
+- [ ] Monopoly Deal en su mesa (hoy es pantalla 2D): ver «Juegos nuevos» (abajo).
+- [ ] Fase 5: Blackjack, Póker y Billar jugables en el sótano: ver «Juegos nuevos» (abajo).
 
 ## Ruleta Rusa con los personajes nuevos (plan del 11 nov 2026)
 Orden: revólver → personajes → animaciones → pulido. Cada paso depende del anterior (las poses salen de la forma de la cacha). Hoy `c_ruleta3d.js` (46 KB) arma Miis con `mkAvatar` + IK (`seg`/`ik`), el arma con `mkGun()` (~línea 136, cubos) en dos copias: `gunW` (mundo) y `gunV` (vista en primera persona, hijo de la cámara `CA`); `buildMyHand(p)` (~158) arma la mano en primera persona con brazos Mii; los modos de pose son `null`/'hold'/'aim'/'head' (~185–215); los eventos `spin`/`click`/`bang` (~170) disparan sonido, sacudida y `death()`.
@@ -166,3 +166,91 @@ Reparto: poses clave horneadas en Blender (actuación) + mezcla, apuntado y mec�
 - [ ] Verificar el arma clara en la luz del foco (`bulb`) y en primera persona.
 - [ ] Probar con 2–6 jugadores y bots, celular 21:9 y horizontal; `node --check c_ruleta3d.js`.
 
+## Juegos nuevos (plan del 11 nov 2026)
+Orden acordado (de chico a grande; cada uno reusa lo del anterior): Conecta 4 en 2D → Blackjack → Póker → Monopoly Deal 3D → Billar.
+Trabajar uno a la vez en esta sesión (todos tocan las mismas líneas de registro y `c_sotano_salon.js`; en paralelo habría choques).
+
+### Cómo retomar después de /clear
+1. Leer solo esta sección. Buscar el primer juego con `[ ]`.
+2. Si su lista «Preguntas» no tiene respuestas, **hacerlas todas antes de escribir código** con AskUserQuestion (máximo 4 preguntas por llamada, 2–4 opciones cada una, la recomendada primero con "(Recommended)"; hacer las rondas que hagan falta). El usuario escribe en inglés: preguntar en inglés, anotar aquí en español.
+3. Anotar las respuestas aquí mismo (bajo «Decisiones», en lugar de «Preguntas») y hacer commit de PENDIENTES.md antes de empezar el código, por si hay otro /clear.
+4. Implementar por pasos; marcar cada paso `[x]` al terminarlo y hacer commit + push por paso.
+5. Reglas de siempre: módulos nuevos pequeños, registrar archivos nuevos en `server.js` (mapa ~línea 14) y en `continental3d.html` (antes de `c_casa3d.js`); interfaz con la skill `casa-ui` (GHUD, tokens `--ui-…`); sin emojis; `node --check` y una sola captura. Si cambia `server.js`, reiniciar el preview (preview_stop + preview_start "casa").
+
+### Piezas comunes que ya existen
+- Juegos "sueltos" sin salas, que se juegan en la casa y los atiende `server.js` desde `/casa`: `g_cubilete.js` (Cubilete con fichas, ante y bote; el mejor modelo para Blackjack y Póker) y `g_casajuegos.js` (Conecta 4 y Backgammon). Clientes de ejemplo: `c_cubilete3d.js`, `c_juegos3d.js` (ventanita `GHUD.win`).
+- Mesas del sótano ya modeladas y vacías: `c_casino3d.js` (CAS3: Blackjack media luna con 7 casillas y 7 lugares, zapato, descartes, charola; Póker ovalado con 8 lugares, crupier al centro de atrás) y `c_billar3d.js` (BIL, `BIL.D` con medidas reales de 9 pies). Letreros "Próximamente" en `c_sotano_salon.js` (`pronto(g)`, `NOM`): quitar el del juego que quede jugable.
+- Mesa nueva de cartas: `c_mesa_pj.js` (MPJ: personajes sentados, cartas en mano, `AV.gesto`), `c_mesa_cam.js` (MCAM: cámara viva, Arriba/Recentrar), `c_mesa_fx.js` (MFX). Panel de la mesa: `c_casa_mesa.js` (CMESA, tecla E).
+- 2D plano dentro de un panel: `c_c4_2d.js` (ejemplo de cómo se hizo el Conecta 4).
+
+### [x] Conecta 4 en 2D
+Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Conecta 4 de la casa; se juega tocando columnas (`JG3.tap`), ficha que cae y línea ganadora que late; botón Ocultar/Ver tablero 2D (localStorage `c4_2d`). Pendiente menor: probar una partida real de dos y en celular (375×812 y horizontal). No se hizo Conecta 4 en el modo 2D Ligero (si el usuario lo pide, es otra tarea).
+
+### [ ] Blackjack (sótano, salón de casino)
+**Decisiones (respondidas el 11 nov 2026):**
+- Fichas: se reinician por sesión (al sentarte tienes 1,000; no se guardan). Si llegas a 0, recarga inmediata a 1,000. Sin dinero real.
+- Apuestas: mínimo 10, máximo 500 por casilla. Fichas de 5, 25, 100 y 500.
+- Entrada: asiento libre al llegar (tecla E en la mesa, sin sala de espera); juegas desde la siguiente mano. Hasta 7 jugadores (7 casillas).
+- Crupier: personaje chibi visible de pie detrás de la mesa que reparte. Sin bots en los asientos; se puede jugar solo contra el crupier.
+- Reglas: zapato de 6 barajas, se rebaraja al pasar ~75 %; el crupier se planta en todo 17 (también 17 suave); blackjack paga 3 a 2.
+- Opciones: Pedir, Plantarse, Doblar, Dividir, Seguro (cuando el crupier muestra As; paga 2 a 1) y Rendirse (rendición temprana: justo tras el reparto, recuperas la mitad).
+- Dividir: hasta 4 manos (3 divisiones); los Ases se dividen una sola vez y reciben una carta cada uno.
+- Tiempos: 15 s para apostar (si no, no juegas esa mano) y 20 s para actuar (si no, te plantas).
+- Cámara: desde tu silla con MCAM (Arriba/Recentrar).
+- Vista 2D: sí, botón "Vista 2D" que muestra manos y botones planos (como `c_c4_2d.js`).
+- Se ve de los demás: sus cartas boca arriba, globito de resultado por asiento al final (+250, Se pasó, Blackjack) y fichas de cada quien sobre su asiento. Sin gestos automáticos.
+
+**Pasos:**
+- [ ] B1 Reglas en el servidor: `g_blackjack.js` nuevo (sin salas, como `g_cubilete.js`): estado {zapato, crupier, asientos[7]: {id, nombre, fichas, manos:[{cartas, apuesta, doblada, dividida, rendida, seguro}]}, fase: 'apuestas'|'reparto'|'seguro'|'turnos'|'crupier'|'pago', turno, plazo}. Acciones: sentarse, pararse, apostar, pedir, plantarse, doblar, dividir, seguro, rendirse. Temporizadores por `tick`. Conectar en `server.js` junto a CUB/JG (`/casa`, b.bj). Pruebas en `tests/` (pagos, dividir Ases, seguro, 17 suave, rebarajar).
+- [ ] B2 Crupier: personaje chibi de pie detrás de la media luna (AV), animación de repartir y voltear su carta tapada.
+- [ ] B3 Cliente 3D: `c_blackjack3d.js` (cartas sobre el paño en cada casilla, fichas apiladas, cartas que vuelan desde el zapato, descartes); sentarse con E (CMESA) en los lugares de `CAS3`; personajes sentados con MPJ; cámara MCAM.
+- [ ] B4 Interfaz: `c_blackjack_hud.js` con GHUD (pastilla de fichas y turno, barra de botones Pedir/Plantarse/Doblar/Dividir/Seguro/Rendirse, selector de fichas para apostar, cuenta regresiva), globitos de resultado y fichas sobre cada asiento. Estilos en `ui_juegos.css`.
+- [ ] B5 Vista 2D: `c_blackjack2d.js`, botón Vista 2D.
+- [ ] B6 Sonidos (repartir, fichas, blackjack), quitar el "Próximamente" del Blackjack, probar en celular (375×812, 21:9 y horizontal) y en compu, día y noche.
+
+### [ ] Póker (sótano, mesa ovalada de 8)
+**Preguntas (hacerlas todas antes de empezar; anotar respuestas aquí):**
+1. Variante: Texas Hold'em sin límite (recomendado) / con límite fijo / Omaha.
+2. Fichas: ¿igual que Blackjack (se reinician por sesión, recarga al llegar a 0)? ¿Fichas iniciales y ciegas (p. ej. 1,000 con ciegas 5/10)? ¿Ciegas fijas (mesa de efectivo) o que suben con el tiempo (torneo)?
+3. Entrada: asiento libre al llegar (como Blackjack) o sala con inicio del host (torneo hasta que quede uno).
+4. Bots: ¿llenan asientos? ¿Cuántos como máximo? ¿Nivel (fácil / normal que farolea a veces / elegible)?
+5. Crupier: personaje visible al centro de atrás que reparte, o sin crupier (el botón de dealer rota entre jugadores).
+6. Tiempo por decisión (15/20/30 s) y qué pasa al acabarse (pasar si se puede; si no, retirarse).
+7. Mostrar cartas al final: obligatorio solo en el showdown, o elegir mostrar/tirar; ¿el que se retiró puede enseñarlas?
+8. Ayudas: ¿nombre de tu jugada ("Doble par"), probabilidad, botones rápidos de apuesta (½ bote, bote, todo)?
+9. Botes paralelos (all-in con varios): se hacen siempre; confirmar que se ven aparte en la mesa.
+10. Cámara (desde tu silla + Arriba, como Blackjack) y vista 2D (sí/no).
+11. Social: gestos automáticos al ganar un bote grande o quedarse sin fichas (sí/no); fichas de cada quien sobre su asiento; globito de resultado.
+12. Espectadores: ¿se puede mirar la mesa sin jugar?
+**Pasos (ajustar tras las respuestas):** P1 `g_poker.js` (evaluador de manos de 7 cartas con pruebas, rondas de apuesta, botes paralelos, temporizadores) · P2 bots en `g_poker_bot.js` · P3 cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack · P4 HUD con GHUD (subir con deslizador) · P5 vista 2D si se pidió · P6 sonidos, quitar "Próximamente", celular y compu.
+
+### [ ] Monopoly Deal en 3D (salón de la planta baja)
+Hoy: reglas en `g_monopolydeal.js` (completas, con salas y bots) y pantalla 2D `c_monopolydeal.js` (GRANDE, la comparte el 2D Ligero: no tocarla) envuelta por `c_mdeal_hud.js`. Es solo presentación nueva sobre la mesa nueva (MESA/MPJ/MCAM), en módulos chicos nuevos.
+**Preguntas (hacerlas todas antes de empezar):**
+1. Mesa: ¿la misma mesa redonda nueva (`c_mesa3d.js`) de Continental y Uno, o una propia?
+2. Mano: ¿cartas en abanico frente a tu cámara (como Uno 3D) o mano plana abajo en la pantalla (HTML)?
+3. Propiedades y banco de cada jugador: ¿sobre la mesa frente a su silla, agrupadas por color en columnas, con el banco apilado al lado?
+4. Jugar una carta: ¿arrastrarla a tu zona, a tu banco o a un rival, o tocarla y elegir en un menú?
+5. Acciones contra otros (Deal Breaker, Sly Deal, Forced Deal, cobros, Just Say No): ¿carta que vuela entre jugadores? ¿Ventana para elegir con qué pagar, con la mesa de fondo?
+6. ¿Se queda la "Vista clásica 2D" como opción (botón) o el 3D la reemplaza dentro de la casa?
+7. Cámara: desde tu silla + Arriba (como Uno/Continental) o de arriba fija para ver todas las propiedades.
+8. Personajes: ¿gestos al completar un set, al recibir Just Say No, al ganar?
+9. ¿Las mesas ocupadas (OCUP) deben mostrar Monopoly Deal jugándose?
+**Pasos (ajustar tras las respuestas):** D1 vista 3D de la mesa con propiedades y banco por jugador · D2 mano y forma de jugar cartas · D3 acciones entre jugadores y pagos · D4 HUD GHUD (reusar `c_mdeal_hud.js`) · D5 animaciones, gestos, sonidos · D6 celular y compu.
+
+### [ ] Billar (sótano, cuarto del billar)
+El más grande: física propia sin librerías (choques bola-bola y con bandas, troneras, efecto, fricción). Para sincronizar: el que tira manda al servidor solo el tiro (ángulo, fuerza, efecto) y todos corren la misma simulación determinista (paso fijo, sin `Math.random`); el tirador manda las posiciones finales y el servidor las guarda como verdad para el siguiente tiro.
+**Preguntas (hacerlas todas antes de empezar):**
+1. Juego: Bola 8 (recomendado), Bola 9, o los dos a elegir.
+2. Reglas: ¿completas (cantar tronera para la 8, bola en mano en cualquier lado tras falta) o simplificadas (falta = el rival pone la blanca detrás de la línea)?
+3. Jugadores: 1 contra 1; ¿también contra bot? ¿Nivel del bot (fácil/normal/difícil o elegible)?
+4. Entrada: tomar el taco al llegar y retar a alguien del cuarto (como el Conecta 4), o sala.
+5. Apuntar en celular: ¿arrastrar hacia atrás para jalar el taco (fuerza) y girar con un dedo, o deslizador de fuerza + botón Tirar?
+6. Ayudas: ¿línea guía? ¿Hasta dónde (primera bola, también el rebote, nada)? ¿Ajustable?
+7. Efecto (spin) en la blanca: sí/no.
+8. Cámara: ¿detrás del taco al apuntar y que siga la jugada, o que se vaya arriba al tirar? ¿Botón de vista desde arriba?
+9. Personajes: ¿el personaje inclinado con el taco al tirar (animación) o solo el taco?
+10. Tiempo por tiro (30/45/60 s o sin límite).
+11. Vista 2D (mesa desde arriba) como opción: sí/no.
+12. ¿Fichas o apuestas? (recomendado: no).
+**Pasos (ajustar tras las respuestas):** L1 física `c_billar_fis.js` + pruebas deterministas en `tests/` · L2 reglas `g_billar.js` en el servidor · L3 apuntar y tirar (cliente) · L4 cámara · L5 bot · L6 HUD, sonidos, quitar "Próximamente", celular y compu.
