@@ -34,7 +34,7 @@ def copia(src, nombre):
     if me: bpy.data.meshes.remove(me)
     me = src.copy(); me.name = nombre; return me
 
-fp = bpy.data.objects['Frente_Playera'].data
+fp = bpy.data.meshes.get('playera_orig') or bpy.data.objects['Frente_Playera'].data   # sin la cintura de cintura.py
 zb = min(v.co.z for v in fp.vertices); H = K['HOMBRO']
 pm = copia(fp, 'playera_m')
 for v in pm.vertices:

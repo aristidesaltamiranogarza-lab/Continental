@@ -24,17 +24,18 @@ K = dict(
     NIVEL={'Pelo': 0, 'Nariz': 0, 'Manos': 1, 'Brazos': 1, 'Pantalon': 1, 'Playera': 1, 'Short': 1, 'Piernas': 1,
            'Brazos_M': 1, 'Pantalon_M': 1, 'Short_M': 1, 'Piernas_M': 1},   # Playera_M ya viene subdividida
     DECIMA={'Pelo': 0.5},          # reduccion (simetrica en X) antes del grosor, solo en la copia de juego
+    DECIMA_FIN={'Brazos': 0.62},   # reduccion despues de la subdivision (mangas: lo mas caro de cada prenda)
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
     ROPA=range(2, 4),                      # figuras Ropa_n de ropa.py: parte -> pieza (Piernas es una sola, sin numero)
-    ROPA_PIEZA={'Playera': 'Arriba', 'Brazos': 'Arriba', 'Capucha': 'Arriba', 'Bolsa': 'Arriba', 'Cordones': 'Arriba',
+    ROPA_PIEZA={'Playera': 'Arriba', 'Brazos': 'Mangas', 'Capucha': 'Arriba', 'Bolsa': 'Arriba', 'Cordones': 'Arriba',
                 'Cuello': 'Arriba', 'Botones': 'Arriba', 'Pantalon': 'Abajo', 'Short': 'Abajo', 'Falda': 'Abajo',
                 'Piernas': 'Piernas'},
     CARAS=range(2, 4),                     # opciones de cara.py (Cara_n_Cejas/_Boca/_Nariz) -> piezas Cejas_n, Boca_n, Nariz_n
     PEINADOS=range(2, 8), TOL_SIEN=0.01,   # sien mas lejos que esto de la del peinado 1 -> pose nueva          # peinados de pelos.py (Peinado_n_Pelo / _Extra) -> piezas Pelo_n
     PIEZA={'Pelo': 'Pelo_1', 'Cejas': 'Cejas_1', 'Boca': 'Boca_1', 'Nariz': 'Nariz_1',
-           'Playera': 'Arriba_1', 'Brazos': 'Arriba_1', 'Pantalon': 'Abajo_1'},
+           'Playera': 'Arriba_1', 'Brazos': 'Mangas_1', 'Pantalon': 'Abajo_1'},   # mangas: pieza propia (Mangas_n), sin version M
     # material de Frente -> material de ranura en el GLB (copias; av_pelo/piel/arriba/abajo cambian de color)
     MAT={'chibi_pelo': 'av_pelo', 'chibi_piel': 'av_piel', 'chibi_playera': 'av_arriba', 'chibi_pantalon': 'av_abajo',
          'chibi_ojo': 'av_ojo', 'chibi_boca': 'av_boca', 'chibi_suela': 'av_suela', 'chibi_zapato': 'av_zapato',
@@ -167,6 +168,9 @@ for fig, m, ns in (('Ropa_%d', '', K['ROPA']), ('Mujer', '_M', [1]), ('RopaM_%d'
         for o in sorted(bpy.data.objects[fig % n if '%' in fig else fig].children, key=lambda o: o.name):
             t = o.name.rsplit('_', 1)[1]; pz = K['ROPA_PIEZA'].get(t)
             if not pz: continue
+            if pz == 'Mangas':     # una pieza por malla de mangas (blusa y cuerpo M usan las de la playera)
+                if any(f[0].data == o.data for f in fuentes): continue
+                pieza = 'Mangas_%d' % n; fuentes.append((o, 'Brazos_%d' % n, 'Brazos', pieza)); continue
             pieza = pz + m if pz == 'Piernas' else '%s_%d%s' % (pz, n, m)
             if pz == 'Piernas' and any(f[3] == pieza for f in fuentes): continue
             fuentes.append((o, '%s_%d%s' % (t, n, m), t + m, pieza))
@@ -180,8 +184,13 @@ for o, suf, cl, _ in fuentes:
     if K['DECIMA'].get(cl, 1) < 1:
         dec = o.modifiers.new('tmp_decima', 'DECIMATE'); dec.ratio = K['DECIMA'][cl]
         dec.use_symmetry = True; dec.symmetry_axis = 'X'; o.modifiers.move(len(o.modifiers) - 1, 0)
+    fin = None
+    if K['DECIMA_FIN'].get(cl, 1) < 1:
+        fin = o.modifiers.new('tmp_decima_fin', 'DECIMATE'); fin.ratio = K['DECIMA_FIN'][cl]
+        fin.use_symmetry = True; fin.symmetry_axis = 'X'
     dg.update(); me = bpy.data.meshes.new_from_object(o.evaluated_get(dg))
     if dec: o.modifiers.remove(dec)
+    if fin: o.modifiers.remove(fin)
     for m in o.modifiers:
         if m.name in viejo: m.levels = viejo[m.name]
     for i, m in enumerate(me.materials):
@@ -532,7 +541,8 @@ bpy.context.view_layer.objects.active = arm
 loc = arm.location.copy(); arm.location = (0, 0, 0); bpy.context.view_layer.update()
 props = bpy.ops.export_scene.gltf.get_rna_type().properties.keys()
 kw = dict(filepath=K['GLB'], export_format='GLB', use_selection=True, use_visible=True, export_animations=True,
-          export_animation_mode='ACTIONS', export_yup=True, export_apply=False, export_skins=True)
+          export_animation_mode='ACTIONS', export_yup=True, export_apply=False, export_skins=True,
+          use_active_scene=True)   # sin esto se colaba el 'Cube' de otra escena del .blend
 bpy.ops.export_scene.gltf(**{k: v for k, v in kw.items() if k in props})
 arm.location = loc
 with open(K['GLB'], 'rb') as fh:

@@ -22,7 +22,7 @@ K = dict(
     BOLSA=(1.17, 0.99, 0.10, 0.165, 0.007), BOLSA_SEG=(8, 4),
     CORDON=(0.0055, 0.15, 34),           # radio, largo, grados desde el frente
     # blusa: ancho del cuello atras y en las puntas, grosor, abertura al frente (grados), giro de las puntas
-    CUELLO=(0.032, 0.11, 0.009), CUELLO_ABRE=9, CUELLO_PUNTA=30, CUELLO_SEG=32,
+    CUELLO=(0.035, 0.055, 0.009), CUELLO_ABRE=9, CUELLO_PUNTA=18, CUELLO_SEG=32,
     BOTONES=(1.50, 1.08, 4, 0.017),      # z arriba, z abajo, cuantos, radio
     FALDON=0.04,                         # cuanto bajan el frente y la espalda de la blusa respecto a los lados
     # short: corte, vuelo (escala del grosor de la pierna en el borde)
@@ -96,7 +96,7 @@ def sobre_hombro(T, th, r, holg=0.004, a0=0.11, b0=0.09):
         if hit[0] is not None:
             p, n = hit[0], hit[1]
             if CABEZA.find_nearest(p + n * r)[3] >= r + holg: break
-        k += 0.025
+        k += 0.01
     return p, n
 
 def tubo(bm, pts, radios, lados, tapas=True, aplana=1.0):
@@ -205,20 +205,22 @@ def ropa(c):
     blusa = malla('ropa_blusa' + sf, bm, M_ARRIBA)
     T3 = bvh_sub(blusa, c['nivel'])
     bm = bmesh.new(); wb, wf, gr = K['CUELLO']; ab = math.radians(K['CUELLO_ABRE']); nc = K['CUELLO_SEG']
+    ths = [ab + (2 * math.pi - 2 * ab) * i / nc for i in range(nc + 1)]
+    # borde de adentro: donde cabe junto a la cabeza, suavizado (sobre_hombro avanza a saltos)
+    qs = [V((p.x, p.y, 0)) for p, n in (sobre_hombro(T3, th, 0.012) for th in ths)]
+    for _ in range(4):
+        qs = [qs[0]] + [(qs[i - 1] + 2 * qs[i] + qs[i + 1]) / 4 for i in range(1, nc)] + [qs[-1]]
+    def baja(q):
+        hit = T3.ray_cast(V((q.x, q.y, 2.0)), V((0, 0, -1)))
+        if hit[0] is None: hit = T3.find_nearest(V((q.x, q.y, 1.62)))   # cae en el hueco del cuello
+        return hit[0], hit[1]
     filas = []          # por muestra: [(punto, normal)] de adentro hacia afuera
-    for i in range(nc + 1):
-        u = i / nc; th = ab + (2 * math.pi - 2 * ab) * u
-        p, n = sobre_hombro(T3, th, 0.012)
-        e = max(0.0, 1 - min(u, 1 - u) / 0.18) ** 2          # 1 en las puntas
-        w = wb + (wf - wb) * (1 - math.sin(math.pi * u)) ** 1.5
+    for i, th in enumerate(ths):
+        u = i / nc
+        e = max(0.0, 1 - min(u, 1 - u) / 0.25) ** 2          # 1 en las puntas
+        w = wb + (wf - wb) * e
         tho = th - (1 if u < 0.5 else -1) * math.radians(K['CUELLO_PUNTA']) * e   # las puntas giran hacia el centro
-        fila = []
-        for f in (0.0, 0.5, 1.0):
-            d = dir_(th) * (1 - f) + dir_(tho) * f
-            q = V((p.x, p.y, 0)) + d * w * f
-            hit = T3.ray_cast(V((q.x, q.y, 2.0)), V((0, 0, -1)))
-            fila.append((hit[0], hit[1]) if (hit[0] is not None and f) else (p, n))
-        filas.append(fila)
+        filas.append([baja(qs[i] + (dir_(th) * (1 - f) + dir_(tho) * f) * w * f) for f in (0.0, 0.5, 1.0)])
     arr = [[bm.verts.new(p + n * (0.004 + gr)) for p, n in f] for f in filas]
     aba = [[bm.verts.new(p + n * 0.004) for p, n in f] for f in filas]
     for i in range(nc):
