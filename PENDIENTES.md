@@ -138,7 +138,7 @@ Decidido (11 nov): western clásico de acción simple (martillo grande, tambor f
 - [x] Materiales: acero claro con brillo visible (el arma actual se ve negra: subir base color y bajar metalness o dar roughness media), cacha de madera cálida, detalles (tornillos, mira) en latón o acero oscuro. Nombres de material `rev_*`.
 - [x] Exportar `blender/revolver.glb` (y copiarlo a `modelos/` si va por jsDelivr, ver memoria modelos-3d: etiqueta `modelos-vN`).
 - [x] Reemplazar la "pistola de prueba" de rig.py por el revólver (unirlo al hueso de la mano con `Rev_Agarre`) y rehacer `PistolaSien` y `PistolaSien_n` para los 7 peinados; revisar choques con melena/largo (antes 238/461 vértices) y los empties `Sien_I_n`/`Sien_D_n`.
-- Hecho: blender/revolver.py → blender/revolver.glb (7.5k tris, ESC 1.15). rig.py: Rig_Pistola es la copia fija (no se exporta) y Rig_Agarre (hijo de mano_D) es donde va Rev_Agarre; PistolaSien con el cañón hacia la sien (alto ≤ 30°, PS_* en K). Falta pasar chibi_prueba.glb a modelos/personaje/chibi.glb (R2).
+- Hecho: blender/revolver.py → blender/revolver.glb (7.5k tris, ESC 1.25). rig.py: Rig_Pistola es la copia fija (no se exporta) y Rig_Agarre (hijo de mano_D) es donde va Rev_Agarre; PistolaSien: boca abajo de la oreja y cañón al centro de la cabeza (±15°, PS_* en K). Falta pasar chibi_prueba.glb a modelos/personaje/chibi.glb (R2).
 
 ### R2 · Personajes en la Ruleta
 - [ ] Quitar los Miis: sentar personajes con AV/MPJ alrededor de la mesa de la Ruleta (no es MESA; usar las posiciones de silla actuales de `c_ruleta3d.js`). Mismo código de personaje que en Continental/Uno (`AV.crear`/`AV.crearYa`, `AV.cambiar`).

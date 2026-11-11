@@ -14,7 +14,7 @@ import bpy, bmesh, math
 from mathutils import Vector as V, Matrix
 
 K = dict(
-    ESC=1.15, POS=(0.0, 3.0, 1.2), EXPORTAR=True,   # ESC: ~1.15x lo real respecto a la mano de miton
+    ESC=1.25, POS=(0.0, 3.0, 1.2), EXPORTAR=True,   # ESC: ~1.25x lo real respecto a la mano de miton
     GLB=r'C:/Users/aris1/code/Continental/blender/revolver.glb',
     # tambor: radio, y trasera/delantera, radio del circulo de recamaras, radio de recamara, estrias (hondo, medio ancho en grados)
     R_TAM=0.031, L_TAM=(-0.034, 0.024), RC=0.0185, R_REC=0.0075, ESTRIA=(0.0035, 15.0), N_TAM=48,

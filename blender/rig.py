@@ -30,7 +30,9 @@ K = dict(
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     # PistolaSien: el canon apunta a la sien (alto = grados hacia arriba); el alcance sale de ladear tronco y cabeza
-    PS_ALTO=range(-15, 31, 5), PS_TRONCO=(0, 8, 16), PS_HOMBRO=(0, 15, 30), PS_CABEZA=(0, -10, -20, -30),
+    # PS_PUNTO: donde va la boca (como SIEN; abajo de la oreja), el canon apunta al centro de la cabeza (+- PS_ALTO/PS_FRENTE)
+    PS_PUNTO=(1.0, -0.12, -0.45), PS_ALTO=range(-10, 16, 5), PS_FRENTE=range(-20, 21, 10),
+    PS_TRONCO=(0,), PS_HOMBRO=(0, 15, 30), PS_CABEZA=(0, -10, -20, -30),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
     ROPA=range(2, 4),                      # figuras Ropa_n de ropa.py: parte -> pieza (Piernas es una sola, sin numero)
     ROPA_PIEZA={'Playera': 'Arriba', 'Brazos': 'Mangas', 'Capucha': 'Arriba', 'Bolsa': 'Arriba', 'Cordones': 'Arriba',
@@ -438,8 +440,11 @@ PIS_L = [v.co.copy() for v in list(mp.vertices)[::max(1, len(mp.vertices) // 200
 def sien(sx):
     d = V((sx * K['SIEN'][0], K['SIEN'][1], K['SIEN'][2])).normalized()
     return cabezaBVH.ray_cast(C + d * 3, -d)[0], d
+def punto_ps():
+    d = V((-K['PS_PUNTO'][0], K['PS_PUNTO'][1], K['PS_PUNTO'][2])).normalized()
+    return cabezaBVH.ray_cast(C + d * 3, -d)[0], d
 def buscar_pistola():
-    Sd, nd = sien(-1); Si, ni = sien(1)
+    Sd, nd = sien(-1); Si, ni = sien(1); Pd, npd = punto_ps()
     hc = bones['cabeza'].head_local
     mejor = None; ST = dict(n=0, ok=0); hD = bones['hombro_D']; hcol = bones['columna'].head_local
     for lean, sh, tau in [(l, s_, t_) for l in K['PS_TRONCO'] for s_ in K['PS_HOMBRO'] for t_ in K['PS_CABEZA']]:
@@ -448,10 +453,10 @@ def buscar_pistola():
         S = H @ V((-hx, hy, hz))                               # hombro encogido (sube el hombro)
         if True:                                               # cabeza ladeada hacia la pistola
             T = L @ Matrix.Translation(hc) @ Matrix.Rotation(math.radians(tau), 4, 'Y') @ Matrix.Translation(-hc); Ti = T.inverted()
-            Sw = T @ Sd; nw = (T.to_3x3() @ nd).normalized(); d0 = -nw
+            Sw = T @ Pd; nw = (T.to_3x3() @ npd).normalized(); d0 = -nw
             up0 = (V((0, 0, 1)) - d0 * d0.z).normalized(); hz_ = d0.cross(up0)
             for al in K['PS_ALTO']:                            # canon hacia la sien: poco inclinado
-                for be in range(-50, 51, 10):
+                for be in K['PS_FRENTE']:
                     d = rot(rot(d0, hz_, al), up0, be)
                     for fi in range(-60, 61, 15):
                         s = rot((up0 - d * up0.dot(d)).normalized(), d, fi)
