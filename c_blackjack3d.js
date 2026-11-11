@@ -2,31 +2,32 @@
 // Cartas sobre el paño en cada casilla (en cascada; manos divididas lado a lado), las del crupier en BJC.LUGAR; fichas apiladas en la casilla y el seguro.
 // Las cartas vuelan desde la mano del crupier cuando él las suelta (BJC.al) y al acabar la ronda se barren a los descartes; pagos: fichas de la charola a la casilla
 // o de la casilla a la charola. Sentarse: E o tocar la mesa (el lugar libre más cerca); levantarse: Esc o caminar. Sentados con MPJ (sillas de CAS3);
-// cámara sobre tu hombro que voltea un poco al turno (MCAM). c_casa3d.js: BJ3.estado(v,err), BJ3.out(), BJ3.hud(busy), BJ3.key(k), BJ3.sentado(id).
+// primera persona (arrastrar mira, rueda o pellizco acerca) o vista Arriba. c_casa3d.js: BJ3.estado(v,err), BJ3.out(), BJ3.hud(busy), BJ3.key(k), BJ3.sentado(id).
 // SAL.step llama BJ3.paso(). La interfaz va en c_blackjack_hud.js (BJH): usa BJ3.act(op,extra), BJ3.v, BJ3.yo(), BJ3.cerca() y BJ3.pt(s,h,nh) (globitos).
 (function(){
 if(typeof THREE==='undefined')return;
 // ---------- ajustes: tiempos en ms, medidas en el espacio de la mesa (+z hacia los jugadores) ----------
 const A={
- carta:[.13,.185],                 // ancho y largo de una carta en el paño
- rCarta:1.13,rFicha:1.33,rSeguro:1.035,   // radios desde el centro de la media luna: cartas, fichas (casilla) y seguro
- cascada:[.032,.045],              // cada carta nueva se corre: de lado y hacia el crupier
- sepMano:.16,sepCr:.1,             // entre manos divididas; entre cartas del crupier
+ carta:[.17,.24],                  // ancho y largo de una carta en el paño
+ rCarta:1.47,rFicha:1.78,rSeguro:1.15,    // radios desde el centro de la media luna: cartas, fichas (casilla, igual que BJRC de CAS3) y seguro
+ cascada:[.042,.055],              // cada carta nueva se corre: de lado y hacia el crupier
+ sepMano:.22,sepCr:.13,             // entre manos divididas; entre cartas del crupier
  vuelo:430,alto:.32,               // carta de la mano del crupier al paño: duración y altura del arco
  espera:1600,                      // si el crupier no la suelta en este tiempo, vuela sola
  volteo:380,                       // voltear su carta tapada
  barre:480,barreSep:45,            // a los descartes: duración y desfase entre cartas
- ficha:[.042,.012],maxFichas:24,fichaVuelo:620,   // radio y alto de una ficha, tope por pila, vuelo de los pagos
+ ficha:[.05,.014],maxFichas:24,fichaVuelo:620,   // radio y alto de una ficha, tope por pila, vuelo de los pagos
  silla:1.55,                       // altura del marco del personaje sobre la silla (MPJ lo baja 1.27)
- cerca:3.2,                        // distancia al centro de la mesa para el aviso "Jugar Blackjack"
- cam:{atras:1.1,alto:5.6,lado:-.9,mira:.4,blend:900}   // sentado: detrás de tu silla, altura, a un lado (sobre tu hombro), punto que ve (0 tu casilla … 1 el crupier), llegada
+ cerca:4.2,                        // distancia al centro de la mesa para el aviso "Jugar Blackjack"
+ cam:{ojo:2.3,adelante:.45,mira:.3,zoom:3.2,giro:1.5,sube:.9,baja:.7,sens:.005,blend:700,   // primera persona: altura de los ojos, cuánto te inclinas hacia la mesa, punto que ves (0 tus cartas … 1 las del crupier), zoom máximo, límites al mirar y sensibilidad
+  arriba:{alto:4.4,z:3.7,mira:.4}}   // vista Arriba: altura sobre la mesa, distancia detrás de las sillas y punto que ve
 };
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),CZ=.55,LUGAR=window.BJC?BJC.LUGAR:[0,.47],ZAP=[.76,.2],DESC=[-.76,.2],CHAR=[0,.19];
 const PALO=['♠','♥','♦','♣'],RANGO=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-const FICHAS=[[500,'#5b2a86'],[100,'#1d1d1f'],[25,'#2e7d3e'],[5,'#b3262e'],[1,'#ece6da']];
+const FICHAS=[[500,'#5b2a86'],[100,'#1d1d1f'],[50,'#d9822b'],[25,'#2e7d3e'],[10,'#2453a6'],[5,'#b3262e'],[1,'#ece6da']];
 const touchy=matchMedia('(pointer:coarse)').matches,ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const CAR=[],PEND={},TW=[],PILAS=new Map(),PAGO=new Set(),MAT={},FM={},SIL=[],cola=[];
-let V=null,R=null,M0=null,TH=1.5,ini=false,tP=0,ronda=null,mc=null,pide=-1,pideT=0,parando=false,ancla=null,meVis=null,p0=null,q0=null,camT=0,mk='',mpjOk=false,hk='';
+let V=null,R=null,M0=null,TH=1.5,ini=false,tP=0,ronda=null,pide=-1,pideT=0,parando=false,ancla=null,meVis=null,p0=null,q0=null,camT=0,mk='',mpjOk=false,hk='';
 let GEO=null,ED=null,DOR=null,FG=null;
 const H=()=>window.CASA3D,M=()=>window.SAL&&SAL.M&&SAL.M.blackjack||null;
 const yoId=()=>H()&&H().myId?H().myId():null,quien=id=>H()&&H().quien?H().quien(id):null;
@@ -54,13 +55,13 @@ function llena(o,v){while(o.children.length)o.remove(o.children[0]);if(!FG)FG=ne
 function pila(v){const o=new THREE.Group();llena(o,v);R.add(o);return {o,m:null,v}}
 
 // ---------- dónde va cada cosa ----------
-const ang=s=>{const q=PI/2+(3-s)*.3;return [Math.cos(q),Math.sin(q)]};   // hacia afuera desde el centro de la media luna (igual que CAS3)
+const ang=s=>{const q=M0&&M0.D.ang?M0.D.ang(s):PI/2;return [Math.cos(q),Math.sin(q)]};   // hacia afuera desde el centro de la media luna (CAS3)
 function lugar(x){if(x.s<0)return {p:v3(LUGAR[0]+(x.j-.5)*A.sepCr,TH+.003+x.j*.0015,LUGAR[1]),ry:0,f:x.c<0?PI:0};
  const [ux,uz]=ang(x.s),ta=(x.h-(x.nh-1)/2)*A.sepMano+x.j*A.cascada[0],r=A.rCarta-x.j*A.cascada[1];
  return {p:v3(ux*r-uz*ta,TH+.003+x.j*.0015,-CZ+uz*r+ux*ta),ry:Math.atan2(ux,uz),f:0}}
 function sitio(s,r,ta){const [ux,uz]=ang(s);return v3(ux*r-uz*ta,TH+.002,-CZ+uz*r+ux*ta)}
 const enMano=(s,h,nh,lado)=>sitio(s,A.rFicha,(h-(nh-1)/2)*A.sepMano+(lado||0));
-const jugador=s=>{const p=sitio(s,2.05,0);p.y=TH+.35;return p},charola=()=>v3(CHAR[0],TH+.06,CHAR[1]);
+const jugador=s=>{const p=sitio(s,2.6,0);p.y=TH+.35;return p},charola=()=>v3(CHAR[0],TH+.06,CHAR[1]);
 const desde=()=>{const p=window.BJC&&BJC.mano();return p?R.worldToLocal(p.clone()):v3(ZAP[0],TH+.13,ZAP[1])};
 
 // ---------- animaciones: x = {o grupo, m malla (volteo en m.rotation.z) o null} ----------
@@ -113,23 +114,46 @@ function fichas(v,snap){const F=new Map();
 function sync(snap){const nueva=ronda!=null&&V.ronda!==ronda;if(nueva)PAGO.clear();cartas(V,snap,nueva);fichas(V,snap);ronda=V.ronda}
 
 // ---------- gente sentada (MPJ en marcos sobre las sillas de CAS3) ----------
-function gente(now){if(!window.MPJ)return;const L=[];V.as.forEach((a,i)=>{if(!a)return;const q=quien(a.id);L.push({i,k:a.id,cod:(q&&q.av)||MPJ.codigo(a.n)})});
+function gente(now){if(!window.MPJ)return;const L=[],y=sentadoYa()&&vista==='yo'?yo():-1;V.as.forEach((a,i)=>{if(!a||i===y)return;const q=quien(a.id);L.push({i,k:a.id,cod:(q&&q.av)||MPJ.codigo(a.n)})});
  const k=JSON.stringify(L);if(k!==mk){const ok=MPJ.sync({g:R,sillas:SIL},L,{listo:()=>{mk=''}});mpjOk=!!(window.AV&&AV.ya&&AV.ya());mk=ok||!L.length?k:''}
  if(mpjOk)MPJ.paso(now,V.fase=='turnos'&&V.turno?V.turno.s:-1)}
 
-// ---------- tu lugar: ancla detrás de la silla, cámara sobre tu hombro ----------
-const CD=new THREE.PerspectiveCamera(),Pc=v3(0,0,0),Lc=v3(0,0,0);
-function camara(now,s){const m=M(),C=H().cam();if(!C)return;const l=m.lugares[s],cs=m.D.casillas[s],fx=Math.sin(l.ry),fz=Math.cos(l.ry);
- Pc.set(l.x-fx*A.cam.atras+fz*A.cam.lado,A.cam.alto,l.z-fz*A.cam.atras-fx*A.cam.lado);Lc.set(cs[0]+(LUGAR[0]-cs[0])*A.cam.mira,TH,cs[1]+(LUGAR[1]-cs[1])*A.cam.mira);m.G.localToWorld(Lc);
- if(!mc&&window.MCAM)mc=MCAM.crea({vt:{},home(){},snap(){},viewed:()=>false,el:()=>0});
- let g=0;if(mc){const t=V.fase=='turnos'&&V.turno?V.turno.s:V.fase=='crupier'?-1:null;
-  const tp=t==null?null:m.G.localToWorld(t<0?v3(LUGAR[0],TH,LUGAR[1]):v3(m.D.casillas[t][0],TH,m.D.casillas[t][1]));g=mc.paso(now,{cam:{px:Pc.x,pz:Pc.z,lx:Lc.x,lz:Lc.z},turno:tp})}
- const dx=Lc.x-Pc.x,dz=Lc.z-Pc.z,c=Math.cos(g),sn=Math.sin(g);Lc.x=Pc.x+dx*c+dz*sn;Lc.z=Pc.z+dz*c-dx*sn;CD.position.copy(Pc);CD.lookAt(Lc);
- if(!p0){p0=C.position.clone();q0=C.quaternion.clone();camT=now}const e=ease(Math.min(1,(now-camT)/A.cam.blend));
- C.position.lerpVectors(p0,Pc,e);C.quaternion.slerpQuaternions(q0,CD.quaternion,e)}
-function sienta(s){const l=M().lugares[s],me=quien(yoId());pide=-1;if(!me)return;me.pos.x=l.x-Math.sin(l.ry)*.85;me.pos.z=l.z-Math.cos(l.ry)*.85;ancla={x:me.pos.x,z:me.pos.z};meVis=me.g.visible}
-function suelta(){const me=quien(yoId()),C=H()&&H().cam();if(me&&meVis!=null)me.g.visible=meVis;ancla=null;meVis=null;p0=null;
- if(C&&window.CCAM)CCAM.blendIn(C,CCAM.pose(C),700)}
+// ---------- tu lugar y la cámara: 'yo' = primera persona (tus ojos, inclinado sobre la mesa; tu personaje no se dibuja) · 'arriba' = toda la mesa ----------
+// Arrastrar (o flechas/WASD) mira alrededor, rueda o pellizco acerca, doble toque recentra. Nada de eso te levanta: solo Esc o el botón.
+let vista='yo',fov0=0,dbl=0,pz=0;const look={y:0,p:0,z:1},teclas=new Set(),toques=new Map();
+const CD=new THREE.PerspectiveCamera(),Pc=v3(0,0,0),Lc=v3(0,0,0),Dv=v3(0,0,0);
+const clampL=()=>{const K=A.cam;look.y=Math.max(-K.giro,Math.min(K.giro,look.y));look.p=Math.max(-K.baja,Math.min(K.sube,look.p));look.z=Math.max(1,Math.min(K.zoom,look.z))};
+function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares[s],fx=Math.sin(l.ry),fz=Math.cos(l.ry),K=A.cam;
+ if(teclas.size){const g=dt*1.6/look.z;if(teclas.has('l'))look.y+=g;if(teclas.has('r'))look.y-=g;if(teclas.has('u'))look.p+=g*.7;if(teclas.has('d'))look.p-=g*.7;clampL()}
+ if(vista==='yo'){Pc.set(l.x+fx*K.adelante,K.ojo,l.z+fz*K.adelante);const c=lugar({s,h:0,j:0,nh:1,c:0}).p;Lc.set(c.x+(LUGAR[0]-c.x)*K.mira,TH,c.z+(LUGAR[1]-c.z)*K.mira);m.G.localToWorld(Lc)}
+ else{const a=K.arriba;Pc.set(0,TH+a.alto,a.z);m.G.localToWorld(Pc);Lc.set(0,TH,a.mira);m.G.localToWorld(Lc)}
+ Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.5,Math.min(.5,pa+look.p));
+ Dv.set(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));CD.position.copy(Pc);CD.lookAt(Lc.copy(Pc).add(Dv));
+ if(!fov0)fov0=C.fov;const f=fov0/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
+ if(!p0){p0=C.position.clone();q0=C.quaternion.clone();camT=now}const e=ease(Math.min(1,(now-camT)/K.blend));
+ C.position.lerpVectors(p0,Pc,e);C.quaternion.slerpQuaternions(q0,CD.quaternion,e);C.updateMatrixWorld()}   // los globitos se proyectan con esta cámara
+function ver(v){const C=H()&&H().cam();vista=v==null?(vista==='yo'?'arriba':'yo'):v;Object.assign(look,{y:0,p:0,z:1});if(C){p0=C.position.clone();q0=C.quaternion.clone();camT=performance.now()}mk='';rr()}
+function recentra(){Object.assign(look,{y:0,p:0,z:1});rr()}
+const mirando=()=>Math.abs(look.y)>.05||Math.abs(look.p)>.05||look.z>1.05;
+function sienta(s){const l=M().lugares[s],me=quien(yoId());pide=-1;vista='yo';Object.assign(look,{y:0,p:0,z:1});if(!me)return;
+ me.pos.x=l.x-Math.sin(l.ry)*.85;me.pos.z=l.z-Math.cos(l.ry)*.85;ancla={x:me.pos.x,z:me.pos.z};meVis=me.g.visible}
+function suelta(){const me=quien(yoId()),C=H()&&H().cam();if(me&&meVis!=null)me.g.visible=meVis;ancla=null;meVis=null;p0=null;teclas.clear();toques.clear();mk='';
+ if(C&&fov0){C.fov=fov0;C.updateProjectionMatrix()}fov0=0;if(C&&window.CCAM)CCAM.blendIn(C,CCAM.pose(C),700)}
+// entrada: mientras estás sentado, el lienzo es tuyo (la casa no camina ni gira con eso)
+const sentadoYa=()=>yo()>=0&&!!ancla;
+const lienzo=e=>{const r=H()&&H().R&&H().R();return !!r&&e.target===r.domElement&&sentadoYa()};
+addEventListener('pointerdown',e=>{if(!lienzo(e))return;e.stopPropagation();toques.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ const t=performance.now();if(toques.size===1){if(t-dbl<320){recentra();dbl=0}else dbl=t}pz=0},true);
+addEventListener('pointermove',e=>{const p=toques.get(e.pointerId);if(!p)return;e.stopPropagation();
+ if(toques.size>=2){p.x=e.clientX;p.y=e.clientY;const [a,b]=[...toques.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(pz)look.z*=d/pz;pz=d;clampL();return}
+ const k=A.cam.sens/look.z;look.y+=(e.clientX-p.x)*k;look.p+=(e.clientY-p.y)*k;p.x=e.clientX;p.y=e.clientY;clampL()},true);
+const suelto=e=>{if(toques.delete(e.pointerId)){e.stopPropagation();pz=0;rr()}};addEventListener('pointerup',suelto,true);addEventListener('pointercancel',suelto,true);
+addEventListener('wheel',e=>{if(!lienzo(e))return;e.stopPropagation();e.preventDefault();look.z*=Math.exp(-e.deltaY*.0015);clampL();rr()},{capture:true,passive:false});
+const TK={arrowleft:'l',a:'l',arrowright:'r',d:'r',arrowup:'u',w:'u',arrowdown:'d',s:'d'};
+addEventListener('keydown',e=>{if(!sentadoYa()||e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;const k=e.key.toLowerCase();
+ if(TK[k]){e.stopPropagation();e.preventDefault();teclas.add(TK[k])}else if(k==='+'||k==='='||k==='-'){e.stopPropagation();look.z*=k==='-'?.8:1.25;clampL();rr()}},true);
+addEventListener('keyup',e=>{const k=TK[e.key.toLowerCase()];if(k&&teclas.delete(k))rr()},true);
+addEventListener('blur',()=>teclas.clear());
 function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca)}
 
 // ---------- jugadas ----------
@@ -144,16 +168,17 @@ function estado(v,err){if(err&&window.SAL)SAL.aviso(err);if(err)pide=-1;if(!v||!
 function arma(){const m=M();if(!m||!H())return false;if(R&&R.parent)R.parent.remove(R);CAR.length=0;TW.length=0;PILAS.clear();SIL.length=0;for(const k in PEND)delete PEND[k];
  M0=m;TH=m.D.TH||1.5;R=new THREE.Group();m.G.add(R);m.sillas.forEach(c=>{const w=new THREE.Group();w.position.y=A.silla;c.add(w);SIL.push(w)});
  if(window.BJC)BJC.al(alCrupier);ini=true;mk='';if(V)sync(true);return true}
-function paso(){const now=performance.now();if((!ini||M()!==M0)&&!arma())return;
+function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000);if((!ini||M()!==M0)&&!arma())return;
  if(now-tP>1000){acaba();for(const s in PEND)PEND[s].splice(0).forEach(x=>{x.pend=0;x.o.visible=true;pon(x,x.L)});CAR.forEach(x=>{if(x.volt){x.volt=0;pon(x,x.L)}});mk=''}   // volviste al sótano
  tP=now;
  for(const s in PEND){const x=PEND[s][0];if(x&&now-x.pend>A.espera)vuela(x)}
  const xv=CAR.find(x=>x.volt);if(xv&&now-xv.volt>A.espera)voltea(xv);
  pasoTw(now);if(!V)return;gente(now);
  const s=yo(),me=quien(yoId());
- if(s>=0){if(!ancla)sienta(s);if(me&&ancla){if(Math.hypot(me.pos.x-ancla.x,me.pos.z-ancla.z)>.4)levantarse();else{if(mpjOk)me.g.visible=false;camara(now,s)}}}
+ if(s>=0){if(!ancla)sienta(s);if(me&&ancla){if(Math.hypot(me.pos.x-ancla.x,me.pos.z-ancla.z)>.4)levantarse();else{if(mpjOk)me.g.visible=false;camara(now,s,dt)}}}
  else if(ancla)suelta();
- const k=[s,s<0&&cerca(),s>=0?V.as[s].f:V.as.filter(Boolean).length,window.BJH?BJH.firma(V,s):''].join('|');if(k!==hk){hk=k;rr()}
+ document.documentElement.classList.toggle('bjsit',sentadoYa());
+ const k=[s,s<0&&cerca(),vista,mirando(),s>=0?V.as[s].f:V.as.filter(Boolean).length,window.BJH?BJH.firma(V,s):''].join('|');if(k!==hk){hk=k;rr()}
  if(window.BJH)BJH.paso(V,s,now)}
 
 // ---------- aviso de la mesa (al centro abajo, como CMESA) ----------
@@ -166,7 +191,7 @@ function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s
   <span class="uh-at"><b>Jugar Blackjack</b><small>${n?n+' jugando · ':''}Mín $${V.min} · Máx $${V.max}${touchy?' · toca para sentarte':''}</small></span>${touchy?'':'<kbd>E</kbd>'}</button>`}
 function key(k){if(k==='escape'&&yo()>=0){levantarse();return true}if(k==='e'&&yo()<0&&cerca()){sentar();return true}return false}
 
-const BJ3=window.BJ3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},
+const BJ3=window.BJ3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},
  cerca,pt:(s,h,nh)=>{if(!R)return null;const p=s<0?v3(LUGAR[0],TH,LUGAR[1]):lugar({s,h:h||0,j:0,nh:nh||1,c:0}).p;p.y=TH+.2;return mundo(p)},
  sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
 })();

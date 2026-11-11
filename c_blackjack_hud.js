@@ -1,12 +1,12 @@
 // c_blackjack_hud.js — BJH: la interfaz del Blackjack del sótano (BJ3, c_blackjack3d.js). Estilos en ui_juegos.css (.bj-…).
-// BJH.hud(v,s) cuando estás sentado: pastillas debajo de la del piso (tus fichas, la fase con cuenta regresiva, Levantarse) y la barra de abajo
+// BJH.hud(v,s) cuando estás sentado: pastillas debajo de la del piso (tus fichas, la fase con cuenta regresiva, Arriba/tus cartas, Recentrar, Levantarse) y la barra de abajo
 // (fichas para apostar, Repartir, Seguro, Pedir/Plantarse/Doblar/Dividir/Rendirse, tu resultado). BJH.firma(v,s) cambia cuando hay que redibujar.
 // BJH.paso(v,s,now) cada cuadro (cerca de la mesa): cuenta regresiva, nombre y fichas sobre cada jugador y un globito con el total o el resultado
 // de cada mano y del crupier. Los avisos del servidor (v.msg) salen con SAL.aviso.
 (function(){
 const I=n=>window.UI?UI.ico(n):'',es=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'),$=id=>document.getElementById(id);
 const mon=f=>'$'+Math.round(Math.abs(f||0)).toLocaleString('es-MX'),touchy=matchMedia('(pointer:coarse)').matches;
-const FICHAS=[[5,'roja'],[25,'verde'],[100,'negra'],[500,'morada']],val=c=>{const r=c%13;return r==0?1:r>=9?10:r+1};
+const FICHAS=[[5,'roja'],[10,'azul'],[25,'verde'],[50,'naranja'],[100,'negra'],[500,'morada']],val=c=>{const r=c%13;return r==0?1:r>=9?10:r+1};
 const RES={bj:'Blackjack',gana:'Gana',pierde:'Pierde',pasa:'Se pasa',empate:'Empate',rinde:'Se rinde'};
 const L=new Map();let tP=0,msg='',pend=null;
 const snd=n=>{if(typeof sfx=='function')sfx(n)};
@@ -49,6 +49,8 @@ function botones(v,s,a){const t=turnoDe(v),h0=a.manos[0];
 function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=botones(v,s,a);
  return `<div class="ui bj-top"><span class="ui-pill bj-f"><small>Fichas</small><b>${mon(a.f)}</b></span>
   <span class="ui-pill gj-turn${f.me?' me':''}"><span>${f.t}${f.left?` · <span id="bjLeft">${sinT?'':segs(v)}</span> s`:''}</span></span>
+  <button class="ui-rb${BJ3.vista()=='arriba'?' on':''}" onclick="BJ3.ver()" title="${BJ3.vista()=='arriba'?'Ver tus cartas':'Ver toda la mesa'}" aria-label="Ver toda la mesa" aria-pressed="${BJ3.vista()=='arriba'}">${I('arriba')}</button>
+  ${BJ3.mirando()?`<button class="ui-rb" onclick="BJ3.recentra()" title="Recentrar (doble toque)" aria-label="Recentrar">${I('cuadrar')}</button>`:''}
   <button class="ui-rb" onclick="BJ3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
  ${b?`<div class="ui bj-bar" role="group" aria-label="Jugadas"><div class="bj-bb">${b}</div></div>`:''}`}
 

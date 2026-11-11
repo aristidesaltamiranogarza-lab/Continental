@@ -1,11 +1,11 @@
 // Blackjack de la mesa media luna del sótano. Sin salas: lo usa server.js desde /casa (b.bj).
-// 7 asientos, zapato de 6 barajas (se rebaraja al pasar el 75 %), el crupier se planta en todo 17, blackjack paga 3 a 2.
+// 5 asientos, zapato de 6 barajas (se rebaraja al pasar el 75 %), el crupier se planta en todo 17, blackjack paga 3 a 2.
 // Fichas por sesión: al sentarte tienes 1,000; si bajas del mínimo, recarga a 1,000. Apuesta de 10 a 500 en múltiplos de 5.
 // Opciones: pedir, plantar, doblar, dividir (hasta 4 manos; Ases una vez y una carta cada uno), seguro (crupier con As, paga 2 a 1)
 // y rendirse (temprana: antes de que el crupier revise su blackjack; recuperas la mitad).
 // Fases: apuestas → reparto → seguro (si el crupier muestra As o 10) → turnos → crupier → pago → apuestas.
 // Cartas: número 0..51; rango c%13 (0=A, 1..9 = 2..10, 10..12 = J Q K), palo c/13|0.
-const N=7,MIN=10,MAX=500,INI=1000,BARAJAS=6,CORTE=0.75,T_AP=15000,T_ACT=20000,T_PAGO=5000;
+const N=5,MIN=10,MAX=500,INI=1000,BARAJAS=6,CORTE=0.75,T_AP=15000,T_ACT=20000,T_PAGO=5000;
 const val=c=>{const r=c%13;return r==0?1:r>=9?10:r+1};
 function total(cs){let t=0,a=0;for(const c of cs){t+=val(c);if(c%13==0)a=1}const s=a&&t+10<=21;return {t:s?t+10:t,s:!!s}}
 const esBJ=m=>m.c.length==2&&!m.div&&total(m.c).t==21;
