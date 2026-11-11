@@ -51,7 +51,9 @@ function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=bot
   <span class="ui-pill gj-turn${f.me?' me':''}"><span>${f.t}${f.left?` · <span id="bjLeft">${sinT?'':segs(v)}</span> s`:''}</span></span>
   <button class="ui-rb${BJ3.vista()=='arriba'?' on':''}" onclick="BJ3.ver()" title="${BJ3.vista()=='arriba'?'Ver tus cartas':'Ver toda la mesa'}" aria-label="Ver toda la mesa" aria-pressed="${BJ3.vista()=='arriba'}">${I('arriba')}</button>
   ${BJ3.mirando()?`<button class="ui-rb" onclick="BJ3.recentra()" title="Recentrar (doble toque)" aria-label="Recentrar">${I('cuadrar')}</button>`:''}
+  ${window.BJ2D?BJ2D.boton():''}
   <button class="ui-rb" onclick="BJ3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
+ ${window.BJ2D?BJ2D.html(v,s,sinT):''}
  ${b?`<div class="ui bj-bar" role="group" aria-label="Jugadas"><div class="bj-bb">${b}</div></div>`:''}`}
 
 // ---------- nombres y globitos sobre la mesa ----------
@@ -63,7 +65,7 @@ function paso(v,s,now){tP=now;const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.
  const el=$('bjLeft');if(el){const t=String(segs(v));if(el.textContent!==t)el.textContent=t}
  if(v.msg&&v.msg!==msg&&window.SAL&&(s>=0||BJ3.cerca()))SAL.aviso(v.msg);msg=v.msg||'';
  L.forEach(e=>{e.vivo=0});
- if(s>=0||BJ3.cerca()){const W=cv.clientWidth,Hh=cv.clientHeight,t=turnoDe(v);
+ if((s>=0||BJ3.cerca())&&!(s>=0&&window.BJ2D&&BJ2D.on())){const W=cv.clientWidth,Hh=cv.clientHeight,t=turnoDe(v);
   v.as.forEach((a,i)=>{if(!a)return;
    if(i!==s)pon(etiqueta('n'+i),'ui gj-seat bj-n'+(t&&t.s===i?' on':''),`<b>${es(a.n)}</b><small>${mon(a.f)}</small>`,window.MPJ&&MPJ.arriba(i),cam,W,Hh);
    a.manos.forEach((h,m)=>{const r=h.res,cl=r?(h.neta>0?' gana':h.neta<0?' pierde':''):(t&&t.s===i&&t.m===m?' on':'');
