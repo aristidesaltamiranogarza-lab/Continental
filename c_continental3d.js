@@ -84,7 +84,7 @@ function drop(key){const m=meshes.get(key);if(!m)return;m.parent&&m.parent.remov
 function target(m,par,pos,q,s,o={}){const T=m.userData.T;
  if(T&&T.par===par&&T.pos.distanceToSquared(pos)<1e-8&&T.q.angleTo(q)<1e-4&&Math.abs(T.s-s)<1e-6)return;
  m.userData.T={par,pos:pos.clone(),q:q.clone(),s};if(m.parent!==par)par.attach(m);
- const ly=par===CA?1:0;if(m.userData.ly!==ly){m.userData.ly=ly;m.traverse(o=>o.layers.set(ly))}
+ const ly=par===CA?1:0;if(m.userData.ly!==ly){m.userData.ly=ly;m.traverse(o=>o.layers.set(ly));m.material.forEach(x=>x.depthTest=!ly);if(!ly)m.renderOrder=0}   // en tu mano: sin prueba de profundidad, en orden (renderOrder)
  const ms=RM||(first&&!dealing)?0:(o.ms==null?430:o.ms);
  if(!ms){m.position.copy(pos);m.quaternion.copy(q);m.scale.setScalar(s);m.userData.tw=null;return}
  m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.7:.12):o.arc,puff:o.puff}}
@@ -401,7 +401,7 @@ function vivo(now,dt){const G=V.G;if(mesa&&G){const t=G.turn,z=t>=0&&G.phase==='
  const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t>=0&&t!==V.me&&G.phase==='play'?L.zona(rel(t)).c:null,quieto:!!(VT.c4||VT.bg||drag||st||pin)});
  if(h!==hdNow){hdNow=h;cam()}}
 // corte breve y cercano a un jugador: de frente a él, entre su zona y su silla. No a media jugada tuya (salvo al cerrar la ronda)
-function corte(k,ms,forzar){if(!mc||!mesa||k===V.me||(!forzar&&(V.G.turn===V.me||sel.size||drag)))return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;
+function corte(k,ms,forzar){if(!mc||!mesa||(!forzar&&k===V.me)||(!forzar&&(V.G.turn===V.me||sel.size||drag)))return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;
  mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms,forzar)}
 function clampV(){if(!L)return;const k0=VT.top?.7:1;VT.k=Math.max(k0,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  VT.t=Math.max(.3-L.el,Math.min(1.5-L.el,VT.t));
@@ -468,10 +468,14 @@ function meldLay(ms,r,al){al=al||{x:0,z:0};
  for(let s=.9;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,gx=cw*.32,gz=ch*.24,rows=[[]];let x=r.x0,z=r.z0;
   ms.forEach((m,k)=>{const mw=cw+(m.cards.length-1)*ov;if(x+mw>r.x1+1e-6&&x>r.x0){x=r.x0;z+=ch+gz;rows.push([])}rows[rows.length-1].push({k,x,z,mw});x+=mw+gx});
   if(z+ch<=r.z1||s<=.24){const out=[],dz=Math.max(0,(r.z1-(z+ch))*(al.z+1)/2);rows.forEach(rw=>{if(!rw.length)return;const e=rw[rw.length-1],sh=(r.x1-(e.x+e.mw))*(al.x+1)/2;rw.forEach(p=>{p.x+=sh;p.z+=dz;out[p.k]=p})});return {s,cw,ch,ov,pos:out}}}}
-// las combinaciones de cada quien en su zona (derechas para ti); cada una trae la escala de su zona
+// las combinaciones de cada quien en su zona, en el marco de la zona (girada con su dueño); cada una trae la escala y la zona (p.zn)
 function zoneLay(ms){const pos=[],by=new Map();ms.forEach((m,k)=>{const o=rel(m.owner);if(!by.has(o))by.set(o,[]);by.get(o).push(k)});
- by.forEach((ks,o)=>{const a=mesa.asiento(o).a,ux=Math.cos(a),l=meldLay(ks.map(k=>ms[k]),L.zona(o),{x:Math.abs(ux)>.5?Math.sign(ux):0,z:o?0:-1});   // los de los lados pegados a su dueño; las tuyas hacia el centro (abajo las tapa tu mano)
- ks.forEach((k,j)=>pos[k]=Object.assign({s:l.s,cw:l.cw,ch:l.ch,ov:l.ov},l.pos[j]))});return {pos}}
+ by.forEach((ks,o)=>{const zn=L.zona(o),l=meldLay(ks.map(k=>ms[k]),{x0:-zn.w,x1:zn.w,z0:-zn.h,z1:zn.h},{x:0,z:o?zn.dueno:-1});   // pegadas a su dueño; las tuyas hacia el centro (abajo las tapa tu mano)
+ ks.forEach((k,j)=>pos[k]=Object.assign({s:l.s,cw:l.cw,ch:l.ch,ov:l.ov,zn,q:Qe(0,zn.yaw,0)},l.pos[j]))});return {pos}}
+// punto (lx,lz) del marco de una zona, en el mundo
+function zw(zn,lx,lz,y){return v3(zn.c.x+zn.ex.x*lx+zn.ez.x*lz,y||0,zn.c.z+zn.ex.z*lx+zn.ez.z*lz)}
+// caja del mundo de una combinación (para tocar, acercar la vista y el imán)
+function mbox(p,o){const a=[zw(p.zn,p.x,p.z),zw(p.zn,p.x+p.mw,p.z),zw(p.zn,p.x,p.z+p.ch),zw(p.zn,p.x+p.mw,p.z+p.ch)];return {o,x0:Math.min(...a.map(v=>v.x)),x1:Math.max(...a.map(v=>v.x)),z0:Math.min(...a.map(v=>v.z)),z1:Math.max(...a.map(v=>v.z))}}
 
 // ---------- sincronizar la escena con el estado del servidor ----------
 function ens(key,id,from){let m=meshes.get(key);
@@ -527,8 +531,8 @@ function slotLay(gs,b){const n=gs.length,bw=b.x1-b.x0,bh=b.z1-b.z0;
 function fitsMeld(id,mm){const a=mm.cards.map(C).concat(C(id));return mm.type=='T'?trio(a):!!runArr(a)}
 // reacciones de los personajes según el log (c_mesa_pj.js): robar, tomar, comprar, bajarse, descartar y pegar (el dueño voltea y su combinación destella)
 function pjLog(e){const i=rel(e.k),t=e.t,w=CW*L.ps;
- if(/^se bajó/.test(t)){MPJ.festeja(i);corte(e.k)}else if(/^robó del mazo/.test(t))MPJ.roba(i,L.deck,w);else if(/^(tomó|descartó)/.test(t))MPJ.estira(i,L.disc);
- else if(/^quiere comprar/.test(t))MPJ.compra(i,true);else if(/^canceló su compra/.test(t))MPJ.compra(i,false);else if(/^compró/.test(t)){MPJ.compra(i,false);MPJ.roba(i,L.deck,w);corte(e.k)}
+ if(/^se bajó/.test(t)){MPJ.festeja(i);corte(e.k)}else if(/^robó del mazo/.test(t))i?MPJ.roba(i,L.deck,w):MPJ.estira(0,L.deck);   // la tuya ya vuela a tu mano de la pantallaelse if(/^(tomó|descartó)/.test(t))MPJ.estira(i,L.disc);
+ else if(/^quiere comprar/.test(t))MPJ.compra(i,true);else if(/^canceló su compra/.test(t))MPJ.compra(i,false);else if(/^compró/.test(t)){MPJ.compra(i,false);if(i)MPJ.roba(i,L.deck,w);corte(e.k)}
  else if(/^(pegó|cambió)/.test(t)){const k=V.G.melds.findIndex(m=>m.cards.includes(e.c)),mm=V.G.melds[k],b=L.mb&&L.mb[k],c=b?v3((b.x0+b.x1)/2,0,(b.z0+b.z1)/2):v3(0,0,0);MPJ.estira(i,c);
   if(mm&&mm.owner!==e.k){MPJ.mira(rel(mm.owner),c,1600);const g=glows.get('m'+k);if(g)g.userData.fl=performance.now()}}}
 // destellos y sonidos según el log (c_mesa_fx.js): pegar (destella la bajada), bajarse (destella su zona con su color); los demás roban con sonido
@@ -563,17 +567,18 @@ function sync(){if(!ready||!L||!active())return;
  // combinaciones en la mesa
  mesa.marcas(G.players.map((_,j)=>{const k=(j+(me<0?0:me))%n;return V.players[k]&&V.players[k].out?null:COL[k%10]}));   // zona de cada asiento con el color de su jugador
  const ML=zoneLay(G.melds),one=sel.size==1?[...sel][0]:drag?drag.id:null;L.mb=[];
- G.melds.forEach((mm,k)=>{const p=ML.pos[k];L.mb.push({o:mm.owner,x0:p.x,x1:p.x+p.mw,z0:p.z,z1:p.z+p.ch});mm.cards.forEach((id,j)=>{const key='c'+id,m=ens(key,id,seatW(from[id]!=null?from[id]:mm.owner)),was=m.userData.hit&&m.userData.hit.t;live.add(key);m.userData.hit={t:'meld',k};hits.push(m);
-   go(m,SC,v3(p.x+p.cw/2+j*p.ov,.012+j*.0035,p.z+p.ch/2),FU,p.s,{puff:was!=='meld'})});
+ G.melds.forEach((mm,k)=>{const p=ML.pos[k];L.mb.push(mbox(p,mm.owner));mm.cards.forEach((id,j)=>{const key='c'+id,m=ens(key,id,seatW(from[id]!=null?from[id]:mm.owner)),was=m.userData.hit&&m.userData.hit.t;live.add(key);m.userData.hit={t:'meld',k};hits.push(m);
+   go(m,SC,zw(p.zn,p.x+p.cw/2+j*p.ov,p.z+p.ch/2,.012+j*.0035),p.q,p.s,{puff:was!=='meld'})});
   const can=pl&&one!=null&&dn&&fitsMeld(one,mm);
-  glow('m'+k,v3(p.x+p.mw/2,.003,p.z+p.ch/2),p.mw+.14,p.ch+.14,can?0x55c8ff:0xffffff,hiK==='m'+k?1.3:can?.85:0,{t:'meld',k});
-  glow('o'+k,v3(p.x+p.mw/2,.004,p.z+p.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
+  glow('m'+k,zw(p.zn,p.x+p.mw/2,p.z+p.ch/2,.003),p.mw+.14,p.ch+.14,can?0x55c8ff:0xffffff,hiK==='m'+k?1.3:can?.85:0,{t:'meld',k},p.zn.yaw);
+  glow('o'+k,zw(p.zn,p.x+p.mw/2,p.z+p.ch+.07,.004),p.mw,.08,COL[mm.owner%10],.5,null,p.zn.yaw)});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
+ if(me>=0&&window.MPJ&&MPJ.on)MPJ.cartas(0,hc(me)||0);   // tu personaje trae tus cartas (boca abajo)
  for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=mesa.asiento(rel(k)).mano,tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);   // con personaje: las cartas van en sus manos
   if(!pj)for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null,took[k]?L.disc:null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.24).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
-  const zn=L.zona(rel(k));glow('t'+k,v3(zn.c.x,.002,zn.c.z),zn.x1-zn.x0+.2,zn.z1-zn.z0+.2,0x55c8ff,G.turn==k?.4:0,{t:'seat',k})}   // su zona brilla en su turno (y tocarla te acerca a sus bajadas)
+  const zn=L.zona(rel(k));glow('t'+k,v3(zn.c.x,.002,zn.c.z),zn.w*2+.2,zn.h*2+.2,0x55c8ff,G.turn==k?.4:0,{t:'seat',k},zn.yaw)}   // su zona brilla en su turno (y tocarla te acerca a sus bajadas)
  // siluetas de tu contrato con las cartas que ya pusiste
  const showS=pl&&!dn&&staged.length,SL=showS?slotLay(staged,L.band):null;L.slots=SL;
  slots.forEach((m,k)=>{if(!showS||k>=staged.length)m.visible=false});
@@ -584,7 +589,7 @@ function sync(){if(!ready||!L||!active())return;
    go(c,SC,v3(p.x+SL.pad+SL.cw/2+j*SL.ov,.014+j*.0035,p.z),FU,SL.s,{ms:380})})});
  // tu mano en abanico
  if(me>=0&&Array.isArray(G.hands[me])){const ids=disp().map(c=>c.id),F=fan(ids);L.hand=F;
-  F.forEach(f=>{const key='c'+f.id,m=ens(key,f.id);live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
+  F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,f.id);live.add(key);m.castShadow=false;m.renderOrder=hov===f.id&&!sel.has(f.id)?300:10+i*2;m.userData.hit={t:'hand',id:f.id};hits.push(m);
    selGlow(m,sel.has(f.id)||(drag&&drag.m===m));if(drag&&drag.m===m)return;go(m,CA,f.pos,f.q,f.s,{ms:260})});
 }
  // lo que ya no está: si otro jugador lo tomó vuela a su asiento; si no, desaparece
@@ -628,7 +633,7 @@ function pMove(e){if(!active())return;if(mc&&(st||pin))mc.toca();
  // arrastrar la mesa: el punto que agarraste se queda bajo el dedo
  if(!drag&&(st.g||((st.pan||!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10))){if(!st.g){st.g=ground(st.x,st.y);VT.who=-1;if(!st.pan)cv.style.cursor='grabbing'}
   const p=ground(e.clientX,e.clientY);if(st.g&&p){VT.x=VW.x+st.g.x-p.x;VT.z=VW.z+st.g.z-p.z;VT.k=VW.k;snap()}return}
- if(!drag&&h&&h.t=='hand'&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){const m=meshes.get('c'+h.id);if(m){drag={id:h.id,m,tgt:null};hov=null;sync()}}
+ if(!drag&&h&&h.t=='hand'&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){const m=meshes.get('c'+h.id);if(m){drag={id:h.id,m,tgt:null};hov=null;sync();m.renderOrder=400}}
  if(!drag)return;const m=drag.m;m.position.copy(loc(e.clientX,e.clientY-L.ch*.15,D-.5));m.quaternion.setFromAxisAngle(X,Math.PI/2-.1);m.scale.setScalar(m.userData.T.s*1.08);
  // ¿encima de qué está? (casilla de armado, combinación o descarte)
  const t=pick(e,hits.filter(o=>o.userData.hit&&o.userData.hit.t!='hand'));drag.tgt=t&&(t.t=='meld'||t.t=='disc'||t.t=='slot')?t:null;if(!drag.tgt)drag.tgt=nearTgt(e.clientX,e.clientY,drag.id);dragHi(drag.tgt)}
@@ -796,7 +801,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // sin su cuarto en la casa: ni el Conecta 4 ni el Backgammon escondidos; los Miis a tamaño de casa
-function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=!(fz&&V.me>=0);   // en la casa las sillas a su tamaño; la tuya no se ve (la cámara son tus ojos)
+function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;   // en la casa las sillas a su tamaño; tu personaje también se ve sentado
  [C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
 function viewBtn(){const ab=document.querySelector('.gj-arr'),mv=viewed()&&!VT.top;   // uno a la vez: Arriba (en tu vista o en la de arriba) o Recentrar (cámara movida)
