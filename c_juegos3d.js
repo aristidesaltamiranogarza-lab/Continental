@@ -106,8 +106,8 @@ function hud(busy){if(!open||busy||!J)return '';const t=open,N=t=='c4'?'Conecta 
  else{const my=g.st=='play'&&g.turn==mi;let st;
   if(g.st=='play'){if(t=='c4')st=my?`${chip(mi)} <b>¡Tu turno!</b> Toca una columna del tablero`:`Turno de ${nmk(op)}…`;
    else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]} (dobles)`:g.dice.join(' y ');st=my?(g.mv.length?`${chip(mi)} <b>¡Tu turno!</b> Dados: ${dc}. Toca una ficha y luego a dónde moverla`:`Dados: ${dc}. No tienes jugadas`):`Turno de ${nmk(op)}… (dados: ${dc})`}}
-  else st=g.w==2?'Empate: se llenó el tablero':g.w==mi?(g.why?`🏆 ${nmk(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nmk(op)}</b>`);
-  b=`<div class="h3d">${st}</div><div class="h3n">${chip(0)} ${nmk(g.p[0])}${t=='bg'?` (${g.off[0]}/15)`:''} vs ${chip(1)} ${nmk(g.p[1])}${t=='bg'?` (${g.off[1]}/15)`:''}</div>
+  else st=g.w==2?'Empate: se llenó el tablero':g.w==mi?(g.why?`${nmk(op)} se rindió: ¡ganaste!`:'<b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nmk(op)}</b>`);
+  b=`<div class="h3d">${st}</div>${t=='c4'&&window.C42D?C42D.html(g,mi,my):''}<div class="h3n">${chip(0)} ${nmk(g.p[0])}${t=='bg'?` (${g.off[0]}/15)`:''} vs ${chip(1)} ${nmk(g.p[1])}${t=='bg'?` (${g.off[1]}/15)`:''}</div>
    <div class="h3b">${t=='bg'&&my&&!g.mv.length?`<button class="ui-btn" onclick="${a('pass')}">Pasar turno</button>`:''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte?'))${a('end')}">Rendirse</button>`:`<button class="ui-btn" onclick="${a('inv',op)}">Revancha</button><button class="ui-btn sec" onclick="${a('end')}">Nueva partida</button>`}</div>`}
  return GHUD.win(`${JG3ico(t)} ${N}`,b+(err?`<div class="h3m">${esc(err)}</div>`:''),'JG3.close()')}
 // ---------- animación y letreros ----------
