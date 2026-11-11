@@ -1,11 +1,12 @@
-// Continental 3D: mesa 3D a pantalla completa, estilo juegos de Windows 7. NO cambia reglas ni servidor.
+// Continental 3D: la partida en la mesa redonda (c_mesa3d.js) con los personajes (c_mesa_pj.js), la cámara viva (c_mesa_cam.js) y sus detalles
+// (c_mesa_fx.js). NO cambia reglas ni servidor. Sin la casa (FONDO) se ve el cuarto viejo con el Conecta 4 y el Backgammon escondidos.
 // Se carga DESPUES de c_continental.js y envuelve GM.continental.body/after. Usa las mismas acciones que la vista 2D
 // (draw, pegar, discard, armar, bajar...). Lobby, fin de ronda y final se ven como siempre.
 (function(){
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!GM.continental){console.warn('Continental 3D: falta Three.js o GM.continental');return}
 const orig=GM.continental.body,origAfter=GM.continental.after;
 let on=true;try{on=localStorage.getItem('cont_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',felt=null,tbl=null,mesa=null;
+let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',tbl=null,mesa=null;
 let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,wasDown=null,bajando=0;
 const slots=new Map();                   // siluetas del contrato en tu lado de la mesa
 const meshes=new Map(),texC={},glows=new Map(),hits=[];
@@ -18,7 +19,7 @@ const FD=Qe(0,0,Math.PI),FU=Qe(0,0,0);   // boca abajo / boca arriba sobre la me
 const $=s=>document.querySelector(s);
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa que queda al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
-let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,camOpen=false,camTip=false,camRep=null,ap=null,mc=null,hdNow=0;   // mc: cámara viva (c_mesa_cam.js); hdNow: giro de cabeza hacia el turno
+let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,ap=null,mc=null,hdNow=0;   // mc: cámara viva (c_mesa_cam.js); hdNow: giro de cabeza hacia el turno
 let c4found=false,mini=false,c4open=false,c4was=false,c4snap='';   // c4: ventana de Conecta 4 abierta, última ficha animada, estado anterior (para sonidos)
    // barra de arriba oculta (modo minimalista)
 try{mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
@@ -27,13 +28,7 @@ c4found=lsGet('cont_c4f')=='1';   // ¿ya descubriste el Conecta 4 en este dispo
 // menús en modo oscuro: si nunca lo has elegido, sigue al sistema
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
 const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
-// íconos de la barra de cámara (trazos simples, toman el color del botón)
-const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/>'),
- rl:ic('<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 3v5h5"/>'),rr:ic('<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 3v5h-5"/>'),
- zi:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/>'),zo:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/>'),
- tu:ic('<path d="M3 18h18M6 18l3-6h6l3 6"/><path d="M12 9V3M9 6l3-3 3 3"/>'),td:ic('<path d="M2 16l5-6h10l5 6z"/><path d="M12 7V2M9 5l3 2 3-2"/>'),
- home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
+
 
 // ---------- texturas (dibujadas en canvas) ----------
 function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
@@ -132,14 +127,6 @@ function init(){if(ready)return;ready=true;
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   const c={q:'rl',e:'rr',r:'tu',f:'td',w:'up',arrowup:'up',s:'dn',arrowdown:'dn',a:'lf',arrowleft:'lf',d:'rt',arrowright:'rt','+':'zi','=':'zi','-':'zo'}[e.key.toLowerCase()];
   if(c){e.preventDefault();if(mc)mc.toca();camStep(c)}});
- // barra de cámara: dejar presionado repite
- const stopRep=()=>{if(camRep){clearTimeout(camRep.t);clearInterval(camRep.i);camRep=null}};
- document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-cam]');if(!b||!active())return;e.preventDefault();stopRep();const c=b.dataset.cam;
-  if(c=='tog'){camOpen=!camOpen;camTip=camOpen&&!lsGet('cont_camtip');try{localStorage.setItem('cont_cam',camOpen?'1':'0')}catch(_){}sfx('tick');render();return}
-  if(camTip){camTip=false;try{localStorage.setItem('cont_camtip','1')}catch(_){}render()}
-  if(c=='home'){home();sfx('tick');return}
-  camStep(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camStep(c),90)},320)}});
- ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
  mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1}):null;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
@@ -274,33 +261,8 @@ const AVP=[
  {skin:'#8a5a3c',hair:'short',hc:'#120c08',eyes:'oval',brow:'flat',nose:'wide',mouth:'smile',glasses:1,bot:0xb9a078,shoe:0xf2f2f2},
  {skin:'#d9a273',hair:'cap',hc:'#3a2414',cap:'#c62828',eyes:'happy',brow:'arch',nose:'dot',mouth:'open',must:1,bot:0x30343a,shoe:0x2a4a8a},
  {skin:'#ffe0c8',hair:'bun',hc:'#7a4a22',eyes:'lash',brow:'arch',nose:'dot',mouth:'small',blush:1,bot:0x3b5a8c,shoe:0xf06292}];
-// la cara del Mii se dibuja en una textura (como los de Wii: ojos, cejas, nariz y boca "pintados")
-function miiFace(A){return ctex('mii'+AVP.indexOf(A),256,256,(g,w,h)=>{const sk=new THREE.Color(A.skin),dk=`rgb(${sk.r*170|0},${sk.g*120|0},${sk.b*100|0})`;g.lineCap='round';g.lineJoin='round';
- if(A.blush){g.fillStyle='rgba(255,120,130,.32)';[[78,158],[178,158]].forEach(([x,y])=>{g.beginPath();g.ellipse(x,y,22,13,0,0,7);g.fill()})}
- [-1,1].forEach(s=>{const x=128+s*38,y=120;
-  if(A.eyes=='happy'){g.strokeStyle='#1a1a1a';g.lineWidth=7;g.beginPath();g.arc(x,y+6,14,Math.PI*1.12,Math.PI*1.88);g.stroke()}
-  else if(A.eyes=='dot'){g.fillStyle='#1a1a1a';g.beginPath();g.ellipse(x,y,9,14,0,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(x+3,y-5,3.5,0,7);g.fill()}
-  else{g.fillStyle='#fff';g.beginPath();g.ellipse(x,y,15,19,0,0,7);g.fill();g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=2;g.stroke();
-   g.fillStyle='#1a1a1a';g.beginPath();g.ellipse(x+s*-2,y+3,9,13,0,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(x+s*-2+3,y-3,3.5,0,7);g.fill();
-   if(A.eyes=='lash'){g.strokeStyle='#1a1a1a';g.lineWidth=4;g.beginPath();g.ellipse(x,y,15,19,0,Math.PI*1.1,Math.PI*1.9);g.stroke();[0,1].forEach(i=>{g.beginPath();g.moveTo(x+s*(10+i*5),y-15+i*5);g.lineTo(x+s*(18+i*5),y-22+i*5);g.stroke()})}}
-  // cejas
-  g.strokeStyle=A.hc;g.lineWidth=7;g.beginPath();
-  if(A.brow=='arch'){g.arc(x,y-6,20,Math.PI*1.25,Math.PI*1.75)}else if(A.brow=='angry'){g.moveTo(x-s*16,y-32);g.lineTo(x+s*14,y-24)}else{g.moveTo(x-15,y-30);g.lineTo(x+15,y-30)}g.stroke()});
- // nariz
- g.strokeStyle=dk;g.fillStyle=dk;g.lineWidth=5;
- if(A.nose=='curve'){g.beginPath();g.moveTo(130,138);g.quadraticCurveTo(122,160,134,162);g.stroke()}else if(A.nose=='wide'){g.beginPath();g.ellipse(128,158,13,7,0,0,Math.PI);g.stroke()}else{g.beginPath();g.ellipse(128,156,6,4,0,0,7);g.fill()}
- if(A.must){g.fillStyle=A.hc;g.beginPath();g.ellipse(112,174,18,7,-.25,0,7);g.ellipse(144,174,18,7,.25,0,7);g.fill()}
- // boca
- g.strokeStyle='#8a2a2a';g.fillStyle='#7a1f24';g.lineWidth=6;const my=186;
- if(A.mouth=='grin'||A.mouth=='open'){g.beginPath();g.moveTo(104,my-4);g.quadraticCurveTo(128,my+(A.mouth=='open'?34:28),152,my-4);g.closePath();g.fill();
-  if(A.mouth=='grin'){g.fillStyle='#fff';g.fillRect(110,my-4,36,8)}else{g.fillStyle='#e0707a';g.beginPath();g.ellipse(128,my+12,11,6,0,0,7);g.fill()}}
- else if(A.mouth=='small'){g.beginPath();g.arc(128,my-10,12,Math.PI*.2,Math.PI*.8);g.stroke()}
- else{g.beginPath();g.arc(128,my-16,24,Math.PI*.2,Math.PI*.8);g.stroke()}
- if(A.glasses){g.strokeStyle='#202024';g.lineWidth=5;[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*38,121,24,22,0,0,7);g.stroke()});g.beginPath();g.moveTo(114,118);g.lineTo(142,118);g.stroke()}})}
-const avs=new Map(),hsh=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-const UP=new THREE.Vector3(0,1,0),avDir=new THREE.Vector3(),avTgt=new THREE.Vector3(),avA=new THREE.Vector3(),avB=new THREE.Vector3();
-// a quién le toca qué avatar: según su nombre, sin repetir en la sala
-function avPick(){const G=V.G,used=new Set(),out={};G.players.forEach((p,k)=>{let i=hsh(p.id||p.name)%AVP.length;while(used.has(i)&&used.size<AVP.length)i=(i+1)%AVP.length;used.add(i);out[k]=i});return out}
+const hsh=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+const UP=new THREE.Vector3(0,1,0),avDir=new THREE.Vector3(),avA=new THREE.Vector3(),avB=new THREE.Vector3();
 // cápsula estirada entre dos puntos (brazos y piernas)
 function seg(m,a,b){if(m.userData.limb)return m.userData.limb(a,b);   // brazo/pierna de una pieza (c_mii.js): rehace el tubo
  avDir.subVectors(b,a);const l=avDir.length();m.position.copy(a).addScaledVector(avDir,.5);m.quaternion.setFromUnitVectors(UP,avDir.normalize());m.scale.y=l/m.userData.len}
@@ -308,68 +270,12 @@ function seg(m,a,b){if(m.userData.limb)return m.userData.limb(a,b);   // brazo/p
 function ik(sh,hand,l1,l2,pole,out){avA.subVectors(hand,sh);const L=Math.min(avA.length(),l1+l2-.002),c=(l1*l1+L*L-l2*l2)/(2*l1*L),h=l1*Math.sqrt(Math.max(0,1-c*c));avA.normalize();
  avB.copy(pole).sub(sh);avB.addScaledVector(avA,-avB.dot(avA)).normalize();return out.copy(sh).addScaledVector(avA,c*l1).addScaledVector(avB,h)}
 // o.stand: de pie y sin silla (la casa de juegos); las piernas se acomodan cada cuadro con userData.legs
-function mkAvatar(k,pi,o={}){if(window.MII)return MII.mk(k,pi,o,COL[k%10],AVP[pi]);   // avatares "Caricatura"; lo de abajo es el Mii viejo de respaldo
- const A=AVP[pi],std=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.6:r});
- const skin=std(new THREE.Color(A.skin),.6),top=std(new THREE.Color(COL[k%10]),.7),hair=std(new THREE.Color(A.hc),.75),pants=std(A.bot,.8),shoe=std(A.shoe,.5),wood=std(0x3a1e0c,.6);
- const g=new THREE.Group(),hit={t:'seat',k},M=(geo,mat,x,y,z,par)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;(par||g).add(m);return m};
- const limb=(r,len,mat,par)=>{const m=M(new THREE.CapsuleGeometry(r,len,4,12),mat,0,0,0,par);m.userData.len=len+2*r;return m};
- let legs=null;
- if(!o.stand){
- // silla
- M(new THREE.BoxGeometry(1.1,.12,1),wood,0,-.66,-.05);M(new THREE.BoxGeometry(1.1,1.35,.12),wood,0,.05,-.55);
- [[-.48,-.5],[.48,-.5],[-.48,.38],[.48,.38]].forEach(([x,z])=>M(new THREE.CylinderGeometry(.05,.05,.9,8),wood,x,-1.1,z));
- // piernas cortas y zapatos de bolita
- [-1,1].forEach(s=>{const hp=v3(s*.17,-.5,.05),kn=v3(s*.19,-.5,.72),an=v3(s*.2,-1.3,.78);
-  seg(limb(.14,.45,pants),hp,kn);seg(limb(.12,.55,pants),kn,an);M(new THREE.SphereGeometry(.17,16,12),shoe,s*.2,-1.42,.86).scale.set(.85,.6,1.3)})}
- // de pie: piernas derechas (quien lo use las mueve al caminar)
- else legs=[-1,1].map(s=>{const L={s,hp:v3(s*.17,-.5,0),up:limb(.14,.3,pants),lo:limb(.12,.3,pants),sh:M(new THREE.SphereGeometry(.17,16,12),shoe,0,0,0)};L.sh.scale.set(.85,.6,1.3);
-  seg(L.up,L.hp,v3(s*.18,-.98,.02));seg(L.lo,v3(s*.18,-.98,.02),v3(s*.18,-1.4,0));L.sh.position.set(s*.18,-1.47,.08);return L});
- M(new THREE.CapsuleGeometry(.3,.18,4,14),pants,0,-.5,0).scale.set(1.2,.75,.9);
- // cuerpo de Mii: torso corto y redondeado, sin cuello
- const body=new THREE.Group();g.add(body);
- const tor=M(new THREE.CapsuleGeometry(.33,.32,6,18),top,0,-.05,0,body);tor.scale.set(1.12,1,.85);tor.userData.hit=hit;
- // cabeza grande: cara pintada al frente
- const head=new THREE.Group();head.position.set(0,.88,0);body.add(head);
- const sk=M(new THREE.SphereGeometry(.5,36,28),skin,0,0,0,head);sk.scale.set(1,1.04,.96);sk.userData.hit=hit;
- const face=new THREE.Mesh(new THREE.SphereGeometry(.503,36,28,Math.PI/2-.95,1.9,Math.PI/2-.85,1.7),new THREE.MeshStandardMaterial({map:miiFace(A),transparent:true,alphaTest:.05,roughness:.6}));
- face.scale.copy(sk.scale);head.add(face);
- [-1,1].forEach(s=>M(new THREE.SphereGeometry(.1,12,10),skin,s*.49,-.02,0,head).scale.set(.55,1,.85));
- // peinados de Mii (en bloque, como casco)
- const cap=(t,rx,sc)=>{const c=M(new THREE.SphereGeometry(.53,32,18,0,Math.PI*2,0,Math.PI*t),hair,0,.03,-.02,head);c.rotation.x=rx;c.scale.set(sc||1.02,1.06,1);return c};
- if(A.hair=='bowl'){cap(.5,-.15,1.05);M(new THREE.CylinderGeometry(.5,.54,.12,32,1,true,-Math.PI*.75,Math.PI*1.5),hair,0,.12,0,head).material.side=THREE.DoubleSide}
- if(A.hair=='short')cap(.4,-.45);
- if(A.hair=='spiky'){cap(.45,-.35);for(let i=0;i<10;i++){const a=i/10*Math.PI*2,c=M(new THREE.ConeGeometry(.12,.32,8),hair,Math.cos(a)*.24,.46,Math.sin(a)*.24-.04,head);c.rotation.set(Math.sin(a)*.7,0,-Math.cos(a)*.7)}}
- if(A.hair=='long'){cap(.52,-.2,1.06);M(new THREE.CapsuleGeometry(.42,.42,4,16),hair,0,-.28,-.16,head).scale.set(1.1,1,.6);[-1,1].forEach(s=>M(new THREE.CapsuleGeometry(.11,.45,4,10),hair,s*.44,-.18,.1,head))}
- if(A.hair=='bun'){cap(.48,-.3);M(new THREE.SphereGeometry(.2,16,12),hair,0,.55,-.12,head)}
- if(A.hair=='cap'){cap(.4,-.3);const cp=M(new THREE.SphereGeometry(.54,28,14,0,Math.PI*2,0,Math.PI*.45),std(new THREE.Color(A.cap),.55),0,.05,0,head);cp.scale.y=1.06;
-  M(new THREE.CylinderGeometry(.34,.34,.035,22,1,false,-Math.PI/2,Math.PI),std(new THREE.Color(A.cap),.55),0,.2,.36,head).rotation.x=.12}
- // brazos cortos con manos de bolita (se recalculan cada cuadro)
- const arms=[-1,1].map(s=>({s,sh:v3(s*.4,.15,0),up:limb(.1,.24,top,body),fo:limb(.095,.22,top,body),hand:M(new THREE.SphereGeometry(.13,14,10),skin,0,0,0,body),sleeve:null,el:new THREE.Vector3(),h:new THREE.Vector3()}));
- g.userData={k,pi,body,head,arms,legs,reachT:0,cheerT:0,l1:.45,l2:.43};return g}
-// personajes (c_mesa_pj.js) en las sillas de la mesa; mientras carga su GLB (o si no hay), los Miis
-function pjSync(){if(!window.MPJ||!mesa)return false;const G=V.G,P=V.players||[];
- const ok=MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backTex(),listo:()=>sync()});
- if(!ok)return false;avs.forEach(g=>{SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})});avs.clear();
- MPJ.hits().forEach(o=>hits.push(o));return true}
-function avSync(){if(pjSync())return;const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
- avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
- want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);g.traverse(o=>{if(o.userData.silla)o.visible=false});SC.add(g);avs.set(k,g)}const a=seatA(k);
-  if(window.FONDO)FONDO.mii(g,fz,k===V.me);const A=mesa.asiento(rel(k));g.position.copy(A.pos);g.rotation.y=A.ry;
-  g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
-const POLE=[v3(-1.3,-.5,-.4),v3(1.3,-.5,-.4)];
-function avStep(now){if(window.MPJ&&MPJ.on&&!avs.size&&V&&V.G){MPJ.paso(now,V.G.turn>=0?rel(V.G.turn):-1);return}if(!avs.size||!V||!V.G)return;const G=V.G;
- avs.forEach(g=>{const u=g.userData,k=u.k,turn=G.turn===k,f=.08;
-  u.body.scale.y=1+.012*Math.sin(now/650+k*1.7);u.body.rotation.x+=((turn?.12:0)-u.body.rotation.x)*f;
-  // la cabeza mira a quien tiene el turno (o a sus cartas cuando le toca)
-  let yaw=0,pitch=.3;if(!turn){avTgt.copy(G.turn===V.me||!avs.get(G.turn)?v3(0,1,L.rz+1):avs.get(G.turn).position.clone().setY(1.3*avs.get(G.turn).scale.y));g.worldToLocal(avTgt);
-   yaw=Math.max(-1.1,Math.min(1.1,Math.atan2(avTgt.x,avTgt.z)));pitch=.05}
-  u.head.rotation.y+=(yaw-u.head.rotation.y)*f;u.head.rotation.x+=(pitch-u.head.rotation.x)*f;
-  // manos sobre la orilla de la mesa; la derecha se estira al jugar; las dos arriba al bajarse
-  const rt=(now-u.reachT)/700,ct=(now-u.cheerT)/1500,reach=rt>=0&&rt<1?Math.sin(rt*Math.PI):0,cheer=ct>=0&&ct<1?Math.sin(ct*Math.PI):0;
-  u.arms.forEach(a=>{const s=a.s,r=s>0?reach:0;a.h.set(s*.34-s*.12*r,.36+.15*r,.72+.8*r);
-   if(cheer)a.h.lerp(avTgt.set(s*.62,1.25+.15*Math.sin(now/90+s),.2),cheer);
-   const pole=avDir.copy(POLE[s>0?1:0]);if(cheer)pole.y+=1.4*cheer;ik(a.sh,a.h,u.l1,u.l2,pole.clone(),a.el);
-   seg(a.up,a.sh,a.el);seg(a.fo,a.el,a.h);a.hand.position.copy(a.h);if(a.sleeve)seg(a.sleeve,a.sh,avB.copy(a.sh).lerp(a.el,.42))})})}
+// Mii de las cartas (c_mii.js). En Continental ya no se sienta nadie así (van los personajes); lo usan la casa, la Ruleta y los abuelos del Rummy
+function mkAvatar(k,pi,o={}){return MII.mk(k,pi,o,COL[k%10],AVP[pi])}
+// personajes (c_mesa_pj.js) en las sillas de la mesa; mientras carga su GLB (o si no hay) las sillas esperan vacías y sus cartas van en el fieltro
+function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
+ if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
+function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G)MPJ.paso(now,V.G.turn>=0?rel(V.G.turn):-1)}
 // ---------- Backgammon: tablero 3D sobre la mesita de centro (otro juego escondido del cuarto) ----------
 const BGW=3,BGD=2.3,BGBAR=.24,BGPW=(BGW-BGBAR)/12;let BGB=null,bgSel=null,bgfound=lsGet('cont_bgf')=='1',bgopen=false,bgwas=false,bgsnap='';
 function bgX(i){if(i<12){const j=i;return BGW/2-(j+.5)*BGPW-(j>=6?BGBAR:0)}const j=i-12;return -BGW/2+(j+.5)*BGPW+(j>=6?BGBAR:0)}
@@ -559,9 +465,9 @@ function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,
  return out}
 // al: hacia dónde se cargan los renglones dentro de r (x: -1 izquierda, 1 derecha; z: -1 arriba, 1 abajo; 0 al centro)
 function meldLay(ms,r,al){al=al||{x:0,z:0};
- for(let s=.9;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,gx=cw*.32,gz=ch*.24,rows=[[]],ho=r.hole,sk=()=>{if(ho&&z<ho[1]&&z+ch>ho[0])z=ho[1]};let x=r.x0,z=r.z0;sk();
-  ms.forEach((m,k)=>{const mw=cw+(m.cards.length-1)*ov;if(x+mw>r.x1+1e-6&&x>r.x0){x=r.x0;z+=ch+gz;sk();rows.push([])}rows[rows.length-1].push({k,x,z,mw});x+=mw+gx});
-  if(z+ch<=r.z1||s<=.24){const out=[],dz=r.hole?0:Math.max(0,(r.z1-(z+ch))*(al.z+1)/2);rows.forEach(rw=>{if(!rw.length)return;const e=rw[rw.length-1],sh=(r.x1-(e.x+e.mw))*(al.x+1)/2;rw.forEach(p=>{p.x+=sh;p.z+=dz;out[p.k]=p})});return {s,cw,ch,ov,pos:out}}}}
+ for(let s=.9;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,gx=cw*.32,gz=ch*.24,rows=[[]];let x=r.x0,z=r.z0;
+  ms.forEach((m,k)=>{const mw=cw+(m.cards.length-1)*ov;if(x+mw>r.x1+1e-6&&x>r.x0){x=r.x0;z+=ch+gz;rows.push([])}rows[rows.length-1].push({k,x,z,mw});x+=mw+gx});
+  if(z+ch<=r.z1||s<=.24){const out=[],dz=Math.max(0,(r.z1-(z+ch))*(al.z+1)/2);rows.forEach(rw=>{if(!rw.length)return;const e=rw[rw.length-1],sh=(r.x1-(e.x+e.mw))*(al.x+1)/2;rw.forEach(p=>{p.x+=sh;p.z+=dz;out[p.k]=p})});return {s,cw,ch,ov,pos:out}}}}
 // las combinaciones de cada quien en su zona (derechas para ti); cada una trae la escala de su zona
 function zoneLay(ms){const pos=[],by=new Map();ms.forEach((m,k)=>{const o=rel(m.owner);if(!by.has(o))by.set(o,[]);by.get(o).push(k)});
  by.forEach((ks,o)=>{const a=mesa.asiento(o).a,ux=Math.cos(a),l=meldLay(ks.map(k=>ms[k]),L.zona(o),{x:Math.abs(ux)>.5?Math.sign(ux):0,z:o?0:-1});   // los de los lados pegados a su dueño; las tuyas hacia el centro (abajo las tapa tu mano)
@@ -641,7 +547,7 @@ function sync(){if(!ready||!L||!active())return;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
  if(mine&&myTc!==G.tc){myTc=G.tc;if(viewed())home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
- const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(logN>=0)fxLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
+ const from={},took={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(logN>=0)fxLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
  const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.84);p.y=.3;return p};   // con personaje: sus manos
  // mazo: pila con grosor según las cartas que quedan
  const nv=G.deck?Math.min(10,Math.ceil(G.deck/5)):0;
@@ -785,7 +691,6 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;
   if(dn)b=`<span class="gj-note">✓ Bajaste</span>`+b}
  h+=GHUD.bar(b);
- if(camOpen&&camTip)h+=`<div class="ui ui-card gj-tip${mini?' mini':''}">${touchy?'<b>Con los dedos</b><br>Arrastra la mesa para moverla<br>Pellizca para acercar<br>Gira dos dedos para rotar':'<b>Con el ratón</b><br>Clic derecho y arrastra: mover<br>Rueda: acercar<br>Clic de rueda (o Shift + clic derecho): girar e inclinar<br>Teclado: W A S D, Q / E, R / F'}</div>`;
  if(ap)h+=apUI();
  // ayuda sobre lo seleccionado y nombres de las siluetas
  const tt=selTxt();if(tt)h+=`<div id="t3sel" class="ui${tt[0]=='✓'?' ok':tt[0]=='✗'?' no':''}">${tt}</div>`;
@@ -866,7 +771,7 @@ function apUI(){const T=APT[ap.tab];
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
-function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),pa=!av&&window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):pa||seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
+function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(pa||seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   const X=Math.max(hw,Math.min(W-hw,x)),y0=(L.top||24)-20,Y=GHUD.dodge(X,Math.max(hh+y0,Math.min(H-hh,y)),hw,hh,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
@@ -917,5 +822,5 @@ window.c3dLook=look;
 window.c3dHome=home;window.c3dArriba=()=>{if(mc)mc.arriba(!VT.top)};
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
 // el Uno 3D usa el mismo cuarto y los mismos Miis
-window.C3D={buildRoom,mkAvatar,avPick,seg,ik,setFace:(g,ex)=>window.MII&&MII.setFace(g,ex),AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};
+window.C3D={buildRoom,mkAvatar,seg,ik,setFace:(g,ex)=>window.MII&&MII.setFace(g,ex),AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};
 })();
