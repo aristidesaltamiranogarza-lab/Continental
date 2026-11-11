@@ -66,7 +66,7 @@ window.MIPJ={
 <div class="mj-s"></div><div class="mj-t"></div><div class="mj-c"></div></div>
 <div class="mj-ft"><button class="ui-btn sec" onclick="MIPJ.azar()">Al azar</button><button class="ui-btn" onclick="MIPJ.cerrar()">Listo</button></div></div>`;
   document.body.appendChild(el);pinta();addEventListener('keydown',teclas,true);vista(el.querySelector('canvas'))},
- cerrar(){if(!el)return;const c=AV.mio(cod());
+ cerrar(){if(!el)return;const c=AV.mio(cod());try{localStorage.setItem('cont_av_hecho','1')}catch(e){}
   if(c!==prev&&typeof S!=='undefined'&&S&&S.c&&typeof api==='function')api('act',{c:S.c,t:S.t,m:{t:'av',av:c}}).catch(()=>{});
   removeEventListener('keydown',teclas,true);apaga();el.remove();el=null;if(MIPJ.onCambio&&c!==prev)MIPJ.onCambio(c)},
  abierto:()=>!!el,

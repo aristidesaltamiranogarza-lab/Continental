@@ -69,7 +69,9 @@ function show(){
  el.querySelector('.bnv-go').onclick=go;
  function go(){const n=inp.value.trim();if(!n){err.textContent='Escribe un nombre para entrar.';inp.focus();return}
   pname=n;ls.set('cont_n',n);el.remove();saved=q;keep(q);
-  const C=window.CASA3D;if(C&&C.on()!==(q!=='ligero'))casaToggle();else if(typeof render=='function')render()}
+  const C=window.CASA3D;if(C&&C.on()!==(q!=='ligero'))casaToggle();else if(typeof render=='function')render()
+  // la primera vez, después del nombre sale el personaje
+  if(window.MIPJ&&window.THREE&&!ls.get('cont_av_hecho'))setTimeout(()=>MIPJ.abrir(),300)}
 }
 function keep(q){CALIDAD=q;ls.set('casa_cal',q);if(q!=='ligero'){last3=q;ls.set('casa_cal3',q)}}
 
@@ -98,4 +100,6 @@ const sel=()=>`<select id="h3cal" onchange="BIEN.set(this.value)" title="Calidad
 window.BIEN={pend,set,toggled,watch,sel,show:()=>{if(!pend())show()}};
 const nm=(ls.get('cont_n')||'').trim();
 if((!nm||!saved)&&!inGame())show();
+// quien ya tenía nombre y nunca eligió personaje: le sale al cargar
+else if(!ls.get('cont_av_hecho')&&!inGame())addEventListener('load',()=>setTimeout(()=>{if(window.MIPJ&&window.THREE&&!inGame())MIPJ.abrir()},1500));
 })();
