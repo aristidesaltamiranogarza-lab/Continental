@@ -141,12 +141,10 @@ function init(){if(ready)return;ready=true;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js): crece con los jugadores y es la misma en vertical y horizontal (la cámara se aleja para que quepa)
- const ps=por?1.25:1.05;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:'Continental',sep:CW*ps*1.7});
- const r=mesa.r,hz=CH*ps/2+.25,bz=r*.78,bx=Math.sqrt((r-.2)**2-bz*bz),az=Math.sqrt(Math.max(9,(r*.9-.45)**2-bx*bx));L=Object.assign(L||{},{por,rx:r,rz:r,ps});
- // zonas: mazo y descarte al centro; las combinaciones arriba y abajo de ellos (se salta su renglón)
- L.deck=mesa.centro.mazo.clone();L.disc=mesa.centro.descarte.clone();L.rect={x0:-bx,x1:bx,z0:-az,z1:bz,hole:[-hz,hz]};
- // mientras no te bajes, tu lado de la mesa guarda las siluetas de tu contrato
- L.band={x0:-bx,x1:bx,z0:bz-1.8,z1:bz};L.rectMine=Object.assign({},L.rect,{z1:bz-1.95});
+ const ps=por?1.25:1.05;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:'Continental',sep:CW*ps*1.7,hueco:[CW*ps*1.35+.2,CH*ps/2+.4]});
+ const r=mesa.r;L=Object.assign(L||{},{por,rx:r,rz:r,ps});
+ // mazo y descarte al centro; las bajadas de cada quien en su zona, frente a su silla (L.zona(asiento)); en la tuya, mientras no te bajes, las siluetas de tu contrato
+ L.deck=mesa.centro.mazo.clone();L.disc=mesa.centro.descarte.clone();L.zona=i=>mesa.asiento(i).zona;L.band=L.zona(0);
  const room=buildRoom(por,r,r);tbl.add(room);L.room=room.userData.room;L.roomG=room;L.baseM=mesa.pie;
  buildC4(por,r,r,room.userData.c4);buildBG(room.userData.bg)}
 // ---------- el cuarto: piso, paredes y muebles alrededor de la mesa (el Conecta 4 está en una esquina del fondo) ----------
@@ -547,10 +545,15 @@ function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,
   const ang=Math.max(-.3,Math.min(.3,-u*.22)),d=D-i*.004-(r?.03:0);
   out.push({id,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
  return out}
-function meldLay(ms,r){
+// al: hacia dónde se cargan los renglones dentro de r (x: -1 izquierda, 1 derecha; z: -1 arriba, 1 abajo; 0 al centro)
+function meldLay(ms,r,al){al=al||{x:0,z:0};
  for(let s=.9;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,gx=cw*.32,gz=ch*.24,rows=[[]],ho=r.hole,sk=()=>{if(ho&&z<ho[1]&&z+ch>ho[0])z=ho[1]};let x=r.x0,z=r.z0;sk();
   ms.forEach((m,k)=>{const mw=cw+(m.cards.length-1)*ov;if(x+mw>r.x1+1e-6&&x>r.x0){x=r.x0;z+=ch+gz;sk();rows.push([])}rows[rows.length-1].push({k,x,z,mw});x+=mw+gx});
-  if(z+ch<=r.z1||s<=.24){const out=[];rows.forEach(rw=>{if(!rw.length)return;const e=rw[rw.length-1],sh=(r.x1-(e.x+e.mw))/2;rw.forEach(p=>{p.x+=sh;out[p.k]=p})});return {s,cw,ch,ov,pos:out}}}}
+  if(z+ch<=r.z1||s<=.24){const out=[],dz=r.hole?0:Math.max(0,(r.z1-(z+ch))*(al.z+1)/2);rows.forEach(rw=>{if(!rw.length)return;const e=rw[rw.length-1],sh=(r.x1-(e.x+e.mw))*(al.x+1)/2;rw.forEach(p=>{p.x+=sh;p.z+=dz;out[p.k]=p})});return {s,cw,ch,ov,pos:out}}}}
+// las combinaciones de cada quien en su zona (derechas para ti); cada una trae la escala de su zona
+function zoneLay(ms){const pos=[],by=new Map();ms.forEach((m,k)=>{const o=rel(m.owner);if(!by.has(o))by.set(o,[]);by.get(o).push(k)});
+ by.forEach((ks,o)=>{const a=mesa.asiento(o).a,ux=Math.cos(a),l=meldLay(ks.map(k=>ms[k]),L.zona(o),{x:Math.abs(ux)>.5?Math.sign(ux):0,z:o?0:-1});   // los de los lados pegados a su dueño; las tuyas hacia el centro (abajo las tapa tu mano)
+ ks.forEach((k,j)=>pos[k]=Object.assign({s:l.s,cw:l.cw,ch:l.ch,ov:l.ov},l.pos[j]))});return {pos}}
 
 // ---------- sincronizar la escena con el estado del servidor ----------
 function ens(key,id,from){let m=meshes.get(key);
@@ -635,18 +638,19 @@ function sync(){if(!ready||!L||!active())return;
  const dscOn=drawNow&&G.disc.length?.9:pl&&sel.size==1?.55:0;
  glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.25,CH*L.ps*1.2,drawNow?0xffd54a:0x55c8ff,dscOn,{t:'disc'});
  // combinaciones en la mesa
- const ML=meldLay(G.melds,me>=0&&!dn?L.rectMine:L.rect),one=sel.size==1?[...sel][0]:drag?drag.id:null;L.mb=[];
- G.melds.forEach((mm,k)=>{const p=ML.pos[k];L.mb.push({o:mm.owner,x0:p.x,x1:p.x+p.mw,z0:p.z,z1:p.z+ML.ch});mm.cards.forEach((id,j)=>{const key='c'+id,m=ens(key,id,seatW(from[id]!=null?from[id]:mm.owner));live.add(key);m.userData.hit={t:'meld',k};hits.push(m);
-   go(m,SC,v3(p.x+ML.cw/2+j*ML.ov,.012+j*.0035,p.z+ML.ch/2),FU,ML.s)});
+ mesa.marcas(G.players.map((_,j)=>{const k=(j+(me<0?0:me))%n;return V.players[k]&&V.players[k].out?null:COL[k%10]}));   // zona de cada asiento con el color de su jugador
+ const ML=zoneLay(G.melds),one=sel.size==1?[...sel][0]:drag?drag.id:null;L.mb=[];
+ G.melds.forEach((mm,k)=>{const p=ML.pos[k];L.mb.push({o:mm.owner,x0:p.x,x1:p.x+p.mw,z0:p.z,z1:p.z+p.ch});mm.cards.forEach((id,j)=>{const key='c'+id,m=ens(key,id,seatW(from[id]!=null?from[id]:mm.owner));live.add(key);m.userData.hit={t:'meld',k};hits.push(m);
+   go(m,SC,v3(p.x+p.cw/2+j*p.ov,.012+j*.0035,p.z+p.ch/2),FU,p.s)});
   const can=pl&&one!=null&&dn&&fitsMeld(one,mm);
-  glow('m'+k,v3(p.x+p.mw/2,.003,p.z+ML.ch/2),p.mw+.14,ML.ch+.14,can?0x55c8ff:0xffffff,can?.85:.0,{t:'meld',k});
-  glow('o'+k,v3(p.x+p.mw/2,.004,p.z+ML.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
+  glow('m'+k,v3(p.x+p.mw/2,.003,p.z+p.ch/2),p.mw+.14,p.ch+.14,can?0x55c8ff:0xffffff,hiK==='m'+k?1.3:can?.85:0,{t:'meld',k});
+  glow('o'+k,v3(p.x+p.mw/2,.004,p.z+p.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
  for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=mesa.asiento(rel(k)).mano,tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);   // con personaje: las cartas van en sus manos
   if(!pj)for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null,took[k]?L.disc:null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.24).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
-  glow('t'+k,v3(c.x,.003,c.z),Math.max(1.4,cnt*.24+.8),1.15,0x55c8ff,G.turn==k?.8:0,{t:'seat',k},ry)}
+  const zn=L.zona(rel(k));glow('t'+k,v3(zn.c.x,.002,zn.c.z),zn.x1-zn.x0+.2,zn.z1-zn.z0+.2,0x55c8ff,G.turn==k?.4:0,{t:'seat',k})}   // su zona brilla en su turno (y tocarla te acerca a sus bajadas)
  // siluetas de tu contrato con las cartas que ya pusiste
  const showS=pl&&!dn&&staged.length,SL=showS?slotLay(staged,L.band):null;L.slots=SL;
  slots.forEach((m,k)=>{if(!showS||k>=staged.length)m.visible=false});
@@ -703,12 +707,17 @@ function pMove(e){if(!active())return;
  if(!drag&&h&&h.t=='hand'&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){const m=meshes.get('c'+h.id);if(m){drag={id:h.id,m,tgt:null};hov=null;sync()}}
  if(!drag)return;const m=drag.m;m.position.copy(loc(e.clientX,e.clientY-L.ch*.15,D-.5));m.quaternion.setFromAxisAngle(X,Math.PI/2-.1);m.scale.setScalar(m.userData.T.s*1.08);
  // ¿encima de qué está? (casilla de armado, combinación o descarte)
- const t=pick(e,hits.filter(o=>o.userData.hit&&o.userData.hit.t!='hand'));drag.tgt=t&&(t.t=='meld'||t.t=='disc'||t.t=='slot')?t:null}
+ const t=pick(e,hits.filter(o=>o.userData.hit&&o.userData.hit.t!='hand'));drag.tgt=t&&(t.t=='meld'||t.t=='disc'||t.t=='slot')?t:null;if(!drag.tgt)drag.tgt=nearMeld(e.clientX,e.clientY,drag.id);dragHi(drag.tgt)}
+// arrastrando una carta: si no está encima de nada, la combinación donde cabe más cercana (a menos de 1.3 del dedo)
+function nearMeld(cx,cy,id){const G=V.G,me=V.me;if(me<0||G.turn!=me||G.step!='play'||!G.down[me]||!L.mb)return null;const p=ground(cx,cy);if(!p)return null;let b=null,bd=1.3;
+ L.mb.forEach((r,k)=>{const mm=G.melds[k];if(!mm||!fitsMeld(id,mm))return;const d=Math.hypot(Math.max(r.x0-p.x,0,p.x-r.x1),Math.max(r.z0-p.z,0,p.z-r.z1));if(d<bd){bd=d;b={t:'meld',k}}});return b}
+// el destino de lo que arrastras brilla más
+let hiK=null;function dragHi(t){const k=t&&t.t=='meld'?'m'+t.k:t&&t.t=='disc'?'disc':null;if(k===hiK)return;const o=hiK&&glows.get(hiK);if(o)o.userData.lvl=o.userData.lv0||0;hiK=k;const g=k&&glows.get(k);if(g){g.userData.lv0=g.userData.lvl;g.userData.lvl=1.3}}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}
  if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  clearTimeout(s.lp);if(s.peek){peek(false);return}   // soltar después de ver la carta no la toma
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}
- if(drag){const d=drag;drag=null;d.m.userData.T=null;noClick=Date.now();
+ if(drag){const d=drag;drag=null;dragHi(null);d.m.userData.T=null;noClick=Date.now();
   const G=V.G,pl=V.me>=0&&G.turn==V.me&&G.step=='play';
   if(d.tgt&&pl&&d.tgt.t=='slot')return addTo(d.tgt.k,sel.has(d.id)?[...sel]:[d.id]);
   if(d.tgt&&pl&&d.tgt.t=='meld'){sel=new Set([d.id]);render();return pegar(d.tgt.k)}
@@ -717,7 +726,7 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
   const F=(L.hand||[]).filter(f=>f.id!==d.id);let b=-1,bd=1e12;F.forEach((f,i)=>{const dd=(e.clientX-f.x)**2+(e.clientY-f.y)**2;if(dd<bd){bd=dd;b=i}});
   const ids=F.map(f=>f.id);ids.splice(b<0?0:b+(e.clientX>F[b].x?1:0),0,d.id);myOrder=ids.concat(staged.flatMap(g=>g.ids));manual=true;sfx('place');render();return}
  tap(s.hit)}
-function pCancel(e){if(st)clearTimeout(st.lp);peek(false);if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drag){drag.m.userData.T=null;drag=null}st=null;sync()}
+function pCancel(e){if(st)clearTimeout(st.lp);peek(false);if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drag){drag.m.userData.T=null;drag=null;dragHi(null)}st=null;sync()}
 function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0&&G.turn==me,pl=mine&&G.step=='play',dn=me>=0&&G.down[me];
  if(h.t=='deck'){if(mine&&G.step=='draw')draw('deck');return}
  if(h.t=='disc'){if(mine&&G.step=='draw')return draw('disc');if(pl&&sel.size==1)return discard();return}
