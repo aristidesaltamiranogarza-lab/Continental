@@ -81,7 +81,7 @@
 ## Paso 11 · Mesa nueva de juego (Uno y Continental)
 La mesa ovalada del juego viene de la versión 1 (una sola cámara fija). Se cambia por la mesa redonda de la casa: la misma en la sala de espera, al empezar y en la partida, sin cambio de mesa.
 - [ ] Continental va primero: todo su plan está en la sección **"Mesa nueva · Continental"** (abajo).
-- [ ] Uno después: reusa `c_mesa3d.js`, `c_mesa_pj.js` y `c_mesa_cam.js` (mazo, descarte, manos; corte de cámara en +4, `ManoCabeza` al robar 4); quitar la mesa ovalada de c_uno3d.js.
+- [x] Uno después: reusa `c_mesa3d.js`, `c_mesa_pj.js` y `c_mesa_cam.js` (mazo, descarte, manos; corte de cámara en +4, `ManoCabeza` al robar 4); quitar la mesa ovalada de c_uno3d.js. — 11 nov 2026: c_uno3d.js usa `MESA.arma` (sin logo: el anillo de flechas va al centro), MPJ (cartas en sus manos; jugar estira la mano al descarte, robar vuela la carta, ¡UNO! levanta los brazos, castigo `MPJ.cabeza` y con 4 o más `corte`), MCAM (giro de cabeza, doble toque/botón Arriba con `MCAM.boton(on,'u3dArriba()')`), lámpara y luz al turno; sin Miis ni mesa ovalada. La casa pone la misma mesa: cada juego se registra en `window.MESA_J[g]` {col,logo} y `mesaJ` la arma para cualquier mesa registrada. Prueba: `/prueba?g=uno&n=4` (contra bots). Falta: quitar la barra de cámara vieja de Uno y probar en celular.
 - [ ] Rummy y Ruleta al final (hoy crean sus Miis con `mkAvatar` e IK).
 
 ## Mesa nueva · Continental

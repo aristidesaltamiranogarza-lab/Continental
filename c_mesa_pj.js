@@ -3,7 +3,7 @@
 // MPJ.sync(mesa,lista,{dorso,listo}) → false mientras carga el GLB (al cargar llama listo()). lista: [{i asiento (0 = el tuyo), k jugador, cod código AV}].
 // MPJ.paso(now,turno) cada cuadro (turno = asiento). MPJ.cartas(i,n). Puntos del mundo: MPJ.mano(i), MPJ.arriba(i) (sobre su cabeza).
 // Reacciones: roba(i,de,ancho) la carta vuela de "de" a sus manos · estira(i,a) · compra(i,si) levanta la mano · festeja(i) · mira(i,punto,ms)
-// · fin(i) baila el ganador y los demás se llevan la mano a la cabeza; fin(-1) regresa todo. suelta() los saca de las sillas (antes de rearmar la mesa).
+// · cabeza(i,ms) mano a la cabeza un rato · fin(i) baila el ganador y los demás se llevan la mano a la cabeza; fin(-1) regresa todo. suelta() los saca de las sillas (antes de rearmar la mesa).
 (function(){
 if(typeof THREE==='undefined')return;
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),PJ=new Map(),SEAT=v3(0,-1.27,-.25),OJO=v3(0,2.02,.25),CWm=.22,CHm=.31,P=v3(0,0,0),Q=v3(0,0,0),U=v3(0,1,0);
@@ -53,9 +53,11 @@ function fin(g){if(g===finI)return;finI=g;PJ.forEach((s,i)=>{const c=silla(i);
  if(g>=0&&i===g){s.baila=true;AV.gesto(s.p,null);AV.sentar(s.p,false);s.p.position.set(.85,-1.55,-.65);s.ab.visible=false;AV.emote(s.p,Math.random()<.5?'Twerk':'Capoeira')}
  else if(g>=0){s.perd=true;AV.pose(s.p,'ManoCabeza')}
  else{if(s.baila){AV.emote(s.p,null,0);AV.sentar(s.p,true);s.p.position.copy(SEAT);s.ab.visible=true;s.baila=false}s.perd=false;AV.pose(s.p,'AgarreFrente')}})}
+// cabeza(i,ms): se lleva la mano a la cabeza un rato (Uno: robar de castigo)
+function cabeza(i,ms){const s=PJ.get(i);if(!s||s.baila||finI>=0)return;s.perd=true;s.perdH=performance.now()+(ms||2500);AV.pose(s.p,'ManoCabeza')}
 // cada cuadro: cabezas al turno, brazos según las reacciones, cartas en las manos y las que vuelan
 function paso(now,turno){const dt=Math.min(100,now-(tl||now)),f=1-Math.exp(-dt/140);tl=now;const tc=turno>=0&&PJ.has(turno)?cabeza(turno,v3(0,0,0)):null;
- PJ.forEach((s,i)=>{if(!vis(s)||s.baila)return;const c=silla(i);
+ PJ.forEach((s,i)=>{if(s.perdH&&now>s.perdH){s.perdH=0;if(finI<0){s.perd=false;AV.pose(s.p,'AgarreFrente')}}if(!vis(s)||s.baila)return;const c=silla(i);
   // a quién mira: lo que le pidieron, a sus cartas si es su turno, si no al que tiene el turno
   let a=s.miraT>now?s.mira:null,cx=.06,cy=0;if(s.est&&now-s.est.t<700&&s.est.a)a=s.est.a;
   if(!a&&turno===i)cx=.42;else{const t=a||tc;if(t){P.copy(t);s.p.worldToLocal(P);P.sub(OJO);cy=Math.max(-1.1,Math.min(1.1,Math.atan2(P.x,P.z)));cx=Math.max(-.35,Math.min(.6,Math.atan2(-P.y,Math.hypot(P.x,P.z))))}}
@@ -68,5 +70,5 @@ function paso(now,turno){const dt=Math.min(100,now-(tl||now)),f=1-Math.exp(-dt/1
    v.m.position.lerpVectors(v.de,Q,e);v.m.position.y+=Math.sin(Math.PI*Math.min(1,k))*1.2*c.scale.x;c.getWorldQuaternion(qq).multiply(TILT);v.m.quaternion.slerpQuaternions(PLANA,qq,e);
    const s0=v.m.userData.s0||(v.m.userData.s0=v.m.scale.x);v.m.scale.setScalar(s0+(c.scale.x-s0)*e);
    if(k>=1){mesa.g.remove(v.m);s.pend=Math.max(0,s.pend-1);return false}return true})})}
-window.MPJ={on:false,sync,suelta,hits,paso,cartas,mano,arriba,roba,estira,compra,festeja,mira,fin,codigo};
+window.MPJ={on:false,sync,suelta,hits,paso,cartas,mano,arriba,roba,estira,compra,festeja,mira,fin,cabeza,codigo};
 })();

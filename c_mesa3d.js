@@ -98,5 +98,7 @@ function casa(par,o){let h=par.mj;if(!h){h=par.mj=new THREE.Group();par.add(h)}
  if(o.hit)[m.felt].concat(g.children.filter(x=>x.isMesh)).forEach(x=>x.userData.hit=o.hit);
  g.updateMatrix();const sillas=[];for(let j=0;j<n;j++){const c=m.sillas[((j-yo)%n+n)%n],p=c.position.clone().applyMatrix4(g.matrix);c.userData.off=p;sillas.push(c)}
  return {m,s,sillas}}
-window.MESA={arma,casa,CASA_S,sillaSola,radio,ORL,PISO,m:null,asiento:i=>MESA.m&&MESA.m.asiento(i),get centro(){return MESA.m&&MESA.m.centro}};
+// juegos: cada juego (se cargan antes que este archivo) registra su fieltro en window.MESA_J[g] = {col:()=>[centro,orilla],logo}
+// para que la casa ponga en su mesa la misma del juego (c_casa3d.js mesaJ)
+window.MESA={arma,casa,get juegos(){return window.MESA_J||{}},CASA_S,sillaSola,radio,ORL,PISO,m:null,asiento:i=>MESA.m&&MESA.m.asiento(i),get centro(){return MESA.m&&MESA.m.centro}};
 })();

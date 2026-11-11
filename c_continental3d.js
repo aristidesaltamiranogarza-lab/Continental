@@ -129,6 +129,7 @@ function init(){if(ready)return;ready=true;
   if(c){e.preventDefault();if(mc)mc.toca();camStep(c)}});
  mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1,kTop:()=>L&&L.kTop||.8}):null;
  requestAnimationFrame(loop3)}
+(window.MESA_J=window.MESA_J||{}).continental={col:()=>FELT[sbg]||FELT.green,logo:'Continental'};   // la casa pone esta misma mesa (c_mesa3d.js)
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js): crece con los jugadores y es la misma en vertical y horizontal (la cámara se aleja para que quepa)
  const ps=por?1.25:1.05;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:'Continental',sep:CW*ps*1.7,hueco:[CW*ps*1.35+.2,CH*ps/2+.4]});

@@ -1,4 +1,5 @@
 // /prueba (solo localhost): sala nueva de Continental con 5 jugadores y todos ya bajados. ?r=ronda (0–6), ?n=jugadores (2–5)
+// ?g=uno: partida de Uno ya empezada contra bots
 const CON=['TT','TC','CC','TTT','TTC','CCT','CCC'];
 function saca(G,b){const k=G.deck.findIndex(x=>x%53==b);return k<0?null:G.deck.splice(k,1)[0]}
 function bajaTodos(R){const G=R.G;let v=0;
@@ -16,9 +17,9 @@ function bajaTodos(R){const G=R.G;let v=0;
 module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
  const ip=req.socket.remoteAddress||'';if(!/^(::1|127\.|::ffff:127\.)/.test(ip)){res.writeHead(404);return res.end()}
  const c=rnd(5),t=cr.randomBytes(12).toString('hex'),n=Math.max(2,Math.min(5,+q.get('n')||5));
- const R=rooms[c]={code:c,gt:'continental',opts:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
+ const uno=q.get('g')==='uno',R=rooms[c]={code:c,gt:uno?'uno':'continental',opts:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
  R.poke=()=>bump(R);
- ['Ana','Beto','Caro','Dani'].slice(0,n-1).forEach(nm=>R.players.push(mkP(cr.randomBytes(12).toString('hex'),nm)));
- GAMES.continental.start(R,{round:+q.get('r')||0});bajaTodos(R);
+ ['Ana','Beto','Caro','Dani'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),uno?{bot:true}:{})));
+ if(uno)GAMES.uno.start(R);else{GAMES.continental.start(R,{round:+q.get('r')||0});bajaTodos(R)}
  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
- res.end('<script>localStorage.setItem("cont_s",JSON.stringify({c:"'+c+'",t:"'+t+'"}));localStorage.setItem("cont_g","continental");location.replace("/")</script>')};
+ res.end('<script>localStorage.setItem("cont_s",JSON.stringify({c:"'+c+'",t:"'+t+'"}));localStorage.setItem("cont_g","'+R.gt+'");location.replace("/")</script>')};

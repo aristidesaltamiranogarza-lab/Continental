@@ -4,7 +4,7 @@
 // MCAM.crea({vt, home, snap, viewed, el}) → c. c.toca() cada vez que el jugador mueve la cámara o toca la mesa; c.paso(now,{cam,turno,quieto}) →
 // giro de cabeza en radianes (cam = {px,pz,lx,lz}: tu cámara y el punto que ve, sin el giro; turno = punto del mundo o null; quieto = no regresar sola).
 // c.corte(vista,ms,forzar) corte a una vista que se deshace solo (o al tocar); c.arriba(si); c.dobleToque(x,y) → true si fue el segundo toque.
-// Con reducir movimiento (RM) no hay cortes ni giro de cabeza. MCAM.boton(on): el botón Arriba (va junto a Recentrar).
+// Con reducir movimiento (RM) no hay cortes ni giro de cabeza. MCAM.boton(on,fn): el botón Arriba (fn: su onclick, Continental por omisión) (va junto a Recentrar).
 (function(){
 const RMo=()=>typeof RM!=='undefined'&&RM,ESPERA=4000,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 function crea(o){const VT=o.vt;let toque=-1e9,cut=null,hd=0,tl=0,tap=null;
@@ -24,6 +24,6 @@ function crea(o){const VT=o.vt;let toque=-1e9,cut=null,hd=0,tl=0,tap=null;
    if(p&&m&&!cut&&!o.viewed()&&!RMo()){const th=wrap(Math.atan2(m.px-p.x,m.pz-p.z)-Math.atan2(m.px-m.lx,m.pz-m.lz));g=Math.max(-.12,Math.min(.12,.35*th))}
    hd+=(g-hd)*(1-Math.exp(-dt/700));if(Math.abs(hd)<1e-4&&!g)hd=0;return hd}};
  return c}
-const boton=on=>`<button class="ui-rb gj-arr${on?' on':''}" onclick="c3dArriba()" title="Ver desde arriba (doble toque)" aria-label="Ver desde arriba" aria-pressed="${!!on}">${window.UI?UI.ico('arriba'):'⬇'}</button>`;
+const boton=(on,fn)=>`<button class="ui-rb gj-arr${on?' on':''}" onclick="${fn||'c3dArriba()'}" title="Ver desde arriba (doble toque)" aria-label="Ver desde arriba" aria-pressed="${!!on}">${window.UI?UI.ico('arriba'):'⬇'}</button>`;
 window.MCAM={crea,boton};
 })();

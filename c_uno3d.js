@@ -5,10 +5,10 @@
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!GM.uno){console.warn('Uno 3D: falta Three.js o GM.uno');return}
 const orig=GM.uno.body,origAfter=GM.uno.after,K3=window.C3D||null;   // K3: cuarto y Miis del Continental 3D (si no está, mesa sola)
 let on=true;try{on=localStorage.getItem('uno_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',felt=null,tbl=null,ringG=null,ringM=null,dpvEl=null;
+let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',tbl=null,mesa=null,mc=null,hdNow=0,ringG=null,ringM=null,dpvEl=null;
 let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,myTc=null,lastNow=0,pin=null,camRep=null;
 let pile=[],ringBoost=0,ringDir=1,winHide=false;       // pile: las últimas cartas del descarte (el servidor solo manda la de arriba)
-const meshes=new Map(),texC={},glows=new Map(),hits=[],avs=new Map();
+const meshes=new Map(),texC={},glows=new Map(),hits=[];
 const CW=1,CH=1.5,CT=.012,D=3;           // carta base (unidades del mundo) y distancia de tu mano a la cámara
 const TW=256,TH=384;                     // tamaño de las texturas de carta
 const ray=new THREE.Raycaster();ray.layers.enableAll();   // capa 1 = tu mano (se dibuja encima de todo)
@@ -76,10 +76,7 @@ function backTex(){if(texC.b)return texC.b;const cn=cnv(TW,TH),g=cn.getContext('
 function glowTex(){if(texC.glow)return texC.glow;const c=cnv(256,256),g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';rr(g,52,52,152,152,16);g.fill();g.fill();return texC.glow=tx(c)}
 const GI=152/256;                        // parte "sólida" de la textura de brillo
 const FELT={green:['#2f9a62','#0f4a2d'],red:['#c0393f','#5e1218'],blue:['#3d84cc','#123a68'],orange:['#d98a35','#74400c'],purple:['#8457c0','#2e1452'],graphite:['#5d656f','#1d2126']};
-function feltTex(){const k='felt'+sbg;if(texC[k])return texC[k];
- const c=cnv(512,512),g=c.getContext('2d'),b=FELT[sbg]||FELT.green,gr=g.createRadialGradient(256,256,10,256,256,256);gr.addColorStop(0,b[0]);gr.addColorStop(1,b[1]);g.fillStyle=gr;g.fillRect(0,0,512,512);
- const im=g.getImageData(0,0,512,512),d=im.data;for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*16;d[i]+=n;d[i+1]+=n;d[i+2]+=n}g.putImageData(im,0,0);
- return texC[k]=tx(c)}
+(window.MESA_J=window.MESA_J||{}).uno={col:()=>FELT[sbg]||FELT.green,logo:null};   // la casa pone esta misma mesa (c_mesa3d.js)
 // anillo de flechas alrededor del centro: gira en el sentido del juego y se pinta del color actual
 function ringTex(d){const k='ring'+d;if(texC[k])return texC[k];const S=1024,cn=cnv(S,S),g=cn.getContext('2d'),c=S/2,r=440;
  g.strokeStyle='rgba(255,255,255,.4)';g.lineWidth=6;[r-50,r+50].forEach(q=>{g.beginPath();g.arc(c,c,q,0,7);g.stroke()});
@@ -137,7 +134,7 @@ function init(){if(ready)return;ready=true;
  dpvEl=document.createElement('div');dpvEl.id='u3dpv';dpvEl.className='ui gj-dpv';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pCancel);
  cv.addEventListener('pointerleave',()=>{if(!st&&hov!=null){hov=null;sync()}});cv.addEventListener('contextmenu',e=>e.preventDefault());
- cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
+ cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();if(mc)mc.toca();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  addEventListener('keydown',e=>{if(!active()||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;
   if(e.key==='Escape'){if(upick!=null){upick=null;render()}else if(menu){menu=false;render()}else home();return}
   if(e.key===' '||e.key==='Home'){if(viewed()){e.preventDefault();home()}return}
@@ -152,26 +149,18 @@ function init(){if(ready)return;ready=true;
   if(c=='home'){home();sfx('tick');return}
   camStep(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camStep(c),90)},320)}});
  ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
+ mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1,kTop:()=>L&&L.kTop||.8}):null;
  requestAnimationFrame(loop3)}
-function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
- const rx=por?4.7:7.3,rz=por?6.6:4.5;tbl=new THREE.Group();
- felt=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.12,96),new THREE.MeshStandardMaterial({map:feltTex(),roughness:.95}));felt.scale.set(rx+.05,1,rz+.05);felt.position.y=-.06;felt.receiveShadow=true;tbl.add(felt);
- const ring=(a,b,n=160)=>Array.from({length:n},(_,i)=>new THREE.Vector2(Math.cos(i/n*Math.PI*2)*a,Math.sin(i/n*Math.PI*2)*b));
- const sh=new THREE.Shape(ring(rx+.6,rz+.6));sh.holes.push(new THREE.Path(ring(rx,rz).reverse()));
- // orilla de la mesa: laca negra con un filo de color que toma el color actual del juego
- const rim=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.2,bevelEnabled:true,bevelThickness:.12,bevelSize:.12,bevelSegments:5,curveSegments:1}),
-  new THREE.MeshPhysicalMaterial({color:0x17171b,roughness:.3,clearcoat:.9,clearcoatRoughness:.2}));rim.rotation.x=-Math.PI/2;rim.position.y=-.08;rim.castShadow=true;rim.receiveShadow=true;tbl.add(rim);
- const ep=Array.from({length:120},(_,i)=>{const a=i/120*Math.PI*2;return v3(Math.cos(a)*(rx+.05),.03,Math.sin(a)*(rz+.05))});
- const edge=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ep,true),240,.045,8,true),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:.7,roughness:.4}));tbl.add(edge);
- const base=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1.4,96),new THREE.MeshStandardMaterial({color:0x111114,roughness:.6}));base.scale.set(rx+.62,1,rz+.62);base.position.y=-.82;tbl.add(base);
- SC.add(tbl);
- const ps=por?1.25:.95;L=Object.assign(L||{},{por,rx,rz,ps,edge});
+function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+ // la mesa redonda (c_mesa3d.js), la misma de Continental: crece con los jugadores; los personajes en sus sillas (c_mesa_pj.js)
+ const ps=por?1.25:.95;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
+ const rx=mesa.r,rz=mesa.r;L=Object.assign(L||{},{por,rx,rz,ps,edge:null});
  // al centro de la mesa: mazo a la izquierda y descarte a la derecha (en celular parado, uno arriba del otro
  // para que no los tapen los nombres de los lados); el anillo de flechas los rodea
  L.ctr=v3(0,0,por?-.5:-.15);if(por){L.deck=v3(0,0,L.ctr.z-1.15*ps);L.disc=v3(0,0,L.ctr.z+1.15*ps)}else{L.deck=v3(-1.5*ps,0,L.ctr.z);L.disc=v3(1.5*ps,0,L.ctr.z)}
  ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.5,depthWrite:false}));
  ringM.rotation.x=-Math.PI/2;const rr2=por?3.1:2.75;ringM.scale.set(rr2*2.3,rr2*2.3,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
- if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=base}
+ if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=mesa.pie}
 function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
  if(G.dir!==ringDir){ringDir=G.dir;ringM.material.map=ringTex(ringDir);ringM.material.needsUpdate=true;if(!first)ringBoost=1}
  ringBoost=Math.max(0,ringBoost-dt/900);ringG.rotation.y-=ringDir*dt*(.00025+ringBoost*.006);
@@ -181,7 +170,7 @@ function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
 
 // ---------- cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
- const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
+ const por=w/h<.95,tk=(por?'p':'l')+(V&&V.G?V.G.players.length:4);if(tk!==tableKey){tableKey=tk;buildTable(por)}
  const tb=$('#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(80,Math.min(h*.22,w*.3,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.15)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
@@ -192,11 +181,23 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
   let a=1e9,b=-1e9,c=1e9,e=-1e9;pts.forEach(p=>{const q=p.clone().project(CA);a=Math.min(a,q.x);b=Math.max(b,q.x);c=Math.min(c,q.y);e=Math.max(e,q.y)});return [a,b,c,e]};
  let lo=3,hi=120;for(let i=0;i<32;i++){const m=(lo+hi)/2,x=ext(m);((x[1]-x[0])/2<.98&&(x[3]-x[2])/2<.97)?hi=m:lo=m}
  const x=ext(hi),cx=(x[0]+x[1])/2,cy=(x[2]+x[3])/2;
- L.el=el;L.d=hi;CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();clampV();cam()}
+ L.el=el;L.d=hi;L.kTop=.8;CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();lampY();clampV();cam()}
+// la lámpara cuelga justo arriba de lo que se ve desde tu silla
+function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4;
+ if(p.set(0,lo,mesa.sr).project(CA).y<1.03)for(let i=0;i<20;i++){const m=(lo+hi)/2;p.set(0,m,mesa.sr).project(CA).y>1.03?hi=m:lo=m}else hi=lo;mesa.lampara(hi)}
 // la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
- CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);CA.updateMatrixWorld()}
-function clampV(){if(!L)return;VT.k=Math.max(1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
+ CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow)CA.rotateOnWorldAxis(YA,hdNow);CA.updateMatrixWorld()}
+const YA=v3(0,1,0),MLT=v3(0,0,0);
+// cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno y regresa sola; la luz de la lámpara se va despacio a su lugar
+function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.asiento(rel(t)).mano:null;
+ if(mesa){MLT.set(tp?tp.x*.7:0,0,tp?tp.z*.7:0);mesa.luzHacia(MLT,1-Math.exp(-dt/900));mesa.pantalla(L.el+VW.t<1.2)}
+ if(!mc||!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
+ const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t!==V.me?tp:null,quieto:!!(drag||st||pin)});
+ if(h!==hdNow){hdNow=h;cam()}}
+// corte breve de frente a un jugador (al que le cae un +4)
+function corte(k,ms){if(!mc||!mesa||k===V.me||drag)return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms)}
+function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  VT.t=Math.max(.3-L.el,Math.min(1.5-L.el,VT.t));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
  if(L.d)VT.k=Math.min(VT.k,Math.max(1,Math.sin(L.el+VT.t)*L.d/3.6))}
@@ -206,18 +207,19 @@ function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
  VK.forEach(q=>{const d=VT[q]-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=VT[q];ch=1}});if(ch)cam()}
 const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
-function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1})}
+function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,top:false})}
 function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:[0,-1],dn:[0,1],lf:[-1,0],rt:[1,0]}[c];
  if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;
  else if(mv){VT.x+=(mv[0]*ca+mv[1]*sa)*f;VT.z+=(-mv[0]*sa+mv[1]*ca)*f}else return;VT.who=-1;clampV()}
 function ground(cx,cy){const r=cv.getBoundingClientRect();P2.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(PL,v3(0,0,0))}
 function zoomAt(cx,cy,k){const p=ground(cx,cy);k=Math.max(1,Math.min(KMAX,k));if(!p)return;const f=VT.k/k;VT.x=p.x-(p.x-VT.x)*f;VT.z=p.z-(p.z-VT.z)*f;VT.k=k;VT.who=-1;clampV()}
 // mirar a un jugador (sus cartas y su Mii). Tocarlo otra vez regresa a la mesa completa
-function look(k){if(!L)return;if(VT.who===k)return home();const p=seatP(k,.95);Object.assign(VT,{x:p.x*.8,z:p.z*.8,k:2.1,who:k});clampV();sfx('card')}
+function look(k){if(!L)return;if(mc)mc.toca();if(VT.who===k)return home();const p=seatP(k,.95);Object.assign(VT,{x:p.x*.8,z:p.z*.8,k:2.1,who:k});clampV();sfx('card')}
 function loc(px,py,d){const v=v3(px/W*2-1,1-py/H*2,.5).applyMatrix4(CA.projectionMatrixInverse);return v.multiplyScalar(-d/v.z)}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 
 // ---------- posiciones ----------
+const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   // asiento en la mesa (0 = el tuyo)
 function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+((k-me+n)%n)*(2*Math.PI/n)}
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 // abanico de tu mano: las que puedes jugar se asoman un poco, la que robaste se asoma más
@@ -230,35 +232,24 @@ function fan(ids,play,drawn){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0
   out.push({id,ok,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
  return out}
 
-// ---------- avatares (los Miis del Continental 3D) ----------
-function avSync(){if(!K3)return;const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=K3.avPick();
- avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
- want.forEach(k=>{let g=avs.get(k);if(!g){g=K3.mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
-  const o=window.FONDO?FONDO.mii(g,fz,k===V.me):1.4;g.position.set(Math.cos(a)*(L.rx+o),0,Math.sin(a)*(L.rz+o));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
-  g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
-const POLE=[v3(-1.3,-.5,-.4),v3(1.3,-.5,-.4)],avTgt=new THREE.Vector3(),avP=new THREE.Vector3();
-function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
- const fin=G.phase=='final';
- avs.forEach(g=>{const u=g.userData,k=u.k,turn=!fin&&G.turn===k,f=.08;
-  u.body.scale.y=1+.012*Math.sin(now/650+k*1.7);u.body.rotation.x+=((turn?.12:0)-u.body.rotation.x)*f;
-  // la cabeza mira a quien tiene el turno (o a sus cartas cuando le toca)
-  let yaw=0,pitch=.3;if(!turn){avTgt.copy(G.turn===V.me||!avs.get(G.turn)?v3(0,1,L.rz+1):avs.get(G.turn).position.clone().setY(1.3*avs.get(G.turn).scale.y));g.worldToLocal(avTgt);
-   yaw=Math.max(-1.1,Math.min(1.1,Math.atan2(avTgt.x,avTgt.z)));pitch=.05}
-  u.head.rotation.y+=(yaw-u.head.rotation.y)*f;u.head.rotation.x+=(pitch-u.head.rotation.x)*f;
-  // la mano derecha se estira al tirar una carta; las dos arriba al gritar ¡UNO! (y sin parar si ganó)
-  const rt=(now-u.reachT)/700,ct=(now-u.cheerT)/1500,reach=rt>=0&&rt<1?Math.sin(rt*Math.PI):0,cheer=fin&&G.win===k?1:ct>=0&&ct<1?Math.sin(ct*Math.PI):0;
-  u.arms.forEach(a=>{const s=a.s,r=s>0?reach:0;a.h.set(s*.34-s*.12*r,.36+.15*r,.72+.8*r);
-   if(cheer)a.h.lerp(avTgt.set(s*.62,1.25+.15*Math.sin(now/90+s),.2),cheer);
-   const pole=avP.copy(POLE[s>0?1:0]);if(cheer)pole.y+=1.4*cheer;K3.ik(a.sh,a.h,u.l1,u.l2,pole.clone(),a.el);
-   K3.seg(a.up,a.sh,a.el);K3.seg(a.fo,a.el,a.h);a.hand.position.copy(a.h)})})}
-
+// ---------- personajes (c_mesa_pj.js): sentados en su silla con sus cartas en las manos ----------
+function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
+ if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
+function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G){const G=V.G;MPJ.paso(now,G.phase=='play'&&G.turn>=0?rel(G.turn):-1);MPJ.fin(G.phase=='final'&&G.win>=0?rel(G.win):-1)}}
+// qué hacen los personajes según el historial: jugar estira la mano al descarte, robar vuela la carta a sus manos,
+// ¡UNO! levanta los brazos, robar de castigo se lleva la mano a la cabeza (y con 4 o más la cámara voltea a verlo)
+function pjLog(e){const i=rel(e.k),w=CW*L.ps,t=e.t;
+ if(e.c!=null&&/^jugó/.test(t))MPJ.estira(i,L.disc);
+ else if(/^dijo/.test(t))MPJ.festeja(i);
+ else if(/^robó/.test(t)){const m=/^robó (\d+)/.exec(t),c=Math.min(m?+m[1]:1,5);if(i)for(let j=0;j<c;j++)setTimeout(()=>MPJ.roba(i,L.deck,w),j*150);else MPJ.estira(0,L.deck);
+  if(/castigo/.test(t)){MPJ.cabeza(i,2600);if(m&&+m[1]>=4)corte(e.k,1800)}}}
 // ---------- sincronizar la escena con el estado del servidor ----------
 function ens(key,id,from){let m=meshes.get(key);
  if(!m){m=mkCard(id);SC.add(m);m.position.copy(from||L.deck);m.position.y+=.06;m.quaternion.copy(FD);m.scale.setScalar(L.ps);meshes.set(key,m);m.userData.nw=1}
  setFace(m,id);return m}
 // las cartas nuevas vuelan más lento; al repartir salen una por una
 function go(m,par,pos,q,s,o){o=o||{};if(m.userData.nw){m.userData.nw=0;o.ms=Math.max(o.ms||0,520);if(dealing){o.delay=dl*45;dl++}}target(m,par,pos,q,s,o)}
-const seatW=k=>{const p=seatP(k,.84);p.y=.3;return p};
+const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.84);p.y=.3;return p};   // con personaje: sus manos
 function sync(){if(!ready||!L||!active())return;
  const G=V.G,n=G.players.length,me=V.me,live=new Set(),fin=G.phase=='final',mine=!fin&&me>=0&&G.turn==me,tnow=performance.now(),top=G.disc[G.disc.length-1];
  hits.length=0;glows.forEach(g=>{g.userData.used=0});
@@ -267,9 +258,9 @@ function sync(){if(!ready||!L||!active())return;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
  if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0)home()}
  // qué pasó desde la última vez: de dónde sale cada carta, gestos de los Miis y efectos
- const from={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;const old=logN<0,av=!old&&avs.get(e.k);
-  if(e.c!=null&&/^jugó/.test(e.t)){from[e.c]=e.k;if(!old)fxPlay(e);if(av)av.userData.reachT=tnow}
-  if(/^dijo/.test(e.t)){if(av)av.userData.cheerT=tnow;if(!old)popAt(e.k,'¡UNO!','#fdd835')}
+ const from={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;const old=logN<0;if(!old&&e.k!=null&&e.k>=0&&window.MPJ&&MPJ.on)pjLog(e);
+  if(e.c!=null&&/^jugó/.test(e.t)){from[e.c]=e.k;if(!old)fxPlay(e)}
+  if(/^dijo/.test(e.t)){if(!old)popAt(e.k,'¡UNO!','#fdd835')}
   if(/^cobró/.test(e.t)&&!old){const v=G.players.findIndex(p=>e.t.includes(p.name+' (+2)'));if(v>=0)popAt(v,'+2','#ff6b5a')}});
  logN=Math.max(logN,G.ln||0);
  // mazo: pila con grosor según las cartas que quedan
@@ -285,8 +276,9 @@ function sync(){if(!ready||!L||!active())return;
  glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.55,CH*L.ps*1.45,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
- for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
-  for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
+ if(me>=0&&window.MPJ&&MPJ.on)MPJ.cartas(0,hc(me)||0);   // tu personaje trae tus cartas (boca abajo)
+ for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);
+  if(!pj)for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.22).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
   glow('t'+k,v3(c.x,.003,c.z),Math.max(1.4,cnt*.22+.8),1.2,fin?0xffd54a:0x55c8ff,(fin?G.win==k:G.turn==k)?.8:0,{t:'seat',k},ry)}
  // tu mano en abanico (la luz de la mano es fuerte: sin bajar el tono, los colores se ven deslavados)
@@ -296,13 +288,13 @@ function sync(){if(!ready||!L||!active())return;
  // lo que ya no está, desaparece (las cartas jugadas ya están en el descarte)
  meshes.forEach((m,key)=>{if(!live.has(key))drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
- if(felt&&felt.material.map!==feltTex()){felt.material.map=feltTex();felt.material.needsUpdate=true}
+ if(mesa)mesa.fieltro(FELT[sbg]||FELT.green,null);
  first=false}
 // efectos de las cartas especiales: el símbolo salta sobre el descarte
 function fxPlay(e){const c=U(e.c);if(c.t=='n')return;const G=V.G;
  if(c.c==4)popAt(-1,c.t=='f'?'+4':'★',UC[G.color],UCN[G.color]);
  else popAt(-1,usym(c),UC[c.c],c.t=='s'?'¡Salto!':c.t=='r'?'¡Reversa!':'')}
-function popAt(k,t,col,sub){if(!L)return;const p=k<0?L.disc.clone().setY(.4):(avs.get(k)?avs.get(k).position.clone().setY(2.6):seatP(k,1).setY(.6)),[x,y]=toPx(p);
+function popAt(k,t,col,sub){if(!L)return;const pa=k>=0&&window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),p=k<0?L.disc.clone().setY(.4):pa?pa.clone():seatP(k,1).setY(.6),[x,y]=toPx(p);
  const el=document.createElement('div');el.className='u3fx'+(k<0?' big':'');el.style.cssText=`left:${Math.max(40,Math.min(W-40,x))}px;top:${Math.max(70,Math.min(H-40,y))}px;--c:${col}`;
  el.innerHTML=`<b>${esc(t)}</b>${sub?`<small>${esc(sub)}</small>`:''}`;document.body.appendChild(el);setTimeout(()=>el.remove(),1500)}
 
@@ -311,7 +303,7 @@ function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.lef
  const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));return h.length?h[0].object.userData.hit:null}
 // Ratón: clic derecho y arrastrar = mover; clic de rueda (o Shift + clic derecho) = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar fuera de tu mano = mover; dos dedos = pellizcar para zoom, girarlos para rotar, subirlos o bajarlos para inclinar
-function pDown(e){if(!active()||upick!=null)return;if(menu){menu=false;render();return}
+function pDown(e){if(!active()||upick!=null)return;if(mc)mc.toca();if(menu){menu=false;render();return}
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(tch.size==2){if(drag)pCancel();st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);VT.who=-1;
    pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.t,mode:null};return}
@@ -349,6 +341,7 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
   // reordenar tu mano: se mete junto a la carta más cercana
   const F=(L.hand||[]).filter(f=>f.id!==d.id);let b=-1,bd=1e12;F.forEach((f,i)=>{const dd=(e.clientX-f.x)**2+(e.clientY-f.y)**2;if(dd<bd){bd=dd;b=i}});
   const ids=F.map(f=>f.id);ids.splice(b<0?0:b+(e.clientX>F[b].x?1:0),0,d.id);myOrder=ids;manual=true;sfx('place');render();return}
+ if(mc&&(!s.hit||s.hit.t=='seat')&&mc.dobleToque(s.x,s.y))return;   // doble toque en la mesa: vista desde arriba (y de regreso)
  tap(s.hit)}
 function pCancel(e){if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drag){drag.m.userData.T=null;drag=null}st=null;sync()}
 function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0&&G.turn==me;
@@ -366,7 +359,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  const inf=fin?`🏆 <b>${w>=0?nm(w):'—'}</b> gana`:`${chipC(G.color)}<b>${UCN[G.color]}</b> ${G.dir>0?'↻':'↺'}${pend?` <b class="gj-tag">+${G.pend}</b>`:''}`;
  const trn=fin?'Fin de la partida':G.ad>0?(mine?'Robando…':nm(t)+' roba…'):mine?'¡Tu turno!':'Turno de '+nm(t);
  const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
- let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:GHUD.view('u3dHome()')});
+ let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:(window.MCAM?MCAM.boton(VT.top,'u3dArriba()'):'')+GHUD.view('u3dHome()')});
  if(!mini)o+=GHUD.hint(mine||fin||!lgT?hint:lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
@@ -402,7 +395,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   o+=GHUD.sheet('Uno',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<p class="gj-rt">${rg}</p>`]],'u3dMenu()')}
  return o}
 function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
- document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
+ document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(pa||seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
   const X=Math.max(hw,Math.min(W-hw,x)),Y=GHUD.dodge(X,Math.max(hh2+y0,Math.min(H-hh2,y)),hw,hh2,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
  // nombres de las pilas: abajo de cada una (en celular parado, el del mazo va arriba de él)
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
@@ -427,13 +420,13 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(!a){first=true;if(dpvEl)dpvEl.classList.remove('on');document.documentElement.classList.remove('u3mini');home();VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
- viewStep(dt);step(now);ringStep(dt,now);avStep(now);pulse(now);labels();viewBtn();dpv();
+ viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);ringStep(dt,now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
- const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:Math.max(L.rx,L.rz)+.6,rt:2.6}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
+ const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // sin su cuarto en la casa: los Miis a tamaño de casa
-function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;if(V&&V.G)sync()}
+function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;if(V&&V.G)sync()}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0')}catch(e){}render()}
 GM.uno.body=function(){
  if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?`<button class="b g sm2" onclick="u3dToggle()">${UI.ico('ojo')}${on?'Vista clásica 2D':'Vista 3D'}</button>`:'')+orig()}
@@ -448,6 +441,6 @@ window.u3dMenu=()=>{menu=!menu;render()};
 window.u3dDark=()=>{setDark(!dark);menu=false;sfx('tick');render()};
 window.u3dMini=()=>{mini=!mini;try{localStorage.setItem('cont_mini',mini?'1':'0')}catch(e){}if(L)L.top=0;sfx('tick');render()};
 window.u3dLook=look;
-window.u3dHome=home;
+window.u3dHome=home;window.u3dArriba=()=>{if(mc)mc.arriba(!VT.top)};
 window.u3dWin=()=>{winHide=true;sfx('tick');render()};
 })();

@@ -171,7 +171,7 @@ function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotat
  t.ring=ring;t.chairs=[];G.traverse(o=>{if(o.userData.hit)hits.push(o)})}
 function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G.position.set(t.x,0,t.z);SC.add(G);t.G=G;const hit={t:'table',g:t.g},wood=std(0x4a2814,.45);
  const fe=ctex('felt'+t.g,256,256,(g,w,h)=>{const gr=g.createRadialGradient(128,128,10,128,128,128);gr.addColorStop(0,t.felt[0]);gr.addColorStop(1,t.felt[1]);g.fillStyle=gr;g.fillRect(0,0,w,h)});
- const usaM=t.g==='continental'&&!!window.MESA&&!!MESA.casa;if(!usaM){const top=cyl(t.r,t.r,.14,std(0xffffff,.95,{map:fe}),0,TH,0,G,64);top.userData.hit=hit;
+ const usaM=!!(window.MESA&&MESA.casa&&MESA.juegos[t.g]);if(!usaM){const top=cyl(t.r,t.r,.14,std(0xffffff,.95,{map:fe}),0,TH,0,G,64);top.userData.hit=hit;
  const rim=new THREE.Mesh(new THREE.TorusGeometry(t.r,.13,12,64),new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7}));rim.rotation.x=Math.PI/2;rim.position.y=TH+.06;rim.castShadow=true;G.add(rim);rim.userData.hit=hit;}
  t.pie=[cyl(.25,.35,TH-.1,wood,0,(TH-.1)/2,0,G),cyl(1,1.1,.1,wood,0,.05,0,G)];   // el pie se queda cuando un juego pone su mesa encima (c_casa_fondo.js)
  const d0=G.children.length;   // cartitas encima
@@ -460,10 +460,9 @@ function ancla(g){const t=ready&&on&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)re
 // hacia dónde queda tu silla en la partida (del centro de las otras mesas hacia esta: del lado de la pared)
 function faDe(t){if(t.fa==null){const o=TB.filter(x=>x!==t),b=o.length?null:(FL||PB).cb,c=o.length?o.reduce((c,x)=>[c[0]+x.x/o.length,c[1]+x.z/o.length],[0,0]):[(b[0]+b[1])/2,(b[2]+b[3])/2];t.fa=Math.atan2(t.x-c[0],t.z-c[1])}return t.fa}
 // la mesa del juego en la casa (MESA.casa): n sillas, yo = tu lugar en la sala (tu silla del lado de faDe, como en la partida). true si se rearmó
-const FELTJ=['#2a8a5e','#14492f'];
-function mesaJ(t,n,yo){let a=0;try{a=faDe(t)}catch(e){}const k=n+'|'+yo+'|'+a;if(t.mjK===k)return false;t.mjK=k;const H=t.hits;
+function mesaJ(t,n,yo){let a=0;try{a=faDe(t)}catch(e){}const J=MESA.juegos[t.g],col=J.col(),k=n+'|'+yo+'|'+a+'|'+col;if(t.mjK===k)return false;t.mjK=k;const H=t.hits;
  if(t.G.mj)t.G.mj.traverse(o=>{const i=H.indexOf(o);if(i>=0)H.splice(i,1)});
- const q=MESA.casa(t.G,{n,yo,a,y:TH+.07,col:FELTJ,logo:'Continental',hit:t.hit});t.chairs=q.sillas;t.mesa=q.m;t.r=q.m.R/q.s;t.G.mj.traverse(o=>{if(o.userData.hit)H.push(o)});return true}
+ const q=MESA.casa(t.G,{n,yo,a,y:TH+.07,col,logo:J.logo,hit:t.hit});t.chairs=q.sillas;t.mesa=q.m;t.r=q.m.R/q.s;t.G.mj.traverse(o=>{if(o.userData.hit)H.push(o)});return true}
 const cp=c=>c.userData.off||c.position;
 // después de rearmar: los que ya estaban sentados pasan a su silla nueva (sin volver a aparecer)
 function reubica(t){seated.forEach((s,k)=>{if(s.t!==t)return;const c=t.chairs[s.j];if(!c){if(s.av){AV.quita(s.g);if(s.ch&&s.ch.parent)s.ch.parent.remove(s.ch)}else disposeG(s.g);seated.delete(k);return}
