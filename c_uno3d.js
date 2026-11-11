@@ -6,7 +6,7 @@ if(typeof THREE==='undefined'||typeof GM==='undefined'||!GM.uno){console.warn('U
 const orig=GM.uno.body,origAfter=GM.uno.after,K3=window.C3D||null;   // K3: cuarto y Miis del Continental 3D (si no está, mesa sola)
 let on=true;try{on=localStorage.getItem('uno_3d')!=='0'}catch(e){}
 let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',tbl=null,mesa=null,mc=null,hdNow=0,ringG=null,ringM=null,dpvEl=null;
-let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,myTc=null,lastNow=0,pin=null,camRep=null;
+let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,myTc=null,lastNow=0,pin=null;
 let pile=[],ringBoost=0,ringDir=1,winHide=false;       // pile: las últimas cartas del descarte (el servidor solo manda la de arriba)
 const meshes=new Map(),texC={},glows=new Map(),hits=[];
 const CW=1,CH=1.5,CT=.012,D=3;           // carta base (unidades del mundo) y distancia de tu mano a la cámara
@@ -19,18 +19,12 @@ const $=s=>document.querySelector(s),lsGet=k=>{try{return localStorage.getItem(k
 const hh=n=>(Math.imul(n+7,2654435761)>>>0);   // "azar" fijo por carta (cómo cae en el descarte)
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
-// mismas preferencias que el Continental 3D (barra de cámara, barra de arriba, modo oscuro)
-let camOpen=false,mini=lsGet('cont_mini')=='1';
+// mismas preferencias que el Continental 3D (barra de arriba, modo oscuro)
+let mini=lsGet('cont_mini')=='1';
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
 const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
 // colores de las cartas (más vivos que en la vista 2D) y su sombra
 const UC=['#e53935','#fbc02d','#43a047','#1e88e5'],UCD=['#9e1b1b','#c47f00','#1b6b2a','#0d4a9c'];
-const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const IC={cam:ic('<path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/>'),
- rl:ic('<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 3v5h5"/>'),rr:ic('<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 3v5h-5"/>'),
- zi:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/>'),zo:ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/>'),
- tu:ic('<path d="M3 18h18M6 18l3-6h6l3 6"/><path d="M12 9V3M9 6l3-3 3 3"/>'),td:ic('<path d="M2 16l5-6h10l5 6z"/><path d="M12 7V2M9 5l3 2 3-2"/>'),
- home:ic('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>')};
 
 // ---------- texturas (dibujadas en canvas) ----------
 function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
@@ -142,13 +136,6 @@ function init(){if(ready)return;ready=true;
   if(e.key.toLowerCase()==='u'){const G=V.G;if(V.me>=0&&hc(V.me)==1&&!G.uno[V.me])uuno();return}   // U = ¡UNO!
   const c={q:'rl',e:'rr',r:'tu',f:'td',w:'up',arrowup:'up',s:'dn',arrowdown:'dn',a:'lf',arrowleft:'lf',d:'rt',arrowright:'rt','+':'zi','=':'zi','-':'zo'}[e.key.toLowerCase()];
   if(c){e.preventDefault();camStep(c)}});
- // barra de cámara: dejar presionado repite
- const stopRep=()=>{if(camRep){clearTimeout(camRep.t);clearInterval(camRep.i);camRep=null}};
- document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-cam]');if(!b||!active())return;e.preventDefault();stopRep();const c=b.dataset.cam;
-  if(c=='tog'){camOpen=!camOpen;try{localStorage.setItem('cont_cam',camOpen?'1':'0')}catch(_){}sfx('tick');render();return}
-  if(c=='home'){home();sfx('tick');return}
-  camStep(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camStep(c),90)},320)}});
- ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
  mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1,kTop:()=>L&&L.kTop||.8}):null;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
