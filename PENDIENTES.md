@@ -70,7 +70,7 @@
 - [ ] Medir FPS en celular con la mesa llena; si baja, usar una versión más ligera para los personajes lejanos.
 - [ ] Usar `PistolaSien_n` y los empties de sien en la Ruleta Rusa. Pendiente junto con rehacer las animaciones de la Ruleta (hoy son Miis con IK: apuntar y la mano en primera persona).
 
-- [ ] Comprobar en una sala real (servidor reiniciado con `npm start`) que se ven sentados: Aris todavía no los ve en ningún lado fuera de "Mi personaje". Revisar `SALA.gente` → `seatSync` y que `players[].av` y `salas()[].av` lleguen.
+- [x] (11 nov: Aris ya los ve sentados; la silla ya no se esconde con el personaje) Comprobar en una sala real (servidor reiniciado con `npm start`) que se ven sentados: Aris todavía no los ve en ningún lado fuera de "Mi personaje". Revisar `SALA.gente` → `seatSync` y que `players[].av` y `salas()[].av` lleguen.
 
 ## Paso 10 · Personajes caminando en la casa (antes de la mesa nueva)
 - [ ] Hoy tú y los demás que caminan siguen siendo Miis (`mkG`/`newAv` en c_casa3d.js, pose procedural en `pose()`). Cambiarlos por `AV.crearYa(av)` (el tuyo `AV.mio()`, los demás con su código en POST /casa).
