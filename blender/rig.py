@@ -232,10 +232,16 @@ for suf, ob in partes.items():
         ob.modifiers.new('Armature', 'ARMATURE').object = arm
         if CL[suf] in cabeza_rigida or CL[suf] in columna_rigida:
             ob.vertex_groups.new(name='cabeza' if CL[suf] in cabeza_rigida else 'columna').add(range(len(ob.data.vertices)), 1.0, 'REPLACE')
-        else:   # zapatos y suelas: pie del lado
+        else:   # zapatos y suelas: cada pieza suelta al pie de su lado (por dentro cruzan x = 0: por vértice se estiraban al abrir las piernas)
             gI = ob.vertex_groups.new(name='pie_I'); gD = ob.vertex_groups.new(name='pie_D')
-            gI.add([v.index for v in ob.data.vertices if v.co.x > 0], 1.0, 'REPLACE')
-            gD.add([v.index for v in ob.data.vertices if v.co.x <= 0], 1.0, 'REPLACE')
+            _p = list(range(len(ob.data.vertices)))
+            def _r(i):
+                while _p[i] != i: _p[i] = _p[_p[i]]; i = _p[i]
+                return i
+            for e in ob.data.edges: _p[_r(e.vertices[0])] = _r(e.vertices[1])
+            _isl = {}
+            for v in ob.data.vertices: _isl.setdefault(_r(v.index), []).append(v)
+            for vs in _isl.values(): (gI if sum(v.co.x for v in vs) > 0 else gD).add([v.index for v in vs], 1.0, 'REPLACE')
 for b in ad.bones: b.use_deform = b.name != 'raiz'
 grupos = {}
 def pieza_de(suf): return PZ[suf]

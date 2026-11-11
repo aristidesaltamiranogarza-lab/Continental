@@ -4,7 +4,7 @@
 // Código: s cuerpo (1 H, 2 M), p pelo 1–7, c cejas, b boca, n nariz, a arriba, d abajo (1–3); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb?v=2',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=3',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],

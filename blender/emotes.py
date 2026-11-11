@@ -9,13 +9,15 @@
 import bpy, os, re, glob
 from mathutils import Matrix, Quaternion, Vector
 
-K = dict(DIR='C:/Users/aris1/code/Continental/blender/emotes', RIG='Rig', MAX_S=0, LAZO_S=0.75, VENTANA_S=1.5, CABEZA=0.6, CAB_R=0.56)   # CAB_R: radio de la cabeza; CABEZA: cuánto del giro del cuello pasa (la cabeza del chibi es enorme)
+K = dict(DIR='C:/Users/aris1/code/Continental/blender/emotes', RIG='Rig', MAX_S=0, LAZO_S=0.75, VENTANA_S=1.5, CABEZA=0.6, CAB_R=0.56, PIE=0.3)
+# CAB_R: radio de la cabeza; CABEZA: cuánto del giro del cuello pasa (la cabeza del chibi es enorme); PIE: cuánto del giro del
+# tobillo pasa (el zapato va rígido al pie y la pierna del pantalón a la espinilla: con mucho giro se abre la unión y se ve hueco)
 K.update(globals().get('PRM', {}))
 MAPA = {'cadera': 'Hips', 'columna': 'Spine2', 'cabeza': 'Head'}
 for suf, L in (('_I', 'Left'), ('_D', 'Right')):
     MAPA.update({'hombro' + suf: L + 'Shoulder', 'brazo' + suf: L + 'Arm', 'antebrazo' + suf: L + 'ForeArm',
                  'mano' + suf: L + 'Hand', 'muslo' + suf: L + 'UpLeg', 'pierna' + suf: L + 'Leg', 'pie' + suf: L + 'Foot'})
-DERECHOS = ('cadera', 'columna', 'cabeza')
+DERECHOS = ('cadera', 'columna', 'cabeza', 'pie_I', 'pie_D')   # sin alinear al reposo de Mixamo (el pie quedaba 16° de punta)
 Y = Vector((0, 1, 0))
 
 def q3(m): return m.to_3x3().normalized().to_quaternion()
@@ -87,6 +89,10 @@ def retarget(path):
             for b in ORDEN:
                 p = RB[b].parent; Qp = Q[p.name] if p else Quaternion(); Rp = R0[p.name] if p else Quaternion()
                 Q[b] = G[i][b] @ T0[b] if b in sn else Qp @ Rp.inverted() @ R0[b]
+                if b.startswith('pie') and b in sn:   # tobillo amortiguado: entre seguir a la espinilla y el giro de Mixamo
+                    fijo = Qp @ Rp.inverted() @ R0[b]
+                    if fijo.dot(Q[b]) < 0: fijo.negate()
+                    Q[b] = fijo.slerp(Q[b], K['PIE'])
                 P[b] = (P[p.name] + Qp @ Rp.inverted() @ (RB[b].head_local - p.head_local)) if p else RB[b].head_local.copy()
                 if b == 'cadera': P[b] += H[i]
             cola = lambda b, t=1.0: P[b] + Q[b] @ R0[b].inverted() @ ((RB[b].tail_local - RB[b].head_local) * t)
