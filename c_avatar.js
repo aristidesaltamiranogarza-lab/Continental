@@ -66,21 +66,26 @@ const vivos=new Set();let raf=0,t0=0;
 const QS=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),QR=QS.clone().invert();
 // el mixer solo escribe un hueso si su valor cambió: antes de cada vuelta se deshacen los giros por código de la anterior (u.toc)
 function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.quaternion.copy(q);
- u.mixer.update(dt);if(!u.sentado&&!u.mov){u.toc=null;return}
+ u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-2*(m&&m.w||0)-(m&&m.dn||0)):0;
+ u.ti=(u.ti||Math.random()*30)+dt;u.idl=(u.idl||0)+(ob-(u.idl||0))*Math.min(1,dt*6);
+ if(!u.sentado&&!u.mov&&u.idl<.002){u.toc=null;return}
  if(!u.toc){u.toc=new Map();for(const n of HM){const b=p.getObjectByName(n);if(b)u.toc.set(b,new THREE.Quaternion())}}
  for(const [b,q] of u.toc)q.copy(b.quaternion);
  if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QR);if(r)r.quaternion.multiply(QS)}
- if(u.mov)mov(p,u)}
+ if(u.mov||u.idl>=.002)mov(p,u)}
+// parado en 'Reposo' (sin sentar ni bailar) respira: pecho y hombros suben, se mece un poco, ladea la cabeza y de vez en cuando voltea;
+// los brazos cuelgan con el codo flojo. Cada personaje con su propia fase. Se apaga al caminar (u.idl, 0–1, con fundido).
+const quieto=u=>!u.sentado&&!u.emo&&u.nomPose==='Reposo';
 // caminar, saludar y bailar, también por código después del mixer. m: w 0–1 qué tanto camina, ph fase del paso, sal 0–1 saludo
 // (mano derecha), dn 0–1 baile, disco (🕺; si no, 💃), bt fase del baile, t ms. Cada hueso gira sobre los ejes del personaje
 // (X de lado, hacia su izquierda; Y arriba; Z al frente) vistos desde su padre en la pose de reposo.
-const HM=['columna','cadera','muslo_I','muslo_D','pierna_I','pierna_D','brazo_I','brazo_D','antebrazo_I','antebrazo_D'],
+const HM=['columna','cadera','cabeza','hombro_I','hombro_D','muslo_I','muslo_D','pierna_I','pierna_D','brazo_I','brazo_D','antebrazo_I','antebrazo_D'],
  EJ=[new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)],qa=new THREE.Quaternion(),qb=new THREE.Quaternion();
 function ejes(p){const h={};p.updateMatrixWorld(true);p.getWorldQuaternion(qb).invert();
  for(const n of HM){const b=p.getObjectByName(n);if(!b||!b.parent)continue;b.parent.getWorldQuaternion(qa).premultiply(qb).invert();h[n]={b,e:EJ.map(v=>v.clone().applyQuaternion(qa))}}
  return h}
 function gira(h,n,i,a){const x=h[n];if(x&&a)x.b.quaternion.premultiply(qa.setFromAxisAngle(x.e[i],a))}
-function mov(p,u){const m=u.mov,h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,ph=m.ph||0,dn=m.dn||0,bt=m.bt||0,sal=(m.sal||0)*(1-dn),dc=!!m.disco;
+function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,ph=m.ph||0,dn=m.dn||0,bt=m.bt||0,sal=(m.sal||0)*(1-dn),dc=!!m.disco;
  gira(h,'columna',0,.08*w);gira(h,'cadera',2,S(bt)*(dc?.06:.14)*dn);gira(h,'cadera',1,S(bt/2)*(dc?.5:.3)*dn);
  for(const [l,s] of [['I',1],['D',-1]]){
   let q=s*S(ph)*.5*w,k=Math.max(0,s*Math.cos(ph))*.7*w;   // muslo al frente y rodilla doblada mientras la pierna avanza
@@ -91,13 +96,18 @@ function mov(p,u){const m=u.mov,h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,ph=m.
   if(dn){if(!dc){az+=s*(2.6+.15*S(bt*2+s))*dn;fz+=s*.5*dn}
    else if(l==='D'){const ar=S(bt)>0;az-=(ar?2.7:.8)*dn;ax-=(ar?.3:.5)*dn}   // de disco: señala arriba y abajo
    else{az+=1*dn;fz-=1.7*dn}}   // la otra mano en la cintura
-  gira(h,'brazo_'+l,0,ax);gira(h,'brazo_'+l,2,az);gira(h,'antebrazo_'+l,0,fx);gira(h,'antebrazo_'+l,2,fz)}}
+  gira(h,'brazo_'+l,0,ax);gira(h,'brazo_'+l,2,az);gira(h,'antebrazo_'+l,0,fx);gira(h,'antebrazo_'+l,2,fz)}
+ const k=u.idl||0;if(k<.002)return;const T=u.ti*Math.PI*2,br=S(T/3.4),sw=S(T/7.1+1),gl=S(T/11.3+2);
+ gira(h,'columna',0,-.025*br*k);gira(h,'columna',2,.03*sw*k);
+ gira(h,'cabeza',2,(.04*S(T/5.3+.7)-.025*sw)*k);gira(h,'cabeza',0,.025*br*k);gira(h,'cabeza',1,.28*gl*gl*gl*k);
+ for(const [l,s] of [['I',1],['D',-1]]){gira(h,'hombro_'+l,2,s*.025*(br+1)*k);
+  gira(h,'brazo_'+l,2,s*(.05+.02*br)*k);gira(h,'brazo_'+l,0,.04*S(T/3.4+s*.8)*k);gira(h,'antebrazo_'+l,0,-(.14+.04*br)*k)}}
 function mueve(p,m){const u=p&&p.userData.av;if(!u)return;const on=!!m&&((m.w||0)>.01||(m.sal||0)>.01||(m.dn||0)>.01);
  if(!on&&!u.mov)return;u.mov=on?m:null;despierta(p,on?150:40)}
 function sentar(p,si){const u=p.userData.av;if(!u)return;u.sentado=!!si;if(si&&!u.hueso){u.hueso={};for(const n of ['muslo_D','muslo_I','pierna_D','pierna_I'])u.hueso[n]=p.getObjectByName(n)}despierta(p,40)}
 function despierta(p,ms){const u=p.userData.av;upd(p,0);u.hasta=Math.max(u.hasta,performance.now()+ms);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function paso(t){const dt=Math.min(.1,(t-t0)/1000);t0=t;
- for(const p of vivos){const u=p.userData.av;upd(p,dt);if(t>u.hasta)vivos.delete(p)}
+ for(const p of vivos){const u=p.userData.av;upd(p,dt);if(t>u.hasta&&!quieto(u)&&u.idl<.002)vivos.delete(p)}
  raf=vivos.size?requestAnimationFrame(paso):0}
 // pose: 'Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien' (usa la variante del peinado si existe)
 function pose(p,nom,fade=.25){const u=p.userData.av;if(!u||!base)return;const c=base.clips[nom+'_'+u.o.p]||base.clips[nom];if(!c)return console.warn('[AV] sin pose',nom);
