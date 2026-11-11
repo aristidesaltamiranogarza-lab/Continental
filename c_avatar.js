@@ -66,7 +66,7 @@ const vivos=new Set();let raf=0,t0=0;
 const QS=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),QR=QS.clone().invert();
 // el mixer solo escribe un hueso si su valor cambió: antes de cada vuelta se deshacen los giros por código de la anterior (u.toc)
 function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.quaternion.copy(q);
- u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-2*(m&&m.w||0)-(m&&m.dn||0)):0;
+ u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-(m&&m.dn||0)):0;
  u.ti=(u.ti||Math.random()*30)+dt;u.idl=(u.idl||0)+(ob-(u.idl||0))*Math.min(1,dt*6);
  if(!u.sentado&&!u.mov&&u.idl<.002){u.toc=null;return}
  if(!u.toc){u.toc=new Map();for(const n of HM){const b=p.getObjectByName(n);if(b)u.toc.set(b,new THREE.Quaternion())}}
@@ -74,7 +74,10 @@ function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.qua
  if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QR);if(r)r.quaternion.multiply(QS)}
  if(u.mov||u.idl>=.002)mov(p,u)}
 // parado en 'Reposo' (sin sentar ni bailar) respira: pecho y hombros suben, se mece un poco, ladea la cabeza y de vez en cuando voltea;
-// los brazos cuelgan con el codo flojo. Cada personaje con su propia fase. Se apaga al caminar (u.idl, 0–1, con fundido).
+// Los brazos se acercan al cuerpo (la pose de Blender los trae abiertos 24°), un poco al frente y con el codo flojo; eso se queda
+// al caminar y el resto se apaga (u.idl, 0–1, con fundido, solo baja al sentarse o bailar). Cada personaje con su propia fase.
+// RP (AV.RP para probar): radianes que cierra el brazo, que lo lleva al frente y que dobla el codo.
+const RP={abre:.2,frente:.08,codo:.2};
 const quieto=u=>!u.sentado&&!u.emo&&u.nomPose==='Reposo';
 // caminar, saludar y bailar, también por código después del mixer. m: w 0–1 qué tanto camina, ph fase del paso, sal 0–1 saludo
 // (mano derecha), dn 0–1 baile, disco (🕺; si no, 💃), bt fase del baile, t ms. Cada hueso gira sobre los ejes del personaje
@@ -97,11 +100,11 @@ function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,p
    else if(l==='D'){const ar=S(bt)>0;az-=(ar?2.7:.8)*dn;ax-=(ar?.3:.5)*dn}   // de disco: señala arriba y abajo
    else{az+=1*dn;fz-=1.7*dn}}   // la otra mano en la cintura
   gira(h,'brazo_'+l,0,ax);gira(h,'brazo_'+l,2,az);gira(h,'antebrazo_'+l,0,fx);gira(h,'antebrazo_'+l,2,fz)}
- const k=u.idl||0;if(k<.002)return;const T=u.ti*Math.PI*2,br=S(T/3.4),sw=S(T/7.1+1),gl=S(T/11.3+2);
- gira(h,'columna',0,-.025*br*k);gira(h,'columna',2,.03*sw*k);
- gira(h,'cabeza',2,(.04*S(T/5.3+.7)-.025*sw)*k);gira(h,'cabeza',0,.025*br*k);gira(h,'cabeza',1,.28*gl*gl*gl*k);
- for(const [l,s] of [['I',1],['D',-1]]){gira(h,'hombro_'+l,2,s*.025*(br+1)*k);
-  gira(h,'brazo_'+l,2,s*(.05+.02*br)*k);gira(h,'brazo_'+l,0,.04*S(T/3.4+s*.8)*k);gira(h,'antebrazo_'+l,0,-(.14+.04*br)*k)}}
+ const k=u.idl||0;if(k<.002)return;const T=u.ti*Math.PI*2,br=S(T/3.4),sw=S(T/7.1+1),gl=S(T/11.3+2),kb=k*Math.max(0,1-2*w);
+ gira(h,'columna',0,-.025*br*kb);gira(h,'columna',2,.03*sw*kb);
+ gira(h,'cabeza',2,(.04*S(T/5.3+.7)-.025*sw)*kb);gira(h,'cabeza',0,.025*br*kb);gira(h,'cabeza',1,.28*gl*gl*gl*kb);
+ for(const [l,s] of [['I',1],['D',-1]]){gira(h,'hombro_'+l,2,s*.015*(br+1)*kb);
+  gira(h,'brazo_'+l,2,-s*(RP.abre*k-.012*br*kb));gira(h,'brazo_'+l,0,.035*S(T/3.4+s*.8)*kb-RP.frente*k);gira(h,'antebrazo_'+l,0,-(RP.codo*k+.04*br*kb))}}
 function mueve(p,m){const u=p&&p.userData.av;if(!u)return;const on=!!m&&((m.w||0)>.01||(m.sal||0)>.01||(m.dn||0)>.01);
  if(!on&&!u.mov)return;u.mov=on?m:null;despierta(p,on?150:40)}
 function sentar(p,si){const u=p.userData.av;if(!u)return;u.sentado=!!si;if(si&&!u.hueso){u.hueso={};for(const n of ['muslo_D','muslo_I','pierna_D','pierna_I'])u.hueso[n]=p.getObjectByName(n)}despierta(p,40)}
@@ -137,7 +140,7 @@ function cambiar(p,cod){const u=p.userData.av;if(!u)return p;const pelo=u.o.p;ap
 function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.stopAllAction();u.mixer.uncacheRoot(p);
  for(const k in u.mat)u.mat[k].dispose();if(p.parent)p.parent.remove(p);p.userData.av=null}
 
-window.AV={PAL,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
+window.AV={PAL,RP,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},get alto(){return alto},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
  mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}
