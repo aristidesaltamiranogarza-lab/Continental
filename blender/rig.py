@@ -1,7 +1,7 @@
 # Rig del chibi para el juego (three.js). Copia la figura "Frente" (modificadores aplicados a nivel
 # de juego) en piezas intercambiables (K['PIEZA']: Base, Pelo_n, Cejas_n, Boca_n, Nariz_n, Arriba_n,
 # Abajo_n, Piernas; cejas, boca y nariz 2..3 salen de las figuras Cara_n de cara.py y la ropa 2..3 de Ropa_n
-# de ropa.py), cada una hija de la armadura "Rig" con sus pesos y materiales por ranura (K['MAT']: av_*,
+# de ropa.py; el cuerpo de mujer da Arriba_n_M, Abajo_n_M, Piernas_M: la 1 de la figura Mujer, 2..3 de RopaM_n), cada una hija de la armadura "Rig" con sus pesos y materiales por ranura (K['MAT']: av_*,
 # el color se cambia en three.js). Pesos automaticos por partes, acciones de
 # pose (Reposo, AgarreFrente, ManoCabeza, PistolaSien) y de dedos (Agarre_I / Agarre_D: cuadro 1 =
 # relajada, cuadro 10 = agarra; en three.js se usa el tiempo como cantidad de agarre). Las acciones
@@ -21,14 +21,16 @@ K = dict(
     PULGAR=[(0.05, 0.048, 0.035), (0.046, 0.044, 0.03)],
     CURL0=(22, 24, 16), CURL1=(66, 60, 50), PULG0=(18, 38, 12, 12), PULG1=(-4, 62, 22, 16),
     # nivel de subdivision para el juego (las piezas que no salen aqui no tienen subsurf)
-    NIVEL={'Pelo': 0, 'Nariz': 0, 'Manos': 1, 'Brazos': 1, 'Pantalon': 1, 'Playera': 1, 'Short': 1, 'Piernas': 1},
+    NIVEL={'Pelo': 0, 'Nariz': 0, 'Manos': 1, 'Brazos': 1, 'Pantalon': 1, 'Playera': 1, 'Short': 1, 'Piernas': 1,
+           'Brazos_M': 1, 'Pantalon_M': 1, 'Short_M': 1, 'Piernas_M': 1},   # Playera_M ya viene subdividida
     DECIMA={'Pelo': 0.5},          # reduccion (simetrica en X) antes del grosor, solo en la copia de juego
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
     ROPA=range(2, 4),                      # figuras Ropa_n de ropa.py: parte -> pieza (Piernas es una sola, sin numero)
     ROPA_PIEZA={'Playera': 'Arriba', 'Brazos': 'Arriba', 'Capucha': 'Arriba', 'Bolsa': 'Arriba', 'Cordones': 'Arriba',
-                'Cuello': 'Arriba', 'Botones': 'Arriba', 'Short': 'Abajo', 'Falda': 'Abajo', 'Piernas': 'Piernas'},
+                'Cuello': 'Arriba', 'Botones': 'Arriba', 'Pantalon': 'Abajo', 'Short': 'Abajo', 'Falda': 'Abajo',
+                'Piernas': 'Piernas'},
     CARAS=range(2, 4),                     # opciones de cara.py (Cara_n_Cejas/_Boca/_Nariz) -> piezas Cejas_n, Boca_n, Nariz_n
     PEINADOS=range(2, 8), TOL_SIEN=0.01,   # sien mas lejos que esto de la del peinado 1 -> pose nueva          # peinados de pelos.py (Peinado_n_Pelo / _Extra) -> piezas Pelo_n
     PIEZA={'Pelo': 'Pelo_1', 'Cejas': 'Cejas_1', 'Boca': 'Boca_1', 'Nariz': 'Nariz_1',
@@ -160,12 +162,16 @@ for n in K['PEINADOS']:
     if ox: fuentes.append((ox, 'Pelo_%d_extra' % n, 'Extra', 'Pelo_%d' % n))
 for n in K['CARAS']:
     for t in ('Cejas', 'Boca', 'Nariz'): fuentes.append((bpy.data.objects['Cara_%d_%s' % (n, t)], '%s_%d' % (t, n), t, '%s_%d' % (t, n)))
-for n in K['ROPA']:
-    for o in sorted(bpy.data.objects['Ropa_%d' % n].children, key=lambda o: o.name):
-        t = o.name.split('_', 2)[2]; pz = K['ROPA_PIEZA'].get(t)
-        if not pz or (pz == 'Piernas' and any(f[3] == 'Piernas' for f in fuentes)): continue
-        fuentes.append((o, '%s_%d' % (t, n), t, pz if pz == 'Piernas' else '%s_%d' % (pz, n)))
-PZ = {f[1]: f[3] for f in fuentes}; CL = {f[1]: f[2] for f in fuentes}
+for fig, m, ns in (('Ropa_%d', '', K['ROPA']), ('Mujer', '_M', [1]), ('RopaM_%d', '_M', K['ROPA'])):
+    for n in ns:
+        for o in sorted(bpy.data.objects[fig % n if '%' in fig else fig].children, key=lambda o: o.name):
+            t = o.name.rsplit('_', 1)[1]; pz = K['ROPA_PIEZA'].get(t)
+            if not pz: continue
+            pieza = pz + m if pz == 'Piernas' else '%s_%d%s' % (pz, n, m)
+            if pz == 'Piernas' and any(f[3] == pieza for f in fuentes): continue
+            fuentes.append((o, '%s_%d%s' % (t, n, m), t + m, pieza))
+PZ = {f[1]: f[3] for f in fuentes}
+CL = {f[1]: (f[2][:-2] if f[2].endswith('_M') else f[2]) for f in fuentes}   # clase para pesos (sin _M)
 for o, suf, cl, _ in fuentes:
     viejo = {}
     for m in o.modifiers:
@@ -240,7 +246,8 @@ for nm, obs in grupos.items():      # una pieza = un objeto (une las partes que 
 # seleccion de vertices por peso en todas las piezas: [(objeto, [indices])]; defo() da sus posiciones deformadas
 def sel_de(pref, suf):
     out = []
-    for ob in piezas.values():
+    for nm, ob in piezas.items():
+        if nm.endswith('_M'): continue      # las mangas de las piezas M son las mismas que las H (no contar doble)
         gi = {g.index: g.name for g in ob.vertex_groups}
         idx = [v.index for v in ob.data.vertices
                if sum(g.weight for g in v.groups if gi[g.group].startswith(pref) and gi[g.group].endswith(suf)) > 0.5]
