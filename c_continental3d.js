@@ -101,7 +101,7 @@ function step(now){meshes.forEach((m,key)=>{const w=m.userData.tw,T=m.userData.T
 function glow(key,pos,w,h,col,lvl,hit,ry){let g=glows.get(key);
  if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:glowTex(),transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.renderOrder=1;SC.add(g);glows.set(key,g)}
  g.visible=true;g.position.copy(pos);g.rotation.z=ry||0;g.scale.set(w/GI,h/GI,1);g.material.color.set(col);g.userData.lvl=lvl;g.userData.hit=hit||null;g.userData.used=1;if(hit)hits.push(g);return g}
-function pulse(now){const p=.65+.35*Math.sin(now/260);glows.forEach(g=>{g.material.opacity=g.userData.lvl*(g.userData.lvl>.5?p:1)})
+function pulse(now){const p=.65+.35*Math.sin(now/260);glows.forEach(g=>{const fl=g.userData.fl?Math.max(0,1-(now-g.userData.fl)/800):0;g.material.opacity=Math.max(g.userData.lvl*(g.userData.lvl>.5?p:1),fl)})   // fl: destello (pegaron en esa combinación)
  slots.forEach(m=>{const b=m.userData;if(!m.visible)return;const k=(Date.now()-(b.badT||0))/550;m.position.x=b.bx+(k<1?Math.sin(k*40)*.09*(1-k):0);
   m.material.color.set(k<1?0xff5a4a:b.col);m.material.opacity=b.ok?.95:.55+.25*Math.sin(now/380)})}   // >.5 = parpadea
 
@@ -139,7 +139,7 @@ function init(){if(ready)return;ready=true;
   camStep(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camStep(c),90)},320)}});
  ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
  requestAnimationFrame(loop3)}
-function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js): crece con los jugadores y es la misma en vertical y horizontal (la cámara se aleja para que quepa)
  const ps=por?1.25:1.05;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:'Continental',sep:CW*ps*1.7});
  const r=mesa.r,hz=CH*ps/2+.25,bz=r*.78,bx=Math.sqrt((r-.2)**2-bz*bz),az=Math.sqrt(Math.max(9,(r*.9-.45)**2-bx*bx));L=Object.assign(L||{},{por,rx:r,rz:r,ps});
@@ -345,13 +345,18 @@ function mkAvatar(k,pi,o={}){if(window.MII)return MII.mk(k,pi,o,COL[k%10],AVP[pi
  // brazos cortos con manos de bolita (se recalculan cada cuadro)
  const arms=[-1,1].map(s=>({s,sh:v3(s*.4,.15,0),up:limb(.1,.24,top,body),fo:limb(.095,.22,top,body),hand:M(new THREE.SphereGeometry(.13,14,10),skin,0,0,0,body),sleeve:null,el:new THREE.Vector3(),h:new THREE.Vector3()}));
  g.userData={k,pi,body,head,arms,legs,reachT:0,cheerT:0,l1:.45,l2:.43};return g}
-function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
+// personajes (c_mesa_pj.js) en las sillas de la mesa; mientras carga su GLB (o si no hay), los Miis
+function pjSync(){if(!window.MPJ||!mesa)return false;const G=V.G,P=V.players||[];
+ const ok=MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backTex(),listo:()=>sync()});
+ if(!ok)return false;avs.forEach(g=>{SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})});avs.clear();
+ MPJ.hits().forEach(o=>hits.push(o));return true}
+function avSync(){if(pjSync())return;const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
  want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);g.traverse(o=>{if(o.userData.silla)o.visible=false});SC.add(g);avs.set(k,g)}const a=seatA(k);
   if(window.FONDO)FONDO.mii(g,fz,k===V.me);const A=mesa.asiento(rel(k));g.position.copy(A.pos);g.rotation.y=A.ry;
   g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
 const POLE=[v3(-1.3,-.5,-.4),v3(1.3,-.5,-.4)];
-function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
+function avStep(now){if(window.MPJ&&MPJ.on&&!avs.size&&V&&V.G){MPJ.paso(now,V.G.turn>=0?rel(V.G.turn):-1);return}if(!avs.size||!V||!V.G)return;const G=V.G;
  avs.forEach(g=>{const u=g.userData,k=u.k,turn=G.turn===k,f=.08;
   u.body.scale.y=1+.012*Math.sin(now/650+k*1.7);u.body.rotation.x+=((turn?.12:0)-u.body.rotation.x)*f;
   // la cabeza mira a quien tiene el turno (o a sus cartas cuando le toca)
@@ -599,9 +604,15 @@ function slotLay(gs,b){const n=gs.length,bw=b.x1-b.x0,bh=b.z1-b.z0;
  for(let s=.8;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,pad=.22,gap=.3,ws=gs.map(g=>cw+(Math.max(g.ids.length,g.type=='T'?3:4)-1)*ov+pad*2),tot=ws.reduce((a,x)=>a+x,0)+gap*(n-1);
   if((tot<=bw&&ch+pad*2<=bh)||s<=.3){let x=b.x0+(bw-tot)/2;return {s,cw,ch,ov,pad,pos:ws.map(w=>{const p={x,w,z:(b.z0+b.z1)/2};x+=w+gap;return p})}}}}
 function fitsMeld(id,mm){const a=mm.cards.map(C).concat(C(id));return mm.type=='T'?trio(a):!!runArr(a)}
+// reacciones de los personajes según el log (c_mesa_pj.js): robar, tomar, comprar, bajarse, descartar y pegar (el dueño voltea y su combinación destella)
+function pjLog(e){const i=rel(e.k),t=e.t,w=CW*L.ps;
+ if(/^se bajó/.test(t))MPJ.festeja(i);else if(/^robó del mazo/.test(t))MPJ.roba(i,L.deck,w);else if(/^(tomó|descartó)/.test(t))MPJ.estira(i,L.disc);
+ else if(/^quiere comprar/.test(t))MPJ.compra(i,true);else if(/^canceló su compra/.test(t))MPJ.compra(i,false);else if(/^compró/.test(t)){MPJ.compra(i,false);MPJ.roba(i,L.deck,w)}
+ else if(/^(pegó|cambió)/.test(t)){const k=V.G.melds.findIndex(m=>m.cards.includes(e.c)),mm=V.G.melds[k],b=L.mb&&L.mb[k],c=b?v3((b.x0+b.x1)/2,0,(b.z0+b.z1)/2):v3(0,0,0);MPJ.estira(i,c);
+  if(mm&&mm.owner!==e.k){MPJ.mira(rel(mm.owner),c,1600);const g=glows.get('m'+k);if(g)g.userData.fl=performance.now()}}}
 function sync(){if(!ready||!L||!active())return;
  const G=V.G,n=G.players.length,me=V.me,live=new Set(),mine=me>=0&&G.turn==me,pl=mine&&G.step=='play',dn=me>=0&&G.down[me];
- hits.length=0;glows.forEach(g=>{g.userData.used=0});
+ hits.length=0;glows.forEach(g=>{g.userData.used=0});if(window.MPJ&&MPJ.on)MPJ.fin(G.phase==='end'&&G.out!=null?rel(G.out):-1);
  if(pl&&!dn&&!staged.length)staged=types().map(type=>({type,ids:[]}));if(dn&&staged.length)staged=[];
  // te acabas de bajar: festejo
  if(me>=0){if(wasDown===false&&dn&&!first){sfx('go');confetti(40);banner('¡Te bajaste!')}wasDown=!!dn}
@@ -610,8 +621,8 @@ function sync(){if(!ready||!L||!active())return;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
  if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0||VT.c4||VT.bg)home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
- const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
- const seatW=k=>{const p=seatP(k,.84);p.y=.3;return p};
+ const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
+ const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.84);p.y=.3;return p};   // con personaje: sus manos
  // mazo: pila con grosor según las cartas que quedan
  const nv=G.deck?Math.min(10,Math.ceil(G.deck/5)):0;
  for(let i=0;i<nv;i++){const key='dk'+i,m=ens(key,null);live.add(key);m.userData.hit={t:'deck'};hits.push(m);m.userData.nw=0;
@@ -632,8 +643,8 @@ function sync(){if(!ready||!L||!active())return;
   glow('o'+k,v3(p.x+p.mw/2,.004,p.z+ML.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
- for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=mesa.asiento(rel(k)).mano,tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
-  for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null,took[k]?L.disc:null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
+ for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=mesa.asiento(rel(k)).mano,tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);   // con personaje: las cartas van en sus manos
+  if(!pj)for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null,took[k]?L.disc:null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.24).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
   glow('t'+k,v3(c.x,.003,c.z),Math.max(1.4,cnt*.24+.8),1.15,0x55c8ff,G.turn==k?.8:0,{t:'seat',k},ry)}
  // siluetas de tu contrato con las cartas que ya pusiste
@@ -823,7 +834,7 @@ function apUI(){const T=APT[ap.tab];
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
 function apClose(ok){if(!ap)return;if(!ok){[sbg,scards,sback]=ap.prev;setDark(ap.prev[3]);applyStyle()}ap=null;sfx('tick');render()}
-function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
+function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,av=avs.get(k),pa=!av&&window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(av?av.position.clone().setY(2.15*av.scale.y):pa||seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh=el.offsetHeight/2+4;
   const X=Math.max(hw,Math.min(W-hw,x)),y0=(L.top||24)-20,Y=GHUD.dodge(X,Math.max(hh+y0,Math.min(H-hh,y)),hw,hh,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba
  const sl=L.slots;if(sl)sl.pos.forEach((p,k)=>{const el=document.getElementById('t3sl'+k);if(!el)return;const [x,y]=toPx(v3(p.x+p.w/2,0,p.z-sl.ch/2-sl.pad));el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  const se=document.getElementById('t3sel');if(se&&L.hand){const y=Math.min(...L.hand.map(f=>f.y))-L.ch/2-10,hw=se.offsetWidth/2+6;se.style.transform=`translate(${Math.max(hw,Math.min(W-hw,W/2))}px,${y}px) translate(-50%,-100%)`}
@@ -833,9 +844,13 @@ function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEac
   const dz=CH*L.ps/2+.12;if(L.deck){const up=Math.abs(L.disc.x-L.deck.x)<CW*L.ps*1.5&&L.disc.z>L.deck.z;pl('t3pdk',v3(L.deck.x,0,L.deck.z+(up?-dz:dz)),up);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
 
 // ---------- engancharse a la vista de siempre ----------
-function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase==='play'}
+// al cerrar la ronda la mesa se queda 3 s más: el ganador baila y los demás se llevan la mano a la cabeza (c_mesa_pj.js)
+let finT=0,finPh='';
+function active(){if(!(on&&!!S&&!!V&&V.game==='continental'&&!!V.G))return false;const G=V.G;
+ if(G.phase!==finPh){if(finPh==='play'&&G.phase==='end'&&window.MPJ&&MPJ.on&&!RM)finT=performance.now()+3200;finPh=G.phase}
+ return G.phase==='play'||(G.phase==='end'&&performance.now()<finT)}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
+ if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){if(finT){finT=0;if(window.MPJ)MPJ.fin(-1);render()}first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H||tkey()!==tableKey){layout();sync()}
  viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();

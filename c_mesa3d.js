@@ -22,11 +22,14 @@ function fieltro(col,logo){const k=col.join()+'|'+(logo||'');if(texC[k])return t
   [...t].forEach((ch,i)=>{g.save();g.rotate(a0+i*.058+Math.PI/2);g.fillText(ch,0,-h*.43);g.restore()});
   g.font=Math.round(S*.1)+'px serif';g.fillText('♠',0,0);g.restore()}
  const T=new THREE.CanvasTexture(c);T.colorSpace=THREE.SRGBColorSpace;T.anisotropy=8;return texC[k]=T}
-// silla en el marco de la persona sentada: origen a la altura de la cubierta (cadera), asiento en y=-.6, piso en y=-1.55, respaldo en -z
-function silla(wood,tela){const g=new THREE.Group(),B=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o};
- B(1.1,.1,1,wood,0,-.74,-.05);const cj=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.85,4,10),tela);cj.rotation.z=Math.PI/2;cj.scale.set(1,1,5.2);cj.position.set(0,-.64,-.04);cj.castShadow=true;g.add(cj);
- [[-.48,-.5],[.48,-.5],[-.48,.38],[.48,.38]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.05,.04,.8,8),wood);l.position.set(x,-1.15,z);l.castShadow=true;g.add(l)});
- [-.48,.48].forEach(x=>B(.08,1.3,.08,wood,x,-.1,-.53));B(1.04,.5,.08,tela,0,.15,-.53);B(1.1,.1,.12,wood,0,.45,-.53);
+// silla en el marco de la persona sentada (c_mesa_pj.js, unidades de la casa): origen a la altura de la cubierta, piso en y=-1.55, respaldo en -z.
+// A la medida del personaje chibi sentado: el asiento llega a su cadera (y -.64) y termina antes de sus rodillas (z .04) para que las piernas cuelguen;
+// sus pies no llegan al piso: descansan en el aro (y -.93), como en un banco alto.
+function silla(wood,tela,lat){const g=new THREE.Group(),M=(geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o};
+ M(new THREE.BoxGeometry(.74,.06,.56),wood,0,-.735,-.21);const cj=M(new THREE.CapsuleGeometry(.05,.6,4,10),tela,0,-.685,-.21);cj.rotation.z=Math.PI/2;cj.scale.set(1,1,5.2);
+ [[-.3,-.44],[.3,-.44],[-.3,.01],[.3,.01]].forEach(([x,z])=>M(new THREE.CylinderGeometry(.035,.03,.79,8),wood,x,-1.16,z));
+ [-.3,.3].forEach(x=>M(new THREE.CylinderGeometry(.03,.03,.82,8),wood,x,-.33,-.47));M(new THREE.BoxGeometry(.56,.4,.05),tela,0,-.2,-.48);M(new THREE.BoxGeometry(.68,.07,.08),wood,0,.1,-.47);
+ const aro=M(new THREE.TorusGeometry(.37,.022,8,40),lat,0,-.95,-.215);aro.rotation.x=Math.PI/2;
  return g}
 function arma(par,o={}){const n=Math.max(2,o.n||4),r=radio(n),R=r+ORL,sep=o.sep||1.7,g=new THREE.Group();g.name='mesa';par.add(g);
  const wood=new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7,clearcoatRoughness:.25}),dark=std(0x3a1e0c,.55);
@@ -47,9 +50,9 @@ function arma(par,o={}){const n=Math.max(2,o.n||4),r=radio(n),R=r+ORL,sep=o.sep|
  const cab=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,40,6),std(0x111111,.6));cab.position.y=21;lam.add(cab);
  const sp=new THREE.SpotLight(0xffe2b5,1,0,.6,.55,2);sp.position.y=.1;lam.add(sp);const tg=new THREE.Object3D();g.add(tg);sp.target=tg;sp.layers.enableAll();
  // sillas: una por asiento, en su lugar según escala()
- const tela=std(0x7a2a2a,.85),sillas=[];for(let i=0;i<n;i++){const s=silla(dark,tela);g.add(s);sillas.push(s)}
+ const tela=std(0x7a2a2a,.85),sillas=[];for(let i=0;i<n;i++){const s=silla(dark,tela,lat);g.add(s);sillas.push(s)}
  const m={g,n,r,R,sr,felt,pie,lam,luz:sp,sillas,k:1,centro:{mazo:v3(-sep/2,0,0),descarte:v3(sep/2,0,0)},
-  asiento(i){const a=Math.PI/2+(((i%n)+n)%n)*2*Math.PI/n,c=Math.cos(a),s=Math.sin(a),d=R+.65*m.k,ry=Math.atan2(-c,-s),w=Math.min(2*r*Math.sin(Math.PI/n)*.8,r*.95);
+  asiento(i){const a=Math.PI/2+(((i%n)+n)%n)*2*Math.PI/n,c=Math.cos(a),s=Math.sin(a),d=R+.55*m.k,ry=Math.atan2(-c,-s),w=Math.min(2*r*Math.sin(Math.PI/n)*.8,r*.95);
    return {a,pos:v3(c*d,0,s*d),ry,mira:v3(-c,0,-s),mano:v3(c*r*.9,0,s*r*.9),zona:{c:v3(c*r*.56,0,s*r*.56),w,d:r*.3,ry}}},
   escala(k){m.k=k;sillas.forEach((s,i)=>{const A=m.asiento(i);s.position.copy(A.pos);s.rotation.y=A.ry;s.scale.setScalar(k)})},
   // altura de la lámpara (sobre la cubierta); la luz alumbra igual a cualquier altura
