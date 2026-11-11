@@ -2,7 +2,7 @@
 # abre hasta medio muslo (malla 'playera_m'), y el pantalon un poco mas ancho de cadera ('pantalon_m').
 # Deja la figura de muestra 'Mujer' (copia ligada de Frente con esas piezas y el peinado MUJER_PELO).
 # Uso: exec(open(r'C:/Users/aris1/code/Continental/blender/cuerpo_m.py').read(), {'PRM': {...}})
-import bpy
+import bpy, bmesh, math
 
 K = dict(
     HOMBRO=1.35,                 # arriba de aqui la playera no se estira (solo se angosta)
@@ -11,6 +11,9 @@ K = dict(
     PERFIL=[(1.70, 0.93, 0.95), (1.50, 0.93, 0.95), (1.35, 0.90, 0.94), (1.08, 0.82, 0.88),
             (0.90, 1.00, 1.00), (0.62, 1.22, 1.12)],
     CADERA_PANT=(1.10, 1.06),    # pantalon arriba de la rodilla
+    # busto: dos bultos al frente (x = +-BX, z = BZ), alto arriba SZ_A y abajo SZ_B (cae mas redondo), A hacia -y
+    BX=0.10, SX=0.085, BZ=1.38, SZ_A=0.11, SZ_B=0.065, A=0.085,
+    CORTES=[1.46, 1.42, 1.38, 1.31],   # aros extra (antes de subdividir) para que el busto tenga forma
     X=-2.9, MUJER_PELO='pelo_5', MUJER_EXTRA=None)
 K.update(globals().get('PRM', {}))
 
@@ -35,6 +38,21 @@ for v in pm.vertices:
     z = v.co.z
     if z < H: z = H - (H - z) * (H - K['BAJO']) / (H - zb)
     sx, sy = interp(z); v.co.x *= sx; v.co.y *= sy; v.co.z = z
+# aros extra + una subdivision (la malla queda ya suavizada: en el juego va con NIVEL 0) y busto
+bm = bmesh.new(); bm.from_mesh(pm)
+for zc in K['CORTES']:
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, zc), plane_no=(0, 0, 1))
+bm.to_mesh(pm); bm.free()
+tmp = bpy.data.objects.new('tmp_playera_m', pm); bpy.context.scene.collection.objects.link(tmp)
+tmp.modifiers.new('s', 'SUBSURF').levels = 1
+dg = bpy.context.evaluated_depsgraph_get(); sub = bpy.data.meshes.new_from_object(tmp.evaluated_get(dg))
+bpy.data.objects.remove(tmp, do_unlink=True); bpy.data.meshes.remove(pm); sub.name = 'playera_m'; pm = sub
+ymax = max(-v.co.y for v in pm.vertices)
+for v in pm.vertices:
+    if v.co.y >= 0: continue
+    dz = v.co.z - K['BZ']; sz = K['SZ_A'] if dz > 0 else K['SZ_B']
+    w = math.exp(-((abs(v.co.x) - K['BX']) / K['SX']) ** 2 - (dz / sz) ** 2) * (-v.co.y / ymax) ** 2
+    v.co.y -= K['A'] * w
 nm_ = copia(bpy.data.objects['Frente_Pantalon'].data, 'pantalon_m')
 for v in nm_.vertices:
     t = max(0.0, min(1.0, (v.co.z - 0.45) / 0.4))
@@ -52,6 +70,9 @@ for o in bpy.data.objects['Frente'].children:
         c = o.copy(); c.name = nm; col.objects.link(c)
         c.parent = E; c.matrix_parent_inverse = o.matrix_parent_inverse.copy()
     c.data = cambia.get(suf, o.data)
+    if suf == 'Playera':
+        for m in c.modifiers:
+            if m.type == 'SUBSURF': m.levels = 1; m.render_levels = 1   # la malla ya viene subdividida una vez
     if suf == 'Pelo':
         for m in list(c.modifiers): c.modifiers.remove(m)
         so = c.modifiers.new('Grosor', 'SOLIDIFY'); so.thickness = 0.035; so.offset = -1; so.use_even_offset = True
