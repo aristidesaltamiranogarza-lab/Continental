@@ -74,7 +74,11 @@ function arma(par,o={}){const n=Math.max(2,o.n||4),r=radio(n),R=r+ORL,sep=o.sep|
    mk.visible=true;mk.material.color.set(c)})},
   escala(k){m.k=k;sillas.forEach((s,i)=>{const A=m.asiento(i);s.position.copy(A.pos);s.rotation.y=A.ry;s.scale.setScalar(k)})},
   // altura de la lámpara (sobre la cubierta); la luz alumbra igual a cualquier altura
-  lampara(y){lam.position.y=y;sp.intensity=1.1*y*y;sp.angle=Math.min(1.1,Math.atan(r*1.05/y))},
+  lampara(y){lam.position.y=y;sp.intensity=1.6*y*y;sp.angle=Math.min(1.1,Math.atan(r*.75/y));sp.penumbra=.85},
+  // a dónde cae la luz (se mueve despacio hacia quien tiene el turno): f = qué tanto se acerca en este cuadro
+  luzHacia(p,f){tg.position.lerp(p,f)},
+  // la pantalla y el cable (no la luz): se esconden cuando la cámara ve casi desde arriba (tapaban el centro)
+  pantalla(v){if(lam.userData.v===v)return;lam.userData.v=v;lam.children.forEach(o=>{if(o.isMesh)o.visible=v})},
   fieltro(col,logo){const t=fieltro(col,logo==null?o.logo:logo);if(fm.map!==t){fm.map=t;fm.needsUpdate=true}},
   quita(){g.parent&&g.parent.remove(g);g.traverse(x=>{if(x.geometry)x.geometry.dispose();if(x.material&&!x.material.map)x.material.dispose()});if(MESA.m===m)MESA.m=null}};
  m.escala(1);m.lampara(r*1.6);return MESA.m=m}

@@ -18,7 +18,7 @@ const FD=Qe(0,0,Math.PI),FU=Qe(0,0,0);   // boca abajo / boca arriba sobre la me
 const $=s=>document.querySelector(s);
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa que queda al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
-let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,camOpen=false,camTip=false,camRep=null,ap=null;
+let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,camOpen=false,camTip=false,camRep=null,ap=null,mc=null,hdNow=0;   // mc: cámara viva (c_mesa_cam.js); hdNow: giro de cabeza hacia el turno
 let c4found=false,mini=false,c4open=false,c4was=false,c4snap='';   // c4: ventana de Conecta 4 abierta, última ficha animada, estado anterior (para sonidos)
    // barra de arriba oculta (modo minimalista)
 try{mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
@@ -122,14 +122,14 @@ function init(){if(ready)return;ready=true;
  dpvEl=document.createElement('div');dpvEl.id='t3dpv';dpvEl.className='ui ui-card';dpvEl.innerHTML='<small>Descarte</small><img alt=""><div class="nm"></div>';document.body.appendChild(dpvEl);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pCancel);
  cv.addEventListener('pointerleave',()=>{if(!st)peek(false);if(!st&&hov!=null){hov=null;sync()}});cv.addEventListener('contextmenu',e=>e.preventDefault());
- cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
+ cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();if(mc)mc.toca();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  addEventListener('keydown',e=>{if(!active()||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;
   if(ap){if(e.key==='Escape')apClose(0);else if(e.key==='Enter')apClose(1);return}
   if(e.key==='Escape'){if(menu){menu=false;render()}else home();return}
   if(e.key===' '||e.key==='Home'){if(viewed()){e.preventDefault();home()}return}
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   const c={q:'rl',e:'rr',r:'tu',f:'td',w:'up',arrowup:'up',s:'dn',arrowdown:'dn',a:'lf',arrowleft:'lf',d:'rt',arrowright:'rt','+':'zi','=':'zi','-':'zo'}[e.key.toLowerCase()];
-  if(c){e.preventDefault();camStep(c)}});
+  if(c){e.preventDefault();if(mc)mc.toca();camStep(c)}});
  // barra de cámara: dejar presionado repite
  const stopRep=()=>{if(camRep){clearTimeout(camRep.t);clearInterval(camRep.i);camRep=null}};
  document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-cam]');if(!b||!active())return;e.preventDefault();stopRep();const c=b.dataset.cam;
@@ -138,6 +138,7 @@ function init(){if(ready)return;ready=true;
   if(c=='home'){home();sfx('tick');return}
   camStep(c);camRep={t:setTimeout(()=>{camRep.i=setInterval(()=>camStep(c),90)},320)}});
  ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
+ mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1}):null;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js): crece con los jugadores y es la misma en vertical y horizontal (la cámara se aleja para que quepa)
@@ -428,7 +429,7 @@ function bgTap(p){const g=bgmine();if(!g){if(!bgg()){bgopen=true;render()}return
 // cámara: casi desde arriba, del lado de tu color
 function bgLook(){if(!BGB||!L)return;const wc=BGB.g.localToWorld(v3(.2,.15,0)),me=bgg(),a=me&&me.p.indexOf(V.me)==1?Math.PI:0,e=1.3,t=wc.y/Math.sin(e);
  const k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/4.2*(L.por?.85:.62);
- Object.assign(VT,{x:wc.x-Math.sin(a)*Math.cos(e)*t,z:wc.z-Math.cos(a)*Math.cos(e)*t,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:false,bg:true});clampV();sfx('card')}
+ Object.assign(VT,{x:wc.x-Math.sin(a)*Math.cos(e)*t,z:wc.z-Math.cos(a)*Math.cos(e)*t,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:false,bg:true,top:false});clampV();sfx('card')}
 function bgdiscover(){if(bgfound)return;bgfound=true;try{localStorage.setItem('cont_bgf','1')}catch(e){}sfx('win');confetti(30);banner('🎲 ¡Encontraste un juego secreto: Backgammon!')}
 const BGIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" fill="#5a3418"/><rect x="3.5" y="5.5" width="17" height="13" fill="#1f5b3a"/><path d="M4 5.5l1.5 6 1.5-6zM7.5 5.5l1.5 6 1.5-6zM13.5 18.5l1.5-6 1.5 6zM17 18.5l1.5-6 1.5 6z" fill="#e8dcc0"/><path d="M5.8 18.5l1.5-6 1.5 6zM15.3 5.5l1.5 6 1.5-6z" fill="#9e2a2a"/><rect x="11.4" y="5.5" width="1.2" height="13" fill="#5a3418"/></svg>';
 const bgdisc=k=>`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
@@ -462,7 +463,7 @@ window.bginv=k=>{bgSend({op:'inv',k});sfx('card')};
 function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=.55,a=C4B.P.rotation.y,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/3.7*(L.por?.78:.6);
  // de frente al tablero: el punto del piso al que mira la cámara queda detrás de su centro, en la dirección de la vista
  const back=Math.cos(e)*wc.y/Math.sin(e);
- Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:true,bg:false});clampV();sfx('card')}
+ Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:true,bg:false,top:false});clampV();sfx('card')}
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 const tkey=()=>(innerWidth/innerHeight<.95?'p':'l')+(V&&V.G?V.G.players.length:4);   // la mesa se rearma al girar o si cambia cuántos juegan
 // la lámpara cuelga justo arriba de lo que se ve desde tu silla (se asoma al acercar o inclinar la cámara)
@@ -484,11 +485,20 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
 // ---------- mover la cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
 // la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
- CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);CA.updateMatrixWorld()}
-function clampV(){if(!L)return;VT.k=Math.max(1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
+ CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow)CA.rotateOnWorldAxis(YA,hdNow);CA.updateMatrixWorld()}
+const YA=v3(0,1,0),MLT=v3(0,0,0);
+// cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno, regresa sola a tu vista, cortes; y la luz de la lámpara se va despacio a su zona
+function vivo(now,dt){const G=V.G;if(mesa&&G){const t=G.turn,z=t>=0&&G.phase==='play'?L.zona(rel(t)).c:null;MLT.set(z?z.x*.85:0,0,z?z.z*.85:0);mesa.luzHacia(MLT,1-Math.exp(-dt/900));mesa.pantalla(L.el+VW.t<1.2)}
+ if(!mc||!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k,t=G.turn;
+ const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t>=0&&t!==V.me&&G.phase==='play'?L.zona(rel(t)).c:null,quieto:!!(VT.c4||VT.bg||drag||st||pin)});
+ if(h!==hdNow){hdNow=h;cam()}}
+// corte breve y cercano a un jugador: de frente a él, entre su zona y su silla. No a media jugada tuya (salvo al cerrar la ronda)
+function corte(k,ms,forzar){if(!mc||!mesa||k===V.me||(!forzar&&(V.G.turn===V.me||sel.size||drag)))return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;
+ mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms,forzar)}
+function clampV(){if(!L)return;const k0=VT.top?.7:1;VT.k=Math.max(k0,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  VT.t=Math.max(.3-L.el,Math.min(1.5-L.el,VT.t));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
- if(L.d)VT.k=Math.min(VT.k,Math.max(1,Math.sin(L.el+VT.t)*L.d/3.6))}
+ if(L.d)VT.k=Math.min(VT.k,Math.max(k0,Math.sin(L.el+VT.t)*L.d/3.6))}
 const VK=['x','z','k','a','t'];
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);cam()}
 function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
@@ -496,7 +506,7 @@ function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
 const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // cuadrar: regresa a la vista de siempre por el camino corto
-function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,c4:false,bg:false})}
+function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,c4:false,bg:false,top:false})}
 // pasos de la barra de cámara y del teclado (suaves: solo mueven el destino)
 function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:[0,-1],dn:[0,1],lf:[-1,0],rt:[1,0]}[c];
  if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;
@@ -523,13 +533,13 @@ function dpv(){if(!dpvEl)return;const G=V&&V.G,id=G&&G.disc.length?G.disc[G.disc
 // punto de la mesa debajo del dedo/ratón
 function ground(cx,cy){const r=cv.getBoundingClientRect();P2.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(PL,v3(0,0,0))}
 // zoom hacia un punto de la pantalla (rueda del ratón)
-function zoomAt(cx,cy,k){const p=ground(cx,cy);k=Math.max(1,Math.min(KMAX,k));if(!p)return;const f=VT.k/k;VT.x=p.x-(p.x-VT.x)*f;VT.z=p.z-(p.z-VT.z)*f;VT.k=k;VT.who=-1;clampV()}
+function zoomAt(cx,cy,k){const p=ground(cx,cy);k=Math.max(VT.top?.7:1,Math.min(KMAX,k));if(!p)return;const f=VT.k/k;VT.x=p.x-(p.x-VT.x)*f;VT.z=p.z-(p.z-VT.z)*f;VT.k=k;VT.who=-1;clampV()}
 // mirar a un jugador: sus combinaciones (o su asiento si no se ha bajado). Tocarlo otra vez regresa a la mesa completa
-function look(k){if(!L)return;if(VT.who===k)return home();const bs=(L.mb||[]).filter(b=>b.o===k);let x0,x1,z0,z1;
+function look(k){if(!L)return;if(mc)mc.toca();if(VT.who===k)return home();const bs=(L.mb||[]).filter(b=>b.o===k);let x0,x1,z0,z1;
  if(bs.length){x0=Math.min(...bs.map(b=>b.x0));x1=Math.max(...bs.map(b=>b.x1));z0=Math.min(...bs.map(b=>b.z0));z1=Math.max(...bs.map(b=>b.z1))}
  else{const p=seatP(k,.84);x0=p.x-1.5;x1=p.x+1.5;z0=p.z-1;z1=p.z+1}
  const kk=Math.min(2*(L.rx+.75)/(x1-x0+1.2),2*(L.rz+.75)/(z1-z0+1.2))*.9;
- Object.assign(VT,{x:(x0+x1)/2,z:(z0+z1)/2,k:Math.max(1.5,Math.min(KMAX,kk)),who:k,c4:false});clampV();sfx('card')}
+ Object.assign(VT,{x:(x0+x1)/2,z:(z0+z1)/2,k:Math.max(1.5,Math.min(KMAX,kk)),who:k,c4:false,top:false});clampV();sfx('card')}
 function loc(px,py,d){const v=v3(px/W*2-1,1-py/H*2,.5).applyMatrix4(CA.projectionMatrixInverse);return v.multiplyScalar(-d/v.z)}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 
@@ -609,20 +619,20 @@ function slotLay(gs,b){const n=gs.length,bw=b.x1-b.x0,bh=b.z1-b.z0;
 function fitsMeld(id,mm){const a=mm.cards.map(C).concat(C(id));return mm.type=='T'?trio(a):!!runArr(a)}
 // reacciones de los personajes según el log (c_mesa_pj.js): robar, tomar, comprar, bajarse, descartar y pegar (el dueño voltea y su combinación destella)
 function pjLog(e){const i=rel(e.k),t=e.t,w=CW*L.ps;
- if(/^se bajó/.test(t))MPJ.festeja(i);else if(/^robó del mazo/.test(t))MPJ.roba(i,L.deck,w);else if(/^(tomó|descartó)/.test(t))MPJ.estira(i,L.disc);
- else if(/^quiere comprar/.test(t))MPJ.compra(i,true);else if(/^canceló su compra/.test(t))MPJ.compra(i,false);else if(/^compró/.test(t)){MPJ.compra(i,false);MPJ.roba(i,L.deck,w)}
+ if(/^se bajó/.test(t)){MPJ.festeja(i);corte(e.k)}else if(/^robó del mazo/.test(t))MPJ.roba(i,L.deck,w);else if(/^(tomó|descartó)/.test(t))MPJ.estira(i,L.disc);
+ else if(/^quiere comprar/.test(t))MPJ.compra(i,true);else if(/^canceló su compra/.test(t))MPJ.compra(i,false);else if(/^compró/.test(t)){MPJ.compra(i,false);MPJ.roba(i,L.deck,w);corte(e.k)}
  else if(/^(pegó|cambió)/.test(t)){const k=V.G.melds.findIndex(m=>m.cards.includes(e.c)),mm=V.G.melds[k],b=L.mb&&L.mb[k],c=b?v3((b.x0+b.x1)/2,0,(b.z0+b.z1)/2):v3(0,0,0);MPJ.estira(i,c);
   if(mm&&mm.owner!==e.k){MPJ.mira(rel(mm.owner),c,1600);const g=glows.get('m'+k);if(g)g.userData.fl=performance.now()}}}
 function sync(){if(!ready||!L||!active())return;
  const G=V.G,n=G.players.length,me=V.me,live=new Set(),mine=me>=0&&G.turn==me,pl=mine&&G.step=='play',dn=me>=0&&G.down[me];
- hits.length=0;glows.forEach(g=>{g.userData.used=0});if(window.MPJ&&MPJ.on)MPJ.fin(G.phase==='end'&&G.out!=null?rel(G.out):-1);
+ hits.length=0;glows.forEach(g=>{g.userData.used=0});if(window.MPJ&&MPJ.on)MPJ.fin(G.phase==='end'&&G.out!=null?rel(G.out):-1);if(G.phase==='end'&&G.out!=null&&finCut!==G.dn){finCut=G.dn;corte(G.out,3000,true)}
  if(pl&&!dn&&!staged.length)staged=types().map(type=>({type,ids:[]}));if(dn&&staged.length)staged=[];
  // te acabas de bajar: festejo
  if(me>=0){if(wasDown===false&&dn&&!first){sfx('go');confetti(40);banner('¡Te bajaste!')}wasDown=!!dn}
  // ronda nueva: se recoge todo y se reparte desde el mazo
  if(G.dn!==dealN){dealing=dealN>=0;dealN=G.dn;logN=-1;meshes.forEach((m,k)=>drop(k));home()}else dealing=false;dl=0;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
- if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0||VT.c4||VT.bg)home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
+ if(mine&&myTc!==G.tc){myTc=G.tc;if(viewed())home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
  const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
  const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.84);p.y=.3;return p};   // con personaje: sus manos
@@ -677,7 +687,7 @@ function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.lef
  const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));return h.length?h[0].object.userData.hit:null}
 // Ratón: clic derecho y arrastrar = mover; clic de rueda (o Shift + clic derecho) = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar fuera de tu mano = mover; dos dedos = pellizcar para zoom, girarlos para rotar
-function pDown(e){if(!active()||ap)return;if(e.pointerType!=='mouse')peek(false);if(menu){menu=false;render();return}
+function pDown(e){if(!active()||ap)return;if(mc)mc.toca();if(e.pointerType!=='mouse')peek(false);if(menu){menu=false;render();return}
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(tch.size==2){if(drag)pCancel();st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);VT.who=-1;
    pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.t,mode:null};return}
@@ -686,7 +696,7 @@ function pDown(e){if(!active()||ap)return;if(e.pointerType!=='mouse')peek(false)
  const rot=e.button==1||(e.button==2&&e.shiftKey),pan=e.button==2&&!rot;if(pan||rot)cv.style.cursor=rot?'move':'grabbing';
  st={x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.a,t0:VW.t,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}
  if(e.pointerType!=='mouse'&&st.hit&&st.hit.t=='disc'){const s0=st;s0.lp=setTimeout(()=>{if(st!==s0)return;s0.peek=true;peek(true);if(navigator.vibrate)navigator.vibrate(12)},380)}}
-function pMove(e){if(!active())return;
+function pMove(e){if(!active())return;if(mc&&(st||pin))mc.toca();
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
    // ¿inclinar o mover? si los dos dedos suben/bajan juntos sin abrirse ni girar, es inclinar
@@ -700,6 +710,7 @@ function pMove(e){if(!active())return;
  if(!st){if(e.pointerType==='mouse'){const h=pick(e),id=h&&h.t=='hand'?h.id:null;peek(!!h&&h.t=='disc');c4hover(h&&h.t=='c4'?h.c:-1);cv.style.cursor=h?'pointer':'default';if(id!==hov){hov=id;sync()}}return}
  if(e.pointerId!==st.pid)return;const h=st.hit;
  if(st.peek)return;if(st.lp&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){clearTimeout(st.lp);st.lp=null}
+ if(!drag&&!st.pan&&!st.rot&&!st.g&&(!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){Object.assign(st,{rot:true,a0:VW.a,t0:VW.t,x:e.clientX,y:e.clientY});VT.who=-1;VT.top=false;cv.style.cursor='grabbing'}   // arrastrar gira alrededor de la mesa
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;VT.who=-1;snap();return}
  // arrastrar la mesa: el punto que agarraste se queda bajo el dedo
  if(!drag&&(st.g||((st.pan||!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10))){if(!st.g){st.g=ground(st.x,st.y);VT.who=-1;if(!st.pan)cv.style.cursor='grabbing'}
@@ -725,6 +736,7 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
   // reordenar tu mano: se mete junto a la carta más cercana
   const F=(L.hand||[]).filter(f=>f.id!==d.id);let b=-1,bd=1e12;F.forEach((f,i)=>{const dd=(e.clientX-f.x)**2+(e.clientY-f.y)**2;if(dd<bd){bd=dd;b=i}});
   const ids=F.map(f=>f.id);ids.splice(b<0?0:b+(e.clientX>F[b].x?1:0),0,d.id);myOrder=ids.concat(staged.flatMap(g=>g.ids));manual=true;sfx('place');render();return}
+ if(mc&&(!s.hit||s.hit.t=='seat')&&mc.dobleToque(s.x,s.y))return;   // doble toque en la mesa: vista desde arriba (y de regreso)
  tap(s.hit)}
 function pCancel(e){if(st)clearTimeout(st.lp);peek(false);if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drag){drag.m.userData.T=null;drag=null;dragHi(null)}st=null;sync()}
 function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0&&G.turn==me,pl=mine&&G.step=='play',dn=me>=0&&G.down[me];
@@ -742,7 +754,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  const hint=i<0?mirTxt():mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
  // arriba: ronda y contrato, turno, cámara y ☰; abajo de ellas la ayuda o la última jugada
  const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
- let h=GHUD.top({st:`${G.round+1}/7 · <b>${conTxt(G.round)}</b>`,turn:mine?'¡Tu turno!':'Turno de '+nm(t),me:mine,open:menu,menu:'c3dMenu()',right:GHUD.view('c3dHome()')});
+ let h=GHUD.top({st:`${G.round+1}/7 · <b>${conTxt(G.round)}</b>`,turn:mine?'¡Tu turno!':'Turno de '+nm(t),me:mine,open:menu,menu:'c3dMenu()',right:(window.MCAM?MCAM.boton(VT.top):'')+GHUD.view('c3dHome()')});
  if(!mini)h+=GHUD.hint(mine||!lgT?hint:lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
@@ -854,7 +866,7 @@ function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEac
 
 // ---------- engancharse a la vista de siempre ----------
 // al cerrar la ronda la mesa se queda 3 s más: el ganador baila y los demás se llevan la mano a la cabeza (c_mesa_pj.js)
-let finT=0,finPh='';
+let finT=0,finPh='',finCut=-1;
 function active(){if(!(on&&!!S&&!!V&&V.game==='continental'&&!!V.G))return false;const G=V.G;
  if(G.phase!==finPh){if(finPh==='play'&&G.phase==='end'&&window.MPJ&&MPJ.on&&!RM)finT=performance.now()+3200;finPh=G.phase}
  return G.phase==='play'||(G.phase==='end'&&performance.now()<finT)}
@@ -862,7 +874,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){if(finT){finT=0;if(window.MPJ)MPJ.fin(-1);render()}first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H||tkey()!==tableKey){layout();sync()}
- viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
+ viewStep(dt);vivo(now,dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
  const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
@@ -871,8 +883,9 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
 function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=!(fz&&V.me>=0);   // en la casa las sillas a su tamaño; la tuya no se ve (la cámara son tus ojos)
  [C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
-function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa (Esc)':p?'Viendo a '+p.name+' · Cuadrar (Esc)':'Cuadrar (Esc)';
+function viewBtn(){const ab=document.querySelector('.gj-arr'),mv=viewed()&&!VT.top;   // uno a la vez: Arriba (en tu vista o en la de arriba) o Recentrar (cámara movida)
+ if(ab){if(ab.classList.contains('on')!==!!VT.top){ab.classList.toggle('on',!!VT.top);ab.setAttribute('aria-pressed',!!VT.top)}const dsp=mv?'none':'';if(ab.style.display!==dsp)ab.style.display=dsp}if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&!VT.top?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa (Esc)':p?'Viendo a '+p.name+' · Recentrar (Esc)':'Recentrar (Esc)';
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
@@ -890,7 +903,7 @@ window.c3dDark=()=>{setDark(!dark);menu=false;sfx('tick');render()};
 window.c3dMini=()=>{mini=!mini;menu=false;try{localStorage.setItem('cont_mini',mini?'1':'0')}catch(e){}if(L)L.top=0;sfx('tick');render()};
 window.c3dBajar=bajar3d;
 window.c3dLook=look;
-window.c3dHome=home;
+window.c3dHome=home;window.c3dArriba=()=>{if(mc)mc.arriba(!VT.top)};
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
 // el Uno 3D usa el mismo cuarto y los mismos Miis
 window.C3D={buildRoom,mkAvatar,avPick,seg,ik,setFace:(g,ex)=>window.MII&&MII.setFace(g,ex),AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};

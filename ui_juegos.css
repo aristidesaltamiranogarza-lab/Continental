@@ -7,6 +7,7 @@
 .gj-top>*{pointer-events:auto}
 .gj-tl{display:flex;gap:6px;min-width:0;flex:1}
 .gj-tr{display:flex;gap:8px;flex:none}
+.gj-tr .gj-view{position:static}   /* fijo sin coordenadas se encimaba sobre el botón de junto */
 .gj-top .ui-pill{height:46px;padding:0 14px;cursor:default}
 .gj-top .ui-rb{width:46px;height:46px}
 .gj-st{flex:none}

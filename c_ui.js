@@ -38,6 +38,7 @@ const P={
  ordenar:'<path d="M8 4v16M4.5 7.5L8 4l3.5 3.5M16 20V4M12.5 16.5L16 20l3.5-3.5"/>',
  nuevo:'<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/>',
  cuadrar:'<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+ arriba:'<circle cx="12" cy="15.5" r="6"/><path d="M12 2v6.5M9 5.5l3 3 3-3"/>',
  ok:'<path d="M5 12.5l4.5 4.5L19 7"/>',
  pantalla:'<rect x="3" y="4.5" width="18" height="12" rx="2.5"/><path d="M8.5 20h7M12 16.5V20"/>'};
 const ico=(n,c)=>'<svg class="ui-ico'+(c?' '+c:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+(P[n]||'')+'</svg>';

@@ -9,10 +9,10 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,std,box,cyl,ctex,TB,HX,ZB}=
  const brass=std(0xc9a24a,.32,{metalness:.8}),cord=std(0x161616,.6),wd=std(0x3a2212,.5),wd2=std(0x5a3418,.6);
 
  // ---------- lámparas colgantes sobre cada mesa (pantalla de latón y foco cálido) ----------
- TB.filter(t=>!t.door).forEach(t=>{const y=5.6;cyl(.01,.01,CEIL-y,cord,t.x,(CEIL+y)/2,t.z,SC,6);
+ TB.filter(t=>!t.door).forEach(t=>{const y=5.6,cd=cyl(.01,.01,CEIL-y,cord,t.x,(CEIL+y)/2,t.z,SC,6);
   const sh=new THREE.Mesh(new THREE.CylinderGeometry(.14,.62,.42,32,1,true),std(0x2f5a3a,.45,{side:THREE.DoubleSide,metalness:.35}));sh.position.set(t.x,y,t.z);SC.add(sh);
-  cyl(.15,.15,.06,brass,t.x,y+.22,t.z,SC,24);const rim=new THREE.Mesh(new THREE.TorusGeometry(.62,.025,8,40),brass);rim.rotation.x=Math.PI/2;rim.position.set(t.x,y-.21,t.z);SC.add(rim);
-  const b=new THREE.Mesh(new THREE.SphereGeometry(.1,14,10),new THREE.MeshBasicMaterial({color:0xfff0c8,toneMapped:false}));b.position.set(t.x,y-.14,t.z);SC.add(b);
+  const cp=cyl(.15,.15,.06,brass,t.x,y+.22,t.z,SC,24),rim=new THREE.Mesh(new THREE.TorusGeometry(.62,.025,8,40),brass);rim.rotation.x=Math.PI/2;rim.position.set(t.x,y-.21,t.z);SC.add(rim);
+  const b=new THREE.Mesh(new THREE.SphereGeometry(.1,14,10),new THREE.MeshBasicMaterial({color:0xfff0c8,toneMapped:false}));b.position.set(t.x,y-.14,t.z);SC.add(b);t.lampara=[cd,sh,cp,rim,b];   // CASA3D.fondo las esconde cuando un juego pone su mesa (MESA trae la suya)
   const L=new THREE.PointLight(0xffd9a0,7,8,1.6);L.position.set(t.x,y-.3,t.z);SC.add(L)});
 
  // ---------- ventiladores de techo (entre las mesas) ----------

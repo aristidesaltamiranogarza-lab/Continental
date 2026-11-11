@@ -455,9 +455,9 @@ function ancla(g){const t=ready&&on&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)re
 // arranca(g): si recargaste a media partida la casa no se armó (se arma sin dibujarse); si la mesa está en otro piso, te pasa junto a ella
 const PISOJ={continental:'pb',uno:'pb',merida:'alta',haciendas:'alta'};
 function arranca(g){if(!on)return false;if(!ready)try{init()}catch(e){console.warn('Casa 3D:',e);return false}const p=PISOJ[g];if(p&&p!==FL.id&&!fBusy)irA(p,g);return true}
-function fondoFin(){const t=fzT;if(!t)return;fzT=null;t.G.children.forEach(o=>{if(o.userData.fz){o.visible=true;delete o.userData.fz}});seated.forEach(s=>{if(s.t===t)s.g.visible=true})}
+function fondoFin(){const t=fzT;if(!t)return;fzT=null;t.G.children.concat(t.lampara||[]).forEach(o=>{if(o.userData.fz){o.visible=true;delete o.userData.fz}});seated.forEach(s=>{if(s.t===t)s.g.visible=true})}
 function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)return false;const now=performance.now();
- if(fzT!==t){fondoFin();fzT=t;fzN=0;fzP.set(t.x,0,t.z);t.G.children.forEach(o=>{if(o.visible&&!o.isLight&&!t.pie.includes(o)&&!(sillas&&t.chairs.includes(o))){o.visible=false;o.userData.fz=1}})}
+ if(fzT!==t){fondoFin();fzT=t;fzN=0;fzP.set(t.x,0,t.z);t.G.children.concat(t.lampara||[]).forEach(o=>{if(o.visible&&!o.isLight&&!t.pie.includes(o)&&!(sillas&&t.chairs.includes(o))){o.visible=false;o.userData.fz=1}})}
  fzN++;me.g.visible=false;others.forEach(o=>o.g.visible=false);if(!sillas)seated.forEach(s=>{if(s.t===t)s.g.visible=false});
  CA.position.copy(cam.position);CA.quaternion.copy(cam.quaternion);CA.updateMatrixWorld();   // los módulos del piso (vigas, corte, LUZ) leen CASA3D.cam()
  R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
