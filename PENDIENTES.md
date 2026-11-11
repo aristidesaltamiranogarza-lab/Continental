@@ -49,11 +49,11 @@
 - [x] Quitar del GLB el objeto suelto "Cube" que exporta Blender aunque no esté seleccionado. — 10 nov 2026: venía de otra escena del .blend ("Scene"); se exporta con `use_active_scene=True`.
 
 ## Paso 6 · Cliente: `c_avatar.js`
-- [ ] Módulo nuevo y chico `c_avatar.js` (objeto global `AV`): carga el GLB una vez, `AV.crear(codigo)` clona con SkeletonUtils, muestra solo las piezas elegidas y aplica los colores (material clonado por personaje).
-- [ ] Código corto del personaje, por ejemplo `p3c1b2n1a2d3-<colores>`: `AV.codificar(obj)` y `AV.leer(codigo)`, con valores por defecto si viene mal.
-- [ ] Paletas fijas en el mismo módulo (pelo, piel, ropa) con colores del estilo Cálida.
-- [ ] Reproducir acciones: `AV.pose(p, 'PistolaSien')` y `AV.agarre(p, 'D', 0..1)`.
-- [ ] Registrar el archivo en el mapa estático de server.js (~línea 14) y en la línea de scripts de continental3d.html (antes de c_casa3d.js).
+- [x] Módulo nuevo y chico `c_avatar.js` (objeto global `AV`): carga el GLB una vez, `AV.crear(codigo)` clona con SkeletonUtils, muestra solo las piezas elegidas y aplica los colores (material clonado por personaje). — 10 nov 2026: `AV.crear` es promesa (`AV.crearYa` si ya cargó); también `AV.cambiar(p,codigo)`, `AV.quita(p)`, `AV.sien(p,'D')`, `AV.pistola(p,true)`, `AV.azar(s)`. Probado en el navegador: s2p4… = 19 504 tris visibles, piezas y colores bien.
+- [x] Código corto del personaje, por ejemplo `p3c1b2n1a2d3-<colores>`: `AV.codificar(obj)` y `AV.leer(codigo)`, con valores por defecto si viene mal. — 10 nov 2026: formato `s1p3c1b2n1a2d3-2051` (s cuerpo 1 H / 2 M; tras el guion índices base 36: pelo, piel, arriba, abajo).
+- [x] Paletas fijas en el mismo módulo (pelo, piel, ropa) con colores del estilo Cálida. — 10 nov 2026: `AV.PAL` (8 pelo, 8 piel, 10 ropa compartida arriba/abajo).
+- [x] Reproducir acciones: `AV.pose(p, 'PistolaSien')` y `AV.agarre(p, 'D', 0..1)`. — 10 nov 2026: Blender hornea todos los huesos en cada acción; al cargar, las poses pierden las pistas de dedos y `Agarre_I/D` se quedan solo con los dedos de su lado. Usa la variante `_n` del peinado. Mixer con su propio requestAnimationFrame (no corre con la pestaña oculta; cada cambio se aplica al instante).
+- [x] Registrar el archivo en el mapa estático de server.js (~línea 14) y en la línea de scripts de continental3d.html (antes de c_casa3d.js).
 
 ## Paso 7 · Servidor
 - [ ] Guardar el código del personaje en localStorage y mandarlo al entrar a una sala; server.js lo guarda por jugador y lo regresa en el polling para que los demás lo vean.
