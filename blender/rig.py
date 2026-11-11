@@ -25,6 +25,7 @@ K = dict(
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
+    PEINADOS=range(2, 8), TOL_SIEN=0.01,   # sien mas lejos que esto de la del peinado 1 -> pose nueva          # peinados de pelos.py (Peinado_n_Pelo / _Extra) -> piezas Pelo_n
     PIEZA={'Pelo': 'Pelo_1', 'Cejas': 'Cejas_1', 'Boca': 'Boca_1', 'Nariz': 'Nariz_1',
            'Playera': 'Arriba_1', 'Brazos': 'Arriba_1', 'Pantalon': 'Abajo_1'},
     # material de Frente -> material de ranura en el GLB (copias; av_pelo/piel/arriba/abajo cambian de color)
@@ -96,9 +97,8 @@ _q = ([_v] + list(_v.children_recursive)) if _v else []
 _q += [bpy.data.objects.get(nm) for nm in ('Rig_Cuerpo', 'Rig_Pistola', 'Sien_I', 'Sien_D')]
 for o in {o.name: o for o in _q if o}.values(): bpy.data.objects.remove(o, do_unlink=True)
 for me in [m for m in bpy.data.meshes if m.users == 0 and m.name.startswith('Rig_')]: bpy.data.meshes.remove(me)
-for nm in ('Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien', 'Agarre_I', 'Agarre_D'):
-    a = bpy.data.actions.get(nm)
-    if a: bpy.data.actions.remove(a)
+for a in [a for a in bpy.data.actions if a.name in ('Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien', 'Agarre_I', 'Agarre_D')
+          or a.name.startswith(('PistolaSien_', 'ManoCabeza_'))]: bpy.data.actions.remove(a)
 if bpy.context.object and bpy.context.object.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
 col = bpy.context.scene.collection
 
@@ -144,13 +144,19 @@ for src, nm in K['MAT'].items():
     if bpy.data.materials.get(nm): bpy.data.materials.remove(bpy.data.materials[nm])
     AV[src] = bpy.data.materials[src].copy(); AV[src].name = nm
 partes = {}
-for o in fuente.children:
-    suf = o.name.split('_', 1)[1]; viejo = {}
+# (objeto, nombre de parte, clave para NIVEL/DECIMA): las partes de Frente y los peinados de pelos.py
+fuentes = [(o, o.name.split('_', 1)[1], o.name.split('_', 1)[1]) for o in fuente.children]
+for n in K['PEINADOS']:
+    fuentes.append((bpy.data.objects['Peinado_%d_Pelo' % n], 'Pelo_%d' % n, 'Pelo'))
+    ox = bpy.data.objects.get('Peinado_%d_Extra' % n)
+    if ox: fuentes.append((ox, 'Pelo_%d_extra' % n, 'Extra'))
+for o, suf, cl in fuentes:
+    viejo = {}
     for m in o.modifiers:
-        if m.type == 'SUBSURF': viejo[m.name] = m.levels; m.levels = K['NIVEL'].get(suf, 0)
+        if m.type == 'SUBSURF': viejo[m.name] = m.levels; m.levels = K['NIVEL'].get(cl, 0)
     dec = None
-    if K['DECIMA'].get(suf, 1) < 1:
-        dec = o.modifiers.new('tmp_decima', 'DECIMATE'); dec.ratio = K['DECIMA'][suf]
+    if K['DECIMA'].get(cl, 1) < 1:
+        dec = o.modifiers.new('tmp_decima', 'DECIMATE'); dec.ratio = K['DECIMA'][cl]
         dec.use_symmetry = True; dec.symmetry_axis = 'X'; o.modifiers.move(len(o.modifiers) - 1, 0)
     dg.update(); me = bpy.data.meshes.new_from_object(o.evaluated_get(dg))
     if dec: o.modifiers.remove(dec)
@@ -168,7 +174,10 @@ def bvh_de(*nombres):
         me = partes[nm].data; b = len(vs)
         vs += [v.co.copy() for v in me.vertices]; ps += [[b + i for i in p.vertices] for p in me.polygons]
     return BVHTree.FromPolygons(vs, ps)
-cabezaBVH = bvh_de('Pelo', 'Cabeza')
+BVH = {1: bvh_de('Pelo', 'Cabeza')}
+for n in K['PEINADOS']:
+    BVH[n] = bvh_de(*[x for x in ('Pelo_%d' % n, 'Pelo_%d_extra' % n) if x in partes], 'Cabeza')
+cabezaBVH = BVH[1]
 
 # ---------- pesos ----------
 cabeza_rigida = ('Cabeza', 'Boca', 'Cejas', 'Nariz', 'Ojos', 'Pelo', 'Piel')
@@ -188,7 +197,7 @@ for suf, ob in partes.items():
     else:
         ob.parent = arm; ob.matrix_parent_inverse.identity(); ob.matrix_basis.identity()
         ob.modifiers.new('Armature', 'ARMATURE').object = arm
-        if suf in cabeza_rigida:
+        if suf in cabeza_rigida or suf.startswith('Pelo_'):
             ob.vertex_groups.new(name='cabeza').add(range(len(ob.data.vertices)), 1.0, 'REPLACE')
         else:   # zapatos y suelas: pie del lado
             gI = ob.vertex_groups.new(name='pie_I'); gD = ob.vertex_groups.new(name='pie_D')
@@ -196,7 +205,8 @@ for suf, ob in partes.items():
             gD.add([v.index for v in ob.data.vertices if v.co.x <= 0], 1.0, 'REPLACE')
 for b in ad.bones: b.use_deform = b.name != 'raiz'
 grupos = {}
-for suf, ob in partes.items(): grupos.setdefault(K['PIEZA'].get(suf, 'Base'), []).append(ob)
+def pieza_de(suf): return suf[:-6] if suf.startswith('Pelo_') and suf.endswith('_extra') else (suf if suf.startswith('Pelo_') else K['PIEZA'].get(suf, 'Base'))
+for suf, ob in partes.items(): grupos.setdefault(pieza_de(suf), []).append(ob)
 piezas = {}
 for nm, obs in grupos.items():      # una pieza = un objeto (une las partes que le tocan)
     for o in bpy.context.selected_objects: o.select_set(False)
@@ -367,46 +377,49 @@ PIS_L = [p for c, dm in caj for p in caja_pts(c, dm)]
 def sien(sx):
     d = V((sx * K['SIEN'][0], K['SIEN'][1], K['SIEN'][2])).normalized()
     return cabezaBVH.ray_cast(C + d * 3, -d)[0], d
-Sd, nd = sien(-1); Si, ni = sien(1)
-hc = bones['cabeza'].head_local
-mejor = None; ST = dict(n=0, ok=0); hD = bones['hombro_D']
-for sh in (0, 15, 30):                                     # hombro encogido (sube el hombro)
-    H = Matrix.Translation(hD.head_local) @ Matrix.Rotation(math.radians(sh), 4, 'Y') @ Matrix.Translation(-hD.head_local)
-    S = H @ V((-hx, hy, hz))
-    for tau in (0, -8, -16, -24):                          # cabeza ladeada hacia la pistola
-        T = Matrix.Translation(hc) @ Matrix.Rotation(math.radians(tau), 4, 'Y') @ Matrix.Translation(-hc); Ti = T.inverted()
-        Sw = T @ Sd; nw = (T.to_3x3() @ nd).normalized(); d0 = -nw
-        up0 = (V((0, 0, 1)) - d0 * d0.z).normalized(); hz_ = d0.cross(up0)
-        for al in range(-20, 61, 5):                       # canon inclinado hacia arriba (brazo corto)
-            for be in range(-50, 51, 10):
-                d = rot(rot(d0, hz_, al), up0, be)
-                for fi in range(-60, 61, 15):
-                    s = rot((up0 - d * up0.dot(d)).normalized(), d, fi)
-                    x = s * lado; R = Matrix((x, d, x.cross(d))).transposed()
-                    W = Sw + nw * 0.008 - R @ BOCA
-                    ST['n'] += 1
-                    if (W - S).length > (K['L1'] + K['L2']) * 0.995: continue
-                    for pole in (V((-1, 0, -0.5)), V((-1, -0.6, -0.3)), V((-0.7, 0.5, -0.5))):
-                        E, W2 = ik(S, W, pole)
-                        if E.x > -0.25: continue
-                        dob = math.degrees((W - E).angle(d))
-                        pena = dob + abs(tau) * 0.5 + sh * 0.3 + max(0, abs(al) - 10) * 0.8; ST['ok'] += 1
-                        if mejor and (mejor[0], mejor[1]) <= (0, pena): continue
-                        M = R.to_4x4(); M.translation = W
-                        prueba = [M @ p for p in MANO_L[::3] + PIS_L]
-                        for a, b in ((S, E), (E, W)):
-                            for i in range(1, 9):
-                                p = a.lerp(b, i / 8); prueba.append(p + (C - p).normalized() * 0.065)
-                        nin = 0; tope = mejor[0] if mejor else 10 ** 9
-                        for p in prueba:
-                            nin += inside(p, Ti)
-                            if nin > tope: break
-                        if mejor and (nin, pena) >= (mejor[0], mejor[1]): continue
-                        mejor = (nin, pena, dict(muneca=round(dob), cabeza=tau, hombro=sh, alto=al, frente=be, giro=fi), S, E, W, d, x.cross(d), T, H)
-nin, pena, info, S, E, W, d, nz, T, H = mejor
-print('pistola sien:', ST, 'puntos dentro', nin, info)
-cab = T @ bones['cabeza'].matrix_local
-qPS, _ = pose_brazos({'_D': (S, E, W, d, nz)}, {'cabeza': cab, 'hombro_D': H @ hD.matrix_local})
+def buscar_pistola():
+    Sd, nd = sien(-1); Si, ni = sien(1)
+    hc = bones['cabeza'].head_local
+    mejor = None; ST = dict(n=0, ok=0); hD = bones['hombro_D']
+    for sh in (0, 15, 30):                                     # hombro encogido (sube el hombro)
+        H = Matrix.Translation(hD.head_local) @ Matrix.Rotation(math.radians(sh), 4, 'Y') @ Matrix.Translation(-hD.head_local)
+        S = H @ V((-hx, hy, hz))
+        for tau in (0, -8, -16, -24):                          # cabeza ladeada hacia la pistola
+            T = Matrix.Translation(hc) @ Matrix.Rotation(math.radians(tau), 4, 'Y') @ Matrix.Translation(-hc); Ti = T.inverted()
+            Sw = T @ Sd; nw = (T.to_3x3() @ nd).normalized(); d0 = -nw
+            up0 = (V((0, 0, 1)) - d0 * d0.z).normalized(); hz_ = d0.cross(up0)
+            for al in range(-20, 61, 5):                       # canon inclinado hacia arriba (brazo corto)
+                for be in range(-50, 51, 10):
+                    d = rot(rot(d0, hz_, al), up0, be)
+                    for fi in range(-60, 61, 15):
+                        s = rot((up0 - d * up0.dot(d)).normalized(), d, fi)
+                        x = s * lado; R = Matrix((x, d, x.cross(d))).transposed()
+                        W = Sw + nw * 0.008 - R @ BOCA
+                        ST['n'] += 1
+                        if (W - S).length > (K['L1'] + K['L2']) * 0.995: continue
+                        for pole in (V((-1, 0, -0.5)), V((-1, -0.6, -0.3)), V((-0.7, 0.5, -0.5))):
+                            E, W2 = ik(S, W, pole)
+                            if E.x > -0.25: continue
+                            dob = math.degrees((W - E).angle(d))
+                            pena = dob + abs(tau) * 0.5 + sh * 0.3 + max(0, abs(al) - 10) * 0.8; ST['ok'] += 1
+                            if mejor and (mejor[0], mejor[1]) <= (0, pena): continue
+                            M = R.to_4x4(); M.translation = W
+                            prueba = [M @ p for p in MANO_L[::3] + PIS_L]
+                            for a, b in ((S, E), (E, W)):
+                                for i in range(1, 9):
+                                    p = a.lerp(b, i / 8); prueba.append(p + (C - p).normalized() * 0.065)
+                            nin = 0; tope = mejor[0] if mejor else 10 ** 9
+                            for p in prueba:
+                                nin += inside(p, Ti)
+                                if nin > tope: break
+                            if mejor and (nin, pena) >= (mejor[0], mejor[1]): continue
+                            mejor = (nin, pena, dict(muneca=round(dob), cabeza=tau, hombro=sh, alto=al, frente=be, giro=fi), S, E, W, d, x.cross(d), T, H)
+    nin, pena, info, S, E, W, d, nz, T, H = mejor
+    print('pistola sien:', ST, 'puntos dentro', nin, info)
+    cab = T @ bones['cabeza'].matrix_local
+    qPS, _ = pose_brazos({'_D': (S, E, W, d, nz)}, {'cabeza': cab, 'hombro_D': H @ hD.matrix_local})
+    return qPS, Sd, nd, Si, ni, T
+qPS, Sd, nd, Si, ni, T = buscar_pistola()
 
 # ---------- acciones ----------
 ident = {k: Quaternion() for k in CUERPO}
@@ -417,11 +430,14 @@ for _, suf in LADOS:
     accion('Agarre' + suf, [(1, {k: Quaternion() for k in DEDOS[suf]}), (10, AGARRE[suf])])
 
 # ---------- empties de la sien ----------
-for nm, P, nn in (('Sien_I', Si, ni), ('Sien_D', Sd, nd)):
-    em = bpy.data.objects.new(nm, None); col.objects.link(em)
-    em.empty_display_type = 'SINGLE_ARROW'; em.empty_display_size = 0.08
-    aplicar({}); em.parent = arm; em.parent_type = 'BONE'; em.parent_bone = 'cabeza'
-    bpy.context.view_layer.update(); em.matrix_world = arm.matrix_world @ marco(P, P + V((0, 0, 1)), nn) @ Matrix.Rotation(-math.pi / 2, 4, 'X')
+SIENES = []
+def empties(suf_n, Si, ni, Sd, nd):
+    for nm, P, nn in (('Sien_I' + suf_n, Si, ni), ('Sien_D' + suf_n, Sd, nd)):
+        em = bpy.data.objects.new(nm, None); col.objects.link(em); SIENES.append(em)
+        em.empty_display_type = 'SINGLE_ARROW'; em.empty_display_size = 0.08
+        aplicar({}); em.parent = arm; em.parent_type = 'BONE'; em.parent_bone = 'cabeza'
+        bpy.context.view_layer.update(); em.matrix_world = arm.matrix_world @ marco(P, P + V((0, 0, 1)), nn) @ Matrix.Rotation(-math.pi / 2, 4, 'X')
+empties('', Si, ni, Sd, nd)
 
 # ---------- revision con la malla deformada ----------
 def penetra(q, g, idx, inv=None):
@@ -433,22 +449,43 @@ print('PistolaSien: verts de mano/brazo dentro del pelo', penetra(qPS, {'_D': 1.
 iManoI = sel_de(('mano', 'dedos', 'pulgar'), '_I')
 def prof(q, g, idx):
     aplicar(q, g); return max(hondo(p) for p in defo(idx))
-MC = None
-for az in (125, 115, 105, 95, 85):          # de atras de la oreja hacia el lado
-    for el in (-5, 5, -15, 15):
-        lo, hi = 0.0, 0.08                        # biseccion: lo mas pegado al pelo sin meterse
-        qMC, llega = mano_cabeza(az, el, hi)
-        if not llega or prof(qMC, {}, iManoI) > 0.0015: continue
-        for _ in range(6):
-            mid = (lo + hi) / 2; q, llega = mano_cabeza(az, el, mid)
-            if llega and prof(q, {}, iManoI) < 0.0015: hi = mid
-            else: lo = mid
-        off = hi; qMC = mano_cabeza(az, el, off)[0]; MC = (az, el, off, qMC)
+def buscar_mano():
+    MC = None
+    for az in (125, 115, 105, 95, 85):          # de atras de la oreja hacia el lado
+        for el in (-5, 5, -15, 15):
+            lo, hi = 0.0, 0.08                        # biseccion: lo mas pegado al pelo sin meterse
+            qMC, llega = mano_cabeza(az, el, hi)
+            if not llega or prof(qMC, {}, iManoI) > 0.0015: continue
+            for _ in range(6):
+                mid = (lo + hi) / 2; q, llega = mano_cabeza(az, el, mid)
+                if llega and prof(q, {}, iManoI) < 0.0015: hi = mid
+                else: lo = mid
+            off = hi; qMC = mano_cabeza(az, el, off)[0]; MC = (az, el, off, qMC)
+            if MC: break
         if MC: break
-    if MC: break
-az, el, off, qMC = MC
+    az, el, off, qMC = MC
+    return az, el, off, qMC
+az, el, off, qMC = buscar_mano()
 accion('ManoCabeza', [(1, qMC)])
 print('ManoCabeza: azimut', az, 'elev', el, 'separada', round(off * 1000), 'mm; verts dentro', penetra(qMC, {}, iManoI))
+
+# ---------- peinados 2..n: empties Sien_x_n, PistolaSien_n y ManoCabeza_n con su pelo ----------
+def choque_pistola(q, T):
+    Ti = T.inverted(); a = penetra(q, {'_D': 1.0}, iMano + iBrazo, Ti)
+    return a + sum(1 for p in [arm.matrix_world.inverted() @ (pis.matrix_world @ v.co) for v in pis.data.vertices] if inside(p, Ti))
+base = (qPS, Sd, nd, Si, ni, T)
+for n in K['PEINADOS']:
+    cabezaBVH = BVH[n]
+    Sdn, ndn = sien(-1); Sin, nin_ = sien(1)
+    if (Sdn - Sd).length < K['TOL_SIEN'] and choque_pistola(qPS, T) == 0: qn, Tn, como = qPS, T, 'la del 1'
+    else: qn, Sdn, ndn, Sin, nin_, Tn = buscar_pistola(); como = 'nueva'
+    accion('PistolaSien_%d' % n, [(1, qn)]); empties('_%d' % n, Sin, nin_, Sdn, ndn)
+    if prof(qMC, {}, iManoI) < 0.0015: mc, como_m = qMC, 'la del 1'
+    else: mc, como_m = buscar_mano()[3], 'nueva'
+    accion('ManoCabeza_%d' % n, [(1, mc)])
+    print('peinado', n, '| PistolaSien', como, 'choques', choque_pistola(qn, Tn), 'sien movida',
+          round((Sdn - Sd).length * 1000), 'mm | ManoCabeza', como_m, 'verts dentro', penetra(mc, {}, iManoI))
+cabezaBVH = BVH[1]
 
 # comparar contra la copia Pose (geometria hecha a mano): distancia media de la mano/brazo deformados
 def compara(q, g, idx, nombre):
@@ -465,7 +502,7 @@ print('vs copia Pose (mm medio, max): mano_D', compara(qAF, {'_D': 1.0}, iMano, 
 # ---------- exportar GLB ----------
 aplicar({})
 for o in bpy.context.view_layer.objects: o.select_set(False)
-for o in [arm, pis, bpy.data.objects['Sien_I'], bpy.data.objects['Sien_D']] + list(piezas.values()): o.select_set(True)
+for o in [arm, pis] + SIENES + list(piezas.values()): o.hide_set(False); o.select_set(True)
 bpy.context.view_layer.objects.active = arm
 loc = arm.location.copy(); arm.location = (0, 0, 0); bpy.context.view_layer.update()
 props = bpy.ops.export_scene.gltf.get_rna_type().properties.keys()
@@ -485,5 +522,6 @@ print('piezas', {n['name']: tri_m(n['mesh']) for n in js['nodes'] if 'mesh' in n
       'skins', len(js['skins']), 'mats', [m['name'] for m in js['materials']])
 print('GLB', K['GLB'], round(os.path.getsize(K['GLB']) / 1024), 'KB', tris, 'tris',
       'huesos', len(js['skins'][0]['joints']), 'anim', [a['name'] for a in js.get('animations', [])])
+for nm, o in piezas.items(): o.hide_set(nm.startswith('Pelo_') and nm != 'Pelo_1')
 aplicar(qPS, {'_D': 1.0})
 print('rig ok')
