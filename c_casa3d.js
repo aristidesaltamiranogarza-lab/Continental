@@ -216,11 +216,18 @@ function pose(a,now,lookDown){const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT
 function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Math.max(0,Math.sin(t*.8)),10);
  u.body.scale.y=1+.012*Math.sin(now/650+s.seed);u.head.rotation.y=.45*Math.sin(t*.35);u.head.rotation.x=.25;
  u.arms.forEach(m=>{const k=m.s>0?r:0;m.h.set(m.s*.34-m.s*.12*k,.36+.15*k,.72+.6*k);K.ik(m.sh,m.h,u.l1,u.l2,POLE[m.s>0?1:0].clone(),m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
-function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps).slice(0,t.chairs.length).forEach((n,j)=>want.set(t.g+':'+j+':'+n,{t,j,n}))}));
- if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>want.set('sala:'+j+':'+n,{t,j,n,pop:1}))}}
- seated.forEach((s,k)=>{if(!want.has(k)){disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
- want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],g=mkG(w.n,1),fs=w.t.fl===FL?SC:w.t.fl.SC;if(fs)fs.add(g);c.visible=false;
-  g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);g.rotation.y=Math.atan2(-c.position.x,-c.position.z);const k0=g.scale.x;if(w.pop)g.scale.setScalar(.001);seated.set(k,{g,t:w.t,j:w.j,seed:Math.random()*10,p0:w.pop?performance.now():0,k0})})}
+// con personaje (c_avatar.js, código av del jugador) si ya cargó; si no, el Mii de siempre y se cambia al cargar
+let avPide=0;const avYa=()=>!!(window.AV&&AV.ya&&AV.ya());
+function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps.map((n,i)=>[n,(r.av||[])[i]||''])).slice(0,t.chairs.length).forEach(([n,av],j)=>want.set(t.g+':'+j+':'+n+':'+av,{t,j,n,av}))}));
+ if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>{const av=(salaPs.av||[])[j]||'';want.set('sala:'+j+':'+n+':'+av,{t,j,n,av,pop:1})})}}
+ const conAv=w=>w.av&&avYa();
+ if(!avPide&&window.AV&&!avYa()&&[...want.values()].some(w=>w.av)){avPide=1;AV.listo().then(()=>{if(ready)seatSync()},()=>{})}
+ seated.forEach((s,k)=>{const w=want.get(k);if(!w||(!s.av&&conAv(w))){if(s.av)AV.quita(s.g);else disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
+ want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],fs=w.t.fl===FL?SC:w.t.fl.SC,ya=conAv(w),g=ya?AV.crearYa(w.av):mkG(w.n,1);if(fs)fs.add(g);c.visible=false;
+  const ry=Math.atan2(-c.position.x,-c.position.z);g.rotation.y=ry;
+  if(ya){AV.sentar(g,true);AV.pose(g,w.pop?'Reposo':'AgarreFrente',0);g.position.set(w.t.x+c.position.x-.2*Math.sin(ry),.24,w.t.z+c.position.z-.2*Math.cos(ry))}   // cadera sobre el asiento, un poco hacia el respaldo
+  else g.position.set(w.t.x+c.position.x,1.55,w.t.z+c.position.z);
+  const k0=g.scale.x;if(w.pop)g.scale.setScalar(.001);seated.set(k,{g,av:ya,t:w.t,j:w.j,seed:Math.random()*10,p0:w.pop?performance.now():0,k0})})}
 function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.max(b[2],Math.min(b[3],p.z));
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}});
  // muros (FL.WL: segmentos [ax,az,bx,bz,r] sin los vanos, de c_casa_pb.js)
@@ -249,7 +256,7 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
 // los demás: se deslizan suave hacia la última posición que mandó el servidor
 function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{a.g.visible=(a.f||'pb')===FL.id;const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
  a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,1.57,a.pos.z);pose(a,now,false)});
- seated.forEach(s=>poseSeated(s,now))}
+ seated.forEach(s=>{if(!s.av)poseSeated(s,now)})}
 function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}
  if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}
 // llega por el hueco entre dos sillas que le quede más cerca (las sillas están a 45°, los huecos a 0°, 90°, 180° y 270°)
@@ -440,7 +447,7 @@ function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||
  if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
  const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
 window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,ancla,fondo,arranca,
- sala:{gente:(g,n)=>{salaPs=n&&n.length?{g,n}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
+ sala:{gente:(g,n,av)=>{salaPs=n&&n.length?{g,n,av:av||[]}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
   sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+c.position.x,TH+1.02,t.z+c.position.z)):[]}}};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
 window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
@@ -476,7 +483,7 @@ function salaPaso(now,dt){if(innerWidth!==W||innerHeight!==H)layout();if(W/H<.95
  if(salaT){const RM=window.CCAM&&CCAM.RM,c=salaPose(salaT,salaA+(RM?0:(now-salaT0)*4e-5),salaDive),f=1-Math.exp(-dt/(salaDive?190:420));CA.position.lerp(c.position,f);CA.quaternion.slerp(c.quaternion,f)}
  const o=SALA.hueco(),k=1-Math.exp(-dt/260);sOff.x+=(o.x-sOff.x)*k;sOff.y+=(o.y-sOff.y)*k;
  if(Math.abs(sOff.x)+Math.abs(sOff.y)>.5)CA.setViewOffset(W,H,sOff.x,sOff.y,W,H);else CA.clearViewOffset();CA.updateMatrixWorld();
- seated.forEach(s=>{poseSeated(s,now);if(s.p0){const q=Math.min(1,(now-s.p0)/650),e=q-1;s.g.scale.setScalar(s.k0*Math.max(.001,1+2.7*e*e*e+1.7*e*e));if(q>=1)s.p0=0}});
+ seated.forEach(s=>{if(!s.av)poseSeated(s,now);if(s.p0){const q=Math.min(1,(now-s.p0)/650),e=q-1;s.g.scale.setScalar(s.k0*Math.max(.001,1+2.7*e*e*e+1.7*e*e));if(q>=1)s.p0=0}});
  if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.VENT)VENT.paso(FL.id,R,CA);
  const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;(window.SALA?sitSala:sit)(()=>mk(mode))};

@@ -1,6 +1,6 @@
 // c_avatar.js — AV: personaje chibi personalizable (modelos/personaje/chibi.glb, un solo GLB con todas las piezas).
 // Usa el cargador de CGLB (GLTF + meshopt) y SkeletonUtils. Cada personaje es un clon con sus propios materiales de color.
-//   AV.crear('s1p3c1b2n1a2d3-2051').then(p=>escena.add(p));   AV.pose(p,'PistolaSien');   AV.agarre(p,'D',1);   AV.quita(p);
+//   AV.crear('s1p3c1b2n1a2d3-2051').then(p=>escena.add(p));   AV.pose(p,'PistolaSien');   AV.agarre(p,'D',1);   AV.sentar(p,true);   AV.quita(p);
 // Código: s cuerpo (1 H, 2 M), p pelo 1–7, c cejas, b boca, n nariz, a arriba, d abajo (1–3); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
@@ -59,9 +59,13 @@ function crear(cod){return listo().then(b=>{base=b;return crearYa(cod)})}
 
 // ---------- animación ----------
 const vivos=new Set();let raf=0,t0=0;
-function despierta(p,ms){const u=p.userData.av;u.mixer.update(0);u.hasta=Math.max(u.hasta,performance.now()+ms);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
+// sentado: después de cada cuadro del mixer dobla muslos (90° al frente) y rodillas (90° atrás) sobre la pose
+const QS=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),QR=QS.clone().invert();
+function upd(p,dt){const u=p.userData.av;u.mixer.update(dt);if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QS);if(r)r.quaternion.multiply(QR)}}
+function sentar(p,si){const u=p.userData.av;if(!u)return;u.sentado=!!si;if(si&&!u.hueso){u.hueso={};for(const n of ['muslo_D','muslo_I','pierna_D','pierna_I'])u.hueso[n]=p.getObjectByName(n)}despierta(p,40)}
+function despierta(p,ms){const u=p.userData.av;upd(p,0);u.hasta=Math.max(u.hasta,performance.now()+ms);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function paso(t){const dt=Math.min(.1,(t-t0)/1000);t0=t;
- for(const p of vivos){const u=p.userData.av;u.mixer.update(dt);if(t>u.hasta)vivos.delete(p)}
+ for(const p of vivos){const u=p.userData.av;upd(p,dt);if(t>u.hasta)vivos.delete(p)}
  raf=vivos.size?requestAnimationFrame(paso):0}
 // pose: 'Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien' (usa la variante del peinado si existe)
 function pose(p,nom,fade=.25){const u=p.userData.av;if(!u||!base)return;const c=base.clips[nom+'_'+u.o.p]||base.clips[nom];if(!c)return console.warn('[AV] sin pose',nom);
@@ -80,7 +84,7 @@ function cambiar(p,cod){const u=p.userData.av;if(!u)return p;const pelo=u.o.p;ap
 function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.stopAllAction();u.mixer.uncacheRoot(p);
  for(const k in u.mat)u.mat[k].dispose();if(p.parent)p.parent.remove(p);p.userData.av=null}
 
-window.AV={PAL,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,cambiar,pose,agarre,sien,pistola,quita,
+window.AV={PAL,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,sentar,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
  mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}

@@ -66,9 +66,9 @@
 - [ ] Probar en celular vertical y horizontal, también en 21:9.
 
 ## Paso 9 · Personajes en la mesa y la sala
-- [ ] Poner a cada jugador con su personaje en su silla en la mesa y en la sala de espera (SALA).
+- [x] Poner a cada jugador con su personaje en su silla en la mesa y en la sala de espera (SALA). — 11 nov 2026: `seatSync` (c_casa3d.js) usa `AV.crearYa(av)` sentado (`AV.sentar`: muslos y rodillas a 90° por código, sin pose nueva en el GLB), pose `Reposo` en la sala y `AgarreFrente` jugando; Mii mientras carga el GLB. El código llega por `SALA.gente(k,nombres,avs)` y por `av` en el listado de salas (server.js `salas()`). Falta probar la aparición (pop) con una sala real y en celular.
 - [ ] Medir FPS en celular con la mesa llena; si baja, usar una versión más ligera para los personajes lejanos.
-- [ ] Usar `PistolaSien_n` y los empties de sien en la Ruleta Rusa.
+- [ ] Usar `PistolaSien_n` y los empties de sien en la Ruleta Rusa. Pendiente junto con rehacer las animaciones de la Ruleta (hoy son Miis con IK: apuntar y la mano en primera persona).
 
 ## Otros pendientes (de la lista anterior)
 - [ ] FPS bajan cerca de las dos mesas altas del sótano (cantina, `mesa_cantina`): medir ocultando vasos, rockola y luces de esa zona.

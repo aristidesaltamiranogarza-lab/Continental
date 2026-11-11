@@ -84,7 +84,7 @@ const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','�
 function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
  // c: código para unirse (solo si espera jugadores); w: código para ir a mirar (si ya empezó)
  const fin=R.G&&R.G.phase=='final';   // partida terminada: ya no cuenta como en curso
- return {c:R.G?null:R.code,w:R.G&&!fin?R.code:null,g:R.gt,st:R.G?(fin?'fin':'play'):'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
+ return {c:R.G?null:R.code,w:R.G&&!fin?R.code:null,g:R.gt,st:R.G?(fin?'fin':'play'):'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),av:ps.slice(0,6).map(p=>p.av||''),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
 function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
  if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';
   ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;o.f=['sot','alta','ter'].includes(b.f)?b.f:'pb';   // f: piso (sótano, planta baja, planta alta o terraza)
