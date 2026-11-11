@@ -4,7 +4,7 @@
 module.exports=X=>{const {D,geo,tot,has,left,okV,okE,spots,rate,vp,roadLen}=X,{COST,PIP}=D;
 const PER={'Don Chucho':{fav:0,sty:'road'},'Doña Mary':{fav:3,sty:'card'},'Güero Canul':{fav:2,sty:'city'},'Doña Lupita':{fav:1,sty:'city'},
  'Tía Nena':{fav:4,sty:'trade'},'Don Wilbert':{fav:2,sty:'road'},'Don Ermilo':{fav:1,sty:'trade'}};
-const botn=Object.keys(PER).map(n=>'🤖 '+n),SPD=[800,1500,800,300];
+const botn=Object.keys(PER).map(n=>n),SPD=[800,1500,800,300];
 const per=(R,k)=>PER[R.players[k].name.replace(/^🤖\s*/,'')]||{fav:k%5,sty:['road','city','card','trade'][k%4]};
 const missN=(r,c)=>c.reduce((s,x,i)=>s+Math.max(0,x-r[i]),0),other=(E,v)=>E.v[0]===v?E.v[1]:E.v[0];
 // a quien va ganando no se le ayuda: no se comercia con él y es el blanco del huracán

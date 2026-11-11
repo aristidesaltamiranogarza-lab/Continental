@@ -158,7 +158,7 @@ Reparto: poses clave horneadas en Blender (actuación) + mezcla, apuntado y mec�
 - [ ] Mecánica del arma en código: tambor gira con `spin` (hoy `userData.spin`), martillo se amartilla antes del disparo, gatillo se jala en `click`/`bang`, retroceso; fogonazo y humo en `Rev_Boca`.
 
 ### R4 · Pulido y bugs
-- [ ] El registro de la izquierda repite el aviso grande: dejar uno solo.
+- [x] El registro de la izquierda repite el aviso grande: se quitó el registro (11 nov).
 - [ ] Verificar el arma clara en la luz del foco (`bulb`) y en primera persona.
 - [ ] Probar con 2–6 jugadores y bots, celular 21:9 y horizontal; `node --check c_ruleta3d.js`.
 

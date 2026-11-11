@@ -5,7 +5,7 @@
 const cr=require('crypto'),IDLE_MS=40000,OFF_MS=35000,T={fire:1500,click:1800,bang:4800},SPD=[0,2600,1700,1000];
 // opciones: n lugares en la mesa (los bots llenan) · vel velocidad de bots (1 lenta, 3 rápida)
 const OPTS={n:6,vel:2},RNG={n:[2,6],vel:[1,3]};
-const BOTN=['🤖 Chucho','🤖 Lupe','🤖 Toño','🤖 Chela','🤖 Neto','🤖 Paty','🤖 Memo','🤖 Rosy'];
+const BOTN=['Chucho','Lupe','Toño','Chela','Neto','Paty','Memo','Rosy'];
 const r6=()=>Math.random()*6|0,alive=G=>G.players.map((_,k)=>k).filter(k=>!G.dead[k]),pn=(G,k)=>G.players[k].name;
 const lg=(G,t)=>{G.log.push({t,n:G.ln=(G.ln||0)+1});if(G.log.length>30)G.log.shift()};
 const fx=(G,t,k,to)=>{G.fx.push({n:G.fn=(G.fn||0)+1,t,k,to,ts:Date.now()});if(G.fx.length>12)G.fx.shift()};
@@ -21,10 +21,10 @@ function begin(G,k,can){Object.assign(G,{turn:k,sh:k,tg:null,forced:false,can,st
 function nextAlive(G,k){const n=G.players.length;for(let i=1;i<=n;i++){const j=(k+i)%n;if(!G.dead[j])return j}return k}
 function timed(G,st,ms){G.st=st;G.t0=Date.now();G.at=G.t0+ms;G.tc++}
 function reload(G){G.cy={b:r6(),p:r6()};G.fired=0;fx(G,'spin',-1);lg(G,'Se mete una bala nueva y se gira el tambor.')}
-function final(G){const L=alive(G);if(L.length>1)return false;G.phase='final';G.win=L.length?L[0]:null;G.st='end';G.at=0;G.tc++;if(G.win!=null)lg(G,'🏆 '+pn(G,G.win)+' es el último en pie y gana.');return true}
+function final(G){const L=alive(G);if(L.length>1)return false;G.phase='final';G.win=L.length?L[0]:null;G.st='end';G.at=0;G.tc++;if(G.win!=null)lg(G,pn(G,G.win)+' es el último en pie y gana.');return true}
 // jalar el gatillo: ¿sale la bala? (la recámara avanza siempre)
 function pull(G){const bang=G.cy.p===G.cy.b;G.cy.p=(G.cy.p+1)%6;if(!bang)G.fired++;return bang}
-function kill(G,v,by){G.dead[v]=1;fx(G,'bang',by,v);if(v!==by)G.kills[by]++;lg(G,'💥 ¡BANG! '+(v===by?pn(G,v)+' se voló la cabeza.':pn(G,by)+' mató a '+pn(G,v)+'.'))}
+function kill(G,v,by){G.dead[v]=1;fx(G,'bang',by,v);if(v!==by)G.kills[by]++;lg(G,'¡BANG! '+(v===by?pn(G,v)+' se voló la cabeza.':pn(G,by)+' mató a '+pn(G,v)+'.'))}
 function shoot(G,i,to){G.tg=to;if(to===i){timed(G,'nerv',3000+Math.random()*1000);lg(G,pn(G,i)+' se pone el revólver en la sien…')}
  else{G.lastBy[to]=i;timed(G,'fire',T.fire);lg(G,pn(G,i)+' le apunta a '+pn(G,to)+'.')}}
 // se acabó el tiempo de la etapa: disparar o pasar a lo que sigue

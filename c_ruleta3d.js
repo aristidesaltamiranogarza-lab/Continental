@@ -9,8 +9,8 @@ const rules=`<details><summary>Reglas</summary>Revólver de 6 recámaras con 1 b
 function lobby(host){const o=V.opts||{},row=(k,n,L,f)=>`<div class="top">${n}: <b>${f(o[k])}</b></div>`+(host?L.map(v=>`<button class="b g sm2${o[k]===v?' on':''}" onclick="send({t:'opts',o:{${k}:${v}}})">${f(v)}</button>`).join(''):'');
  return `<div class="box"><b>Reglas de esta sala</b><br>`+row('n','Lugares en la mesa',[2,3,4,5,6],v=>v)+row('vel','Velocidad de bots',[1,2,3],v=>['','Lenta','Normal','Rápida'][v])+`</div>`
   +(host?`<button class="b" ${V.players.length<1?'disabled':''} onclick="send({t:'start'})">Empezar partida</button><div class="top">Los bots llenan los lugares vacíos de la mesa (de 2 a 6).</div>`:'')}
-const body0=()=>`<div class="box"><b>🔫 Ruleta Rusa</b><p>Esperando la partida…</p></div>`;
-GM.ruleta={name:'Ruleta Rusa',emoji:'🔫',max:6,rules,lobby,body:body0,face:()=>({h:''})};
+const body0=()=>`<div class="box"><b>Ruleta Rusa</b><p>Esperando la partida…</p></div>`;
+GM.ruleta={name:'Ruleta Rusa',emoji:'',max:6,rules,lobby,body:body0,face:()=>({h:''})};
 const K=window.C3D,OK3=typeof THREE!=='undefined'&&!!K;let CH=null;   // CH: CASA3D, lo pone c_casa3d.js (carga después de este archivo)
 // cuarto ±W y techo HT; mesa de radio TBR a la altura TH (la de las mesas de la casa); 6 sillas a CR del centro
 // el sótano sigue a la izquierda hasta XL: la cantina (c_sotano.js) y, pasando sus arcos, el casino y el billar (c_sotano_salon.js)
@@ -163,7 +163,7 @@ function fxGo(f){const now=performance.now();
   RRG.flash(mp,dir);shk=1;bulb.vx+=rnd(-.9,.9);bulb.vz+=rnd(-.9,.9);gunW.userData.fire=gunV.userData.fire=now;if(P[f.to])death(P[f.to],false)}}
 function onStage(prev,s){if(brStop&&!(s.st=='nerv'&&s.sh===me)){brStop();brStop=null}
  if(s.st=='nerv'&&s.sh===me&&!brStop)brStop=RRS.breath(Math.max(.5,(s.t1-performance.now())/1000+.2));
- if((s.st=='spin'||s.st=='aim')&&s.sh===me&&(!prev||prev.sh!==me)&&typeof banner=='function')banner('🔫 Te toca')}
+ if((s.st=='spin'||s.st=='aim')&&s.sh===me&&(!prev||prev.sh!==me)&&typeof banner=='function')banner('Te toca')}
 function sync(G){const key=G.players.map(p=>p.id).join(',');
  // los personajes salen hasta que cargan los GLB (personaje y revólver); entonces se vuelve a llamar sync
  if(key!==sig&&!RRPJ.ya()){if(!avP)avP=RRPJ.listo().then(()=>{if(G0)sync(G0)}).catch(()=>{avP=null});if(P.length)clearPlayers()}
@@ -235,7 +235,7 @@ function stepRoom(now,dt){const s=dt/1000,b=bulb;
 function labels(){const G=G0;P.forEach((p,k)=>{const t=p.tag;if(!p.pv.visible)return;
  const w=p.fall?p.pv.position.clone().addScaledVector(p.d,.6).setY(TH+.7):tv.copy(p.eye).setY(p.eye.y+p.hr*1.7);w.project(CA);
  const vis=!(k===me&&!p.dead)&&w.z<1&&Math.abs(w.x)<1.1&&Math.abs(w.y)<1.1;t.style.display=vis?'':'none';if(!vis)return;
- const turn=G.phase=='play'&&G.sh===k&&!p.dead,txt=es(G.players[k].name)+(p.dead?' 💀':turn?' 🔫':'')+(k===me?' (tú)':'');if(t._t!==txt){t._t=txt;t.innerHTML=txt}
+ const turn=G.phase=='play'&&G.sh===k&&!p.dead,txt=es(G.players[k].name)+(k===me?' (tú)':'');if(t._t!==txt){t._t=txt;t.innerHTML=txt}
  t.classList.toggle('turn',turn);t.classList.toggle('dead',!!p.dead);t.style.transform=`translate(${((w.x+1)/2*Wd).toFixed(1)}px,${((1-w.y)/2*Hd).toFixed(1)}px) translate(-50%,-100%)`})}
 let humT=0;
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
@@ -251,7 +251,7 @@ function init(){if(ready)return;CH=window.CASA3D;if(!CH||!RRG)throw new Error('f
  SC=new THREE.Scene();SC.background=new THREE.Color(0x030202);SC.fog=new THREE.FogExp2(0x050403,.075);CA=new THREE.PerspectiveCamera(70,1,.03,60);SC.add(CA);
  SC.add(new THREE.HemisphereLight(0x39404c,0x0b0806,.22));
  root=document.createElement('div');root.id='rr3root';cv=R.domElement;if(!shR)root.appendChild(cv);fxv=document.createElement('div');fxv.id='rrvig';lay=document.createElement('div');lay.id='rrlay';
- dv=document.createElement('div');dv.id='rrdead';dv.textContent='💀 Moriste';root.append(fxv,lay,dv);document.body.appendChild(root);
+ dv=document.createElement('div');dv.id='rrdead';dv.textContent='Moriste';root.append(fxv,lay,dv);document.body.appendChild(root);
  textures();buildRoom();buildTable();for(let c=0;c<NS;c++)buildChair(c);buildProps();buildBulb();
  // las luces de la Ruleta se quedan prendidas en calidad Media (c_casa3d.js applyQ); luego la cantina (c_sotano.js)
  SC.traverse(o=>{if(o.isPointLight)o.userData.keep=true});if(window.SOT)SOT.cantina(SC,{XL,W,HT,TH});
@@ -278,23 +278,21 @@ function stTxt(G,m){const n=k=>es(G.players[k].name),sh=G.sh,r=G.res;
  if(G.st=='spin')return n(sh)+' decide si gira el tambor…';if(G.st=='aim')return n(sh)+' elige a quién dispararle…';
  if(G.st=='fire')return sh===m?'Le apuntas a '+n(G.tg)+'…':n(sh)+' le apunta a '+(G.tg===m?'<b>ti</b>':n(G.tg))+'…';
  if(G.st=='nerv')return sh===m?'Te pones el revólver en la sien'+(G.forced?' (no salió: ahora te toca a ti)':'')+'…':n(sh)+' se pone el revólver en la sien'+(G.forced?' (obligado)':'')+'…';
- if(G.st=='res'&&r)return r.r=='click'?'Clic. '+(r.v===m?'Sigues vivo.':n(r.v)+' sigue vivo.'):'💥 ¡BANG! '+(r.v===m?'Te moriste.':n(r.v)+' está muerto.');return ''}
+ if(G.st=='res'&&r)return r.r=='click'?'Clic. '+(r.v===m?'Sigues vivo.':n(r.v)+' sigue vivo.'):'¡BANG! '+(r.v===m?'Te moriste.':n(r.v)+' está muerto.');return ''}
 function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=m>=0&&!fin&&!dead&&G.turn===m,seatd=m>=0&&!fin&&!dead&&!V.watch,casa=!!(window.CASA3D&&CASA3D.on()),al=G.players.map((_,k)=>k).filter(k=>!G.dead[k]),nm=k=>es(G.players[k].name),left=6-G.fired;
  const ch=Array.from({length:6},(_,i)=>`<i class="${i<G.fired?'e':''}"></i>`).join('');let card='';
- if(fin)card=`<div class="rr-big">${G.win==null?'Nadie quedó vivo':G.win===m?'🏆 ¡Sobreviviste! Ganaste':'🏆 '+nm(G.win)+' es el último en pie'}</div><div class="rr-acts">${V.host?`<button class="ui-btn" onclick="send({t:'reset'})">${UI.ico('nuevo')}Otra partida</button>`:''}<button class="ui-btn sec" onclick="leave()">${UI.ico('salir')}Salir</button></div>`;
- else if(my&&G.st=='spin')card=`<div class="rr-q">¿Giras el tambor?</div><div class="rr-acts"><button class="ui-btn" onclick="RRU.spin(1)">🔄 Girar</button><button class="ui-btn sec" onclick="RRU.spin(0)">➡️ No girar</button></div>
-  <div class="rr-s">${G.fired?`Ya ${G.fired==1?'salió 1 clic':'salieron '+G.fired+' clics'}: sin girar, el riesgo es de 1 en ${left}. Si giras, vuelve a 1 en 6.`:'El riesgo es de 1 en 6.'}</div>`;
- else if(my&&G.st=='aim')card=`<div class="rr-q">¿A quién le disparas?</div>${G.can?'':'<div class="rr-s">No puedes girar: el anterior sobrevivió a su propio tiro.</div>'}<div class="rr-acts"><button class="ui-btn rr-dan" onclick="RRU.shoot(${m})">🫵 A mí</button>${al.filter(k=>k!==m).map(k=>`<button class="ui-btn sec" onclick="RRU.shoot(${k})">🎯 ${nm(k)}</button>`).join('')}</div>
-  <div class="rr-s">Riesgo: 1 en ${left}. Si le disparas a otro y no sale, te disparas tú con la siguiente recámara.${OK3&&!failed?' También puedes tocar a alguien en la mesa.':''}</div>`;
- else card=`<div class="rr-q">${stTxt(G,m)}</div>${dead?'<div class="rr-s">💀 Estás muerto: te quedas mirando hasta que acabe.</div>':V.watch?'<div class="rr-s">👁 Estás mirando.</div>':''}`;
- if(my&&G.el>25000)card+=`<div class="rr-s rr-w">⏳ Si no decides pronto, un bot juega por ti.</div>`;
- const list=G.players.map((p,k)=>`<div class="${G.dead[k]?'d':''}">${G.dead[k]===1?'💀':G.dead[k]===2?'🚪':!fin&&G.sh===k?'🔫':'🙂'} ${nm(k)}${k===m?' (tú)':''}${G.kills[k]?' · '+G.kills[k]+' 🎯':''}</div>`).join('');
- const ic=n=>UI.ico(n);let h=`<div class="rr-hud">`+GHUD.top({st:`🔫 <b>Ruleta Rusa</b> <span class="rr-n" title="Vivos">${ic('gente')}${al.length}/${G.players.length}</span>`,turn:`<span class="rr-cyl" title="Recámaras: las apagadas ya hicieron clic">${ch}</span><span title="Si no se gira el tambor">1 en ${left}</span>`,me:my,open:menu,menu:'RRU.menu()'});
+ if(fin)card=`<div class="rr-big">${G.win==null?'Nadie quedó vivo':G.win===m?'¡Sobreviviste! Ganaste':nm(G.win)+' es el último en pie'}</div><div class="rr-acts">${V.host?`<button class="ui-btn" onclick="send({t:'reset'})">${UI.ico('nuevo')}Otra partida</button>`:''}<button class="ui-btn sec" onclick="leave()">${UI.ico('salir')}Salir</button></div>`;
+ else if(my&&G.st=='spin')card=`<div class="rr-q">¿Giras el tambor?</div><div class="rr-acts"><button class="ui-btn" onclick="RRU.spin(1)">Girar</button><button class="ui-btn sec" onclick="RRU.spin(0)">No girar</button></div>`;
+ else if(my&&G.st=='aim')card=`<div class="rr-q">¿A quién le disparas?</div><div class="rr-acts"><button class="ui-btn rr-dan" onclick="RRU.shoot(${m})">A mí</button>${al.filter(k=>k!==m).map(k=>`<button class="ui-btn sec" onclick="RRU.shoot(${k})">${nm(k)}</button>`).join('')}</div>`;
+ else card=`<div class="rr-q">${stTxt(G,m)}</div>${dead?'<div class="rr-s">Estás muerto: te quedas mirando hasta que acabe.</div>':V.watch?'<div class="rr-s">Estás mirando.</div>':''}`;
+ if(my&&G.el>25000)card+=`<div class="rr-s rr-w">Si no decides pronto, un bot juega por ti.</div>`;
+ const list=G.players.map((p,k)=>`<div class="${G.dead[k]?'d':''}">${nm(k)}${k===m?' (tú)':''}${G.kills[k]?' · '+G.kills[k]+(G.kills[k]>1?' bajas':' baja'):''}</div>`).join('');
+ const ic=n=>UI.ico(n);let h=`<div class="rr-hud">`+GHUD.top({st:`<b>Ruleta Rusa</b> <span class="rr-n" title="Vivos">${ic('gente')}${al.length}/${G.players.length}</span>`,turn:`<span class="rr-cyl" title="Recámaras: las apagadas ya hicieron clic">${ch}</span><span title="Si no se gira el tambor">1 en ${left}</span>`,me:my,open:menu,menu:'RRU.menu()'});
  if(menu){const rg=String(rules).replace(/^\s*<details[^>]*>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
   const aj=GHUD.ajustes('',(seatd?`<p class="ui-sub rr-s">${casa?'Si te levantas, un bot juega por ti y tienes 2 minutos para volver a tu lugar. ':''}Si abandonas, un bot se queda con tu asiento.</p>`:'')
-   +(seatd&&casa?`<button class="ui-btn sec full" onclick="RRU.stand()">${ic('persona')}Levantarme</button>`:`<button class="ui-btn sec full" onclick="leave()">${ic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`)+(seatd?`<button class="ui-btn sec full rr-dan" onclick="RRU.quit()">🏳️ Abandonar</button>`:''));
+   +(seatd&&casa?`<button class="ui-btn sec full" onclick="RRU.stand()">${ic('persona')}Levantarme</button>`:`<button class="ui-btn sec full" onclick="leave()">${ic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`)+(seatd?`<button class="ui-btn sec full rr-dan" onclick="RRU.quit()">Abandonar</button>`:''));
   h+=GHUD.sheet('Ruleta Rusa',[['aj','Ajustes',aj],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'RRU.menu()')}
- return h+`<div class="ui rr-log">${G.log.slice(-4).map(l=>`<div>${es(l.t)}</div>`).join('')}</div><div class="ui rr-list">${list}</div><div class="ui ui-card rr-card">${card}</div></div>`}
+ return h+`<div class="ui rr-list">${list}</div><div class="ui ui-card rr-card">${card}</div></div>`}
 const tick=()=>{if(typeof sfx=='function')sfx('tick')};
 const seatLS=v=>{try{v?localStorage.setItem('casa_seat',JSON.stringify(v)):localStorage.removeItem('casa_seat')}catch(e){}};
 window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'shoot',to:k})},menu:()=>{menu=!menu;tick();render()},
