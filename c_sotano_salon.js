@@ -88,7 +88,7 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
  const C3=window.CAS3,hit=g=>({t:'fn',g,f:()=>pronto(g)});
  if(C3){const pk=C3.poker({S,hits,std,ctex,TH,x:-18.5,z:-2.6,ry:0,hit:hit('poker'),cuero:'#5a1a1a'});
   const bj=C3.blackjack({S,hits,std,ctex,TH,x:-18.5,z:1.15,ry:0,hit:hit('blackjack'),cuero:'#5a1a1a'});
-  M.poker=pk;M.blackjack=bj;OB.push(...pk.OB,...bj.OB);P.poker={x:-18.5,y:TH+2.1,z:-2.6};P.blackjack={x:-18.5,y:TH+2.1,z:1.7};
+  M.poker=pk;M.blackjack=bj;if(window.BJC)BJC.pon(bj);OB.push(...pk.OB,...bj.OB);P.poker={x:-18.5,y:TH+2.1,z:-2.6};P.blackjack={x:-18.5,y:TH+2.1,z:1.7};
   // lámparas: dos campanas sobre el póker y una sobre el blackjack (una luz cada mesa; en calidad Media se apagan, los focos siguen)
   C3.campana(S,std,-19.3,2.85,-2.6,HT);C3.campana(S,std,-17.7,2.85,-2.6,HT);C3.luz(S,-18.5,2.6,-2.6,11,7);
   C3.campana(S,std,-18.5,2.85,1.55,HT,1.15);C3.luz(S,-18.5,2.6,1.55,10,6.5)}
@@ -116,10 +116,10 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
 
  // ---------- cantina: la rockola junto al arco ----------
  const rk=rockola(S,std,ctex,X1+.5,3.75,PI/2);OB.push({x:X1+.55,z:3.75,r:.62});
- rk.traverse(o=>{if(o.isMesh){o.userData.hit={t:'fn',f:()=>{if(typeof musCyc=='function'){musCyc();aviso('🎵 Música: '+(typeof musName=='function'?musName():''))}}};hits.push(o)}});
+ rk.traverse(o=>{if(o.isMesh){o.userData.hit={t:'fn',f:()=>{if(typeof musCyc=='function'){musCyc();aviso('Música: '+(typeof musName=='function'?musName():''))}}};hits.push(o)}});
 
  ['billar','blackjack','poker'].forEach(sign);
- const step=()=>{lastT=performance.now();const cm=H.cam();if(KM&&cm)CPB.corte(KM,cm.position,H.yo&&H.yo());labels()};
+ const step=()=>{lastT=performance.now();if(window.BJC)BJC.paso();const cm=H.cam();if(KM&&cm)CPB.corte(KM,cm.position,H.yo&&H.yo());labels()};
  return {OB,WL:KM.WL,step}}
 
 window.SAL={build,P,M,aviso};

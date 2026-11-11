@@ -1,5 +1,5 @@
 // c_casino3d.js — CAS3: mesas de casino hechas en código para el salón del sótano (c_sotano_salon.js).
-// Blackjack: media luna con el paño impreso (paga 3 a 2, reglas del crupier, seguro y 7 casillas), charola de fichas, zapato,
+// Blackjack: media luna con el paño impreso (paga 3 a 2, reglas del crupier, seguro y 7 casillas), charola de fichas, zapato, tarima del crupier,
 //   descartes, letrero de apuestas y 7 lugares. Póker: ovalada con pista de madera, portavasos, charola del crupier, baraja,
 //   botón de dealer y 8 lugares (el crupier al centro del lado de atrás). Vacías por ahora; listas para jugarse:
 //   cada una devuelve {G, lugares:[{x,z,ry}] en el mundo, sillas:[grupos], OB:[círculos], D (medidas en el espacio de la mesa)}.
@@ -78,22 +78,24 @@ function blackjack(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.
  // charola de fichas, zapato (a la izquierda del crupier), descartes y letrero de apuestas
  charola(G,std,ctex,0,TH+.01,.19,.96,.22,['blanca','blanca','roja','roja','verde','verde','negra','morada']);
  const rv=std(0xffffff,.6,{map:texReverso(ctex)}),bl=std(0xf4f1ea,.6);
- const zp=new THREE.Group();zp.position.set(1.08,TH,.3);zp.rotation.y=.42;G.add(zp);const zm=std(0x5a0c12,.25,{metalness:.1});
+ const zp=new THREE.Group();zp.position.set(.76,TH,.2);zp.rotation.y=.42;G.add(zp);const zm=std(0x5a0c12,.25,{metalness:.1});
  malla(zp,new THREE.BoxGeometry(.2,.12,.4),zm,0,.06,-.02);const fr=malla(zp,new THREE.BoxGeometry(.2,.03,.13),zm,0,.1,.2);fr.rotation.x=.55;
  const ca=malla(zp,new THREE.PlaneGeometry(.15,.08),rv,0,.105,.205,false);ca.rotation.x=-PI/2+.55;malla(zp,new THREE.BoxGeometry(.17,.012,.05),bl,0,.012,.215,false);
- const dsc=new THREE.Group();dsc.position.set(-1.08,TH,.3);dsc.rotation.y=-.42;G.add(dsc);
+ const dsc=new THREE.Group();dsc.position.set(-.76,TH,.2);dsc.rotation.y=-.42;G.add(dsc);
  malla(dsc,new THREE.BoxGeometry(.17,.07,.12),bl,0,.035,0);malla(dsc,new THREE.PlaneGeometry(.15,.1),rv,0,.071,0,false).rotation.x=-PI/2;
  malla(dsc,new THREE.BoxGeometry(.21,.15,.15),new THREE.MeshStandardMaterial({color:0xd8e8f0,roughness:.05,transparent:true,opacity:.22,depthWrite:false}),0,.075,0,false);
  const lt=ctex('bj-limite',256,150,(g,w,h)=>{g.fillStyle='#1a1410';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=5;g.strokeRect(6,6,w-12,h-12);
   g.fillStyle='#e9c46a';g.textAlign='center';g.font='800 30px Georgia,serif';g.fillText('BLACKJACK',w/2,50);g.fillStyle='#f1ead6';g.font='700 26px Arial,sans-serif';g.fillText('Mín $10 · Máx $500',w/2,102)});
- const pl=new THREE.Group();pl.position.set(-.66,TH,.08);G.add(pl);malla(pl,new THREE.BoxGeometry(.24,.02,.06),blk,0,.01,0);
+ const pl=new THREE.Group();pl.position.set(-1.12,TH,.1);G.add(pl);malla(pl,new THREE.BoxGeometry(.24,.02,.06),blk,0,.01,0);
  const pp=malla(pl,new THREE.PlaneGeometry(.24,.14),new THREE.MeshBasicMaterial({map:lt}),0,.09,.0,false);pp.rotation.x=-.25;
+ // tarima del crupier (detrás de la orilla recta; el personaje chibi no alcanza la mesa desde el piso)
+ malla(G,new THREE.BoxGeometry(1.4,.38,.8),std(0x2a1a10,.7),0,.19,-.43);
  if(hit)G.traverse(o=>{if(o.isMesh){o.userData.hit=hit;hits.push(o)}});
  // 7 lugares frente a sus casillas
  const lugares=[],sillas=[];for(let i=0;i<7;i++){const q=PI/2+(3-i)*.3,x=Math.cos(q)*2.36,z=-CZ+Math.sin(q)*2.36,c=silla(std,e.cuero);
   c.position.set(x,0,z);c.rotation.y=Math.atan2(-x,-(z+CZ));G.add(c);sillas.push(c);const w=mundo(G,x,z);lugares.push({x:w.x,z:w.z,ry:c.rotation.y+(e.ry||0)})}
  const OB=[[0,.5,1.05],[-1.05,.22,.62],[1.05,.22,.62]].map(([x,z,r])=>{const w=mundo(G,x,z);return {x:w.x,z:w.z,r}}).concat(lugares.map(l=>({x:l.x,z:l.z,r:.42})));
- return {G,lugares,sillas,OB,D:{TH,CZ,RB,casillas:[...Array(7)].map((_,i)=>{const q=PI/2+(3-i)*.3;return [Math.cos(q)*1.33,-CZ+Math.sin(q)*1.33]})}}}
+ return {G,lugares,sillas,OB,D:{TH,CZ,RB,crupier:[0,-.3],tarima:.38,zapato:[.76,.2],casillas:[...Array(7)].map((_,i)=>{const q=PI/2+(3-i)*.3;return [Math.cos(q)*1.33,-CZ+Math.sin(q)*1.33]})}}}
 
 // ---------- Póker ----------
 // ovalada: rectas de ±PA y cabeceras de radio PB (orilla de afuera del acolchado)
