@@ -86,12 +86,12 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
 
  // ---------- casino ----------
  const C3=window.CAS3,hit=g=>({t:'fn',g,f:()=>pronto(g)});
- if(C3){const pk=C3.poker({S,hits,std,ctex,TH,x:-18.5,z:-2.6,ry:0,hit:hit('poker'),cuero:'#5a1a1a'});
-  const bj=C3.blackjack({S,hits,std,ctex,TH,x:-18.5,z:1.15,ry:0,hit:hit('blackjack'),cuero:'#5a1a1a'});
-  M.poker=pk;M.blackjack=bj;if(window.BJC)BJC.pon(bj);OB.push(...pk.OB,...bj.OB);P.poker={x:-18.5,y:TH+2.1,z:-2.6};P.blackjack={x:-18.5,y:TH+2.1,z:1.7};
+ if(C3){const pk=C3.poker({S,hits,std,ctex,TH,x:-18.5,z:-2.9,ry:0,hit:hit('poker'),cuero:'#5a1a1a'});
+  const bj=C3.blackjack({S,hits,std,ctex,TH,x:-18.5,z:3.3,ry:PI,hit:hit('blackjack'),cuero:'#5a1a1a'});
+  M.poker=pk;M.blackjack=bj;if(window.BJC)BJC.pon(bj);OB.push(...pk.OB,...bj.OB);P.poker={x:-18.5,y:TH+2.1,z:-2.9};P.blackjack={x:-18.5,y:TH+2.1,z:2.75};
   // lámparas: dos campanas sobre el póker y una sobre el blackjack (una luz cada mesa; en calidad Media se apagan, los focos siguen)
-  C3.campana(S,std,-19.3,2.85,-2.6,HT);C3.campana(S,std,-17.7,2.85,-2.6,HT);C3.luz(S,-18.5,2.6,-2.6,11,7);
-  C3.campana(S,std,-18.5,2.85,1.55,HT,1.15);C3.luz(S,-18.5,2.6,1.55,10,6.5)}
+  C3.campana(S,std,-19.3,2.85,-2.9,HT);C3.campana(S,std,-17.7,2.85,-2.9,HT);C3.luz(S,-18.5,2.6,-2.9,11,7);
+  C3.campana(S,std,-18.5,2.85,2.9,HT,1.15);C3.luz(S,-18.5,2.6,2.9,10,6.5)}
  // apliques y el cuadro (as de espadas) en la pared del fondo del casino
  const ap=new THREE.MeshStandardMaterial({color:0xfff0d0,emissive:0xffcf8a,emissiveIntensity:1.1,roughness:.5});
  [-20.3,-16.7].forEach(x=>{cyl(.07,.07,.03,lat,x,2.45,-W+.06,S,16).rotation.x=PI/2;box(.03,.03,.22,lat,x,2.45,-W+.17,S);
