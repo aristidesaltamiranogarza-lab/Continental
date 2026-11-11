@@ -70,6 +70,23 @@
 - [ ] Medir FPS en celular con la mesa llena; si baja, usar una versión más ligera para los personajes lejanos.
 - [ ] Usar `PistolaSien_n` y los empties de sien en la Ruleta Rusa. Pendiente junto con rehacer las animaciones de la Ruleta (hoy son Miis con IK: apuntar y la mano en primera persona).
 
+- [ ] Comprobar en una sala real (servidor reiniciado con `npm start`) que se ven sentados: Aris todavía no los ve en ningún lado fuera de "Mi personaje". Revisar `SALA.gente` → `seatSync` y que `players[].av` y `salas()[].av` lleguen.
+
+## Paso 10 · Personajes caminando en la casa (antes de la mesa nueva)
+- [ ] Hoy tú y los demás que caminan siguen siendo Miis (`mkG`/`newAv` en c_casa3d.js, pose procedural en `pose()`). Cambiarlos por `AV.crearYa(av)` (el tuyo `AV.mio()`, los demás con su código en POST /casa).
+- [ ] El GLB no trae caminar: hacerlo por código en c_avatar.js como `AV.sentar` (balanceo de muslos/rodillas y brazos con w y ph después del mixer), o una acción `Caminar` en Blender (blender/rig.py) si se ve mal.
+- [ ] Saludo/emotes y los dos bailes: por ahora pose `ManoCabeza` o balanceo simple; nombres y globitos a la altura del personaje (hoy usan `MII.K`).
+
+## Paso 11 · Mesa nueva de juego (Uno y Continental)
+La mesa ovalada del juego viene de la versión 1 (una sola cámara fija). Se cambia por la mesa redonda de la casa: la misma en la sala de espera, al empezar y en la partida, sin cambio de mesa.
+- [ ] Módulo compartido nuevo `c_mesa3d.js` (MESA): mesa redonda de madera con canto grueso y acolchado, fieltro del color del juego (los de `COL` en c_sala.js) con el logo apenas marcado, lámpara colgante cálida y el cuarto más oscuro alrededor. Una silla por jugador; la mesa crece con el número de jugadores. Se arma en el lugar de la mesa del juego en la casa.
+- [ ] Asientos como API: `MESA.asiento(i)` → posición, hacia dónde mira, dónde va su mano y su zona en el fieltro (bajadas). El código del juego pide esos lugares en vez de acomodar a mano.
+- [ ] Personajes sentados (AV) en cada silla, con las cartas al frente; cada carta jugada sale de sus manos al descarte. Reacciones con las poses que ya hay (`ManoCabeza` al robar 4, festejo al ganar).
+- [ ] Cámara viva: por defecto sobre tu mano viendo a los demás; se acerca un poco a quien tiene el turno; corte breve y cercano en jugadas grandes (+4, alguien cierra en Continental); arrastrar para ver alrededor y vista desde arriba con un toque.
+- [ ] Tu mano: abanico 3D abajo de la pantalla, un poco inclinado, la carta sube al pasar o tocar.
+- [ ] Orden: 1) c_mesa3d.js; 2) Uno (más simple: mazo, descarte, manos); 3) Continental (bajadas frente a cada jugador, tocar a alguien acerca la vista a sus bajadas); 4) quitar el código de la mesa ovalada de c_uno3d.js y c_continental3d.js. Son archivos GRANDES: cambiar solo cómo se acomoda en la mesa, no las reglas. Cada paso se puede subir y jugar solo.
+- [ ] Personajes dentro de las partidas (hoy Continental 3D, Uno 3D, Rummy y Ruleta crean sus Miis con `mkAvatar` e IK): Uno y Continental van con la mesa nueva; Rummy y Ruleta después.
+
 ## Otros pendientes (de la lista anterior)
 - [ ] FPS bajan cerca de las dos mesas altas del sótano (cantina, `mesa_cantina`): medir ocultando vasos, rockola y luces de esa zona.
 - [ ] Un cuadro de 244 ms al entrar al sótano (`CASA3D.ir('sot')`): probablemente armar el piso o compilar shaders.
