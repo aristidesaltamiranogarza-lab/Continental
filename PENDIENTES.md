@@ -13,7 +13,7 @@
 - Acciones actuales: `Reposo`, `AgarreFrente`, `ManoCabeza` (también pone la mano izquierda plana), `PistolaSien` (no tocan los dedos), `Agarre_I` y `Agarre_D` (solo dedos: cuadro 1 relajada, cuadro 10 agarra; en three.js el tiempo es la cantidad de agarre). Empties `Sien_I`/`Sien_D` son hijos del hueso `cabeza`, con +Z local hacia afuera (+Y en three.js).
 - Estado al 10 nov 2026 (paso 1): 18 532 triángulos en 7 piezas (Base 5 248, Pelo_1 5 656, Arriba_1 5 040, Abajo_1 1 568, Nariz_1 720, Cejas_1 184, Boca_1 92), 647 KB sin comprimir, sin texturas, 8 materiales `av_*`, un solo skin. El pelo del juego se decima al 50 % (`K['DECIMA']`), y la subdivisión de juego está en `K['NIVEL']`.
 - Estilo: ver la memoria avatar-estilo (ojos sólidos, pelo mate, proporción B1, sin esquinas filosas).
-- **Decisiones (no volver a preguntar):** 6 peinados compartidos; hombre y mujer con el mismo cuerpo y esqueleto (el género solo cambia la selección inicial); 3 prendas arriba y 3 abajo; 3 cejas, 3 bocas y 3 narices; ojos fijos; colores con paleta fija (pelo, piel con 6–8 tonos, prenda de arriba, prenda de abajo); un solo GLB con todas las piezas; editor en pantalla aparte "Mi personaje"; guardado en localStorage y se manda al servidor al entrar a la sala, sin cuentas; accesorios después; sin avatar 2D.
+- **Decisiones (no volver a preguntar):** 6 peinados compartidos; hombre y mujer con el mismo esqueleto pero cuerpo distinto (10 nov 2026: la mujer tiene cintura marcada y la prenda de arriba abre hasta medio muslo, `cuerpo_m.py`; cada prenda necesita versión H y M); 3 prendas arriba y 3 abajo; 3 cejas, 3 bocas y 3 narices; ojos fijos; colores con paleta fija (pelo, piel con 6–8 tonos, prenda de arriba, prenda de abajo); un solo GLB con todas las piezas; editor en pantalla aparte "Mi personaje"; guardado en localStorage y se manda al servidor al entrar a la sala, sin cuentas; accesorios después; sin avatar 2D.
 - **Presupuesto:** 15 000–20 000 triángulos visibles por personaje (se juega en celular). Revisar siempre con lo que imprime rig.py.
 
 ## Paso 1 · Rig por piezas
@@ -39,6 +39,7 @@
 - [ ] Abajo: pantalón (el actual), short y falda. Con el short y la falda hacen falta **piernas de piel** debajo: meterlas como pieza aparte que se muestra solo con esas prendas.
 - [ ] Revisar que doblen bien en `AgarreFrente`, `ManoCabeza` y `PistolaSien` (comparar contra la copia Pose como hace rig.py).
 - [ ] Cada prenda dentro del presupuesto (arriba ≤ ~5 000 y abajo ≤ ~2 000 triángulos).
+- [ ] Versión M de cada prenda sobre el cuerpo de mujer (`cuerpo_m.py`, figura `Mujer`); en rig.py como piezas `Arriba_n_M`/`Abajo_n_M` o un GLB por cuerpo (decidir).
 
 ## Paso 5 · GLB completo
 - [ ] Exportar un GLB con todas las piezas (por ejemplo `modelos/personaje/chibi.glb`, siguiendo el flujo de modelos de preparar_modelos.js si aplica).
