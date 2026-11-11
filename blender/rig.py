@@ -19,6 +19,7 @@ K = dict(
     CURL0=(22, 24, 16), CURL1=(66, 60, 50), PULG0=(18, 38, 12, 12), PULG1=(-4, 62, 22, 16),
     # nivel de subdivision para el juego (las piezas que no salen aqui no tienen subsurf)
     NIVEL={'Pelo': 0, 'Nariz': 0, 'Manos': 1, 'Brazos': 1, 'Pantalon': 1, 'Playera': 1},
+    DECIMA={'Pelo': 0.5},          # reduccion (simetrica en X) antes del grosor, solo en la copia de juego
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     GLB=r'C:/Users/aris1/code/Continental/blender/chibi_prueba.glb')
@@ -133,7 +134,12 @@ for o in fuente.children:
     suf = o.name.split('_', 1)[1]; viejo = {}
     for m in o.modifiers:
         if m.type == 'SUBSURF': viejo[m.name] = m.levels; m.levels = K['NIVEL'].get(suf, 0)
+    dec = None
+    if K['DECIMA'].get(suf, 1) < 1:
+        dec = o.modifiers.new('tmp_decima', 'DECIMATE'); dec.ratio = K['DECIMA'][suf]
+        dec.use_symmetry = True; dec.symmetry_axis = 'X'; o.modifiers.move(len(o.modifiers) - 1, 0)
     dg.update(); me = bpy.data.meshes.new_from_object(o.evaluated_get(dg))
+    if dec: o.modifiers.remove(dec)
     for m in o.modifiers:
         if m.name in viejo: m.levels = viejo[m.name]
     me.name = 'Rig_' + suf; ob = bpy.data.objects.new('Rig_' + suf, me); col.objects.link(ob)
