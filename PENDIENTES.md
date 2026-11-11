@@ -121,7 +121,7 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 - [ ] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
 - [ ] D7 medición en dispositivos: celular y PC modesta, en Medio y Completo (FPS, memoria, si Safari recarga la página). Para el iPhone: `http://<IP de la PC>:3000/?medir` en la misma Wi‑Fi.
 - [ ] Paso 5 de la UI (prompt_ui.md), en pausa.
-- [ ] 4d Mesas ocupadas: animación genérica de mesa con partida en curso.
+- [x] 4d Mesas ocupadas: c_casa_ocupada.js (OCUP), mazo, pila, cartas que vuelan y aro de turno.
 - [ ] Monopoly Deal en su mesa (hoy es pantalla 2D).
 - [ ] Fase 5: Póker y Blackjack jugables en el sótano. Billar jugable (BIL.D ya trae las medidas) y quitar los letreros "próximamente".
 

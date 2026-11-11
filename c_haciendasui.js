@@ -39,7 +39,7 @@ function hl(){const G=V.G,m=me(),g=D.geo(G.bn);if(!myTurn())return {};
 function topBar(){const G=V.G,m=me();
  return `<div class="mu-top"><div class="mu-tr1"><div class="mu-pls" id="mupls">${G.players.map((p,k)=>{const t=k===G.turn&&G.phase=='play';
   return `<button class="mu-pl${t?' on':''}${k===m?' me':''}${G.out[k]?' x':''}" data-seat="${k}" style="--pc:${pc(k)}" onclick="HZU.tab('jug')" aria-label="${esc(p.name)}: ${G.vp[k]} puntos">
-   ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.auto&&G.auto[k]?' 🤖':''}</span><b>★ ${G.vp[k]} · 🂠 ${G.nres[k]}${G.lr===k?' 🛤️':''}${G.ga===k?' 🛡️':''}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div></div>
+   ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.auto&&G.auto[k]?' (AI)':''}</span><b>★ ${G.vp[k]} · 🂠 ${G.nres[k]}${G.lr===k?' 🛤️':''}${G.ga===k?' 🛡️':''}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div></div>
   <div class="mu-cam"><button class="mu-cb mu-ib" onclick="HZU.menu(1)" aria-label="Opciones">${SV.menu}</button><span class="mu-sp"></span>
   <button class="mu-cb" onclick="HZU.mode()" aria-label="Cambiar a vista ${is3()?'2D':'3D'}"><b>${is3()?'2D':'3D'}</b></button><button class="mu-cb" onclick="HZU.cam('home')" aria-label="Recentrar">${SV.home}</button><button class="mu-cb" onclick="HZU.cam('zi')" aria-label="Acercar">${SV.zi}</button><button class="mu-cb" onclick="HZU.cam('zo')" aria-label="Alejar">${SV.zo}</button>${is3()?`<button class="mu-cb" onclick="HZU.cam('rr')" aria-label="Girar">${SV.rot}</button>`:''}</div></div>`}
 // ---- tarjeta de acciones ----
@@ -48,7 +48,7 @@ const ST={setup:G=>G.sv<0?'pone su rancho':'pone su sacbé',roll:()=>'va a tirar
 function dock(){const G=V.G,m=me();
  if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">🏆</span><div class="mu-f1"><b class="mu-h">${nm(G.win)} gana</b><div class="mu-s">${G.stall?'Nadie sumó puntos en 10 rondas: ganó quien tenía más.':'Llegó a '+G.vp[G.win]+' puntos en su turno.'}</div>
   <div class="mu-s">${G.players.map((_,k)=>tok(k,'xs')+' '+G.vp[k]).join(' · ')}</div></div></div><div class="mu-acts"><button class="mu-b" onclick="HZX.sum(1)">📊 Ver resumen</button></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
- const au=m>=0&&G.auto&&G.auto[m]?`<div class="mu-note">🤖 Un bot está jugando por ti. <button class="mu-lk" onclick="HZU.a({t:'back'})">Volver a jugar</button></div>`:'';
+ const au=m>=0&&G.auto&&G.auto[m]?`<div class="mu-note">Un bot está jugando por ti. <button class="mu-lk" onclick="HZU.a({t:'back'})">Volver a jugar</button></div>`:'';
  if(G.st=='discard'&&G.dis&&G.dis[m]!=null)return au+discardDock();
  const o=offersToMe()[0];if(o)return au+offerDock(o);
  if(!myTurn())return `<div class="mu-dk">${au}<div class="mu-row">${tok(G.turn,'lg')}<div class="mu-f1"><div class="mu-s">Turno de</div><b class="mu-h">${nm(G.turn)}</b><div class="mu-s">${(ST[G.st]||(()=>''))(G)}</div></div>${dice()}</div>${clock()}</div>`;

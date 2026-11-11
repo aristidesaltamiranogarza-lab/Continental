@@ -6,7 +6,7 @@ const U=HZU,D=U.D,{tok,rc,chips,nm}=U,R5=[0,1,2,3,4];
 let bk={give:-1,get:-1};
 const trd=()=>U.keep.trd||(U.keep.trd={give:[0,0,0,0,0],want:[0,0,0,0,0],to:-1,re:null});
 function pJug(){const G=V.G;return G.players.map((p,k)=>{const t=k===G.turn&&G.phase=='play',lf=G.left[k];
- return `<div class="mu-prow${t?' on':''}${G.out[k]?' x':''}" style="--pc:${U.pc(k)}">${tok(k,'lg')}<div class="mu-f1"><b>${esc(p.name)}${k===U.me?' <em class="mu-tu">TÚ</em>':''}${G.auto&&G.auto[k]?' 🤖':''}</b>
+ return `<div class="mu-prow${t?' on':''}${G.out[k]?' x':''}" style="--pc:${U.pc(k)}">${tok(k,'lg')}<div class="mu-f1"><b>${esc(p.name)}${k===U.me?' <em class="mu-tu">TÚ</em>':''}${G.auto&&G.auto[k]?' (AI)':''}</b>
   <div class="mu-s">🂠 ${G.nres[k]} cartas · 🃏 ${G.ndev[k]} de desarrollo · 🛡️ ${G.gu[k]} guardias · 🛤️ camino ${G.ll[k]}</div>
   <div class="mu-s">Le quedan ${lf.s} sacbés, ${lf.r} ranchos, ${lf.h} haciendas${G.lr===k?' · <b>Sacbé real</b>':''}${G.ga===k?' · <b>Guardia mayor</b>':''}</div></div><b class="mu-cash">★ ${G.vp[k]}</b></div>`}).join('')
  +`<div class="mu-s">Gana quien llegue a <b>${G.o.pts}</b> puntos en su turno. Los puntos ocultos no se ven hasta el final.</div>`
