@@ -80,13 +80,40 @@
 
 ## Paso 11 · Mesa nueva de juego (Uno y Continental)
 La mesa ovalada del juego viene de la versión 1 (una sola cámara fija). Se cambia por la mesa redonda de la casa: la misma en la sala de espera, al empezar y en la partida, sin cambio de mesa.
-- [ ] Módulo compartido nuevo `c_mesa3d.js` (MESA): mesa redonda de madera con canto grueso y acolchado, fieltro del color del juego (los de `COL` en c_sala.js) con el logo apenas marcado, lámpara colgante cálida y el cuarto más oscuro alrededor. Una silla por jugador; la mesa crece con el número de jugadores. Se arma en el lugar de la mesa del juego en la casa.
-- [ ] Asientos como API: `MESA.asiento(i)` → posición, hacia dónde mira, dónde va su mano y su zona en el fieltro (bajadas). El código del juego pide esos lugares en vez de acomodar a mano.
-- [ ] Personajes sentados (AV) en cada silla, con las cartas al frente; cada carta jugada sale de sus manos al descarte. Reacciones con las poses que ya hay (`ManoCabeza` al robar 4, festejo al ganar).
-- [ ] Cámara viva: por defecto sobre tu mano viendo a los demás; se acerca un poco a quien tiene el turno; corte breve y cercano en jugadas grandes (+4, alguien cierra en Continental); arrastrar para ver alrededor y vista desde arriba con un toque.
-- [ ] Tu mano: abanico 3D abajo de la pantalla, un poco inclinado, la carta sube al pasar o tocar.
-- [ ] Orden: 1) c_mesa3d.js; 2) Uno (más simple: mazo, descarte, manos); 3) Continental (bajadas frente a cada jugador, tocar a alguien acerca la vista a sus bajadas); 4) quitar el código de la mesa ovalada de c_uno3d.js y c_continental3d.js. Son archivos GRANDES: cambiar solo cómo se acomoda en la mesa, no las reglas. Cada paso se puede subir y jugar solo.
-- [ ] Personajes dentro de las partidas (hoy Continental 3D, Uno 3D, Rummy y Ruleta crean sus Miis con `mkAvatar` e IK): Uno y Continental van con la mesa nueva; Rummy y Ruleta después.
+- [ ] Continental va primero: todo su plan está en la sección **"Mesa nueva · Continental"** (abajo).
+- [ ] Uno después: reusa `c_mesa3d.js`, `c_mesa_pj.js` y `c_mesa_cam.js` (mazo, descarte, manos; corte de cámara en +4, `ManoCabeza` al robar 4); quitar la mesa ovalada de c_uno3d.js.
+- [ ] Rummy y Ruleta al final (hoy crean sus Miis con `mkAvatar` e IK).
+
+## Mesa nueva · Continental
+Plan propuesto el 11 nov 2026 (falta el visto bueno de Aris). Aris pidió una mesa dinámica, divertida e intuitiva. Cada fase se sube y se puede jugar sola. `c_continental3d.js` es GRANDE: solo cambia cómo se acomoda en la mesa y la cámara, no las reglas; lo nuevo va en módulos chicos que después reusa Uno (se registran en server.js ~línea 14 y en continental3d.html antes de c_casa3d.js).
+
+**Cómo se siente**
+- Mesa redonda de la casa (madera, canto acolchado, fieltro `COL.continental` #1F6B4A con el logo apenas marcado, lámpara colgante). Crece con los jugadores (Continental: 2 a 5); igual en vertical y horizontal (la cámara se aleja para que quepa).
+- Turno: la luz de la lámpara se va despacio a su silla y el fieltro frente a él brilla; los demás lo voltean a ver.
+- Personajes chibi (AV) sentados con sus cartas boca abajo en las manos (su cantidad real). Robar: la carta vuela en arco del mazo a sus manos. Descartar: sale de sus manos y cae girando en el descarte.
+- Reacciones: comprar → levanta la mano (y si gana la compra le vuelan la carta y la de castigo); bajarse → festeja y sus cartas caen en abanico frente a él; pegar en bajada ajena → la bajada destella y el dueño voltea; cerrar la ronda → el ganador baila 3 s (Twerk o Capoeira) y los demás `ManoCabeza`.
+- Bajadas frente a su dueño, en su zona del fieltro, derechas para ti aunque estén enfrente. Tocar a alguien acerca la vista a sus bajadas.
+- Tu mano: abanico 3D abajo, curvo e inclinado, la carta sube al pasar o tocar. Al seleccionar, se iluminan los lugares donde cabe (descarte, siluetas de tu contrato, bajadas); al soltar cerca se acomoda sola. Las siluetas del contrato van en tu zona.
+- Cámara viva: desde tu silla, gira un poco hacia quien tiene el turno; cortes breves y cercanos solo al bajarse, comprar o cerrar. Arrastrar gira alrededor de la mesa, pellizco o rueda acercan, doble toque = vista desde arriba (y de regreso). Regresa sola a tu vista a los 4 s sin tocar o al empezar tu turno. La barra de cámara se cambia por dos botones: Arriba y Recentrar. Con reducir movimiento (`RM`) no hay cortes.
+- Tu personaje no se ve (la cámara son tus ojos, como hoy).
+
+**Fases**
+- [ ] 1. `c_mesa3d.js` (MESA): mesa, sillas y lámpara. `MESA.asiento(i)` → lugar, hacia dónde mira, su mano y su zona en el fieltro; `MESA.centro` → mazo y descarte. Continental lo usa en vez de la mesa ovalada (todavía con los Miis).
+- [ ] 2. `c_mesa_pj.js`: personajes AV en las sillas, cartas en sus manos y reacciones según `G.log`. A c_avatar.js le faltan cosas chicas por código (como `AV.sentar`/`AV.mueve`): voltear la cabeza a un punto, estirar el brazo, brazos arriba.
+- [ ] 3. Bajadas por jugador: zonas, cartas derechas para ti, pegar arrastrando, siluetas en tu zona.
+- [ ] 4. `c_mesa_cam.js`: la cámara viva.
+- [ ] 5. Tu mano 3D y detalles (sonidos, destellos, polvo de fieltro).
+- [ ] 6. Limpieza: quitar de c_continental3d.js la mesa ovalada, la barra de cámara vieja y los Miis con IK. El cuarto viejo (sin casa) se queda con el Conecta 4 y el Backgammon escondidos.
+- [ ] 7. La casa usa MESA para la mesa de Continental: sala de espera, inicio y partida en la misma mesa, sin cambio.
+- [ ] Al final: medir FPS en celular con 5 personajes.
+
+**Dónde está hoy (c_continental3d.js, líneas aproximadas)**
+- `buildTable(por)` ~140: mesa ovalada (rx,rz según vertical u horizontal), `L.deck`, `L.disc`, `L.rect` (bajadas de todos juntas al centro), `L.band` (siluetas del contrato); llama `buildRoom`, `buildC4`, `buildBG`.
+- `layout()` ~470 (encuadre de la cámara), `cam()`/`clampV()`/`home()`/`camStep()` ~485–502 (vista VT/VW: x, z, k, a, t), `look(k)` ~527, `seatA`/`seatP` ~536, `fan()` ~539 (tu mano, hija de la cámara), `meldLay()` ~546, `slotLay()` ~599, `sync()` ~603 (mazo, descarte, bajadas, manos de los demás, siluetas, tu mano), toques `pDown`/`pMove`/`pUp`/`tap` ~666–720, `casaModo()` ~848.
+- Miis: `mkAvatar` ~316 (`MII.mk`), `avSync` ~354, `avStep` ~360 (cabeza al turno, `reachT`/`cheerT` desde el log, IK de brazos).
+- Casa de fondo: `FONDO.pinta(R,cam,g,{r,y,rt,sillas})` en c_casa_fondo.js encoge la escena del juego a la mesa de la casa (`CASA3D.ancla(g)` da x, z, a, r); sin `sillas` esconde las sillas y Miis de la casa.
+- AV (c_avatar.js): `AV.crearYa(av)`, `AV.sentar(g,true)`, `AV.pose(g,'Reposo'|'AgarreFrente'|'ManoCabeza')`, `AV.agarre`, `AV.emote(g,'Twerk'|'Capoeira')`, `AV.mueve`, `AV.alto`. Código de cada jugador en `players[].av`. En la casa: `seatSync` (c_casa3d.js ~235).
+- Compra en el log: "quiere comprar el descarte", "compró el descarte (+1 de castigo)", "canceló su compra" (g_continental.js).
 
 ## Otros pendientes (de la lista anterior)
 - [ ] FPS bajan cerca de las dos mesas altas del sótano (cantina, `mesa_cantina`): medir ocultando vasos, rockola y luces de esa zona.
