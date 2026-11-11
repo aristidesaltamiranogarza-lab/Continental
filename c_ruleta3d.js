@@ -132,89 +132,77 @@ function buildBulb(){const pv=new THREE.Group();pv.position.set(0,HT,0);SC.add(p
  const gm=new THREE.MeshStandardMaterial({color:0xfff4d8,emissive:0xffd690,emissiveIntensity:2.2,roughness:.2});const gs=new THREE.Mesh(new THREE.SphereGeometry(.085,16,12),gm);gs.position.y=-L-.14;pv.add(gs);
  const lt=new THREE.PointLight(0xffc47e,34,13,1.55);lt.position.y=-L-.16;lt.castShadow=true;lt.shadow.mapSize.set(1024,1024);lt.shadow.bias=-.003;lt.shadow.camera.near=.1;pv.add(lt);
  bulb={pv,gm,lt,x:0,z:0,vx:0,vz:0,fl:0,next:performance.now()+4000}}
-// el revólver: el cañón apunta hacia +z y el origen queda en la cacha (donde va la mano)
-function mkGun(){const g=new THREE.Group(),G=new THREE.Group();G.position.set(0,.07,.08);g.add(G);const mt=std(0x26272b,.32,{metalness:.85}),wd=std(0x4a2a14,.55),dk=std(0x0c0c0e,.5,{metalness:.6});
- cyl(.026,.026,.26,mt,0,.035,.17,G,12).rotation.x=Math.PI/2;box(.03,.028,.2,mt,0,.005,.15,G);box(.07,.085,.17,mt,0,.0,-.02,G);box(.012,.022,.02,mt,0,.06,.29,G);
- const dr=new THREE.Group();dr.position.set(0,.012,.02);G.add(dr);cyl(.054,.054,.1,mt,0,0,0,dr,18).rotation.x=Math.PI/2;
- for(let i=0;i<6;i++){const a=i/6*Math.PI*2;cyl(.012,.012,.102,dk,Math.cos(a)*.034,Math.sin(a)*.034,0,dr,8).rotation.x=Math.PI/2}
- const gp=box(.052,.15,.07,wd,0,-.1,-.11,G);gp.rotation.x=.38;const tg=new THREE.Mesh(new THREE.TorusGeometry(.034,.006,6,16),mt);tg.position.set(0,-.055,.0);tg.rotation.y=Math.PI/2;G.add(tg);
- box(.01,.03,.008,mt,0,-.045,.0,G);const hm=box(.018,.04,.03,mt,0,.055,-.1,G);const mz=new THREE.Object3D();mz.position.set(0,.035,.31);G.add(mz);
- g.traverse(o=>{if(o.isMesh)o.castShadow=true});g.userData={drum:dr,hammer:hm,mz,spin:-1e9};return g}
-
-// ---------- los jugadores: Miis de la casa sentados en su silla ----------
-let P=[],sig='',me=-1,G0=null,stg=null,lastFx=-1,shk=0,nv=0,brStop=null,deadT=-1,look={y:0,p:0},drag=null,camE=null,camA=null,myHand=null;
+// ---------- los jugadores: personajes AV (c_avatar.js) sentados en su silla; el revólver es revolver.glb (c_rr_pj.js) ----------
+let P=[],sig='',me=-1,G0=null,stg=null,lastFx=-1,shk=0,nv=0,brStop=null,deadT=-1,look={y:0,p:0},drag=null,camE=null,camA=null,avP=null;
 const tv=OK3?new THREE.Vector3():null,tv2=OK3?new THREE.Vector3():null,ray=OK3?new THREE.Raycaster():null,P2=OK3?new THREE.Vector2():null;
-function clearPlayers(){P.forEach(p=>{SC.remove(p.pv);p.pv.traverse(o=>{if(o.geometry)o.geometry.dispose()});p.tag.remove()});P=[];if(myHand){gunV.remove(myHand);myHand=null}
+function clearPlayers(){RRPJ.enMano(gunW,null);P.forEach(p=>{AV.quita(p.av);SC.remove(p.pv);p.hit.geometry.dispose();p.tag.remove()});P=[];
  chairs.forEach((c,i)=>{c.position.copy(spos(i));c.rotation.set(0,face(i),0)})}
-function mkP(k,c,name){const [a,b]=CH.look(name),g=K.mkAvatar(a,b,{});g.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true});
- // pv: pivote en el piso; al morir se ladea hacia d (hacia atrás y a un lado, junto a su silla)
- const pv=new THREE.Group(),p=spos(c),out=p.clone().normalize(),sd=v3(-out.z,0,out.x).multiplyScalar(Math.random()<.5?1:-1),d=out.clone().multiplyScalar(.75).add(sd.multiplyScalar(.66)).normalize();
- pv.position.copy(p);pv.rotation.order='YXZ';pv.rotation.y=Math.atan2(d.x,d.z);SC.add(pv);g.position.y=1.55;g.rotation.y=face(c)-pv.rotation.y;pv.add(g);pv.updateMatrixWorld(true);
- const u=g.userData,bx=new THREE.Box3().setFromObject(u.head),hr=(bx.max.y-bx.min.y)*.45,eye=bx.getCenter(new THREE.Vector3()),F=u.arms[0].hand.parent,ws=F.getWorldScale(new THREE.Vector3()).x||1;
+// código AV de cada quien: el suyo (sala) o uno fijo según su nombre
+function avCod(p){const r=(V.players||[]).find(x=>x.id===p.id);return (r&&r.av)||(window.MPJ?MPJ.codigo(p.name):AV.codigoDef)}
+function mkP(k,c,cod){const {av,agr}=RRPJ.pj(cod);
+ // pv: pivote en el piso mirando a la mesa; hit: caja invisible para tocarlo (dispararle)
+ const pv=new THREE.Group(),p=spos(c),out=p.clone().normalize();pv.position.copy(p);pv.rotation.y=face(c);SC.add(pv);pv.add(av);
+ const hit=new THREE.Mesh(new THREE.BoxGeometry(1.1,2.2,1),new THREE.MeshBasicMaterial({visible:false}));hit.position.set(0,1.75,-.05);pv.add(hit);pv.updateMatrixWorld(true);
+ const sI=AV.sien(av,'I'),sD=AV.sien(av,'D'),a=sI?sI.getWorldPosition(v3(0,0,0)):av.localToWorld(v3(.3,2.1,0)),b=sD?sD.getWorldPosition(v3(0,0,0)):av.localToWorld(v3(-.3,2.1,0));
+ const eye=a.clone().add(b).multiplyScalar(.5),hr=a.distanceTo(b)*.5;
  const tag=document.createElement('div');tag.className='rr-tag';tag.dataset.seat=k;   // data-seat: ahí llegan los tomates (game.js)
  lay.appendChild(tag);
- return {k,c,pv,g,u,hr,hrL:hr/ws,eye,out,d,fw:out.clone().negate(),gs:hr*2.3/.42,dead:0,fall:null,seed:Math.random()*10,tag}}
-// tu mano con el revólver (primera persona): la mano y la manga de tu Mii
-function buildMyHand(p){myHand=new THREE.Group();gunV.add(myHand);const am=p.u.arms.find(m=>m.s>0)||p.u.arms[0];
- const h=new THREE.Mesh(new THREE.SphereGeometry(.05,14,10),am.hand.material);h.position.set(0,-.03,-.03);h.scale.set(1,1.15,1.2);myHand.add(h);
- tube(v3(0,-.05,-.06),v3(.07,-.3,-.5),.045,am.fo.material,myHand)}
-// alguien muere: sangre y se cae de la silla. quiet: ya estaba muerto al llegar (sin animación ni sonido)
-function death(p,quiet){if(p.fall)return;p.dead=1;const now=performance.now();p.fall={t:quiet?-1e9:now,ch:chairs[p.c]};p.g.visible=true;
+ return {k,c,cod,pv,av,agr,hit,hr,eye,out,d:out.clone().negate(),fw:out.clone().negate(),cy:0,dead:0,fall:null,seed:Math.random()*10,tag}}
+// alguien muere: sangre y se desploma sobre la mesa. quiet: ya estaba muerto al llegar (sin animación ni sonido)
+function death(p,quiet){if(p.fall)return;p.dead=1;const now=performance.now();p.fall={t:quiet?-1e9:now,sd:Math.random()<.5?1:-1};p.av.visible=true;
  const h=p.eye,o=p.out,tx=Math.abs(o.x)>1e-4?((o.x<0?XL:W)-h.x)/o.x:1e9,tz=Math.abs(o.z)>1e-4?(W*Math.sign(o.z)-h.z)/o.z:1e9,t=Math.min(tx,tz);
  const wall={p:h.clone().addScaledVector(o,t),n:tx<tz?v3(-Math.sign(o.x),0,0):v3(0,0,-Math.sign(o.z))};
- RRG.kill({head:h.clone(),out:o.clone(),wall,tableY:TH,tableR:TBR,center:v3(0,0,0),floor:p.pv.position.clone().addScaledVector(p.d,h.y*.9),quiet});
+ RRG.kill({head:h.clone(),out:o.clone(),wall,tableY:TH,tableR:TBR,center:v3(0,0,0),floor:p.pv.position.clone().addScaledVector(p.fw,.45),quiet});
  if(quiet)return;setTimeout(()=>RRS.snd('caida'),480);
  if(p.k===me){deadT=now;RRG.screen(1.3)}else if(me>=0&&P[me]&&!P[me].dead){const dc=Math.abs(p.c-P[me].c);if(Math.min(dc,NS-dc)<=1)RRG.screen(.6)}}
 // efectos que manda el servidor (G.fx): giro, clic, disparo
 function fxGo(f){const now=performance.now();
  if(f.t=='spin'){RRS.snd('giro');gunW.userData.spin=gunV.userData.spin=now}
  else if(f.t=='click'){RRS.snd('clic');shk=Math.max(shk,.15);gunW.userData.fire=gunV.userData.fire=now;bulb.vx+=rnd(-.05,.05)}
- else if(f.t=='bang'){RRS.snd('disparo');const g=gunV.visible?gunV:gunW;g.updateMatrixWorld(true);const mp=g.userData.mz.getWorldPosition(new THREE.Vector3()),dir=new THREE.Vector3(0,0,1).transformDirection(g.matrixWorld);
+ else if(f.t=='bang'){RRS.snd('disparo');const mz=(gunV.visible?gunV:gunW).userData.mz;mz.updateWorldMatrix(true,false);const mp=mz.getWorldPosition(new THREE.Vector3()),dir=new THREE.Vector3(0,0,-1).transformDirection(mz.matrixWorld);
   RRG.flash(mp,dir);shk=1;bulb.vx+=rnd(-.9,.9);bulb.vz+=rnd(-.9,.9);gunW.userData.fire=gunV.userData.fire=now;if(P[f.to])death(P[f.to],false)}}
 function onStage(prev,s){if(brStop&&!(s.st=='nerv'&&s.sh===me)){brStop();brStop=null}
  if(s.st=='nerv'&&s.sh===me&&!brStop)brStop=RRS.breath(Math.max(.5,(s.t1-performance.now())/1000+.2));
  if((s.st=='spin'||s.st=='aim')&&s.sh===me&&(!prev||prev.sh!==me)&&typeof banner=='function')banner('🔫 Te toca')}
 function sync(G){const key=G.players.map(p=>p.id).join(',');
- if(key!==sig){sig=key;clearPlayers();RRG.reset();lastFx=-1;stg=null;deadT=-1;camE=null;const n=G.players.length;P=G.players.map((p,k)=>mkP(k,Math.floor(k*NS/n),p.name))}
- me=V.me;G0=G;if(me>=0&&P[me]&&!myHand)buildMyHand(P[me]);
+ // los personajes salen hasta que cargan los GLB (personaje y revólver); entonces se vuelve a llamar sync
+ if(key!==sig&&!RRPJ.ya()){if(!avP)avP=RRPJ.listo().then(()=>{if(G0)sync(G0)}).catch(()=>{avP=null});if(P.length)clearPlayers()}
+ else if(key!==sig){sig=key;clearPlayers();RRG.reset();lastFx=-1;stg=null;deadT=-1;camE=null;const n=G.players.length;P=G.players.map((p,k)=>mkP(k,Math.floor(k*NS/n),avCod(p)))}
+ me=V.me;G0=G;if(me>=0&&P[me])RRPJ.vista(gunV,P[me].cod);
  if(!stg||stg.tc!==G.tc){const now=performance.now(),prev=stg;stg={tc:G.tc,st:G.st,sh:G.sh,tg:G.tg,forced:G.forced,res:G.res,t0:now-G.el,t1:G.left?now+G.left:0};onStage(prev,stg)}
  const first=lastFx<0;G.fx.forEach(f=>{if(f.n>lastFx){lastFx=f.n;if(!first&&f.ago<5000)fxGo(f)}});if(first)lastFx=Math.max(0,lastFx);
  P.forEach((p,k)=>{if(G.dead[k]===2){p.pv.visible=false;p.tag.classList.add('left')}else if(G.dead[k]===1&&!p.fall)death(p,true)})}
 
 // ---------- poses ----------
 // mode: null (manos en la mesa) · 'hold' (el arma en la mano) · 'aim' (apunta a tgt) · 'head' (a la sien). f: cuánto lleva del movimiento; amp: temblor
-function poseMii(p,now,mode,tgt,f,amp){const u=p.u;u.body.scale.y=1+.012*Math.sin(now/650+p.seed)+(amp?.02*Math.sin(now/90):0);
- u.head.rotation.x=mode=='head'?.05:.2;u.head.rotation.z=amp?(Math.random()-.5)*amp*3:0;
- u.arms.forEach(m=>{const pole=POLE[m.s>0?1:0].clone();m.h.set(m.s*.34,.36,.72);
-  if(m.s>0&&mode){const F=m.hand.parent,hold=new THREE.Vector3(m.s*.24,.62,.62);let want=hold;
-   if(mode=='aim'&&tgt){const tl=F.worldToLocal(tgt.clone());want=tl.sub(m.sh).normalize().multiplyScalar((u.l1+u.l2)*.93).add(m.sh)}
-   else if(mode=='head'){u.head.updateMatrixWorld();const hc=F.worldToLocal(u.head.getWorldPosition(tv2));want=hc.add(new THREE.Vector3(m.s*(p.hrL+.07),.04,.03));pole.y+=1.4;pole.x*=1.4}
-   m.h.copy(hold).lerp(want,f);if(amp)m.h.add(tv.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(amp))}
-  K.ik(m.sh,m.h,u.l1,u.l2,pole,m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
-// todos miran a quien tiene el arma (o a ti, si eres tú)
-function lookAt(p,w){p.g.updateMatrixWorld();const l=p.g.worldToLocal(w.clone());p.u.head.rotation.y+=(cl(Math.atan2(l.x,l.z),-1,1)-p.u.head.rotation.y)*.08}
-function stepPlayers(now){const G=G0,s=stg,sh=G.phase=='play'?G.sh:-1;let held=false;
+// pose de Blender (AgarreFrente o PistolaSien) + gestos por código (AV.gesto): apuntar = brazo al frente y torso girado hacia el blanco
+function yaw(p,w){p.av.updateMatrixWorld();const l=p.av.worldToLocal(tv2.copy(w));return Math.atan2(l.x,l.z)}
+function poseAV(p,now,mode,tgt,f,amp,mira){const a=p.av;AV.pose(a,mode=='head'&&f>.2?'PistolaSien':'AgarreFrente',.45);AV.agarre(a,'D',mode?1:.3);
+ if(mira)p.cy+=(cl(yaw(p,mira),-1,1)-p.cy)*.08;   // todos miran a quien tiene el arma (o a ti, si eres tú)
+ const g={cy:mode=='head'?p.cy*(1-f):p.cy,cx:0};
+ if(mode=='aim'&&tgt){const y=cl(yaw(p,tgt),-1.2,1.2);g.est=f;g.gy=y*.85*f;g.cy=g.cy*(1-f)+y*.15*f}
+ if(amp){g.cx+=(Math.random()-.5)*amp*2;g.cy+=(Math.random()-.5)*amp*2}
+ AV.gesto(a,g)}
+function stepPlayers(now){const G=G0,s=stg,sh=G.phase=='play'?G.sh:-1;let held=null;
  P.forEach((p,k)=>{if(!p.pv.visible)return;
-  if(p.fall){const x=ease((now-p.fall.t)/750);p.pv.rotation.x=x*Math.PI/2*.94;p.pv.position.y=-.05*x;const ch=p.fall.ch;ch.rotation.x=-x*1.25;ch.position.copy(spos(p.c,CR+.45*x));p.u.head.rotation.z=.4*x;return}
-  if(k===me){p.g.visible=false;return}
-  const hp=P[sh];if(hp&&k!==sh)lookAt(p,sh===me?CA.position:hp.eye);
-  if(k!==sh){poseMii(p,now,null);return}
+  if(p.fall){const x=ease((now-p.fall.t)/750);if(!p.fall.r){p.fall.r=1;AV.pose(p.av,'Reposo',.3);AV.agarre(p.av,'D',0)}AV.gesto(p.av,{col:1.05*x,cx:.55*x,cy:.3*x*p.fall.sd});return}
+  if(k===me){p.av.visible=false;return}
+  const hp=P[sh],mira=hp&&k!==sh?(sh===me?CA.position:hp.eye):null;
+  if(k!==sh){poseAV(p,now,null,null,0,0,mira);return}
   const el=now-s.t0,dur=Math.max(1,s.t1-s.t0),tg=P[s.tg],tgt0=tg?(s.tg===me?CA.position.clone():tg.eye):null;let mode='hold',f=1,amp=0,tgt=null;
   if(s.st=='fire'||(s.st=='res'&&s.res&&s.res.v!==sh)){mode='aim';tgt=tgt0;f=s.st=='fire'?ease(el/700):1}
   else if(s.st=='nerv'){mode='head';f=ease(el/1100);amp=.015+.07*cl(el/dur,0,1)}
   else if(s.st=='res'&&s.res&&s.res.v===sh){mode='head';f=1-ease((el-900)/600);amp=.01}
-  poseMii(p,now,mode,tgt,f,amp);if(tgt)lookAt(p,tgt);p.g.updateMatrixWorld(true);
-  const am=p.u.arms.find(m=>m.s>0)||p.u.arms[0];am.hand.getWorldPosition(gunW.position);gunW.scale.setScalar(p.gs);
-  gunW.lookAt(mode=='aim'&&tgt?tgt:mode=='head'&&f>.5?p.u.head.getWorldPosition(tv2):gunW.position.clone().addScaledVector(p.fw,2).setY(gunW.position.y+1.3));held=true});
- // el revólver: en la mano de quien tiene el turno, en la tuya (primera persona) o sobre la mesa
- const mine=sh===me&&me>=0&&P[me]&&!P[me].dead;gunV.visible=mine;gunW.visible=!mine;
- if(!mine&&!held){const p=P[sh>=0?sh:G.win!=null?G.win:0],o=p?p.out:v3(0,0,1);gunW.scale.setScalar(p?p.gs:1);gunW.position.set(o.x*(TBR-.5),TH+.04,o.z*(TBR-.5));gunW.rotation.set(0,Math.atan2(o.x,o.z)+1.9,Math.PI/2)}
+  poseAV(p,now,mode,tgt,f,amp,mode=='aim'?null:tgt);held=p});
+ // el revólver: en la mano de quien tiene el turno (colgado de su Rig_Agarre), en la tuya (primera persona) o sobre la mesa
+ const mine=!!(sh===me&&me>=0&&P[me]&&!P[me].dead);RRPJ.ver(gunV,mine);RRPJ.ver(gunW,!mine);RRPJ.enMano(gunW,held&&!mine?held.agr:null);
+ if(!mine&&!held){const p=P[sh>=0?sh:G.win!=null?G.win:0],o=p?p.out:v3(0,0,1);gunW.position.set(o.x*(TBR-.5),TH+.04,o.z*(TBR-.5));gunW.rotation.set(0,Math.atan2(o.x,o.z)+1.9,Math.PI/2)}
  if(mine){const el=now-s.t0,dur=Math.max(1,s.t1-s.t0),pos=tv.set(.24,-.27,-.62);let at=CA.localToWorld(tv2.set(-.06,.14,-6)),amp=.002;
   if(s.st=='fire'||(s.st=='res'&&s.res&&s.res.v!==me)){const tg=P[s.tg];if(tg){pos.lerp(v3(.12,-.17,-.6),ease(el/600));at=tg.eye.clone()}}
   else if(s.st=='nerv'||(s.st=='res'&&s.res&&s.res.v===me)){const f=s.st=='nerv'?ease(el/1200):1-ease((el-900)/700);pos.lerp(v3(.33,.01,-.12),f);at=CA.localToWorld(tv2.set(.33-f*1.4,0,-.12-(1-f)*5));amp=s.st=='nerv'?.002+.012*cl(el/dur,0,1):.002}
-  gunV.position.copy(pos).add(new THREE.Vector3(Math.random()-.5,Math.random()-.5,0).multiplyScalar(amp));gunV.lookAt(at)}
- // tambor que gira, martillo que pega
- [gunW,gunV].forEach(g=>{const d=g.userData,st=now-d.spin;if(st<1200)d.drum.rotation.z+=(1-st/1200)*.6;const ft=now-(d.fire||-1e9);d.hammer.rotation.x=ft<120?0:s&&(s.st=='fire'||s.st=='nerv')?-.7:-.15})}
+  gunV.position.copy(pos).add(new THREE.Vector3(Math.random()-.5,Math.random()-.5,0).multiplyScalar(amp));gunV.lookAt(at);RRPJ.pasoVista(gunV)}
+ // tambor que gira, martillo amartillado (+40°) que pega al disparar
+ [gunW,gunV].forEach(g=>{const d=g.userData,st=now-d.spin;if(st<1200)d.drum.rotation.z+=(1-st/1200)*.6;const ft=now-(d.fire||-1e9);d.hammer.rotation.x=ft<120?0:s&&(s.st=='fire'||s.st=='nerv')?.7:0})}
 
 // ---------- cámara: en primera persona desde tu silla; muerto (o mirando) desde arriba, en gris ----------
 function camStep(now,dt){const s=stg,alive=me>=0&&P[me]&&!P[me].dead;let eye,at;
@@ -245,7 +233,7 @@ function stepRoom(now,dt){const s=dt/1000,b=bulb;
   q.s.position.set(ember.p.x+(q.ox||0)+Math.sin(q.t*1.3+q.life)*.15*f,ember.p.y+f*1.1,ember.p.z+Math.cos(q.t*.9)*.12*f);q.s.scale.setScalar(.04+f*.45);q.s.material.opacity=.22*Math.sin(Math.PI*Math.min(1,f*1.2))*(1-f*.3)})}
 // nombres sobre cada quien
 function labels(){const G=G0;P.forEach((p,k)=>{const t=p.tag;if(!p.pv.visible)return;
- const w=p.fall?p.pv.position.clone().addScaledVector(p.d,1.2).setY(.9):tv.copy(p.eye).setY(p.eye.y+p.hr*1.7);w.project(CA);
+ const w=p.fall?p.pv.position.clone().addScaledVector(p.d,.6).setY(TH+.7):tv.copy(p.eye).setY(p.eye.y+p.hr*1.7);w.project(CA);
  const vis=!(k===me&&!p.dead)&&w.z<1&&Math.abs(w.x)<1.1&&Math.abs(w.y)<1.1;t.style.display=vis?'':'none';if(!vis)return;
  const turn=G.phase=='play'&&G.sh===k&&!p.dead,txt=es(G.players[k].name)+(p.dead?' 💀':turn?' 🔫':'')+(k===me?' (tú)':'');if(t._t!==txt){t._t=txt;t.innerHTML=txt}
  t.classList.toggle('turn',turn);t.classList.toggle('dead',!!p.dead);t.style.transform=`translate(${((w.x+1)/2*Wd).toFixed(1)}px,${((1-w.y)/2*Hd).toFixed(1)}px) translate(-50%,-100%)`})}
@@ -256,7 +244,7 @@ function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const 
  if(now-humT>1000){humT=now;RRS.hum(shown)}}
 // tocar a alguien en tu turno = dispararle; arrastrar = mirar alrededor; doble clic = mirar al frente
 function tap(e){const G=G0;if(!G||G.phase!='play'||G.turn!==me||G.st!='aim')return;const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
- let best=null;P.forEach((p,k)=>{if(k===me||p.dead||!p.pv.visible)return;const h=ray.intersectObject(p.g,true)[0];if(h&&(!best||h.distance<best.d))best={k,d:h.distance}});if(best)RRU.shoot(best.k)}
+ let best=null;P.forEach((p,k)=>{if(k===me||p.dead||!p.pv.visible)return;const h=ray.intersectObject(p.hit,false)[0];if(h&&(!best||h.distance<best.d))best={k,d:h.distance}});if(best)RRU.shoot(best.k)}
 function init(){if(ready)return;CH=window.CASA3D;if(!CH||!RRG)throw new Error('falta c_casa3d.js o c_ruletagore.js');ready=true;
  // un solo WebGL: si la casa ya tiene renderer se usa el mismo y su lienzo pasa de un cuarto al otro (show); el estado lo pone rstate()
  shR=!!(CH.R&&CH.R());R=shR?CH.R():new THREE.WebGLRenderer({antialias:true});if(!shR)rstate();
@@ -267,7 +255,7 @@ function init(){if(ready)return;CH=window.CASA3D;if(!CH||!RRG)throw new Error('f
  textures();buildRoom();buildTable();for(let c=0;c<NS;c++)buildChair(c);buildProps();buildBulb();
  // las luces de la Ruleta se quedan prendidas en calidad Media (c_casa3d.js applyQ); luego la cantina (c_sotano.js)
  SC.traverse(o=>{if(o.isPointLight)o.userData.keep=true});if(window.SOT)SOT.cantina(SC,{XL,W,HT,TH});
- gunW=mkGun();SC.add(gunW);gunV=mkGun();gunV.scale.setScalar(.8);gunV.traverse(o=>{o.castShadow=false});CA.add(gunV);RRG.init(THREE,SC,W);
+ gunW=RRPJ.arma(new THREE.Group());SC.add(gunW);gunV=RRPJ.arma(new THREE.Group(),false);CA.add(gunV);RRG.init(THREE,SC,W);
  cv.addEventListener('pointerdown',e=>{if(!shown)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,ly:look.y,lp:look.p,mv:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>6)drag.mv=true;if(drag.mv){look.y=cl(drag.ly-dx*.004,-1.3,1.3);look.p=cl(drag.lp-dy*.003,-.55,.45)}});
  cv.addEventListener('pointerup',e=>{const d=drag;drag=null;if(d&&!d.mv)tap(e)});cv.addEventListener('pointercancel',()=>drag=null);cv.addEventListener('dblclick',()=>{if(shown){look.y=0;look.p=0}})}
@@ -275,7 +263,7 @@ function rstate(){const mob=matchMedia('(pointer:coarse)').matches;R.setPixelRat
  R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.1}
 // modos del sótano: 'juego' (la partida: techo y niebla espesa), 'casa' (caminando con la cámara de arriba: sin techo) y '1p' (caminando en primera persona)
 function modo(m){if(!ready)return;techo.forEach(o=>o.visible=m!=='casa');SC.fog.density=m=='juego'?.075:m=='1p'?.045:.02;CA.visible=m=='juego';if(window.SOT)SOT.modo(m);
- if(m!=='juego'&&!G0){gunW.visible=true;gunW.scale.setScalar(1);gunW.position.set(.4,TH+.04,.3);gunW.rotation.set(0,2.2,Math.PI/2)}}
+ if(m!=='juego'&&!G0){RRPJ.ver(gunW,true);gunW.position.set(.4,TH+.04,.3);gunW.rotation.set(0,2.2,Math.PI/2)}}
 function show(on){if(on&&!ready)init();if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';
  if(on){if(shR){root.prepend(cv);rstate();Wd=0}modo('juego');
   // venías caminando en el sótano: la cámara arranca donde estaba la de la casa y vuela a tu silla

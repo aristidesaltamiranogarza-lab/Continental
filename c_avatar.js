@@ -4,7 +4,7 @@
 // Código: s cuerpo (1 H, 2 M), p pelo 1–7, c cejas, b boca, n nariz, a arriba, d abajo (1–3); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb?v=3',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=4',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],
@@ -108,13 +108,13 @@ function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,p
 function mueve(p,m){const u=p&&p.userData.av;if(!u)return;const on=!!m&&((m.w||0)>.01||(m.sal||0)>.01||(m.dn||0)>.01);
  if(!on&&!u.mov)return;u.mov=on?m:null;despierta(p,on?150:40)}
 // gestos por código encima de la pose (c_mesa_pj.js); se llama cada cuadro mientras duren, null los quita. g: cy voltea la cabeza
-// (+ hacia su izquierda), cx la agacha (+ abajo), est 0–1 estira el brazo derecho al frente, mano 0–1 levanta la mano derecha, arr 0–1 los dos brazos arriba.
+// (+ hacia su izquierda), cx la agacha (+ abajo), est 0–1 estira el brazo derecho al frente, col inclina el torso al frente, gy lo gira (+ a su izquierda), mano 0–1 levanta la mano derecha, arr 0–1 los dos brazos arriba.
 // cartas 0–1: las dos manos juntas frente al pecho (sostiene el abanico); cede ante los demás gestos de ese brazo.
 // GE (AV.GE para probar): por gesto y lado, radianes [brazo X, brazo Z, antebrazo X, antebrazo Z] desde 'AgarreFrente' sentado; C inclina el torso.
 const GE={cartas:{I:[-2.5,-2.375,1.5,0],D:[0,.25,0,0]},est:{D:[-.5,.25,0,0],C:.25},mano:{D:[-2,.625,0,0]},arr:{D:[-2,.625,0,0],I:[-.125,2,0,0]}};
 function gesto(p,g){const u=p&&p.userData.av;if(!u||(!g&&!u.ges))return;u.ges=g||null;u.hasta=Math.max(u.hasta,performance.now()+150);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function ges(p,u){const g=u.ges,h=u.ej||(u.ej=ejes(p));gira(h,'cabeza',1,g.cy||0);gira(h,'cabeza',0,g.cx||0);let col=0;
- for(const n in GE)if(GE[n].C&&g[n])col+=GE[n].C*g[n];gira(h,'columna',0,col);
+ for(const n in GE)if(GE[n].C&&g[n])col+=GE[n].C*g[n];gira(h,'columna',0,col+(g.col||0));gira(h,'columna',1,g.gy||0);
  for(const l of 'ID'){let o=0;for(const n in GE)if(n!=='cartas'&&GE[n][l])o+=g[n]||0;const r=[0,0,0,0];
   for(const n in GE){const v=GE[n][l];let w=g[n]||0;if(n==='cartas')w*=Math.max(0,1-o);if(w&&v)for(let j=0;j<4;j++)r[j]+=v[j]*w}
   gira(h,'brazo_'+l,0,r[0]);gira(h,'brazo_'+l,2,r[1]);gira(h,'antebrazo_'+l,0,r[2]);gira(h,'antebrazo_'+l,2,r[3])}}

@@ -141,11 +141,12 @@ Decidido (11 nov): western clásico de acción simple (martillo grande, tambor f
 - Hecho: blender/revolver.py → blender/revolver.glb (7.5k tris, ESC 1.25). rig.py: Rig_Pistola es la copia fija (no se exporta) y Rig_Agarre (hijo de mano_D) es donde va Rev_Agarre; PistolaSien: boca abajo de la oreja y cañón al centro de la cabeza (±15°, PS_* en K). Falta pasar chibi_prueba.glb a modelos/personaje/chibi.glb (R2).
 
 ### R2 · Personajes en la Ruleta
-- [ ] Quitar los Miis: sentar personajes con AV/MPJ alrededor de la mesa de la Ruleta (no es MESA; usar las posiciones de silla actuales de `c_ruleta3d.js`). Mismo código de personaje que en Continental/Uno (`AV.crear`/`AV.crearYa`, `AV.cambiar`).
-- [ ] Arma en la mano: `AV.pistola(p,true)` o colgar el GLB del revólver del hueso de la mano usando `Rev_Agarre`; dedos con `AV.agarre(p,'D',1)`.
-- [ ] Mano en primera persona (viewmodel): exportar desde Blender solo mano de mitón + manga (ropa y colores del jugador) o recortarla del GLB del avatar; sustituye `buildMyHand`. Sin sombras, hija de la cámara como `gunV`.
-- [ ] Muerte: el personaje se desploma (pose) en vez de lo que hace hoy `death()`; nametag atenuado.
-- [ ] Borrar `mkGun`, `buildMyHand` viejo y el uso de `mkAvatar`/`seg`/`ik` en la Ruleta (siguen exportados en C3D para Rummy y la casa; quitarlos de C3D solo cuando Rummy también migre).
+- [x] Quitar los Miis: sentar personajes con AV/MPJ alrededor de la mesa de la Ruleta (no es MESA; usar las posiciones de silla actuales de `c_ruleta3d.js`). Mismo código de personaje que en Continental/Uno (`AV.crear`/`AV.crearYa`, `AV.cambiar`).
+- [x] Arma en la mano: `AV.pistola(p,true)` o colgar el GLB del revólver del hueso de la mano usando `Rev_Agarre`; dedos con `AV.agarre(p,'D',1)`.
+- [x] Mano en primera persona (viewmodel): exportar desde Blender solo mano de mitón + manga (ropa y colores del jugador) o recortarla del GLB del avatar; sustituye `buildMyHand`. Sin sombras, hija de la cámara como `gunV`.
+- [x] Muerte: el personaje se desploma (pose) en vez de lo que hace hoy `death()`; nametag atenuado.
+- [x] Borrar `mkGun`, `buildMyHand` viejo y el uso de `mkAvatar`/`seg`/`ik` en la Ruleta (siguen exportados en C3D para Rummy y la casa; quitarlos de C3D solo cuando Rummy también migre).
+- Hecho: c_rr_pj.js (RRPJ) sienta los AV en las sillas, cuelga modelos/personaje/revolver.glb (meshopt) de Rig_Agarre y arma la mano en primera persona recortando tu personaje por pesos (antebrazo y mano D). Apuntar = AgarreFrente + AV.gesto est/gy (gy y col nuevos); muerte = Reposo + col/cx (se desploma al frente). chibi.glb ?v=4 con Rig_Agarre. Falta ver la mano 1P sin el panel encima y el martillo (+40°).
 
 ### R3 · Animaciones
 Reparto: poses clave horneadas en Blender (actuación) + mezcla, apuntado y mecánica del arma en three.js.
