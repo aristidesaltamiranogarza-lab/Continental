@@ -11,8 +11,9 @@ K = dict(
     PERFIL=[(1.70, 0.93, 0.95), (1.50, 0.93, 0.95), (1.35, 0.90, 0.94), (1.08, 0.82, 0.88),
             (0.90, 1.00, 1.00), (0.62, 1.22, 1.12)],
     CADERA_PANT=(1.10, 1.06),    # pantalon arriba de la rodilla
-    # busto: dos bultos al frente (x = +-BX, z = BZ), alto arriba SZ_A y abajo SZ_B (cae mas redondo), A hacia -y
-    BX=0.10, SX=0.085, BZ=1.38, SZ_A=0.11, SZ_B=0.065, A=0.085,
+    # busto: un solo volumen al frente, ancho BX (Q > 2 lo hace parejo de lado a lado), centro en z = BZ; alto arriba SZ_A,
+    # abajo SZ_B (mas largo que arriba: la tela cae del busto, sin repliegue); A hacia -y
+    BX=0.17, Q=4.0, BZ=1.36, SZ_A=0.14, SZ_B=0.17, A=0.15,
     CORTES=[1.46, 1.42, 1.38, 1.31],   # aros extra (antes de subdividir) para que el busto tenga forma
     X=-2.9, MUJER_PELO='pelo_5', MUJER_EXTRA=None)
 K.update(globals().get('PRM', {}))
@@ -51,7 +52,8 @@ ymax = max(-v.co.y for v in pm.vertices)
 for v in pm.vertices:
     if v.co.y >= 0: continue
     dz = v.co.z - K['BZ']; sz = K['SZ_A'] if dz > 0 else K['SZ_B']
-    w = math.exp(-((abs(v.co.x) - K['BX']) / K['SX']) ** 2 - (dz / sz) ** 2) * (-v.co.y / ymax) ** 2
+    w = (math.exp(-(abs(v.co.x) / K['BX']) ** K['Q'] - (dz / sz) ** 2)
+         * (-v.co.y / ymax) ** 2)
     v.co.y -= K['A'] * w
 nm_ = copia(bpy.data.objects['Frente_Pantalon'].data, 'pantalon_m')
 for v in nm_.vertices:
