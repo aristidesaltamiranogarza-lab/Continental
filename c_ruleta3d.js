@@ -157,11 +157,15 @@ function death(p,quiet){if(p.fall)return;p.dead=1;const now=performance.now();p.
  if(quiet)return;setTimeout(()=>RRS.snd('caida'),480);
  if(p.k===me){deadT=now;RRG.screen(1.3)}else if(me>=0&&P[me]&&!P[me].dead){const dc=Math.abs(p.c-P[me].c);if(Math.min(dc,NS-dc)<=1)RRG.screen(.6)}}
 // el golpe del balazo (pose Muerte, ~0.2 s) y luego cae al frente con el ragdoll; se empuja lejos de quien disparó (o de su sien derecha)
+// tres formas de caer que se turnan (cada cliente arranca en una al azar): de cara a la mesa, hacia atrás en la silla o de lado al piso
+const FIN=['mesa','atras','piso'];let finI=Math.random()*3|0;
 function ragdoll(p,quiet){const a=p.av;AV.gesto(a,null);AV.amartilla(a,0);AV.agarre(a,'D',0);AV.pose(a,'Muerte',quiet?0:.06);
- const sh=stg?stg.sh:-1,src=sh!==p.k&&P[sh]?P[sh].eye:null;let imp;
- if(src)imp=p.eye.clone().sub(src).setY(0).normalize().multiplyScalar(.6).addScaledVector(p.fw,2.2);
- else imp=a.localToWorld(v3(1,0,0)).sub(a.getWorldPosition(v3(0,0,0))).multiplyScalar(.9).addScaledVector(p.fw,2);
- const go=()=>{if(P.includes(p)&&a.userData.av)RAG.crea(a,{mesa:{y:TH,r:TBR,c:v3(0,0,0)},piso:0,imp,rh:p.hr,ya:quiet})};
+ const sh=stg?stg.sh:-1,src=sh!==p.k&&P[sh]?P[sh].eye:null,fin=FIN[finI++%3];
+ const izq=a.localToWorld(v3(1,0,0)).sub(a.getWorldPosition(v3(0,0,0))).normalize();
+ // lado al que empuja la bala: lejos de quien disparó o de su sien derecha (hacia su izquierda)
+ const lado=src?p.eye.clone().sub(src).setY(0).normalize():izq,L=lado.dot(izq)<0?-1:1;
+ const imp=fin=='mesa'?lado.clone().multiplyScalar(.5).addScaledVector(p.fw,2.1):fin=='atras'?lado.clone().multiplyScalar(.4).addScaledVector(p.fw,-2.4).setY(.6):izq.clone().multiplyScalar(L*1.6);
+ const go=()=>{if(P.includes(p)&&a.userData.av)RAG.crea(a,{mesa:{y:TH,r:TBR,c:v3(0,0,0)},piso:0,imp,rh:p.hr,ya:quiet,cae:fin=='piso'?{L,s:p.hr*1.15}:null})};
  if(quiet)go();else setTimeout(go,180)}
 const ctx=(now,dt)=>({P,s:stg,G:G0,me,now,dt,gunW,gunV,CA,SC,TH,TBR,yaw});
 // efectos que manda el servidor (G.fx): giro, clic, disparo

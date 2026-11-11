@@ -8,6 +8,8 @@
 if(typeof THREE==='undefined')return;
 const URL_REV=new URL('modelos/personaje/revolver.glb?v=1',location.href).href;
 const RPI=new THREE.Matrix4().makeRotationY(Math.PI),SEAT=new THREE.Vector3(0,.36,-.04),M1=new THREE.Matrix4(),M2=new THREE.Matrix4();
+// la cacha va al centro del puño (no en la punta de los dedos): el arma se corre respecto al Rig_Agarre (en w: cañón +z, arriba +y)
+const OFF=new THREE.Vector3(.02,-.01,-.03),T_AGR=new THREE.Matrix4().makeTranslation(-OFF.x,OFF.y,-OFF.z),T_VM=new THREE.Matrix4().makeTranslation(-OFF.x,-OFF.y,-OFF.z);
 let rev=null,revP=null;
 function cargaRev(){return revP||(revP=CGLB.cargador().then(L=>new Promise((ok,mal)=>L.load(URL_REV,ok,null,mal))).then(g=>{
  const s=g.scene;s.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=false}if(/^Rev_(Bala|Casquillo)$/.test(o.name))o.visible=false});
@@ -25,7 +27,7 @@ function arma(w,sombra=true){const d=w.userData;d.spin=d.spin||-1e9;
   d.rod0=d.rod?d.rod.position.z:0;const rc=o('Rev_Recamara');d.rec0=rc?rc.position.clone():new THREE.Vector3();G.visible=w.visible}).catch(()=>{});
  return w}
 function enMano(w,agr){const d=w.userData,G=d.inner;if(!G)return;
- if(agr){if(G.parent!==agr){agr.add(G);G.matrix.copy(rev.inv)}}
+ if(agr){if(G.parent!==agr){agr.add(G);G.matrix.multiplyMatrices(T_AGR,rev.inv)}}
  else if(G.parent!==w){w.add(G);G.matrix.multiplyMatrices(RPI,rev.inv)}}
 // suelta(w): saca el revólver de la mano y deja w (su agarre) donde estaba en el mundo, para que siga volando desde ahí
 function suelta(w){const d=w.userData,G=d.inner;if(!G||G.parent===w)return false;G.updateWorldMatrix(true,false);
@@ -45,6 +47,6 @@ function vista(w,cod){const d=w.userData;if(d.vm&&d.vmCod===cod)return;if(d.vm){
  d.vm=av;d.vmCod=cod;d.vmAgr=av.getObjectByName('Rig_Agarre');pasoVista(w)}
 // la mano se acomoda para que su Rig_Agarre quede en el agarre del revólver (el origen de w, cañón en +z)
 function pasoVista(w){const d=w.userData,av=d.vm;if(!av||!d.vmAgr)return;av.updateMatrixWorld(true);
- M1.copy(av.matrixWorld).invert().multiply(d.vmAgr.matrixWorld).invert();av.matrix.multiplyMatrices(RPI,M1);av.matrixWorldNeedsUpdate=true}
+ M1.copy(av.matrixWorld).invert().multiply(d.vmAgr.matrixWorld).invert();av.matrix.multiplyMatrices(RPI,M1).premultiply(T_VM);av.matrixWorldNeedsUpdate=true}
 window.RRPJ={listo,ya,pj,arma,enMano,suelta,ver,vista,pasoVista,SEAT};
 })();
