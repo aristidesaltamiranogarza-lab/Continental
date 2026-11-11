@@ -60,9 +60,9 @@
 - [x] Los bots también tienen personaje (código aleatorio con la paleta). — `avAzar()` en server.js al crear el bot.
 
 ## Paso 8 · Pantalla "Mi personaje"
-- [ ] Usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).
-- [ ] Vista previa del personaje girando y pestañas: Peinado, Cara, Ropa, Colores. Selector Hombre/Mujer que solo cambia la selección inicial.
-- [ ] Botón "Mi personaje" para entrar cuando sea; guardar al cerrar.
+- [x] Usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).
+- [x] Vista previa del personaje girando y pestañas: Peinado, Cara, Ropa, Colores. Selector Hombre/Mujer que solo cambia la selección inicial.
+- [x] Botón "Mi personaje" para entrar cuando sea; guardar al cerrar. — 10 nov 2026: `c_mipj.js` (MIPJ.abrir/cerrar): hoja `.ui-sheet.mid` con vista previa (arrastrar para girar), Hombre/Mujer solo cambia el cuerpo, "Al azar"; botón en Ajustes (CHUD); al cerrar guarda con `AV.mio` y manda `act {t:'av'}` si estás en una sala.
 - [ ] Probar en celular vertical y horizontal, también en 21:9.
 
 ## Paso 9 · Personajes en la mesa y la sala

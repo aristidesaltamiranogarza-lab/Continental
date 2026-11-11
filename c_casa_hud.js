@@ -34,7 +34,7 @@ const sw=(on,fn,l)=>`<label class="ui-sw"><input type="checkbox"${on?' checked':
 const P={
  gente:c=>`<div class="ui ui-card uh-drop" role="dialog" aria-label="Quién está en la casa"><span class="ui-lbl">En la casa · ${c.n}</span>${c.people.map(p=>`<div class="uh-per">${av(p.n)}<span><b>${es(p.n)}${p.me?' <small class="ui-sub">(tú)</small>':''}</b><small class="ui-sub">${PISO[p.f]||''}</small></span></div>`).join('')}</div>`,
  ajustes:c=>{const q=window.CALIDAD,mus=typeof musName=='function'?musName():null,snd=!(typeof mute!='undefined'&&mute);
-  return sheet('Ajustes',`<div class="uh-name">${av(c.name)}<label><span class="ui-lbl">Tu nombre</span><input id="uiName" class="ui-in" maxlength="14" value="${es(c.name)}" oninput="pname=this.value;casaName()" autocomplete="nickname" spellcheck="false"></label></div>
+  return sheet('Ajustes',`<div class="uh-name">${av(c.name)}<label><span class="ui-lbl">Tu nombre</span><input id="uiName" class="ui-in" maxlength="14" value="${es(c.name)}" oninput="pname=this.value;casaName()" autocomplete="nickname" spellcheck="false"></label></div>${window.MIPJ?`<button class="ui-btn sec full" onclick="CHUD.close();MIPJ.abrir()">${I('persona')} Mi personaje</button>`:''}
   ${window.BIEN?`<span class="ui-lbl">Calidad</span>${seg([['ligero','Ligero'],['medio','Medio'],['completo','Completo']],q,'cal')}<small class="ui-sub uh-hint">${QH[q]||''}</small>`:''}
   <span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'tema')}
   ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
