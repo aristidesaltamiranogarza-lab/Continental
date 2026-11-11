@@ -1,6 +1,6 @@
 # Rig del chibi para el juego (three.js). Copia la figura "Frente" (modificadores aplicados a nivel
 # de juego) en piezas intercambiables (K['PIEZA']: Base, Pelo_n, Cejas_n, Boca_n, Nariz_n, Arriba_n,
-# Abajo_n), cada una hija de la armadura "Rig" con sus pesos y materiales por ranura (K['MAT']: av_*,
+# Abajo_n; cejas, boca y nariz 2..3 salen de las figuras Cara_n de cara.py), cada una hija de la armadura "Rig" con sus pesos y materiales por ranura (K['MAT']: av_*,
 # el color se cambia en three.js). Pesos automaticos por partes, acciones de
 # pose (Reposo, AgarreFrente, ManoCabeza, PistolaSien) y de dedos (Agarre_I / Agarre_D: cuadro 1 =
 # relajada, cuadro 10 = agarra; en three.js se usa el tiempo como cantidad de agarre). Las acciones
@@ -25,6 +25,7 @@ K = dict(
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
+    CARAS=range(2, 4),                     # opciones de cara.py (Cara_n_Cejas/_Boca/_Nariz) -> piezas Cejas_n, Boca_n, Nariz_n
     PEINADOS=range(2, 8), TOL_SIEN=0.01,   # sien mas lejos que esto de la del peinado 1 -> pose nueva          # peinados de pelos.py (Peinado_n_Pelo / _Extra) -> piezas Pelo_n
     PIEZA={'Pelo': 'Pelo_1', 'Cejas': 'Cejas_1', 'Boca': 'Boca_1', 'Nariz': 'Nariz_1',
            'Playera': 'Arriba_1', 'Brazos': 'Arriba_1', 'Pantalon': 'Abajo_1'},
@@ -150,6 +151,8 @@ for n in K['PEINADOS']:
     fuentes.append((bpy.data.objects['Peinado_%d_Pelo' % n], 'Pelo_%d' % n, 'Pelo'))
     ox = bpy.data.objects.get('Peinado_%d_Extra' % n)
     if ox: fuentes.append((ox, 'Pelo_%d_extra' % n, 'Extra'))
+for n in K['CARAS']:
+    for t in ('Cejas', 'Boca', 'Nariz'): fuentes.append((bpy.data.objects['Cara_%d_%s' % (n, t)], '%s_%d' % (t, n), t))
 for o, suf, cl in fuentes:
     viejo = {}
     for m in o.modifiers:
@@ -197,7 +200,7 @@ for suf, ob in partes.items():
     else:
         ob.parent = arm; ob.matrix_parent_inverse.identity(); ob.matrix_basis.identity()
         ob.modifiers.new('Armature', 'ARMATURE').object = arm
-        if suf in cabeza_rigida or suf.startswith('Pelo_'):
+        if suf.split('_')[0] in cabeza_rigida:
             ob.vertex_groups.new(name='cabeza').add(range(len(ob.data.vertices)), 1.0, 'REPLACE')
         else:   # zapatos y suelas: pie del lado
             gI = ob.vertex_groups.new(name='pie_I'); gD = ob.vertex_groups.new(name='pie_D')
@@ -205,7 +208,7 @@ for suf, ob in partes.items():
             gD.add([v.index for v in ob.data.vertices if v.co.x <= 0], 1.0, 'REPLACE')
 for b in ad.bones: b.use_deform = b.name != 'raiz'
 grupos = {}
-def pieza_de(suf): return suf[:-6] if suf.startswith('Pelo_') and suf.endswith('_extra') else (suf if suf.startswith('Pelo_') else K['PIEZA'].get(suf, 'Base'))
+def pieza_de(suf): return suf[:-6] if suf.endswith('_extra') else (suf if '_' in suf else K['PIEZA'].get(suf, 'Base'))
 for suf, ob in partes.items(): grupos.setdefault(pieza_de(suf), []).append(ob)
 piezas = {}
 for nm, obs in grupos.items():      # una pieza = un objeto (une las partes que le tocan)
@@ -522,6 +525,6 @@ print('piezas', {n['name']: tri_m(n['mesh']) for n in js['nodes'] if 'mesh' in n
       'skins', len(js['skins']), 'mats', [m['name'] for m in js['materials']])
 print('GLB', K['GLB'], round(os.path.getsize(K['GLB']) / 1024), 'KB', tris, 'tris',
       'huesos', len(js['skins'][0]['joints']), 'anim', [a['name'] for a in js.get('animations', [])])
-for nm, o in piezas.items(): o.hide_set(nm.startswith('Pelo_') and nm != 'Pelo_1')
+for nm, o in piezas.items(): o.hide_set('_' in nm and not nm.endswith('_1'))
 aplicar(qPS, {'_D': 1.0})
 print('rig ok')
