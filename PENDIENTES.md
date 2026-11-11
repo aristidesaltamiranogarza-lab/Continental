@@ -210,7 +210,7 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 
 ### [ ] Póker (sótano, mesa ovalada de 8)
 **Preguntas (hacerlas todas antes de empezar; anotar respuestas aquí):**
-1. Variante: Texas Hold'em sin límite (recomendado) / con límite fijo / Omaha.
+1. Variante: **Texas Hold'em (decidido por el usuario)**. Falta preguntar: sin límite (recomendado) o con límite fijo.
 2. Fichas: ¿igual que Blackjack (se reinician por sesión, recarga al llegar a 0)? ¿Fichas iniciales y ciegas (p. ej. 1,000 con ciegas 5/10)? ¿Ciegas fijas (mesa de efectivo) o que suben con el tiempo (torneo)?
 3. Entrada: asiento libre al llegar (como Blackjack) o sala con inicio del host (torneo hasta que quede uno).
 4. Bots: ¿llenan asientos? ¿Cuántos como máximo? ¿Nivel (fácil / normal que farolea a veces / elegible)?
