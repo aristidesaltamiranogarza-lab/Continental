@@ -29,7 +29,7 @@ const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&C
 function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
  const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];if(window.CGLB)CGLB.piso(nf.id);
-  [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,1.57,me.pos.z);
+  [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,GY(me.g),me.pos.z);
   Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
  CCAM.fade(1,380).then(()=>{sw();return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
@@ -79,7 +79,7 @@ function init(){if(ready)return;ready=true;
  lay=document.createElement('div');lay.id='h3lay';document.body.appendChild(lay);   // nombres, globitos y avisos (fuera de #app: no se borran al redibujar)
  // llegada por el zaguán: la cámara entra desde afuera y tu Mii camina hasta su lugar (c_casa_cam.js)
  const zg=window.CCAM&&!CCAM.RM;
- buildHouse();const cl=!!window.CCALLE;me=newAv(pname,v3(0,0,zg?ZF+(cl?10.2:6.2):3),Math.PI);if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(cl?v3(0,3.6,ZF+17):v3(0,2.4,ZF+7.6),v3(0,2.6,ZF-6)),cl?3600:2800,'inOut')}   // llegas por el zaguán (c_casa_pb.js)applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
+ buildHouse();const cl=!!window.CCALLE;me=newAv(pname,v3(0,0,zg?ZF+(cl?10.2:6.2):3),Math.PI,window.AV&&AV.mio());if(zg){tgt=v3(0,0,3);CCAM.blendIn(CA,CCAM.at(cl?v3(0,3.6,ZF+17):v3(0,2.4,ZF+7.6),v3(0,2.6,ZF-6)),cl?3600:2800,'inOut')}   // llegas por el zaguán (c_casa_pb.js)applyQ(window.CALIDAD);if(window.BIEN)BIEN.watch();
  setTimeout(()=>{if(!moved){moved=true;if(active()&&!inputBusy())render()}},12000);   // la ayuda de arriba se va sola
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{tch.delete(e.pointerId);pin=null;st=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('pointerleave',()=>{if(window.ETQ)ETQ.hov(null)});
@@ -191,14 +191,23 @@ function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G
 function lookOf(n){n=(n||'').trim()||'Tú';return [K.hsh(n)%10,K.hsh(n+'·')%K.AVP.length]}
 function disposeG(g){if(g.parent)g.parent.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
 function mkG(name,seat){const [k,pi]=lookOf(name),g=K.mkAvatar(k,pi,seat?{}:{stand:true});g.traverse(o=>{if(o.isMesh)o.castShadow=true});SC.add(g);g.userData.key=k+':'+pi;return g}
-function newAv(name,pos,yaw){const g=mkG(name);const a={g,name,pos:pos.clone(),to:pos.clone(),yaw,tyaw:yaw,w:0,ph:0,waveT:-1e9,dance:null,danceT:-1e9,tag:null,bub:null,bubT:0};g.position.set(pos.x,1.57,pos.z);g.rotation.y=yaw;return a}
-function rename(a,name){a.name=name;const k=lookOf(name).join(':');if(k!==a.g.userData.key){const g=mkG(name);g.position.copy(a.g.position);g.rotation.y=a.g.rotation.y;disposeG(a.g);a.g=g}if(a.tag)a.tag.textContent=(name||'').trim()||'Tú'}
-function dropAv(a){disposeG(a.g);if(a.tag)a.tag.remove();if(a.bub)a.bub.remove()}
+// con su personaje (c_avatar.js, código av) si ya cargó el GLB; si no, el Mii de su nombre, y se cambia al cargar
+function GY(g){return g.userData.av?0:1.57}   // altura del origen: el personaje lo tiene en los pies, el Mii en la cadera
+function mkPj(name,av){if(av&&avYa()){const g=AV.crearYa(av);if(g){SC.add(g);g.userData.key='av:'+av;return g}}if(av)pideAv();return mkG(name)}
+const pjKey=a=>a.av&&avYa()?'av:'+a.av:lookOf(a.name).join(':');
+function newAv(name,pos,yaw,av){const g=mkPj(name,av);const a={g,name,av:av||'',pos:pos.clone(),to:pos.clone(),yaw,tyaw:yaw,w:0,ph:0,waveT:-1e9,dance:null,danceT:-1e9,tag:null,bub:null,bubT:0};g.position.set(pos.x,GY(g),pos.z);g.rotation.y=yaw;return a}
+function refresh(a){const o=a.g;if(pjKey(a)===o.userData.key)return;const g=mkPj(a.name,a.av);if(o.parent&&o.parent!==g.parent)o.parent.add(g);
+ g.position.set(o.position.x,GY(g),o.position.z);g.rotation.y=o.rotation.y;g.visible=o.visible;dropG(o);a.g=g}
+function rename(a,name){a.name=name;refresh(a);if(a.tag)a.tag.textContent=(name||'').trim()||'Tú'}
+function dropG(g){if(g.userData.av)AV.quita(g);else disposeG(g)}
+function dropAv(a){dropG(a.g);if(a.tag)a.tag.remove();if(a.bub)a.bub.remove()}
 const POLE=[v3(-1.2,-.4,-.7),v3(1.2,-.4,-.7)],tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),wv=new THREE.Vector3();
 // pasos: piernas y brazos se mecen al caminar (w = qué tanto camina, ph = fase del paso); con un emote, la mano derecha saluda.
 // Bailes (parado): 💃 brazos arriba y cadera de lado a lado; 🕺 de disco, señalando arriba y abajo con la otra mano en la cintura
 const dancing=(a,now)=>{const t=now-a.danceT;return a.dance&&t>=0&&t<DMS&&a.w<.3?Math.min(1,t/300,(DMS-t)/300):0};
-function pose(a,now,lookDown){const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
+function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),bt=now/1000*Math.PI*2*1.1;
+ AV.mueve(a.g,{w,ph:a.ph,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y=-Math.abs(Math.sin(a.ph))*.1*w+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
+function pose(a,now,lookDown){if(a.g.userData.av)return posePj(a,now);const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
  u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650)+Math.abs(Math.sin(bt))*.12*dn;u.body.rotation.x=.06*w;
  u.body.rotation.z=Math.sin(bt)*(disco?.06:.14)*dn;u.body.rotation.y=Math.sin(bt/2)*(disco?.5:.3)*dn;u.head.rotation.z=-Math.sin(bt)*.18*dn;
  (u.legs||[]).forEach(L=>{let q=L.s*Math.sin(ph)*.55*w,b=q*.6-Math.max(0,L.s*Math.cos(ph))*.35*w;
@@ -217,11 +226,12 @@ function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Mat
  u.body.scale.y=1+.012*Math.sin(now/650+s.seed);u.head.rotation.y=.45*Math.sin(t*.35);u.head.rotation.x=.25;
  u.arms.forEach(m=>{const k=m.s>0?r:0;m.h.set(m.s*.34-m.s*.12*k,.36+.15*k,.72+.6*k);K.ik(m.sh,m.h,u.l1,u.l2,POLE[m.s>0?1:0].clone(),m.el);K.seg(m.up,m.sh,m.el);K.seg(m.fo,m.el,m.h);m.hand.position.copy(m.h)})}
 // con personaje (c_avatar.js, código av del jugador) si ya cargó; si no, el Mii de siempre y se cambia al cargar
-let avPide=0;const avYa=()=>!!(window.AV&&AV.ya&&AV.ya());
+function avYa(){return !!(window.AV&&AV.ya&&AV.ya())}
+function pideAv(){if(pideAv.v||!window.AV||avYa())return;pideAv.v=1;AV.listo().then(()=>{if(me)refresh(me);others.forEach(refresh);if(ready)seatSync()},()=>{})}
 function seatSync(){const want=new Map();Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps.map((n,i)=>[n,(r.av||[])[i]||''])).slice(0,t.chairs.length).forEach(([n,av],j)=>want.set(t.g+':'+j+':'+n+':'+av,{t,j,n,av}))}));
  if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>{const av=(salaPs.av||[])[j]||'';want.set('sala:'+j+':'+n+':'+av,{t,j,n,av,pop:1})})}}
  const conAv=w=>w.av&&avYa();
- if(!avPide&&window.AV&&!avYa()&&[...want.values()].some(w=>w.av)){avPide=1;AV.listo().then(()=>{if(ready)seatSync()},()=>{})}
+ if([...want.values()].some(w=>w.av))pideAv();
  seated.forEach((s,k)=>{const w=want.get(k);if(!w||(!s.av&&conAv(w))){if(s.av)AV.quita(s.g);else disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
  want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],fs=w.t.fl===FL?SC:w.t.fl.SC,ya=conAv(w),g=ya?AV.crearYa(w.av):mkG(w.n,1);if(fs)fs.add(g);c.visible=!ya;   // el personaje se sienta en la silla; el Mii trae la suya
   const ry=Math.atan2(-c.position.x,-c.position.z);g.rotation.y=ry;
@@ -247,7 +257,7 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
  a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*3.1;
  // mirar hacia la mesa al llegar
  const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);if(fpOn()&&!mv)a.yaw=VW.a+Math.PI;   // en primera persona miras hacia donde ve la cámara
- turn(a,a.yaw);a.g.position.set(p.x,1.57,p.z);pose(a,now,!!sel);
+ turn(a,a.yaw);a.g.position.set(p.x,GY(a.g),p.z);pose(a,now,!!sel);
  // ¿cerca de la mesa que picaste? abre su ventanita (solo si la elegiste con clic o Ir a…; si te alejas se olvida)
  let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3&&!(x.to&&canGo(x.to));if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
  // caminar hasta una puerta que lleva a otro piso (o a la escalera) = cambiar de piso
@@ -255,7 +265,7 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
  if(closed&&closed!==near)closed=null;if(picked&&!tgtG&&near!==picked)picked=null;const want=near&&near===picked&&near!==closed?near:null;if(want!==sel){sel=want;if(sel){sfx('tick');if(document.pointerLockElement)document.exitPointerLock()}render()}}
 // los demás: se deslizan suave hacia la última posición que mandó el servidor
 function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach(a=>{a.g.visible=(a.f||'pb')===FL.id;const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
- a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,1.57,a.pos.z);pose(a,now,false)});
+ a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g),a.pos.z);pose(a,now,false)});
  seated.forEach(s=>{if(!s.av)poseSeated(s,now)})}
 function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}
  if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}
@@ -267,13 +277,15 @@ function showMark(p){mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mar
 // ---------- en vivo: mando mi posición y recibo a los demás + las salas (cada ~0.3 s) ----------
 function inputBusy(){const a=document.activeElement;return !!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.closest&&a.closest('#app'))}
 async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
- const b={id:myId,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0,f:FL.id};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
+ const av=window.AV?AV.mio():'';if(av!==me.av){me.av=av;refresh(me)}   // si lo cambió en Mi personaje
+ const b={id:myId,av,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0,f:FL.id};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
  if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}if(window.JG3){const j=JG3.out();if(j)b.jg=j}
  try{const d=await api('casa',b);if(active()){netSync(d);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
-  if(!a){a=newAv(o.name,pos,+o.yaw||0);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
+  if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
   else if(a.name!==o.name)rename(a,o.name);
+  if((o.av||'')!==a.av){a.av=o.av||'';refresh(a)}
   a.f=o.f||'pb';a.to.copy(pos);if(!o.w&&a.to.distanceTo(a.pos)<.05)a.tyaw=+o.yaw||a.tyaw;
   if(o.em&&o.emN!==a.emN){a.emN=o.emN;bubble(a,o.em,1)}if(o.say&&o.sayN!==a.sayN){a.sayN=o.sayN;bubble(a,o.say)}});
  others.forEach((a,id)=>{if(!seen.has(id)){if(synced)toast(`${a.name} salió`);dropAv(a);others.delete(id)}});
@@ -283,9 +295,10 @@ function netSync(d){const seen=new Set(),n0=others.size;
 function bubble(a,t,emo){if(!emo&&window.CHUD)CHUD.msg(a===me?(pname||'').trim()||'Tú':a.name,t,a===me);if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
 function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='ui ui-fx ui-glass h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
 const MK=()=>window.MII&&MII.K||1;   // tamaño de los Miis (c_mii.js): nombres y globitos a su altura
+const TOP=a=>a.g.userData.av?AV.alto+.25:3.45*MK();   // altura del nombre: arriba de la cabeza del personaje o del Mii
 function tags(now){const all=[me,...others.values()];all.forEach(a=>{if(!a.tag){a.tag=document.createElement('div');a.tag.className='ui ui-fx t3pl h3nm'+(a===me?' me':'');a.tag.textContent=(a.name||'').trim()||'Tú';lay.appendChild(a.tag)}
-  const [x,y,v0]=toPx(v3(a.pos.x,3.45*MK(),a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
-  if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,4.05*MK(),a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
+  const [x,y,v0]=toPx(v3(a.pos.x,TOP(a),a.pos.z)),vis=v0&&a.g.visible;a.tag.style.display=vis?'':'none';a.tag.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
+  if(a.bub){if(now>a.bubT){a.bub.remove();a.bub=null}else{const [bx,by]=toPx(v3(a.pos.x,TOP(a)+.6*MK(),a.pos.z));a.bub.style.display=vis?'':'none';a.bub.style.transform=`translate(${bx}px,${by}px) translate(-50%,-100%)`;a.bub.classList.toggle('out',a.bubT-now<400)}}})}
 
 // ---------- cámara tipo Roblox: sigue a tu Mii desde atrás; arrastrar la gira alrededor de él, rueda o pellizco para acercar ----------
 const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>0;   // AH: cuánto adelante de tu Mii mira la cámara (0 = a él)
@@ -424,7 +437,7 @@ home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la b
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
 // "Ir a…" (c_casa_ir.js): fundido y apareces junto a esa mesa (o el Cubilete / los juegos sueltos), cambiando de piso si hace falta
 function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:.8}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1});if(!t)return;
-  const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;picked=t.door?null:g;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,1.57,p.z);
+  const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;picked=t.door?null:g;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,GY(me.g),p.z);
   Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
 // mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)

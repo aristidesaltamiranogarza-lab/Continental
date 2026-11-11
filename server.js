@@ -86,14 +86,14 @@ function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.pl
  const fin=R.G&&R.G.phase=='final';   // partida terminada: ya no cuenta como en curso
  return {c:R.G?null:R.code,w:R.G&&!fin?R.code:null,g:R.gt,st:R.G?(fin?'fin':'play'):'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),av:ps.slice(0,6).map(p=>p.av||''),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
 function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
- if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';
+ if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';if(AVRE.test(String(b.av||'')))o.av=String(b.av);
   ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;o.f=['sot','alta','ter'].includes(b.f)?b.f:'pb';   // f: piso (sótano, planta baja, planta alta o terraza)
   if(EMO.includes(b.em)){o.em=b.em;o.emT=now}if(b.say){const s=String(b.say).trim().slice(0,80);if(s){o.say=s;o.sayT=now}}o.ts=now}
  if(id&&b.cub)CUB.act(id,casa[id].name,b.cub);
  let jerr=id&&b.jg?JG.act(id,casa[id].name,b.jg):null;if(id)JG.act(id,casa[id].name,null);
  for(const k in casa)if(now-casa[k].ts>8000)delete casa[k];
  CUB.tick(k=>!!casa[k]);JG.tick(k=>!!casa[k]);
- return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view(),jg:JG.view(id),jerr}}
+ return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,av:o.av||'',x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view(),jg:JG.view(id),jerr}}
 // ---- HTTP ----
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p])return SM.envia(req,res,path.join(__dirname,files[p][0]),files[p][1],files[p][1]=='audio/mpeg'?'public, max-age=604800':'no-store');   // por partes (srv_modelos.js)

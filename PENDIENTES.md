@@ -73,9 +73,9 @@
 - [x] (11 nov: Aris ya los ve sentados; la silla ya no se esconde con el personaje) Comprobar en una sala real (servidor reiniciado con `npm start`) que se ven sentados: Aris todavía no los ve en ningún lado fuera de "Mi personaje". Revisar `SALA.gente` → `seatSync` y que `players[].av` y `salas()[].av` lleguen.
 
 ## Paso 10 · Personajes caminando en la casa (antes de la mesa nueva)
-- [ ] Hoy tú y los demás que caminan siguen siendo Miis (`mkG`/`newAv` en c_casa3d.js, pose procedural en `pose()`). Cambiarlos por `AV.crearYa(av)` (el tuyo `AV.mio()`, los demás con su código en POST /casa).
-- [ ] El GLB no trae caminar: hacerlo por código en c_avatar.js como `AV.sentar` (balanceo de muslos/rodillas y brazos con w y ph después del mixer), o una acción `Caminar` en Blender (blender/rig.py) si se ve mal.
-- [ ] Saludo/emotes y los dos bailes: por ahora pose `ManoCabeza` o balanceo simple; nombres y globitos a la altura del personaje (hoy usan `MII.K`).
+- [x] Hoy tú y los demás que caminan siguen siendo Miis (`mkG`/`newAv` en c_casa3d.js, pose procedural en `pose()`). Cambiarlos por `AV.crearYa(av)` (el tuyo `AV.mio()`, los demás con su código en POST /casa). — 11 nov 2026: `mkPj`/`refresh` (Mii mientras carga el GLB o si no trae código; cambia solo si cambias tu personaje en Mi personaje); server.js guarda `av` en `casaAct` y lo regresa en `p[]`.
+- [x] El GLB no trae caminar: hacerlo por código en c_avatar.js como `AV.sentar` (balanceo de muslos/rodillas y brazos con w y ph después del mixer), o una acción `Caminar` en Blender (blender/rig.py) si se ve mal. — 11 nov 2026: `AV.mueve(p,{w,ph,sal,dn,disco,bt,t})`; los huesos giran sobre los ejes del personaje vistos desde su padre; el cuerpo baja con el paso abierto. Arreglado: el mixer no reescribe huesos que no cambian, así que los giros se acumulaban (sentar salía bien por suerte); ahora se deshacen antes de cada vuelta y sentar gira al revés. Falta verlo caminar en celular.
+- [x] Saludo/emotes y los dos bailes: por ahora pose `ManoCabeza` o balanceo simple; nombres y globitos a la altura del personaje (hoy usan `MII.K`). — 11 nov 2026: saludo con la mano derecha y los dos bailes por código (como los del Mii); nombre en `AV.alto` + 0,25.
 
 ## Paso 11 · Mesa nueva de juego (Uno y Continental)
 La mesa ovalada del juego viene de la versión 1 (una sola cámara fija). Se cambia por la mesa redonda de la casa: la misma en la sala de espera, al empezar y en la partida, sin cambio de mesa.
