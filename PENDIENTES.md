@@ -85,7 +85,7 @@ La mesa ovalada del juego viene de la versión 1 (una sola cámara fija). Se cam
 - [ ] Rummy y Ruleta al final (hoy crean sus Miis con `mkAvatar` e IK).
 
 ## Mesa nueva · Continental
-Plan propuesto el 11 nov 2026 (falta el visto bueno de Aris). Aris pidió una mesa dinámica, divertida e intuitiva. Cada fase se sube y se puede jugar sola. `c_continental3d.js` es GRANDE: solo cambia cómo se acomoda en la mesa y la cámara, no las reglas; lo nuevo va en módulos chicos que después reusa Uno (se registran en server.js ~línea 14 y en continental3d.html antes de c_casa3d.js).
+Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa dinámica, divertida e intuitiva. Cada fase se sube y se puede jugar sola. `c_continental3d.js` es GRANDE: solo cambia cómo se acomoda en la mesa y la cámara, no las reglas; lo nuevo va en módulos chicos que después reusa Uno (se registran en server.js ~línea 14 y en continental3d.html antes de c_casa3d.js).
 
 **Cómo se siente**
 - Mesa redonda de la casa (madera, canto acolchado, fieltro `COL.continental` #1F6B4A con el logo apenas marcado, lámpara colgante). Crece con los jugadores (Continental: 2 a 5); igual en vertical y horizontal (la cámara se aleja para que quepa).
@@ -98,7 +98,7 @@ Plan propuesto el 11 nov 2026 (falta el visto bueno de Aris). Aris pidió una me
 - Tu personaje no se ve (la cámara son tus ojos, como hoy).
 
 **Fases**
-- [ ] 1. `c_mesa3d.js` (MESA): mesa, sillas y lámpara. `MESA.asiento(i)` → lugar, hacia dónde mira, su mano y su zona en el fieltro; `MESA.centro` → mazo y descarte. Continental lo usa en vez de la mesa ovalada (todavía con los Miis).
+- [x] 1. `c_mesa3d.js` (MESA): mesa, sillas y lámpara. `MESA.asiento(i)` → lugar, hacia dónde mira, su mano y su zona en el fieltro; `MESA.centro` → mazo y descarte. Continental lo usa en vez de la mesa ovalada (todavía con los Miis). Hecho: radio 5+.35·n (4 → 6.4); `m.escala(k)` pone las sillas al tamaño de las personas (en la casa k = s·FONDO.MII; la tuya se esconde); la lámpara cuelga justo arriba de la vista (`lampY` en layout). Combinaciones todavía juntas, arriba y abajo del renglón del mazo (`hole` en meldLay); siluetas del contrato abajo. En vertical se asoma arriba la lámpara de la casa (no la de MESA).
 - [ ] 2. `c_mesa_pj.js`: personajes AV en las sillas, cartas en sus manos y reacciones según `G.log`. A c_avatar.js le faltan cosas chicas por código (como `AV.sentar`/`AV.mueve`): voltear la cabeza a un punto, estirar el brazo, brazos arriba.
 - [ ] 3. Bajadas por jugador: zonas, cartas derechas para ti, pegar arrastrando, siluetas en tu zona.
 - [ ] 4. `c_mesa_cam.js`: la cámara viva.

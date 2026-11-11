@@ -5,7 +5,7 @@
 if(typeof THREE==='undefined'||typeof GM==='undefined'||!GM.continental){console.warn('Continental 3D: falta Three.js o GM.continental');return}
 const orig=GM.continental.body,origAfter=GM.continental.after;
 let on=true;try{on=localStorage.getItem('cont_3d')!=='0'}catch(e){}
-let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',felt=null,tbl=null;
+let R,SC,CA,root,cv,ready=false,W=0,H=0,L=null,tableKey='',felt=null,tbl=null,mesa=null;
 let menu=false,msgK='',msgT=0,dealN=-1,logN=-1,first=true,dealing=false,dl=0,hov=null,st=null,drag=null,wasDown=null,bajando=0;
 const slots=new Map();                   // siluetas del contrato en tu lado de la mesa
 const meshes=new Map(),texC={},glows=new Map(),hits=[];
@@ -68,8 +68,10 @@ function glowTex(){if(texC.glow)return texC.glow;const c=cnv(256,256),g=c.getCon
 const GI=152/256;
 function ghostTex(){if(texC.ghost)return texC.ghost;const c=cnv(512,320),g=c.getContext('2d');g.fillStyle='rgba(255,255,255,.13)';rr(g,10,10,492,300,28);g.fill();
  g.setLineDash([26,16]);g.lineWidth=9;g.strokeStyle='#fff';rr(g,10,10,492,300,28);g.stroke();return texC.ghost=tx(c)}                         // parte "sólida" de la textura de brillo
+// colores del fieltro (centro, orilla) según el estilo; el verde es el del Continental (#1F6B4A)
+const FELT={green:['#2a8a5e','#14492f'],red:['#c04a52','#64181e'],blue:['#4489cf','#163f70'],orange:['#dd9240','#7e450f'],purple:['#8a5cc4','#331757'],graphite:['#636b75','#202429']};
 function feltTex(st=sbg){const k='felt'+st;if(texC[k])return texC[k];
- const c=cnv(512,512),g=c.getContext('2d'),b={green:['#34a56a','#125334'],red:['#c04a52','#64181e'],blue:['#4489cf','#163f70'],orange:['#dd9240','#7e450f'],purple:['#8a5cc4','#331757'],graphite:['#636b75','#202429']}[st]||['#34a56a','#125334'];
+ const c=cnv(512,512),g=c.getContext('2d'),b=FELT[st]||FELT.green;
  const gr=g.createRadialGradient(256,256,10,256,256,256);gr.addColorStop(0,b[0]);gr.addColorStop(1,b[1]);g.fillStyle=gr;g.fillRect(0,0,512,512);
  const im=g.getImageData(0,0,512,512),d=im.data;for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*16;d[i]+=n;d[i+1]+=n;d[i+2]+=n}g.putImageData(im,0,0);
  return texC[k]=tx(c)}
@@ -138,23 +140,15 @@ function init(){if(ready)return;ready=true;
  ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,stopRep));
  requestAnimationFrame(loop3)}
 function buildTable(por){if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
- const rx=por?4.7:7.3,rz=por?6.6:4.5;tbl=new THREE.Group();
- felt=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.12,96),new THREE.MeshStandardMaterial({map:feltTex(),roughness:.95}));felt.scale.set(rx+.05,1,rz+.05);felt.position.y=-.06;felt.receiveShadow=true;tbl.add(felt);
- const ring=(a,b,n=160)=>Array.from({length:n},(_,i)=>new THREE.Vector2(Math.cos(i/n*Math.PI*2)*a,Math.sin(i/n*Math.PI*2)*b));
- const sh=new THREE.Shape(ring(rx+.6,rz+.6));sh.holes.push(new THREE.Path(ring(rx,rz).reverse()));
- const rim=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.2,bevelEnabled:true,bevelThickness:.12,bevelSize:.12,bevelSegments:5,curveSegments:1}),
-  new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7,clearcoatRoughness:.25}));rim.rotation.x=-Math.PI/2;rim.position.y=-.08;rim.castShadow=true;rim.receiveShadow=true;tbl.add(rim);
- const base=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1.4,96),new THREE.MeshStandardMaterial({color:0x3a1e0c,roughness:.6}));base.scale.set(rx+.62,1,rz+.62);base.position.y=-.82;tbl.add(base);
- SC.add(tbl);
- // zonas: mazo/descarte y rectángulo para las combinaciones
- const ps=por?1.25:.95,ix=rx*.62,iz=rz*.62;
- L=Object.assign(L||{},{por,rx,rz,ps});
- if(por){L.deck=v3(-1.45,0,-iz+1.1);L.disc=v3(1.45,0,-iz+1.1);L.rect={x0:-ix,x1:ix,z0:-iz+2.8,z1:iz}}
- else{L.deck=v3(-ix+.6,0,-.95);L.disc=v3(-ix+.6,0,1.15);L.rect={x0:-ix+1.6,x1:ix,z0:-iz,z1:iz}}
+ // la mesa redonda (c_mesa3d.js): crece con los jugadores y es la misma en vertical y horizontal (la cámara se aleja para que quepa)
+ const ps=por?1.25:1.05;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:'Continental',sep:CW*ps*1.7});
+ const r=mesa.r,hz=CH*ps/2+.25,bz=r*.78,bx=Math.sqrt((r-.2)**2-bz*bz),az=Math.sqrt(Math.max(9,(r*.9-.45)**2-bx*bx));L=Object.assign(L||{},{por,rx:r,rz:r,ps});
+ // zonas: mazo y descarte al centro; las combinaciones arriba y abajo de ellos (se salta su renglón)
+ L.deck=mesa.centro.mazo.clone();L.disc=mesa.centro.descarte.clone();L.rect={x0:-bx,x1:bx,z0:-az,z1:bz,hole:[-hz,hz]};
  // mientras no te bajes, tu lado de la mesa guarda las siluetas de tu contrato
- L.band={x0:L.rect.x0,x1:ix,z0:iz-(por?1.5:1.4),z1:iz+(por?.45:.35)};L.rectMine=Object.assign({},L.rect,{z1:L.band.z0-.15});
- const room=buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room;L.baseM=base;
- buildC4(por,rx,rz,room.userData.c4);buildBG(room.userData.bg)}
+ L.band={x0:-bx,x1:bx,z0:bz-1.8,z1:bz};L.rectMine=Object.assign({},L.rect,{z1:bz-1.95});
+ const room=buildRoom(por,r,r);tbl.add(room);L.room=room.userData.room;L.roomG=room;L.baseM=mesa.pie;
+ buildC4(por,r,r,room.userData.c4);buildBG(room.userData.bg)}
 // ---------- el cuarto: piso, paredes y muebles alrededor de la mesa (el Conecta 4 está en una esquina del fondo) ----------
 function ctex(key,w,h,draw){if(texC[key])return texC[key];const c=cnv(w,h);draw(c.getContext('2d'),w,h);const t=tx(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return texC[key]=t}
 function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(rz+7.5),ZF=rz+7,WH=10;R.userData.room={X,ZB,ZF,FY};
@@ -353,8 +347,8 @@ function mkAvatar(k,pi,o={}){if(window.MII)return MII.mk(k,pi,o,COL[k%10],AVP[pi
  g.userData={k,pi,body,head,arms,legs,reachT:0,cheerT:0,l1:.45,l2:.43};return g}
 function avSync(){const G=V.G,want=new Set(G.players.map((_,k)=>k).filter(k=>!V.players[k].out)),pk=avPick();   // incluye tu propio avatar
  avs.forEach((g,k)=>{if(!want.has(k)||g.userData.pi!==pk[k]){SC.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});avs.delete(k)}});
- want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);SC.add(g);avs.set(k,g)}const a=seatA(k);
-  const o=window.FONDO?FONDO.mii(g,fz,k===V.me):1.4;g.position.set(Math.cos(a)*(L.rx+o),0,Math.sin(a)*(L.rz+o));g.rotation.y=Math.atan2(-g.position.x,-g.position.z);
+ want.forEach(k=>{let g=avs.get(k);if(!g){g=mkAvatar(k,pk[k]);g.traverse(o=>{if(o.userData.silla)o.visible=false});SC.add(g);avs.set(k,g)}const a=seatA(k);
+  if(window.FONDO)FONDO.mii(g,fz,k===V.me);const A=mesa.asiento(rel(k));g.position.copy(A.pos);g.rotation.y=A.ry;
   g.traverse(o=>{if(o.userData.hit)hits.push(o)})})}
 const POLE=[v3(-1.3,-.5,-.4),v3(1.3,-.5,-.4)];
 function avStep(now){if(!avs.size||!V||!V.G)return;const G=V.G;
@@ -467,8 +461,12 @@ function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=
  const back=Math.cos(e)*wc.y/Math.sin(e);
  Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:true,bg:false});clampV();sfx('card')}
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
+const tkey=()=>(innerWidth/innerHeight<.95?'p':'l')+(V&&V.G?V.G.players.length:4);   // la mesa se rearma al girar o si cambia cuántos juegan
+// la lámpara cuelga justo arriba de lo que se ve desde tu silla (se asoma al acercar o inclinar la cámara)
+function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4;
+ if(p.set(0,lo,mesa.sr).project(CA).y<1.03)for(let i=0;i<20;i++){const m=(lo+hi)/2;p.set(0,m,mesa.sr).project(CA).y>1.03?hi=m:lo=m}else hi=lo;mesa.lampara(hi)}
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
- const por=w/h<.95;if((por?'p':'l')!==tableKey){tableKey=por?'p':'l';buildTable(por)}
+ const por=w/h<.95;if(tkey()!==tableKey){tableKey=tkey();buildTable(por)}
  const tb=$('#gjHint')||$('#gjTop'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(80,Math.min(h*.22,w*.34,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.1)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
@@ -479,7 +477,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
   let a=1e9,b=-1e9,c=1e9,e=-1e9;pts.forEach(p=>{const q=p.clone().project(CA);a=Math.min(a,q.x);b=Math.max(b,q.x);c=Math.min(c,q.y);e=Math.max(e,q.y)});return [a,b,c,e]};
  let lo=3,hi=120;for(let i=0;i<32;i++){const m=(lo+hi)/2,x=ext(m);((x[1]-x[0])/2<.98&&(x[3]-x[2])/2<.97)?hi=m:lo=m}
  const x=ext(hi),cx=(x[0]+x[1])/2,cy=(x[2]+x[3])/2;
- L.el=el;L.d=hi;CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();clampV();cam()}
+ L.el=el;L.d=hi;CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();lampY();clampV();cam()}
 // ---------- mover la cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
 // la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
@@ -535,6 +533,7 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 // ---------- posiciones ----------
 function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+((k-me+n)%n)*(2*Math.PI/n)}
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
+const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   // asiento de la mesa (0 = el tuyo)
 // abanico de tu mano en la parte de abajo de la pantalla (las cartas son hijas de la cámara)
 function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];
  let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>9&&stp<cw*.2){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
@@ -544,8 +543,8 @@ function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,
   out.push({id,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
  return out}
 function meldLay(ms,r){
- for(let s=.9;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,gx=cw*.32,gz=ch*.24,rows=[[]];let x=r.x0,z=r.z0;
-  ms.forEach((m,k)=>{const mw=cw+(m.cards.length-1)*ov;if(x+mw>r.x1+1e-6&&x>r.x0){x=r.x0;z+=ch+gz;rows.push([])}rows[rows.length-1].push({k,x,z,mw});x+=mw+gx});
+ for(let s=.9;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,gx=cw*.32,gz=ch*.24,rows=[[]],ho=r.hole,sk=()=>{if(ho&&z<ho[1]&&z+ch>ho[0])z=ho[1]};let x=r.x0,z=r.z0;sk();
+  ms.forEach((m,k)=>{const mw=cw+(m.cards.length-1)*ov;if(x+mw>r.x1+1e-6&&x>r.x0){x=r.x0;z+=ch+gz;sk();rows.push([])}rows[rows.length-1].push({k,x,z,mw});x+=mw+gx});
   if(z+ch<=r.z1||s<=.24){const out=[];rows.forEach(rw=>{if(!rw.length)return;const e=rw[rw.length-1],sh=(r.x1-(e.x+e.mw))/2;rw.forEach(p=>{p.x+=sh;out[p.k]=p})});return {s,cw,ch,ov,pos:out}}}}
 
 // ---------- sincronizar la escena con el estado del servidor ----------
@@ -633,7 +632,7 @@ function sync(){if(!ready||!L||!active())return;
   glow('o'+k,v3(p.x+p.mw/2,.004,p.z+ML.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
- for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
+ for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,12),a=seatA(k),c=mesa.asiento(rel(k)).mano,tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
   for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null,took[k]?L.disc:null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.24).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
   glow('t'+k,v3(c.x,.003,c.z),Math.max(1.4,cnt*.24+.8),1.15,0x55c8ff,G.turn==k?.8:0,{t:'seat',k},ry)}
@@ -655,7 +654,7 @@ function sync(){if(!ready||!L||!active())return;
   if(tk!=null&&!RM){m.userData.kill=1;target(m,SC,seatW(+tk),FD,.5,{ms:420})}else drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
  c4sync();bgSync();
- if(felt&&felt.material.map!==feltTex()){felt.material.map=feltTex();felt.material.needsUpdate=true}
+ if(mesa)mesa.fieltro(FELT[sbg]||FELT.green);
  first=false}
 
 // ---------- tocar y arrastrar ----------
@@ -838,14 +837,15 @@ function active(){return on&&!!S&&!!V&&V.game==='continental'&&!!V.G&&V.G.phase=
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
- if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
+ if(!L||innerWidth!==W||innerHeight!==H||tkey()!==tableKey){layout();sync()}
  viewStep(dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
- const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:Math.max(L.rx,L.rz)+.6,rt:2.6}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
+ const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // sin su cuarto en la casa: ni el Conecta 4 ni el Backgammon escondidos; los Miis a tamaño de casa
-function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;[C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
+function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=!(fz&&V.me>=0);   // en la casa las sillas a su tamaño; la tuya no se ve (la cámara son tus ojos)
+ [C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
 function viewBtn(){if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
  el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa (Esc)':p?'Viendo a '+p.name+' · Cuadrar (Esc)':'Cuadrar (Esc)';
