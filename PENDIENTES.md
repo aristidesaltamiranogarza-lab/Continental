@@ -56,8 +56,8 @@
 - [x] Registrar el archivo en el mapa estático de server.js (~línea 14) y en la línea de scripts de continental3d.html (antes de c_casa3d.js).
 
 ## Paso 7 · Servidor
-- [ ] Guardar el código del personaje en localStorage y mandarlo al entrar a una sala; server.js lo guarda por jugador y lo regresa en el polling para que los demás lo vean.
-- [ ] Los bots también tienen personaje (código aleatorio con la paleta).
+- [x] Guardar el código del personaje en localStorage y mandarlo al entrar a una sala; server.js lo guarda por jugador y lo regresa en el polling para que los demás lo vean. — 10 nov 2026: `AV.mio()` (localStorage `cont_av`, al azar la primera vez; `AV.mio(cod)` lo guarda); game.js lo manda en /new y /join como `av`; server.js lo valida (`avOk`, si viene mal pone uno al azar) y va en `players[i].av` de la vista.
+- [x] Los bots también tienen personaje (código aleatorio con la paleta). — `avAzar()` en server.js al crear el bot.
 
 ## Paso 8 · Pantalla "Mi personaje"
 - [ ] Usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).

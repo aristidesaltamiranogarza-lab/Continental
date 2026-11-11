@@ -93,12 +93,12 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const api=async(p,b)=>(await fetch(p,{method:'POST',body:JSON.stringify(b)})).json();
 function store(){CH.style.display=S&&V?'block':'none';try{S?localStorage.setItem('cont_s',JSON.stringify(S)):localStorage.removeItem('cont_s');localStorage.setItem('cont_n',pname);localStorage.setItem('cont_g',pgame)}catch(e){}}
 function enter(d){if(d.err){msg=d.err;return render()}S={c:d.c,t:d.t};V=null;v=0;msg='';store();loop();render()}
-async function mk(mode){pname=pname.trim()||'Jugador';try{enter(await api('new',{name:pname,mode,game:pgame}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}
+async function mk(mode){pname=pname.trim()||'Jugador';try{enter(await api('new',{name:pname,mode,game:pgame,av:window.AV?AV.mio():''}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}
 // ir a mirar una partida que ya empezó (sin jugar: ves la mesa sin las cartas de nadie y puedes chatear)
 async function watchR(c){pname=pname.trim()||'Alguien';try{enter(await api('watch',{c,name:pname}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}
 function joinSpec(){code=V.code;S=null;V=null;joinR()}
 const mirTxt=()=>V&&V.watch?'👁 Mirando la partida':'Mirando como host';
-async function joinR(){pname=pname.trim()||'Jugador';try{enter(await api('join',{c:code.trim(),name:pname}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}
+async function joinR(){pname=pname.trim()||'Jugador';try{enter(await api('join',{c:code.trim(),name:pname,av:window.AV?AV.mio():''}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}
 function leave(){S=null;V=null;store();render()}
 async function loop(){const my=S;while(S===my){try{const d=await(await fetch(`poll?c=${S.c}&t=${S.t}&v=${v}`)).json();online=true;
   if(d.gone||d.kicked){msg=d.kicked?'Fuiste expulsado de la sala.':'La sala ya no existe.';S=null;V=null;store();render();return}

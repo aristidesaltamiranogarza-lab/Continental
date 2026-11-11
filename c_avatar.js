@@ -81,5 +81,8 @@ function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.
  for(const k in u.mat)u.mat[k].dispose();if(p.parent)p.parent.remove(p);p.userData.av=null}
 
 window.AV={PAL,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,cambiar,pose,agarre,sien,pistola,quita,
- get codigoDef(){return codificar(DEF)}};
+ get codigoDef(){return codificar(DEF)},
+ // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
+ mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}
+  if(!c){c=azar();try{localStorage.setItem('cont_av',c)}catch(e){}}return codificar(leer(c))}};
 })();

@@ -17,12 +17,16 @@ const files={'/':['continental.html','text/html; charset=utf-8'],'/style.css':['
 const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
-const mkP=(tok,name)=>({tok,id:cr.randomBytes(4).toString('hex'),name:String(name||'Jugador').trim().slice(0,14)||'Jugador',seen:Date.now()});
+// personaje (formato de c_avatar.js): s1p3c1b2n1a2d3-2051; si viene mal o no viene, uno al azar
+const AVRE=/^s[12]p[1-7]c[1-3]b[1-3]n[1-3]a[1-3]d[1-3]-[0-7][0-7][0-9][0-9]$/,ri=n=>cr.randomInt(n),
+ avAzar=()=>'s'+(1+ri(2))+'p'+(1+ri(7))+'c'+(1+ri(3))+'b'+(1+ri(3))+'n'+(1+ri(3))+'a'+(1+ri(3))+'d'+(1+ri(3))+'-'+ri(8)+ri(8)+ri(10)+ri(10),
+ avOk=c=>AVRE.test(String(c||''))?String(c):avAzar();
+const mkP=(tok,name,av)=>({tok,id:cr.randomBytes(4).toString('hex'),name:String(name||'Jugador').trim().slice(0,14)||'Jugador',av:avOk(av),seen:Date.now()});
 // ---- vista y sincronización ----
 // espectadores (R.spec): ven la partida como el host que no juega (me = -1, sin ver cartas de nadie) y pueden chatear
 const specOf=(R,tok)=>(R.spec||[]).find(s=>s.tok==tok);
 function view(R,tok){const me=R.players.findIndex(p=>p.tok==tok),now=Date.now(),M=GAMES[R.gt];
- const v={code:R.code,v:R.v,host:R.host==tok,me,game:R.gt,opts:R.opts,players:R.players.map(p=>({id:p.id,name:p.name,on:!!p.bot||now-p.seen<35000,out:!!p.out,bot:!!p.bot})),G:null,claim:false,pend:!!R.pb,chat:R.chat.slice(-40),
+ const v={code:R.code,v:R.v,host:R.host==tok,me,game:R.gt,opts:R.opts,players:R.players.map(p=>({id:p.id,name:p.name,on:!!p.bot||now-p.seen<35000,out:!!p.out,bot:!!p.bot,av:p.av})),G:null,claim:false,pend:!!R.pb,chat:R.chat.slice(-40),
   watch:!!specOf(R,tok),spec:(R.spec||[]).filter(s=>now-s.seen<35000).map(s=>s.name),
   tt:R.G?now-(R.tt||now):0,tom:TOM_MS,fx:(R.fx||[]).filter(f=>now-f.ts<6000)};   // tt: cuánto lleva el turno; fx: tomates recientes
  if(R.G)Object.assign(v,M.view(R,tok,me,now));return v}
@@ -106,10 +110,10 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(p=='/new'){const code=rnd(5),tok=cr.randomBytes(12).toString('hex'),gt=GAMES[b.game]?b.game:'continental',
    R=rooms[code]={code,gt,opts:Object.assign({},GAMES[gt].opts),host:tok,players:[],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
   R.poke=()=>bump(R);
-  if(b.mode=='listo')R.players.push(mkP(tok,b.name));return out(res,{c:code,t:tok})}
+  if(b.mode=='listo')R.players.push(mkP(tok,b.name,b.av));return out(res,{c:code,t:tok})}
  const R=rooms[String(b.c||'').toUpperCase()];if(!R)return out(res,{err:'No se encontró la sala. Revisa el código y que el servidor siga abierto.'});
  if(p=='/join'){const mx=GAMES[R.gt].max;if(R.G)return out(res,{err:'La partida ya empezó.'});if(R.players.length>=mx)return out(res,{err:'La sala está llena (máximo '+mx+').'});
-  const tok=cr.randomBytes(12).toString('hex');R.players.push(mkP(tok,b.name));bump(R);return out(res,{c:R.code,t:tok})}
+  const tok=cr.randomBytes(12).toString('hex');R.players.push(mkP(tok,b.name,b.av));bump(R);return out(res,{c:R.code,t:tok})}
  // ir a mirar una partida (también sirve si todavía no empieza)
  if(p=='/watch'){const tok=cr.randomBytes(12).toString('hex'),nm=String(b.name||'').trim().slice(0,14)||'Alguien';(R.spec=R.spec||[]).push({tok,name:nm,seen:Date.now()});
   R.chat.push({k:-1,name:'👁',t:nm+' está mirando la partida',ts:Date.now()});if(R.chat.length>60)R.chat.shift();bump(R);return out(res,{c:R.code,t:tok})}
