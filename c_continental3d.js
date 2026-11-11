@@ -92,18 +92,20 @@ function target(m,par,pos,q,s,o={}){const T=m.userData.T;
  const ly=par===CA?1:0;if(m.userData.ly!==ly){m.userData.ly=ly;m.traverse(o=>o.layers.set(ly))}
  const ms=RM||(first&&!dealing)?0:(o.ms==null?430:o.ms);
  if(!ms){m.position.copy(pos);m.quaternion.copy(q);m.scale.setScalar(s);m.userData.tw=null;return}
- m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.7:.12):o.arc}}
+ m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.7:.12):o.arc,puff:o.puff}}
 function step(now){meshes.forEach((m,key)=>{const w=m.userData.tw,T=m.userData.T;if(!w||(drag&&drag.m===m))return;let k=(now-w.t0)/w.ms;if(k<0)return;if(k>1)k=1;
  const e=1-Math.pow(1-k,3),a=Math.sin(Math.PI*k)*w.arc;m.position.lerpVectors(w.p0,T.pos,e);if(T.par===SC)m.position.y+=a;else m.position.z+=a;
  m.quaternion.slerpQuaternions(w.q0,T.q,e);m.scale.setScalar(w.s0+(T.s-w.s0)*e);
- if(k===1){m.userData.tw=null;if(m.userData.kill)drop(key)}})}
+ if(k===1){m.userData.tw=null;if(m.userData.kill)drop(key);else if(w.puff&&T.par===SC)cae(m.position)}})}
+// una carta cae en la mesa (descarte o bajada): polvo de fieltro (c_mesa_fx.js) y su golpecito, sin amontonar sonidos
+let caeT=0;function cae(p){if(window.MFX)MFX.polvo(SC,p,L.ps);const t=performance.now();if(t-caeT>90){caeT=t;sfx('place')}}
 // brillos (mazo, descarte, combinaciones, turno). Son planos con textura suave; también sirven para tocar.
 function glow(key,pos,w,h,col,lvl,hit,ry){let g=glows.get(key);
  if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:glowTex(),transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.renderOrder=1;SC.add(g);glows.set(key,g)}
  g.visible=true;g.position.copy(pos);g.rotation.z=ry||0;g.scale.set(w/GI,h/GI,1);g.material.color.set(col);g.userData.lvl=lvl;g.userData.hit=hit||null;g.userData.used=1;if(hit)hits.push(g);return g}
 function pulse(now){const p=.65+.35*Math.sin(now/260);glows.forEach(g=>{const fl=g.userData.fl?Math.max(0,1-(now-g.userData.fl)/800):0;g.material.opacity=Math.max(g.userData.lvl*(g.userData.lvl>.5?p:1),fl)})   // fl: destello (pegaron en esa combinación)
  slots.forEach(m=>{const b=m.userData;if(!m.visible)return;const k=(Date.now()-(b.badT||0))/550;m.position.x=b.bx+(k<1?Math.sin(k*40)*.09*(1-k):0);
-  m.material.color.set(k<1?0xff5a4a:b.col);m.material.opacity=b.ok?.95:.55+.25*Math.sin(now/380)})}   // >.5 = parpadea
+  m.material.color.set(k<1?0xff5a4a:b.hot?0x9fe8ff:b.col);m.material.opacity=b.hot?1:b.ok?.95:b.fit?.75+.25*Math.sin(now/170):.55+.25*Math.sin(now/380)})}   // >.5 = parpadea
 
 // ---------- escena y mesa ----------
 // shR: dibuja con el WebGL de la casa · fz: escala de la casa de fondo (0: con su propio cuarto); c_casa_fondo.js
@@ -551,9 +553,9 @@ const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   
 function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];
  let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>9&&stp<cw*.2){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/((x1-x0)/2);
-  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.18-(rows==2&&!r?ch*.42:0);if(sel.has(id))y-=ch*.2;else if(hov===id)y-=ch*.08;
-  const ang=Math.max(-.3,Math.min(.3,-u*.22)),d=D-i*.004-(r?.03:0);
-  out.push({id,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
+  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.22-(rows==2&&!r?ch*.42:0);if(sel.has(id))y-=ch*.2;else if(hov===id)y-=ch*.08;
+  const ang=Math.max(-.32,Math.min(.32,-u*.26)),hv=hov===id&&!sel.has(id),up=hv||sel.has(id),d=D-i*.004-(r?.03:0);
+  out.push({id,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-(up?.04:.3))),s:ch*upp/CH*(hv?1.06:1)})});
  return out}
 // al: hacia dónde se cargan los renglones dentro de r (x: -1 izquierda, 1 derecha; z: -1 arriba, 1 abajo; 0 al centro)
 function meldLay(ms,r,al){al=al||{x:0,z:0};
@@ -623,6 +625,11 @@ function pjLog(e){const i=rel(e.k),t=e.t,w=CW*L.ps;
  else if(/^quiere comprar/.test(t))MPJ.compra(i,true);else if(/^canceló su compra/.test(t))MPJ.compra(i,false);else if(/^compró/.test(t)){MPJ.compra(i,false);MPJ.roba(i,L.deck,w);corte(e.k)}
  else if(/^(pegó|cambió)/.test(t)){const k=V.G.melds.findIndex(m=>m.cards.includes(e.c)),mm=V.G.melds[k],b=L.mb&&L.mb[k],c=b?v3((b.x0+b.x1)/2,0,(b.z0+b.z1)/2):v3(0,0,0);MPJ.estira(i,c);
   if(mm&&mm.owner!==e.k){MPJ.mira(rel(mm.owner),c,1600);const g=glows.get('m'+k);if(g)g.userData.fl=performance.now()}}}
+// destellos y sonidos según el log (c_mesa_fx.js): pegar (destella la bajada), bajarse (destella su zona con su color); los demás roban con sonido
+function fxLog(e){const t=e.t;if(!window.MFX)return;
+ if(/^(pegó|cambió)/.test(t)){const k=V.G.melds.findIndex(m=>m.cards.includes(e.c)),b=L.mb&&L.mb[k];if(b)setTimeout(()=>MFX.destello(SC,v3((b.x0+b.x1)/2+.3,0,(b.z0+b.z1)/2),b.x1-b.x0+.6,b.z1-b.z0+.3),380)}
+ else if(/^se bajó/.test(t)){const z=L.zona(rel(e.k));setTimeout(()=>MFX.destello(SC,z.c,z.x1-z.x0,z.z1-z.z0,COL[e.k%10]),520)}
+ else if(e.k!==V.me&&/^(robó|tomó|compró)/.test(t))sfx('draw')}
 function sync(){if(!ready||!L||!active())return;
  const G=V.G,n=G.players.length,me=V.me,live=new Set(),mine=me>=0&&G.turn==me,pl=mine&&G.step=='play',dn=me>=0&&G.down[me];
  hits.length=0;glows.forEach(g=>{g.userData.used=0});if(window.MPJ&&MPJ.on)MPJ.fin(G.phase==='end'&&G.out!=null?rel(G.out):-1);if(G.phase==='end'&&G.out!=null&&finCut!==G.dn){finCut=G.dn;corte(G.out,3000,true)}
@@ -634,7 +641,7 @@ function sync(){if(!ready||!L||!active())return;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
  if(mine&&myTc!==G.tc){myTc=G.tc;if(viewed())home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
- const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
+ const from={},took={},tnow=performance.now();(G.log||[]).forEach(e=>{if(e.n<=logN)return;const av=logN>=0&&avs.get(e.k);if(av){if(/^se bajó/.test(e.t))av.userData.cheerT=tnow;else av.userData.reachT=tnow}if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(logN>=0)fxLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
  const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.84);p.y=.3;return p};   // con personaje: sus manos
  // mazo: pila con grosor según las cartas que quedan
  const nv=G.deck?Math.min(10,Math.ceil(G.deck/5)):0;
@@ -643,15 +650,15 @@ function sync(){if(!ready||!L||!active())return;
  const drawNow=mine&&G.step=='draw';
  glow('deck',v3(L.deck.x,.004,L.deck.z),CW*L.ps*1.25,CH*L.ps*1.2,0xffd54a,drawNow?.9:0,{t:'deck'});
  // descarte: las 3 de arriba
- const top3=G.disc.slice(-3);top3.forEach((id,i)=>{const key='c'+id,m=ens(key,id,from[id]!=null?seatW(from[id]):null);live.add(key);m.userData.hit={t:'disc'};hits.push(m);
-  go(m,SC,v3(L.disc.x+((id*37)%11-5)*.01,.012+i*CT*L.ps*1.6,L.disc.z+((id*17)%7-3)*.01),Qe(0,((id*13)%9-4)*.035,0),L.ps)});
+ const top3=G.disc.slice(-3);top3.forEach((id,i)=>{const key='c'+id,m=ens(key,id,from[id]!=null?seatW(from[id]):null),was=m.userData.hit&&m.userData.hit.t;live.add(key);m.userData.hit={t:'disc'};hits.push(m);
+  go(m,SC,v3(L.disc.x+((id*37)%11-5)*.01,.012+i*CT*L.ps*1.6,L.disc.z+((id*17)%7-3)*.01),Qe(0,((id*13)%9-4)*.035,0),L.ps,{puff:was!=='disc'})});
  const dscOn=drawNow&&G.disc.length?.9:pl&&sel.size==1?.55:0;
- glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.25,CH*L.ps*1.2,drawNow?0xffd54a:0x55c8ff,dscOn,{t:'disc'});
+ glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.25,CH*L.ps*1.2,drawNow?0xffd54a:0x55c8ff,hiK==='disc'?1.3:dscOn,{t:'disc'});
  // combinaciones en la mesa
  mesa.marcas(G.players.map((_,j)=>{const k=(j+(me<0?0:me))%n;return V.players[k]&&V.players[k].out?null:COL[k%10]}));   // zona de cada asiento con el color de su jugador
  const ML=zoneLay(G.melds),one=sel.size==1?[...sel][0]:drag?drag.id:null;L.mb=[];
- G.melds.forEach((mm,k)=>{const p=ML.pos[k];L.mb.push({o:mm.owner,x0:p.x,x1:p.x+p.mw,z0:p.z,z1:p.z+p.ch});mm.cards.forEach((id,j)=>{const key='c'+id,m=ens(key,id,seatW(from[id]!=null?from[id]:mm.owner));live.add(key);m.userData.hit={t:'meld',k};hits.push(m);
-   go(m,SC,v3(p.x+p.cw/2+j*p.ov,.012+j*.0035,p.z+p.ch/2),FU,p.s)});
+ G.melds.forEach((mm,k)=>{const p=ML.pos[k];L.mb.push({o:mm.owner,x0:p.x,x1:p.x+p.mw,z0:p.z,z1:p.z+p.ch});mm.cards.forEach((id,j)=>{const key='c'+id,m=ens(key,id,seatW(from[id]!=null?from[id]:mm.owner)),was=m.userData.hit&&m.userData.hit.t;live.add(key);m.userData.hit={t:'meld',k};hits.push(m);
+   go(m,SC,v3(p.x+p.cw/2+j*p.ov,.012+j*.0035,p.z+p.ch/2),FU,p.s,{puff:was!=='meld'})});
   const can=pl&&one!=null&&dn&&fitsMeld(one,mm);
   glow('m'+k,v3(p.x+p.mw/2,.003,p.z+p.ch/2),p.mw+.14,p.ch+.14,can?0x55c8ff:0xffffff,hiK==='m'+k?1.3:can?.85:0,{t:'meld',k});
   glow('o'+k,v3(p.x+p.mw/2,.004,p.z+p.ch+.07),p.mw,.08,COL[mm.owner%10],.5)});
@@ -666,7 +673,7 @@ function sync(){if(!ready||!L||!active())return;
  slots.forEach((m,k)=>{if(!showS||k>=staged.length)m.visible=false});
  if(showS)staged.forEach((g,k)=>{const p=SL.pos[k];let m=slots.get(k);
   if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ghostTex(),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=1;SC.add(m);slots.set(k,m)}
-  const ok=okSlot(g);m.visible=true;m.position.set(p.x+p.w/2,.004,p.z);m.scale.set(p.w,SL.ch+SL.pad*2,1);Object.assign(m.userData,{bx:p.x+p.w/2,ok,col:ok?0x6dff8a:g.ids.length?0xffe27a:0xffffff,hit:{t:'slot',k}});hits.push(m);
+  const ok=okSlot(g),fit=!ok&&sel.size>0&&canBe(g.type,g.ids.concat([...sel].filter(x=>!g.ids.includes(x))).map(C));m.visible=true;m.position.set(p.x+p.w/2,.004,p.z);m.scale.set(p.w,SL.ch+SL.pad*2,1);Object.assign(m.userData,{bx:p.x+p.w/2,ok,fit,col:ok?0x6dff8a:fit?0x6fd3ff:g.ids.length?0xffe27a:0xffffff,hit:{t:'slot',k}});   // fit: ahí caben las que seleccionastehits.push(m);
   g.ids.forEach((id,j)=>{const key='c'+id,c=ens(key,id);live.add(key);c.castShadow=true;c.userData.hit={t:'slot',k};hits.push(c);
    go(c,SC,v3(p.x+SL.pad+SL.cw/2+j*SL.ov,.014+j*.0035,p.z),FU,SL.s,{ms:380})})});
  // tu mano en abanico
@@ -718,12 +725,16 @@ function pMove(e){if(!active())return;if(mc&&(st||pin))mc.toca();
  if(!drag&&h&&h.t=='hand'&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){const m=meshes.get('c'+h.id);if(m){drag={id:h.id,m,tgt:null};hov=null;sync()}}
  if(!drag)return;const m=drag.m;m.position.copy(loc(e.clientX,e.clientY-L.ch*.15,D-.5));m.quaternion.setFromAxisAngle(X,Math.PI/2-.1);m.scale.setScalar(m.userData.T.s*1.08);
  // ¿encima de qué está? (casilla de armado, combinación o descarte)
- const t=pick(e,hits.filter(o=>o.userData.hit&&o.userData.hit.t!='hand'));drag.tgt=t&&(t.t=='meld'||t.t=='disc'||t.t=='slot')?t:null;if(!drag.tgt)drag.tgt=nearMeld(e.clientX,e.clientY,drag.id);dragHi(drag.tgt)}
-// arrastrando una carta: si no está encima de nada, la combinación donde cabe más cercana (a menos de 1.3 del dedo)
-function nearMeld(cx,cy,id){const G=V.G,me=V.me;if(me<0||G.turn!=me||G.step!='play'||!G.down[me]||!L.mb)return null;const p=ground(cx,cy);if(!p)return null;let b=null,bd=1.3;
- L.mb.forEach((r,k)=>{const mm=G.melds[k];if(!mm||!fitsMeld(id,mm))return;const d=Math.hypot(Math.max(r.x0-p.x,0,p.x-r.x1),Math.max(r.z0-p.z,0,p.z-r.z1));if(d<bd){bd=d;b={t:'meld',k}}});return b}
+ const t=pick(e,hits.filter(o=>o.userData.hit&&o.userData.hit.t!='hand'));drag.tgt=t&&(t.t=='meld'||t.t=='disc'||t.t=='slot')?t:null;if(!drag.tgt)drag.tgt=nearTgt(e.clientX,e.clientY,drag.id);dragHi(drag.tgt)}
+// arrastrando una carta: si no está encima de nada, lo más cercano donde cabe (a menos de 1.3 del dedo): una bajada, una silueta de tu contrato o el descarte
+function nearTgt(cx,cy,id){const G=V.G,me=V.me;if(me<0||G.turn!=me||G.step!='play')return null;const p=ground(cx,cy);if(!p)return null;let b=null,bd=1.3;
+ const ck=(x0,x1,z0,z1,t)=>{const d=Math.hypot(Math.max(x0-p.x,0,p.x-x1),Math.max(z0-p.z,0,p.z-z1));if(d<bd){bd=d;b=t}};
+ if(G.down[me]&&L.mb)L.mb.forEach((r,k)=>{const mm=G.melds[k];if(mm&&fitsMeld(id,mm))ck(r.x0,r.x1,r.z0,r.z1,{t:'meld',k})});
+ const S=L.slots;if(!G.down[me]&&S)staged.forEach((g,k)=>{const q=S.pos[k],h=S.ch/2+S.pad;if(q&&canBe(g.type,g.ids.concat(id).map(C)))ck(q.x,q.x+q.w,q.z-h,q.z+h,{t:'slot',k})});
+ const dw=CW*L.ps*.6,dh=CH*L.ps*.6;ck(L.disc.x-dw,L.disc.x+dw,L.disc.z-dh,L.disc.z+dh,{t:'disc'});return b}
 // el destino de lo que arrastras brilla más
-let hiK=null;function dragHi(t){const k=t&&t.t=='meld'?'m'+t.k:t&&t.t=='disc'?'disc':null;if(k===hiK)return;const o=hiK&&glows.get(hiK);if(o)o.userData.lvl=o.userData.lv0||0;hiK=k;const g=k&&glows.get(k);if(g){g.userData.lv0=g.userData.lvl;g.userData.lvl=1.3}}
+let hiK=null;function dragHi(t){const k=!t?null:t.t=='meld'?'m'+t.k:t.t=='disc'?'disc':t.t=='slot'?'s'+t.k:null;if(k===hiK)return;hiSet(hiK,false);hiK=k;hiSet(k,true)}
+function hiSet(k,on){if(!k)return;if(k[0]=='s'){const m=slots.get(+k.slice(1));if(m)m.userData.hot=on;return}const g=glows.get(k);if(!g)return;if(on){g.userData.lv0=g.userData.lvl;g.userData.lvl=1.3}else g.userData.lvl=g.userData.lv0||0}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}
  if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  clearTimeout(s.lp);if(s.peek){peek(false);return}   // soltar después de ver la carta no la toma
@@ -874,7 +885,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){if(finT){finT=0;if(window.MPJ)MPJ.fin(-1);render()}first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H||tkey()!==tableKey){layout();sync()}
- viewStep(dt);vivo(now,dt);step(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
+ viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
  const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
