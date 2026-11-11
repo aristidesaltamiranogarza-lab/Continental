@@ -29,6 +29,7 @@ K = dict(
     DECIMA_FIN={'Brazos': 0.62},   # reduccion despues de la subdivision (mangas: lo mas caro de cada prenda)
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
+    SUBE=0.035,   # mano mas arriba en la cacha (hacia el martillo), para que el pulgar lo alcance
     # PistolaSien: el canon apunta a la sien (alto = grados hacia arriba); el alcance sale de ladear tronco y cabeza
     # PS_PUNTO: donde va la boca (como SIEN; abajo de la oreja), el canon apunta al centro de la cabeza (+- PS_ALTO/PS_FRENTE)
     PS_PUNTO=(1.0, -0.12, -0.45), PS_ALTO=range(-10, 16, 5), PS_FRENTE=range(-20, 21, 10),
@@ -411,6 +412,10 @@ def rejilla(c, paso, n):
                for dz in [c[2] + paso * i for i in range(-n, n + 1)])
 mejor = rejilla((0, 0, 0), 6, 4); mejor = rejilla(mejor[2], 2, 2)
 choque_culata = mejor[0]; DC = V((mejor[2][0] * lado, mejor[2][1], mejor[2][2])) / 1000
+# la mano sube en la cacha K['SUBE'] (m, hacia la espuela del martillo) para que el pulgar la alcance al amartillar (Amartilla_D)
+_m = bpy.data.objects['Rev_Martillo']; _sp = max((_m.matrix_world @ v.co for v in _m.data.vertices), key=lambda p: p.z - p.y)
+_u = (en_mano(DC) @ _sp - Ri @ fr1['pulgar1'][0]).normalized(); DC = DC - _u * K['SUBE']
+print('mano subida', round(K['SUBE'] * 1000), 'mm; verts de mano dentro', choques(DC))
 MG = en_mano(DC)
 print('revolver en la mano: desplazamiento mm', mejor[2], 'verts de mano dentro', choque_culata, 'de', len(MANO_L[::2]))
 
