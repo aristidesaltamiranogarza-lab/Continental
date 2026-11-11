@@ -54,7 +54,25 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
   </div>
   <footer class="sl-ft" id="slFt"></footer>
  </section><div class="sl-modal" id="slModal" hidden onclick="if(event.target===this)SALA.cierra()"></div>`;
- document.body.appendChild(el)}
+ document.body.appendChild(el);arrastra()}
+// en celular, arrastrar el tirador o la cabecera abre o cierra la hoja siguiendo el dedo; un toque sigue siendo mas()
+function arrastra(){const sh=$('slSh');let p=null,movio=false,pend=null;
+ const alto=()=>{sh.style.height='auto';return sh.offsetHeight};
+ sh.addEventListener('pointerdown',e=>{movio=false;if(innerWidth>=768||!e.isPrimary||p||!e.target.closest('.sl-handle,.sl-hd'))return;p={id:e.pointerId,y:e.clientY,h:sh.offsetHeight,v:0,ly:e.clientY,lt:e.timeStamp,va:false}});
+ sh.addEventListener('pointermove',e=>{if(!p||e.pointerId!==p.id)return;const dy=e.clientY-p.y;
+  if(!p.va){if(Math.abs(dy)<7)return;p.va=true;movio=true;if(pend)pend();try{sh.setPointerCapture(e.pointerId)}catch(_){}el.classList.add('arr');
+   el.classList.toggle('open',!abierta);const h1=alto();el.classList.toggle('open',abierta);const h2=alto();
+   p.hc=abierta?h1:h2;p.ha=abierta?h2:h1;el.classList.add('open');sh.style.transition='none';sh.style.height=p.h+'px'}
+  let h=p.h-dy;if(h>p.ha)h=p.ha+(h-p.ha)/3;if(h<p.hc)h=p.hc-(p.hc-h)/3;sh.style.height=h+'px';
+  const dt=e.timeStamp-p.lt;if(dt>0){p.v=(e.clientY-p.ly)/dt;p.ly=e.clientY;p.lt=e.timeStamp}});
+ const suelta=e=>{if(!p||e.pointerId!==p.id)return;const q=p;p=null;if(!q.va)return;
+  const h=sh.offsetHeight,abre=q.v<-.35?true:q.v>.35?false:h>(q.hc+q.ha)/2,fin=abre?q.ha:q.hc;
+  if(abre!==abierta)snd('tick');abierta=abre;sh.style.transition='';el.classList.remove('arr');
+  let tm=0;const listo=()=>{pend=null;clearTimeout(tm);sh.removeEventListener('transitionend',te);sh.style.height='';el.classList.toggle('open',abierta);if(!abierta)$('slBd').scrollTop=0};
+  const te=ev=>{if(ev.propertyName==='height')listo()};
+  void sh.offsetHeight;if(Math.abs(h-fin)<1)return listo();pend=listo;tm=setTimeout(listo,600);sh.addEventListener('transitionend',te);sh.style.height=fin+'px'};
+ sh.addEventListener('pointerup',suelta);sh.addEventListener('pointercancel',suelta);
+ sh.addEventListener('click',e=>{if(movio){movio=false;e.stopPropagation();e.preventDefault()}},true)}
 
 // sync(g): game.js en cada render() de la sala de espera. false = no hay casa (sala de siempre)
 function sync(g){const H=H3(),v=vv();if(!g||!H||!v||v.G)return false;arma();cur=g;

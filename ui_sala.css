@@ -16,6 +16,8 @@ html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);-
  transform:translateY(112%);transition:transform .5s cubic-bezier(.5,0,.75,0),height .45s cubic-bezier(.2,.8,.2,1)}
 #sala.in .sl-sh{transform:none;transition:transform .8s cubic-bezier(.16,1.15,.3,1) .15s,height .45s cubic-bezier(.2,.8,.2,1)}
 .sl-handle{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:2;width:84px;height:24px;padding:0;border:0;background:transparent;cursor:pointer}
+.sl-handle,.sl-hd{touch-action:none}
+#sala.arr .sl-x{animation:none}
 .sl-handle i{display:block;width:42px;height:5px;margin:9px auto 0;border-radius:9px;background:rgba(255,255,255,.55)}
 
 /* cabecera = la tapa de la caja del juego */
