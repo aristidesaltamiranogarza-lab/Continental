@@ -39,7 +39,9 @@ function ubody(){const G=V.G,i=V.me;document.documentElement.dataset.ucol=G.colo
  if(i>=0)o+=`<div class="top">Tus cartas (${h.length}):</div><div id="hand">${udisp().map(c=>ucard(c,{did:c.id,nw:prevHand.size&&!prevHand.has(c.id),dim:mine&&!uok(c.id),on:`uplay(${c.id})`})).join('')}</div><div><button class="b g" onclick="cyc()">Ordenar: ${manual?'a mi orden':sortS?'por número':'por color'}</button></div>`;
  return o+`<button class="b g sm2" onclick="mute=!mute;render()">${mute?'🔇 Sonido':'🔊 Sonido'}</button>${typeof musUI=='function'?musUI():''}<details><summary>🎨 Estilo</summary>${styleUI()}</details><details><summary>Jugadores</summary>${plist()}</details>`+(V.host?`<button class="b g sm2" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">Cerrar sala</button>`:'')+unoRules}
 // voz que grita "¡UNO!" (la del sistema, en español si hay); se calla con el sonido apagado
-function uvoz(t){if(mute||!window.speechSynthesis)return;try{const u=new SpeechSynthesisUtterance(t),vs=speechSynthesis.getVoices(),v=vs.find(x=>/^es[-_]MX/i.test(x.lang))||vs.find(x=>/^es/i.test(x.lang));
+// ¡UNO!: la voz grabada (sonidos/uno.mp3); si no se puede reproducir, la voz del navegador
+let unoMp3=null;function uvoz(t){if(mute)return;try{unoMp3=unoMp3||new Audio('/sonidos/uno.mp3');unoMp3.currentTime=0;unoMp3.play().catch(()=>uvozTts(t));return}catch(e){}uvozTts(t)}
+function uvozTts(t){if(mute||!window.speechSynthesis)return;try{const u=new SpeechSynthesisUtterance(t),vs=speechSynthesis.getVoices(),v=vs.find(x=>/^es[-_]MX/i.test(x.lang))||vs.find(x=>/^es/i.test(x.lang));
  u.lang=v?v.lang:'es-MX';if(v)u.voice=v;u.rate=1.05;u.pitch=1.2;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 if(window.speechSynthesis)try{speechSynthesis.getVoices()}catch(e){}   // algunas compus cargan las voces hasta que se piden
 GM.uno={name:'Uno',emoji:'🎴',max:10,rules:unoRules,lobby:ulobby,body:ubody,
