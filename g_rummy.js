@@ -4,7 +4,7 @@
 // Fin: gana quien se queda sin fichas; si la bolsa está vacía y nadie juega en una ronda completa, gana quien tenga menos puntos en mano (comodín 30).
 const cr=require('crypto'),RU=require('./rummy_reglas.js'),NAV=8,LATE=800;
 // opciones: t segundos por turno
-const OPTS={t:60},RNG={t:[30,120]};
+const OPTS={t:90},RNG={t:[30,120]};
 const pn=(G,k)=>G.players[k].name,vivos=G=>G.ord.filter(k=>!G.out[k]);
 const lg=(G,t)=>{G.log.push({t,n:G.ln=(G.ln||0)+1});if(G.log.length>30)G.log.shift()};
 const fx=(G,t,k,to)=>{G.fx.push({n:G.fn=(G.fn||0)+1,t,k,to,ts:Date.now()});if(G.fx.length>12)G.fx.shift()};

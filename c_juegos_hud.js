@@ -39,7 +39,11 @@ function ajustes(rows,btns){const mus=typeof musName=='function'?musName():null,
  return `<span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'GHUD.tema')}
  ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
  <div class="gj-sws">${row('sonido','Sonidos',sw(snd,'GHUD.snd(this.checked)','Sonidos'))}${rows||''}</div>
- ${btns?`<div class="gj-btns">${btns}</div>`:''}`}
+ ${jug()}${btns?`<div class="gj-btns">${btns}</div>`:''}`}
+// anfitrión a media partida: puede sacar a cualquiera (se fue y no vuelve, o traba el juego). Va en Ajustes de todos los juegos
+const es=t=>String(t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+function jug(){const v=typeof V!='undefined'&&V;if(!v||!v.host||!v.G||v.G.phase=='final')return '';const ps=v.players.map((p,i)=>Object.assign({i},p)).filter(p=>!p.out&&p.i!==v.me);if(!ps.length)return '';
+ return `<span class="ui-lbl">Jugadores</span><div class="gj-sws">${ps.map(p=>row('',`<b>${es(p.name)}</b> <em class="ui-sub">${p.bot?'bot':p.on?'':'sin conexión'}</em>`,`<button class="ui-btn ghost" onclick="kick('${es(p.id)}')">Sacar</button>`)).join('')}</div>`}
 // ventanita de una mesa de la casa (Conecta 4, Backgammon, Cubilete, Ir a…): tarjeta a la derecha en compu, hoja de abajo en celular
 const win=(title,body,close,cls)=>`<div id="h3win" class="ui ui-sheet h3w${cls?' '+cls:''}${$('h3win')?' ya':''}" role="dialog" aria-label="${title.replace(/<[^>]+>/g,'').replace(/"/g,'')}"><div class="ui-hd"><h2 class="ui-h">${title}</h2><button class="ui-x" onclick="${close}" aria-label="Cerrar">${I('x')}</button></div><div class="ui-bd">${body}</div></div>`;
 // nombre de un jugador (centro x,y; medio ancho y alto hw,hh) que caería encima del botón Cuadrar: se sube o se baja, lo que quede más cerca (sin pasar de y0)
@@ -49,7 +53,7 @@ function dodge(x,y,hw,hh,y0){const e=$('gjView'),r=e&&e.style.display!='none'&&e
 function save(){const b=$('gjBd');scroll=b?b.scrollTop:0}
 function restore(){const b=$('gjBd');if(b)b.scrollTop=scroll}
 
-window.GHUD={win,dodge,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,save,restore,
+window.GHUD={jug,win,dodge,top,hint,toast,bar,camTog,cam,view,sheet,ajustes,seg,sw,row,save,restore,
  tab:k=>{tab=k;const b=$('gjBd');if(b)b.scrollTop=0;tick();rr()},
  tema:t=>{UI.setTema(t);tick();rr()},
  mus:n=>{if(typeof musCyc!='function')return;for(let i=0;i<4&&musName()!==n;i++)musCyc();rr()},

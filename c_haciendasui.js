@@ -95,7 +95,7 @@ function menuBox(){const seg=L=>`<div class="mu-seg">${L.map(([o,c,t])=>`<button
   <div class="mu-opt"><span>Tema</span>${seg([[window.UI.tema()=='auto',"GHUD.tema('auto')",'Automático'],[window.UI.tema()=='dia',"GHUD.tema('dia')",'Día'],[window.UI.tema()=='noche',"GHUD.tema('noche')",'Noche']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
-  <div class="mu-acts"><button class="mu-b" onclick="HZU.menu(0);HZX.guide(1)">📖 Cómo se juega</button><button class="mu-b" onclick="leave()">🚪 ${V.watch?'Dejar de mirar':'Salir de la sala'}</button></div></div>`}
+  ${window.GHUD?GHUD.jug():''}<div class="mu-acts"><button class="mu-b" onclick="HZU.menu(0);HZX.guide(1)">Cómo se juega</button><button class="mu-b" onclick="leave()">${V.watch?'Dejar de mirar':'Salir de la sala'}</button></div></div>`}
 // ---- pestañas (contenido en c_haciendastabs.js) ----
 const TABS=[['jug','Jugadores','pl'],['cartas','Mis cartas','card'],['com','Comercio','deal'],['hist','Historial','log']];
 const curTab=()=>wide()?tab||'jug':tab,playing=()=>me()>=0&&!V.G.out[me()];

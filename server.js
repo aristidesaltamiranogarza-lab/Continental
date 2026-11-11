@@ -21,7 +21,8 @@ const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)
 const AVRE=/^s[12]p[1-7]c[1-3]b[1-3]n[1-3]a[1-3]d[1-3]-[0-7][0-7][0-9][0-9]$/,ri=n=>cr.randomInt(n),
  avAzar=()=>'s'+(1+ri(2))+'p'+(1+ri(7))+'c'+(1+ri(3))+'b'+(1+ri(3))+'n'+(1+ri(3))+'a'+(1+ri(3))+'d'+(1+ri(3))+'-'+ri(8)+ri(8)+ri(10)+ri(10),
  avOk=c=>AVRE.test(String(c||''))?String(c):avAzar();
-const mkP=(tok,name,av)=>({tok,id:cr.randomBytes(4).toString('hex'),name:String(name||'Jugador').trim().slice(0,14)||'Jugador',av:avOk(av),seen:Date.now()});
+const meOf=b=>String(b&&b.me||'').replace(/[^a-z0-9]/gi,'').slice(0,24)||null;
+const mkP=(tok,name,av,me)=>({tok,me:me||null,id:cr.randomBytes(4).toString('hex'),name:String(name||'Jugador').trim().slice(0,14)||'Jugador',av:avOk(av),seen:Date.now()});
 // ---- vista y sincronización ----
 // espectadores (R.spec): ven la partida como el host que no juega (me = -1, sin ver cartas de nadie) y pueden chatear
 const specOf=(R,tok)=>(R.spec||[]).find(s=>s.tok==tok);
@@ -42,14 +43,27 @@ function bump(R){const tk=turnKey(R.G);if(tk!==R.tk){R.tk=tk;R.tt=Date.now()}R.v
 const BOTN=['Ana','Beto','Caro','Dani','Eli','Fer','Gabo','Hugo','Iris'];
 // el asiento se queda con un bot (abandonó, o se levantó y no volvió en 2 min): token nuevo para que ya nadie lo use; si era el host, pasa a otra persona
 function botSeat(R,p){const old=p.tok;p.bot=true;p.away=0;p.tok=cr.randomBytes(12).toString('hex');if(R.host==old){const h=R.players.find(x=>!x.bot&&!x.out);if(h)R.host=h.tok}}
+// volver a tu lugar (cerraste la sala, se recargó o se durmió el celular): se te reconoce por la clave de tu aparato (me).
+// si un bot lo tomó, te lo regresa; si tu lugar sigue vivo en otra pestaña (está esperando su poll), no: eres otra persona
+function volver(R,b){const me=meOf(b);if(!me)return null;const p=R.players.find(x=>x.me==me&&!x.out);if(!p)return null;
+ if(!p.bot&&(R.w.some(w=>w.tok==p.tok)||Date.now()-p.seen<5000))return null;
+ if(p.bot){p.tok=cr.randomBytes(12).toString('hex');p.bot=false;R.chat.push({k:-1,name:'Aviso',t:p.name+' volvió a la mesa',ts:Date.now()});if(R.chat.length>60)R.chat.shift()}
+ p.away=0;p.seen=Date.now();return p.tok}
+const OFF_MS=35000,FUERA_MS=180000;
+// soltar el asiento: si el juego tiene bot, se queda un bot; si no, sale de la partida (un asiento sin nadie trabaría el juego)
+function soltar(R,p){const M=GAMES[R.gt];if(M.bot||M.auto)return botSeat(R,p);const k=R.players.indexOf(p);if(R.host==p.tok){const h=R.players.find(x=>x!==p&&!x.bot&&!x.out);if(h)R.host=h.tok}kick(R,k);if(M.tick)M.tick(R)}
 function botGo(R){clearTimeout(R.bt);R.bt=null;const M=GAMES[R.gt];if(!R.G||!M.bot||!rooms[R.code])return;
  // de todos los bots, la jugada que toca primero
- let best=null;R.players.forEach((p,k)=>{if(M.auto?!M.auto(R,k):!(p.bot||p.away)||p.out)return;const d=M.bot(R,k);if(d&&(!best||d.ms<best.ms))best=Object.assign({p},d)});if(!best)return;
+ let best=null;R.players.forEach((p,k)=>{if(M.auto?!M.auto(R,k):!(p.bot||p.away||Date.now()-p.seen>OFF_MS)||p.out)return;const d=M.bot(R,k);if(d&&(!best||d.ms<best.ms))best=Object.assign({p},d)});if(!best)return;
  R.bt=setTimeout(()=>{R.bt=null;if(!rooms[R.code]||!R.G)return;let e=act(R,best.p.tok,best.m);
   // si algo falla: roba para no trabar la partida, o lo vuelve a pensar en un rato
   if(e){console.log('bot',best.p.name,e);if(best.m.t=='play')e=act(R,best.p.tok,{t:'draw'});if(e){R.bt=setTimeout(()=>botGo(R),3000);return}}
   bump(R)},Math.max(50,best.ms))}
 function touch(R,pl){if(pl){const off=Date.now()-pl.seen>35000;pl.seen=Date.now();if(off)bump(R)}}
+// ---- ausentes: en un juego sin bot, quien lleva FUERA_MS sin conexión a media partida sale (si no, se traba); el host, si se va, pasa a quien sí está ----
+function fuera(R){const M=GAMES[R.gt],now=Date.now(),vivo=p=>!p.bot&&!p.out&&now-p.seen<OFF_MS,av=t=>{R.chat.push({k:-1,name:'Aviso',t,ts:now});if(R.chat.length>60)R.chat.shift()};
+ if(R.G&&R.G.phase!='final'&&!M.bot&&!M.auto)R.players.forEach((p,k)=>{if(!p.bot&&!p.out&&now-p.seen>FUERA_MS){av(p.name+' salió de la mesa: se desconectó');kick(R,k);if(M.tick)M.tick(R);bump(R)}});
+ if(now-(R.hs||now)>120000){const h=R.players.find(vivo);if(h&&h.tok!=R.host){R.host=h.tok;R.hs=now;av(h.name+' ahora es el anfitrión');bump(R)}}}
 // ---- acciones comunes ----
 function kick(R,k){const p=R.players[k];R.kk.push(p.tok);
  if(!R.G){R.players.splice(k,1);return}
@@ -75,7 +89,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
  // levantarse (stand): el automático juega por ti y guardas el lugar 2 min (sit = volver). abandonar (leave): un bot se queda con tu asiento
  if(t=='stand'||t=='sit'||t=='leave'){const p=R.players[i];if(!p||p.bot||p.out)return 'No tienes lugar en esta mesa.';
   if(t=='sit'){p.away=0;return}if(t=='stand'){p.away=Date.now();if(M.tick)M.tick(R);return}
-  botSeat(R,p);if(M.tick)M.tick(R);return}
+  soltar(R,p);if(M.tick)M.tick(R);return}
  return M.act(R,tok,m)}
 // ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
 const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
@@ -103,8 +117,8 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(p=='/poll'){const R=rooms[q.get('c')],tok=q.get('t');if(!R)return out(res,{gone:1});
   if(R.kk.includes(tok))return out(res,{kicked:1});
   const pl=R.players.find(x=>x.tok==tok),sp=specOf(R,tok);if(!pl&&R.host!=tok&&!sp)return out(res,{gone:1});
-  if(sp)sp.seen=Date.now();touch(R,pl);if(R.v>+q.get('v'))return out(res,view(R,tok));
-  const w={res,tok,t:setTimeout(()=>{R.w=R.w.filter(x=>x!==w);touch(R,pl);if(sp)sp.seen=Date.now();out(res,{same:1})},25000)};R.w.push(w);
+  if(sp)sp.seen=Date.now();if(tok==R.host)R.hs=Date.now();touch(R,pl);if(R.v>+q.get('v'))return out(res,view(R,tok));
+  const w={res,tok,t:setTimeout(()=>{R.w=R.w.filter(x=>x!==w);touch(R,pl);if(tok==R.host)R.hs=Date.now();if(sp)sp.seen=Date.now();out(res,{same:1})},25000)};R.w.push(w);
   req.on('close',()=>{clearTimeout(w.t);R.w=R.w.filter(x=>x!==w)});return}
  if(req.method!='POST'){res.writeHead(404);return res.end()}
  const b=await body(req);
@@ -112,10 +126,11 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(p=='/new'){const code=rnd(5),tok=cr.randomBytes(12).toString('hex'),gt=GAMES[b.game]?b.game:'continental',
    R=rooms[code]={code,gt,opts:Object.assign({},GAMES[gt].opts),host:tok,players:[],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
   R.poke=()=>bump(R);
-  if(b.mode=='listo')R.players.push(mkP(tok,b.name,b.av));return out(res,{c:code,t:tok})}
+  R.hs=Date.now();if(b.mode=='listo')R.players.push(mkP(tok,b.name,b.av,meOf(b)));return out(res,{c:code,t:tok})}
  const R=rooms[String(b.c||'').toUpperCase()];if(!R)return out(res,{err:'No se encontró la sala. Revisa el código y que el servidor siga abierto.'});
+ if(p=='/join'||p=='/watch'){const vt=volver(R,b);if(vt){bump(R);return out(res,{c:R.code,t:vt})}}
  if(p=='/join'){const mx=GAMES[R.gt].max;if(R.G)return out(res,{err:'La partida ya empezó.'});if(R.players.length>=mx)return out(res,{err:'La sala está llena (máximo '+mx+').'});
-  const tok=cr.randomBytes(12).toString('hex');R.players.push(mkP(tok,b.name,b.av));bump(R);return out(res,{c:R.code,t:tok})}
+  const tok=cr.randomBytes(12).toString('hex');R.players.push(mkP(tok,b.name,b.av,meOf(b)));bump(R);return out(res,{c:R.code,t:tok})}
  // ir a mirar una partida (también sirve si todavía no empieza)
  if(p=='/watch'){const tok=cr.randomBytes(12).toString('hex'),nm=String(b.name||'').trim().slice(0,14)||'Alguien';(R.spec=R.spec||[]).push({tok,name:nm,seen:Date.now()});
   R.chat.push({k:-1,name:'👁',t:nm+' está mirando la partida',ts:Date.now()});if(R.chat.length>60)R.chat.shift();bump(R);return out(res,{c:R.code,t:tok})}
@@ -124,4 +139,4 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
   if(m.t=='close'){if(R.host!=tok)return out(res,{err:'Solo el host puede cerrar la sala.'});delete rooms[R.code];R.w.forEach(w=>{clearTimeout(w.t);out(w.res,{gone:1})});return out(res,{ok:1})}
   const e=act(R,tok,m);if(e)return out(res,{err:e});bump(R);return out(res,{ok:1})}
  res.writeHead(404);res.end()}).listen(PORT,()=>console.log('Juegos de cartas listo en http://localhost:'+PORT));
-setInterval(()=>{for(const c in rooms){const R=rooms[c],M=GAMES[R.gt],s=R.players.map(p=>p.bot||Date.now()-p.seen<35000?1:0).join('');const ph=R.G&&R.G.round+':'+R.G.phase;if(M.tick)M.tick(R);R.players.forEach(p=>{if(p.away&&Date.now()-p.away>120000){botSeat(R,p);bump(R)}});if(R.spec)R.spec=R.spec.filter(x=>Date.now()-x.seen<120000);if(s!==R.sig||(R.G&&R.G.round+':'+R.G.phase)!==ph){R.sig=s;bump(R)}if(Date.now()-R.ts>432e5)delete rooms[c]}},10000);
+setInterval(()=>{for(const c in rooms){const R=rooms[c],M=GAMES[R.gt],s=R.players.map(p=>p.bot||Date.now()-p.seen<35000?1:0).join('');const ph=R.G&&R.G.round+':'+R.G.phase;if(M.tick)M.tick(R);R.players.forEach(p=>{if(p.away&&Date.now()-p.away>120000&&!p.out){p.away=0;soltar(R,p);bump(R)}});fuera(R);if(R.spec)R.spec=R.spec.filter(x=>Date.now()-x.seen<120000);if(s!==R.sig||(R.G&&R.G.round+':'+R.G.phase)!==ph){R.sig=s;bump(R)}if(Date.now()-R.ts>432e5)delete rooms[c]}},10000);

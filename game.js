@@ -90,7 +90,9 @@ document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d
  myOrder=ids;manual=true;render()});
 document.addEventListener('pointercancel',()=>{if(dg&&dg.g)dg.g.remove();dg=null;render()});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const api=async(p,b)=>(await fetch(p,{method:'POST',body:JSON.stringify(b)})).json();
+// me: clave de este aparato; con ella el servidor te regresa tu lugar si te sales a media partida
+const ME=(()=>{let m=null;try{m=localStorage.getItem('cont_me');if(!m){m=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('cont_me',m)}}catch(e){}return m})();
+const api=async(p,b)=>(await fetch(p,{method:'POST',body:JSON.stringify(Object.assign({me:ME},b))})).json();
 function store(){CH.style.display=S&&V?'block':'none';try{S?localStorage.setItem('cont_s',JSON.stringify(S)):localStorage.removeItem('cont_s');localStorage.setItem('cont_n',pname);localStorage.setItem('cont_g',pgame)}catch(e){}}
 function enter(d){if(d.err){msg=d.err;return render()}S={c:d.c,t:d.t};V=null;v=0;msg='';store();loop();render()}
 async function mk(mode){pname=pname.trim()||'Jugador';try{enter(await api('new',{name:pname,mode,game:pgame,av:window.AV?AV.mio():''}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}

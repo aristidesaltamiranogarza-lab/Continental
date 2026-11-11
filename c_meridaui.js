@@ -144,7 +144,7 @@ function menuBox(){const m3ok=!!(window.M3&&M3.ok()),sn=stageName(),G=V.G,seg=(L
   <div class="mu-opt"><span>Seguir la ficha que se mueve</span>${seg([[follow,'MRU.follow(1)','Sí'],[!follow,'MRU.follow(0)','No']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
-  <div class="mu-acts">${V.watch?`<button class="mu-b" onclick="leave()">🚪 Dejar de mirar</button>`:playing()&&G.phase=='play'?`<button class="mu-b danger" onclick="if(confirm('¿Abandonar la partida? Tus propiedades regresan al banco.'))MRU.a('quit')">🚪 Abandonar partida</button>`:`<button class="mu-b" onclick="leave()">🚪 Salir de la sala</button>`}</div></div>`}
+  ${window.GHUD?GHUD.jug():''}<div class="mu-acts">${V.watch?`<button class="mu-b" onclick="leave()">Dejar de mirar</button>`:playing()&&G.phase=='play'?`<button class="mu-b danger" onclick="if(confirm('¿Abandonar la partida? Tus propiedades regresan al banco.'))MRU.a('quit')">Abandonar partida</button>`:`<button class="mu-b" onclick="leave()">Salir de la sala</button>`}</div></div>`}
 function hud(){const w=wide();if(msg!==msgSeen){msgSeen=msg;msgT=Date.now();if(msg)setTimeout(()=>{if(active())render()},4700)}
  const sn=stageName();if(!hintT&&lsg('mr_hint_'+sn,'')!=='1'){hintT=Date.now();lss('mr_hint_'+sn,'1');setTimeout(()=>{if(active())render()},6100)}
  const hint=Date.now()-hintT<6000?`<div class="mu-toast mu-hint2">${sn=='3d'?'☝️ Un dedo: girar · ✌️ Dos dedos: acercar y mover · Doble toque: centrar':'✌️ Pellizca para acercar · ☝️ arrastra para mover · toca una casilla'}</div>`:'';
