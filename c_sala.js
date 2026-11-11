@@ -77,8 +77,8 @@ function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('-
   const cs=$('slCajas'),on=cs&&cs.querySelector('.on');if(on)requestAnimationFrame(()=>{cs.scrollLeft=on.offsetLeft-(cs.clientWidth-on.offsetWidth)/2})}
  // gente: los de la sala se sientan en la mesa de la casa; la AI ocupa el resto
  const ps=v.players.map((p,i)=>Object.assign({i},p)).filter(p=>!p.out),n=ps.length,max=Math.max(n,(v.opts&&+v.opts.n)||g.max||6),libres=ai?Math.min(max,6)-n:0;
- const names=ps.map(p=>p.name),avs=ps.map(p=>p.av||''),nk=k+'#'+names.join('|')+'#'+avs.join('|');
- if(nk!==sig.n){sig.n=nk;const H=H3();if(H)H.sala.gente(k,names,avs);
+ const names=ps.map(p=>p.name),avs=ps.map(p=>p.av||''),nk=k+'#'+v.me+'#'+names.join('|')+'#'+avs.join('|');
+ if(nk!==sig.n){sig.n=nk;const H=H3();if(H)H.sala.gente(k,names,avs,ps.findIndex(p=>p.i===v.me));
   if(prev){const nuevos=names.filter(x=>!prev.includes(x));nuevos.forEach(x=>{hola[x]=performance.now()});if(nuevos.length)snd('tick')}prev=names;
   $('slAvs').innerHTML=ps.slice(0,6).map(p=>`<i class="sl-av${performance.now()-(hola[p.name]||-1e9)<2500?' nuevo':''}" style="--c:${colOf(p.name)}" title="${es(p.name)}">${ini(p.name)}</i>`).join('')+'<i class="sl-av ai">AI</i>'.repeat(Math.max(0,libres))}
  $('slRes').innerHTML=`<b>${n} de ${max}</b> en la mesa<br>${ai&&n<max?'La AI juega '+(max-n)+(max-n>1?' lugares':' lugar'):n<2&&!ai?'Falta gente para empezar':'¡Mesa completa!'}`;

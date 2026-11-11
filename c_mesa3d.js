@@ -87,5 +87,16 @@ function arma(par,o={}){const n=Math.max(2,o.n||4),r=radio(n),R=r+ORL,sep=o.sep|
  m.escala(1);m.lampara(r*1.6);return MESA.m=m}
 // una silla suelta igual a las de la mesa (la casa la usa para sentar personajes en sus mesas); materiales compartidos
 let SM=null;const sillaSola=()=>{SM=SM||[std(0x3a1e0c,.55),std(0x7a2a2a,.85),std(0xc9a24a,.3,{metalness:.8})];return silla(...SM)};
-window.MESA={arma,sillaSola,radio,ORL,PISO,m:null,asiento:i=>MESA.m&&MESA.m.asiento(i),get centro(){return MESA.m&&MESA.m.centro}};
+// casa(par,{n,yo,a,y,col,logo,hit}): la misma mesa del juego en una mesa de la casa (par = su grupo, en el piso), igual a como el juego la pone
+// encima (c_casa_fondo.js: s = CASA_S unidades del juego por unidad de la casa, girada a, cubierta en y). Vacía par.mj y la arma de nuevo.
+// Regresa {m, s, sillas}: sillas[j] = la silla del jugador j de la sala (j=yo es tu asiento 0), con userData.off = su lugar en par (x,z).
+const CASA_S=(radio(4)+ORL)/2.6;
+function casa(par,o){let h=par.mj;if(!h){h=par.mj=new THREE.Group();par.add(h)}
+ h.children.slice().forEach(c=>{h.remove(c);c.traverse(x=>{if(x.geometry)x.geometry.dispose()})});
+ const g=new THREE.Group(),s=CASA_S,n=Math.max(2,o.n||4),yo=o.yo||0,m0=MESA.m;h.add(g);g.position.y=o.y||0;g.rotation.y=o.a||0;g.scale.setScalar(1/s);
+ const m=arma(g,{n,col:o.col,logo:o.logo});MESA.m=m0;m.escala(s*(window.FONDO?FONDO.MII:1));m.pie.visible=false;m.luz.intensity/=s*s;
+ if(o.hit)[m.felt].concat(g.children.filter(x=>x.isMesh)).forEach(x=>x.userData.hit=o.hit);
+ g.updateMatrix();const sillas=[];for(let j=0;j<n;j++){const c=m.sillas[((j-yo)%n+n)%n],p=c.position.clone().applyMatrix4(g.matrix);c.userData.off=p;sillas.push(c)}
+ return {m,s,sillas}}
+window.MESA={arma,casa,CASA_S,sillaSola,radio,ORL,PISO,m:null,asiento:i=>MESA.m&&MESA.m.asiento(i),get centro(){return MESA.m&&MESA.m.centro}};
 })();
