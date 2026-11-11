@@ -153,7 +153,7 @@ function buildHouse(){
  // escalera a la planta alta contra la pared derecha y un plano junto a cada escalera (c_casa_esc.js)
  if(window.ESC){PB.links=[ESC.up({S:SC,hits,OB,x:HX-8.4,z:2.8,dir:[1,0],to:'alta',key:'pb-alta',sign:['⬆ Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070],n:10,land:2.2,rail:[-1,1]})];LK=PB.links;
   ESC.plano({S:SC,hits,OB,x:HX-9.2,z:.6,ry:.3,here:'pb'});ESC.plano({S:SC,hits,OB,x:HX-1.2,z:-5.6,ry:-.6,here:'pb'})}
- if(window.CAMB)CAMB.build({THREE,SC,OB,std,box,cyl,ctex,TB,TH,HX,ZB,ZF});   // lámparas, ventiladores, reloj, hamaca y gato (c_casa_amb.js)
+ if(window.CAMB)CAMB.build({THREE,SC,OB,hits,std,box,cyl,ctex,TB,TH,HX,ZB,ZF});   // lámparas, ventiladores, reloj, hamaca y gato (c_casa_amb.js)
  // marca donde tocaste el piso
  mark=new THREE.Mesh(new THREE.RingGeometry(.25,.4,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.position.y=.03;SC.add(mark)}
 // puerta al sótano (pared derecha): marco como el de las ventanas, letrero como el de la casa y un foquito rojo encima

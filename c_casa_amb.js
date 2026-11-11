@@ -2,10 +2,10 @@
 // c_casa3d.js llama a CAMB.build (al armar la casa) y CAMB.step (cada cuadro, solo en la planta baja). Se carga ANTES de c_casa3d.js.
 // Calidad Media: sin animación (el reloj solo marca la hora) y sin luces extra (applyQ apaga las PointLight que no traen userData.keep).
 (function(){
-let E=null,fans=[],clk=null,ham=null,cat=null,hT=0,blink=0;
+let E=null,fans=[],clk=null,ham=null,cat=null,hT=0,blink=0,pet=0,AC=null;
 const lo=()=>window.CALIDAD==='medio',CEIL=9;
 
-function build(e){if(E)return;E=e;const {THREE,SC,OB,std,box,cyl,ctex,TB,HX,ZB}=e;
+function build(e){if(E)return;E=e;const {THREE,SC,OB,hits,std,box,cyl,ctex,TB,HX,ZB}=e;
  const brass=std(0xc9a24a,.32,{metalness:.8}),cord=std(0x161616,.6),wd=std(0x3a2212,.5),wd2=std(0x5a3418,.6);
 
  // ---------- lámparas colgantes sobre cada mesa (pantalla de latón y foco cálido) ----------
@@ -67,7 +67,10 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,std,box,cyl,ctex,TB,HX,ZB}=
   // cola: cadena de segmentos que sale de atrás, se recuesta en el piso y se enrosca
   let par=new THREE.Group();par.position.set(0,.05,-.26);par.rotation.y=Math.PI;G.add(par);const tail=[];
   for(let i=0;i<8;i++){const s=new THREE.Group();if(i)s.position.z=.085;s.rotation.y=i?.22:-.4;par.add(s);const c=cyl(.028-i*.002,.03-i*.002,.09,fur,0,0,.045,s,8);c.rotation.x=Math.PI/2;tail.push(s);par=s}
-  cat={body,head,ears,eyes,tail};OB.push({x:GT.x,z:GT.z,r:.45})}
+  // se acaricia: una esfera invisible lo hace tocable (como 'fn' de c_casa3d.js)
+  const hb=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));hb.position.set(0,.32,0);hb.userData.hit={t:'fn',f:acaricia};G.add(hb);if(hits)hits.push(hb);
+  const hs=[];for(let i=0;i<3;i++){const h=new THREE.Sprite(new THREE.SpriteMaterial({map:corazon(THREE),transparent:true,depthWrite:false,opacity:0}));h.scale.setScalar(.12);h.visible=false;G.add(h);hs.push(h)}
+  cat={body,head,ears,eyes,tail,hs};OB.push({x:GT.x,z:GT.z,r:.45})}
 }
 function hands(){if(!clk)return;const d=new Date(),m=d.getMinutes()+d.getSeconds()/60,h=d.getHours()%12+m/60;clk.mm.rotation.z=-m/60*Math.PI*2;clk.hh.rotation.z=-h/12*Math.PI*2}
 function step(now,dt){if(!E)return;
@@ -80,6 +83,18 @@ function step(now,dt){if(!E)return;
   c.head.rotation.y=.55*Math.sin(now/4200)*Math.max(0,Math.sin(now/9000+1));c.head.rotation.x=.08*Math.sin(now/3100);
   c.tail.forEach((s,i)=>{if(i)s.rotation.y=.22+.16*Math.sin(now/600-i*.55)});
   if(!blink&&Math.random()<dt/4000)blink=now;const b=blink&&now-blink<140;if(blink&&!b)blink=0;c.eyes.forEach(e=>e.scale.y=b?.12:1);
-  const fl=Math.sin(now/1700)>.97;c.ears.forEach((e,i)=>e.rotation.x=fl&&i?-.35:0)}}
+  const fl=Math.sin(now/1700)>.97;c.ears.forEach((e,i)=>e.rotation.x=fl&&i?-.35:0);
+  const pt=now-pet,on=pet&&pt<2400,k=on?Math.min(1,pt/250,(2400-pt)/400):0;
+  if(k){c.head.rotation.x=c.head.rotation.x*(1-k)-.35*k;c.head.rotation.z=.18*k*Math.sin(now/260);c.eyes.forEach(e=>e.scale.y=1-.85*k);c.body.scale.y*=1+.02*k*Math.sin(now/40);c.ears.forEach(e=>e.rotation.x=.25*k)}
+  c.hs.forEach((h,i)=>{const u=(pt-i*350)/1300;h.visible=on&&u>0&&u<1;if(!h.visible)return;h.position.set(Math.sin(u*6+i*2)*.08+(i-1)*.06,.75+u*.45,.12);h.material.opacity=Math.min(1,u*4,(1-u)*3);h.scale.setScalar(.09+.05*u)})}}
+// caricia: cierra los ojos, alza la cabeza, ronronea y suelta corazoncitos
+function acaricia(){const now=performance.now();if(now-pet<900)return;pet=now;ronroneo()}
+function corazon(THREE){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#e85a6a';x.beginPath();x.moveTo(32,56);
+ x.bezierCurveTo(4,36,6,10,22,10);x.bezierCurveTo(28,10,32,15,32,20);x.bezierCurveTo(32,15,36,10,42,10);x.bezierCurveTo(58,10,60,36,32,56);x.fill();const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+function ronroneo(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const a=AC,t=a.currentTime,d=2.2,n=a.sampleRate*d,b=a.createBuffer(1,n,a.sampleRate),q=b.getChannelData(0);let l=0;
+ for(let i=0;i<n;i++){l=(l+.02*(Math.random()*2-1))/1.02;q[i]=l*3.5}const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=320;
+ const g=a.createGain(),am=a.createGain(),lfo=a.createOscillator();lfo.frequency.value=24;lfo.connect(am.gain);am.gain.value=.5;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.25);g.gain.setValueAtTime(.5,t+d-.5);g.gain.linearRampToValueAtTime(0,t+d);
+ s.connect(f);f.connect(am);am.connect(g);g.connect(a.destination);s.start(t);lfo.start(t);s.stop(t+d);lfo.stop(t+d)}catch(_){}}
 window.CAMB={build,step};
 })();

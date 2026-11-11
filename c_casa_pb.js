@@ -8,7 +8,7 @@
 (function(){
 if(typeof THREE==='undefined')return;
 const H=9,T=.3,V3=THREE.Vector3;
-let CORTE=[],RG=[],VIG=null,KP=null,ESP=null,CAD=null,cadT=-1e9,AC=null;
+let CORTE=[],RG=[],VIG=null,KP=null,ESP=null,CAD=null,cadT=-1e9,AC=null,PTA=null;
 const tv=new V3(),dv=new V3(),q=new V3();
 
 // kit de muros (también lo usan los otros pisos: CPB.kit(e,altoDeMuro)); cada piso lleva su lista de caras para el corte (CPB.corte)
@@ -91,7 +91,7 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H
  ext('z',-4.5,1,11.3,19,Z);ext('z',4.5,-1,11.3,19,Z);if(!window.CCALLE)ext('x',19,-1,-4.5,4.5,Z);   // con la calle, el muro del frente (y su fachada) lo pone c_casa_calle.js
  ext('z',-17,1,-25,-15.3,CO);if(!window.CPAT){ext('x',-25,1,-17,-1.15,CO);ext('x',-25,1,-.85,12,K);ext('x',-25,1,12.3,17,BA)}ext('z',17,-1,-25,-19.65,BA);ext('z',17,-1,-19.35,-15.3,K);
  tabique('z',-1,-1,[[-25,-15.3,CO]],[[-25,-15.3,K]],[{at:-19.5,w:2.2,h:3.6}]);
- tabique('z',12.15,-1,[[-25,-19.5,K]],[[-25,-19.65,BA]]);
+ tabique('z',12.15,-1,[[-25,-19.35,K]],[[-25,-19.65,BA]]);   // la cara de la cocina llega a la del muro del baño: sin rendija en la esquina
  tabique('x',-19.5,1,[[12,17,K]],[[12.3,17,BA]],[{at:14.6,w:2,h:3.6}]);
  techo(-17,17,-15,11);techo(-4.5,4.5,11.3,19,1);techo(-17,-1.15,-25,-15.3);techo(-.85,12,-25,-15.3);techo(12,17,-19.35,-15.3,1);techo(12.3,17,-25,-19.65,1);
  // (los pisos llegan hasta la mitad de cada muro: desde arriba no queda hueco entre las dos caras)
@@ -191,6 +191,11 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H
   const t=new THREE.Mesh(new THREE.PlaneGeometry(.9,1.4),std(0xffffff,.9,{map:tt,side:THREE.DoubleSide}));t.position.set(0,2.45,.12);G.add(t)}
  {const L=new THREE.PointLight(0xfff2dc,10,9,1.6);L.position.set(14.6,6.6,-22.3);SC.add(L)}
  maceta(12.9,-20.4,.7);
+ // puerta del baño: hoja de madera con bisagra del lado del lavabo; se toca para abrir o cerrar (cerrada estorba el paso)
+ {const G=grp(13.72,-19.5,0),D=new THREE.Group();G.add(D);const hj=std(0x6b3c1c,.55);B(1.76,3.5,.07,hj,.88,1.77,0,D);
+  [[.88,2.6],[.88,1]].forEach(([x,y])=>{B(1.36,1.2,.03,std(0x5a3216,.6),x,y,.045,D);B(1.36,1.2,.03,std(0x5a3216,.6),x,y,-.045,D)});
+  [-1,1].forEach(s=>C(.05,.05,.08,lat,1.58,1.75,s*.07,D,10).rotation.x=Math.PI/2);[.5,3].forEach(y=>C(.03,.03,.22,lat,0,y,0,D,8));
+  const ob={x:1e4,z:-19.5,r:.65};OB.push(ob);PTA={D,ob,ab:true,a:1.45};D.rotation.y=1.45;tap(D,puerta)}
 
  // ---------- la planta para c_casa3d.js ----------
  PB.bx=[-16.4,16.4,-24.4,18.4];PB.cb=[-17,17,-25,19];PB.WL=WL;PB.step=step;
@@ -200,6 +205,11 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H
  if(window.CPAT)try{CPAT.build(kit)}catch(er){console.error('[CPAT]',er)}
  if(window.CASCO)try{CASCO.build(kit)}catch(er){console.error('[CASCO]',er)}
 window.CPB.dbg={SC,PB}}
+
+// la puerta del baño: abre hacia adentro del baño o cierra, con un chasquido
+function puerta(){if(!PTA)return;PTA.ab=!PTA.ab;PTA.ob.x=PTA.ab?1e4:14.6;if(typeof mute!='undefined'&&mute)return;
+ try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+.02,o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.setValueAtTime(PTA.ab?420:260,t);o.frequency.exponentialRampToValueAtTime(90,t+.09);
+  g.gain.setValueAtTime(.25,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.13)}catch(e){}}
 
 // la cadena del baño: ruido filtrado que sube y baja (el agua) y la cadena que baja y sube
 function cadena(){cadT=performance.now();if(typeof mute!='undefined'&&mute)return;
@@ -219,6 +229,7 @@ function espejo(av){const q=window.CALIDAD==='completo'&&!!av&&av.x>12.3&&av.z<-
 // cada cuadro en la planta baja: vigas, corte de paredes, espejo y cadena
 function step(now){const H3=window.CASA3D,cam=H3&&H3.cam();if(!cam)return;const cp=cam.position,av=H3.yo&&H3.yo();
  VIG.visible=cp.y<H-.25;espejo(av);
+ if(PTA){const a=PTA.ab?1.45:0,d=a-PTA.D.rotation.y;if(Math.abs(d)>.002)PTA.D.rotation.y+=d*.14}
  if(CAD){const k=(performance.now()-cadT)/450;CAD.position.y=4.12-(k>=0&&k<1?Math.sin(k*Math.PI)*.18:0)}
  corte(KP,cp,av)}
 // corte tipo Sims: se esconde la cara de muro que queda entre la cámara y tu Mii (y el marco de sus vanos)

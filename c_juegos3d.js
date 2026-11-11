@@ -34,7 +34,7 @@ function mkC4(e,cols){const THREE=e.THREE,{SC,OB,std}=e,S=.16,TY=1.3,P=new THREE
   const ft=new THREE.Shape();ft.moveTo(-1.45,-.5);ft.quadraticCurveTo(-1.2,.15,0,.25);ft.quadraticCurveTo(1.2,.15,1.45,-.5);ft.lineTo(1.1,-.5);ft.quadraticCurveTo(0,-.05,-1.1,-.5);ft.closePath();
   const f=M(new THREE.ExtrudeGeometry(ft,{depth:.36,bevelEnabled:false,curveSegments:10}),dk,s*3.92-.18,0,0);f.rotation.y=Math.PI/2;f.position.x=s*3.92-.18;f.position.y=0});
  M(new THREE.BoxGeometry(7.2,.18,.42),std(0xf2b40c,.45),0,.04,0);
- for(let c=0;c<7;c++){const m=new THREE.Mesh(new THREE.PlaneGeometry(.98,7),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
+ for(let c=0;c<7;c++){const m=new THREE.Mesh(new THREE.PlaneGeometry(.98,7),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));
   m.position.set(c-3,3.4,.26);m.userData.hit={t:'c4',c};g.add(m);cols.push(m)}
  g.scale.setScalar(S);g.position.y=.5*S+.01;P.add(g);
  // fichas con relieve (también las de la partida, C4.DG) y las de repuesto en dos pilas
