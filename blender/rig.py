@@ -1,5 +1,7 @@
 # Rig del chibi para el juego (three.js). Copia la figura "Frente" (modificadores aplicados a nivel
-# de juego) en un objeto "Rig_Cuerpo" con armadura "Rig", pesos automaticos por partes, acciones de
+# de juego) en piezas intercambiables (K['PIEZA']: Base, Pelo_n, Cejas_n, Boca_n, Nariz_n, Arriba_n,
+# Abajo_n), cada una hija de la armadura "Rig" con sus pesos y materiales por ranura (K['MAT']: av_*,
+# el color se cambia en three.js). Pesos automaticos por partes, acciones de
 # pose (Reposo, AgarreFrente, ManoCabeza, PistolaSien) y de dedos (Agarre_I / Agarre_D: cuadro 1 =
 # relajada, cuadro 10 = agarra; en three.js se usa el tiempo como cantidad de agarre). Las acciones
 # de pose no tocan los dedos (salvo ManoCabeza: mano izquierda plana); se combinan con Agarre_x. Empties Sien_I/Sien_D (hijos del hueso
@@ -22,6 +24,12 @@ K = dict(
     DECIMA={'Pelo': 0.5},          # reduccion (simetrica en X) antes del grosor, solo en la copia de juego
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
+    # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
+    PIEZA={'Pelo': 'Pelo_1', 'Cejas': 'Cejas_1', 'Boca': 'Boca_1', 'Nariz': 'Nariz_1',
+           'Playera': 'Arriba_1', 'Brazos': 'Arriba_1', 'Pantalon': 'Abajo_1'},
+    # material de Frente -> material de ranura en el GLB (copias; av_pelo/piel/arriba/abajo cambian de color)
+    MAT={'chibi_pelo': 'av_pelo', 'chibi_piel': 'av_piel', 'chibi_playera': 'av_arriba', 'chibi_pantalon': 'av_abajo',
+         'chibi_ojo': 'av_ojo', 'chibi_boca': 'av_boca', 'chibi_suela': 'av_suela', 'chibi_zapato': 'av_zapato'},
     GLB=r'C:/Users/aris1/code/Continental/blender/chibi_prueba.glb')
 K.update(globals().get('PRM', {}))
 _e = K['ESC']
@@ -83,9 +91,11 @@ def lado_frames(S, E, Wr, f, n, lado, g, suf):
     return {k + suf: v for k, v in fr.items()}
 
 # ---------- limpiar corrida anterior ----------
-for nm in ('Rig', 'Rig_Cuerpo', 'Rig_Pistola', 'Sien_I', 'Sien_D'):
-    o = bpy.data.objects.get(nm)
-    if o: bpy.data.objects.remove(o, do_unlink=True)
+_v = bpy.data.objects.get('Rig')
+_q = ([_v] + list(_v.children_recursive)) if _v else []
+_q += [bpy.data.objects.get(nm) for nm in ('Rig_Cuerpo', 'Rig_Pistola', 'Sien_I', 'Sien_D')]
+for o in {o.name: o for o in _q if o}.values(): bpy.data.objects.remove(o, do_unlink=True)
+for me in [m for m in bpy.data.meshes if m.users == 0 and m.name.startswith('Rig_')]: bpy.data.meshes.remove(me)
 for nm in ('Reposo', 'AgarreFrente', 'ManoCabeza', 'PistolaSien', 'Agarre_I', 'Agarre_D'):
     a = bpy.data.actions.get(nm)
     if a: bpy.data.actions.remove(a)
@@ -129,6 +139,10 @@ for pb in arm.pose.bones: pb.rotation_mode = 'QUATERNION'
 
 # ---------- copia de la malla a nivel de juego ----------
 fuente = bpy.data.objects[K['FUENTE']]; dg = bpy.context.evaluated_depsgraph_get()
+AV = {}
+for src, nm in K['MAT'].items():
+    if bpy.data.materials.get(nm): bpy.data.materials.remove(bpy.data.materials[nm])
+    AV[src] = bpy.data.materials[src].copy(); AV[src].name = nm
 partes = {}
 for o in fuente.children:
     suf = o.name.split('_', 1)[1]; viejo = {}
@@ -142,6 +156,8 @@ for o in fuente.children:
     if dec: o.modifiers.remove(dec)
     for m in o.modifiers:
         if m.name in viejo: m.levels = viejo[m.name]
+    for i, m in enumerate(me.materials):
+        if m: me.materials[i] = AV.get(m.name, m)
     me.name = 'Rig_' + suf; ob = bpy.data.objects.new('Rig_' + suf, me); col.objects.link(ob)
     ob.matrix_world = arm.matrix_world.copy(); partes[suf] = ob
 dg.update()
@@ -179,11 +195,34 @@ for suf, ob in partes.items():
             gI.add([v.index for v in ob.data.vertices if v.co.x > 0], 1.0, 'REPLACE')
             gD.add([v.index for v in ob.data.vertices if v.co.x <= 0], 1.0, 'REPLACE')
 for b in ad.bones: b.use_deform = b.name != 'raiz'
-for o in bpy.context.selected_objects: o.select_set(False)
-for ob in partes.values(): ob.select_set(True)
-cuerpo = partes['Cabeza']; bpy.context.view_layer.objects.active = cuerpo
-bpy.ops.object.join(); cuerpo.name = 'Rig_Cuerpo'; cuerpo.data.name = 'Rig_Cuerpo'
-for m in [m for m in cuerpo.modifiers if m.type == 'ARMATURE'][1:]: cuerpo.modifiers.remove(m)
+grupos = {}
+for suf, ob in partes.items(): grupos.setdefault(K['PIEZA'].get(suf, 'Base'), []).append(ob)
+piezas = {}
+for nm, obs in grupos.items():      # una pieza = un objeto (une las partes que le tocan)
+    for o in bpy.context.selected_objects: o.select_set(False)
+    for o in obs: o.select_set(True)
+    ob = obs[0]; bpy.context.view_layer.objects.active = ob
+    if len(obs) > 1: bpy.ops.object.join()
+    ob.name = nm; ob.data.name = 'Rig_' + nm
+    if ob.name != nm: print('OJO: nombre ocupado', nm, '->', ob.name)
+    for m in [m for m in ob.modifiers if m.type == 'ARMATURE'][1:]: ob.modifiers.remove(m)
+    ob.matrix_parent_inverse.identity(); ob.matrix_basis.identity()   # mismo marco que la armadura
+    piezas[nm] = ob
+
+# seleccion de vertices por peso en todas las piezas: [(objeto, [indices])]; defo() da sus posiciones deformadas
+def sel_de(pref, suf):
+    out = []
+    for ob in piezas.values():
+        gi = {g.index: g.name for g in ob.vertex_groups}
+        idx = [v.index for v in ob.data.vertices
+               if sum(g.weight for g in v.groups if gi[g.group].startswith(pref) and gi[g.group].endswith(suf)) > 0.5]
+        if idx: out.append((ob, idx))
+    return out
+def defo(sel):
+    dg = bpy.context.evaluated_depsgraph_get(); out = []
+    for ob, idx in sel:
+        e = ob.evaluated_get(dg); ev = e.to_mesh(); out += [ev.vertices[i].co.copy() for i in idx]; e.to_mesh_clear()
+    return out
 
 # ---------- poses ----------
 bones = ad.bones
@@ -304,16 +343,10 @@ aplicar({}); pis.parent = arm; pis.parent_type = 'BONE'; pis.parent_bone = 'mano
 bpy.context.view_layer.update(); pis.matrix_world = arm.matrix_world @ Rm
 
 # puntos de prueba de mano+pistola en el marco de mano_D (con agarre completo)
-aplicar({}, {'_D': 1.0}); dg = bpy.context.evaluated_depsgraph_get()
-ev = cuerpo.evaluated_get(dg).to_mesh()
-gidx = {g.index: g.name for g in cuerpo.vertex_groups}
-def de(v, pref):
-    return sum(g.weight for g in v.groups if gidx[g.group].startswith(pref) and gidx[g.group].endswith('_D')) > 0.5
-iMano = [v.index for v in cuerpo.data.vertices if de(v, ('mano', 'dedos', 'pulgar'))]
-iBrazo = [v.index for v in cuerpo.data.vertices if de(v, ('hombro', 'brazo', 'antebrazo'))]
+aplicar({}, {'_D': 1.0})
+iMano = sel_de(('mano', 'dedos', 'pulgar'), '_D'); iBrazo = sel_de(('hombro', 'brazo', 'antebrazo'), '_D')
 Pm = arm.pose.bones['mano_D'].matrix.inverted()
-MANO_L = [Pm @ ev.vertices[i].co for i in iMano]
-cuerpo.evaluated_get(dg).to_mesh_clear()
+MANO_L = [Pm @ p for p in defo(iMano)]
 def caja_pts(c, dims, nn=5):
     a, b, d = dims; out = []
     for i in range(nn):
@@ -392,17 +425,14 @@ for nm, P, nn in (('Sien_I', Si, ni), ('Sien_D', Sd, nd)):
 
 # ---------- revision con la malla deformada ----------
 def penetra(q, g, idx, inv=None):
-    aplicar(q, g); dg = bpy.context.evaluated_depsgraph_get(); ev = cuerpo.evaluated_get(dg).to_mesh()
-    n = sum(1 for i in idx if inside(ev.vertices[i].co, inv))
-    cuerpo.evaluated_get(dg).to_mesh_clear(); return n
+    aplicar(q, g); return sum(1 for p in defo(idx) if inside(p, inv))
 Ti = T.inverted()
 print('PistolaSien: verts de mano/brazo dentro del pelo', penetra(qPS, {'_D': 1.0}, iMano + iBrazo, Ti),
       '| pistola', sum(1 for p in [arm.matrix_world.inverted() @ (pis.matrix_world @ v.co) for v in pis.data.vertices] if inside(p, Ti)),
       '| verts de mano dentro de la culata', choque_culata)
-iManoI = [v.index for v in cuerpo.data.vertices if sum(g.weight for g in v.groups if gidx[g.group].endswith('_I') and gidx[g.group].startswith(('mano', 'dedos', 'pulgar'))) > 0.5]
+iManoI = sel_de(('mano', 'dedos', 'pulgar'), '_I')
 def prof(q, g, idx):
-    aplicar(q, g); dg = bpy.context.evaluated_depsgraph_get(); ev = cuerpo.evaluated_get(dg).to_mesh()
-    m = max(hondo(ev.vertices[i].co) for i in idx); cuerpo.evaluated_get(dg).to_mesh_clear(); return m
+    aplicar(q, g); return max(hondo(p) for p in defo(idx))
 MC = None
 for az in (125, 115, 105, 95, 85):          # de atras de la oreja hacia el lado
     for el in (-5, 5, -15, 15):
@@ -422,11 +452,11 @@ print('ManoCabeza: azimut', az, 'elev', el, 'separada', round(off * 1000), 'mm; 
 
 # comparar contra la copia Pose (geometria hecha a mano): distancia media de la mano/brazo deformados
 def compara(q, g, idx, nombre):
-    aplicar(q, g); dg = bpy.context.evaluated_depsgraph_get(); ev = cuerpo.evaluated_get(dg).to_mesh()
+    aplicar(q, g); P = defo(idx); dg = bpy.context.evaluated_depsgraph_get()
     ref = bpy.data.objects['Pose_' + nombre]; rm = ref.evaluated_get(dg).to_mesh()
     bv = BVHTree.FromPolygons([v.co.copy() for v in rm.vertices], [list(p.vertices) for p in rm.polygons])
-    ds = [bv.find_nearest(ev.vertices[i].co)[3] for i in idx]
-    ref.evaluated_get(dg).to_mesh_clear(); cuerpo.evaluated_get(dg).to_mesh_clear()
+    ds = [bv.find_nearest(p)[3] for p in P]
+    ref.evaluated_get(dg).to_mesh_clear()
     return round(sum(ds) / len(ds) * 1000, 1), round(max(ds) * 1000, 1)
 print('vs copia Pose (mm medio, max): mano_D', compara(qAF, {'_D': 1.0}, iMano, 'Manos'),
       'brazo_D', compara(qAF, {'_D': 1.0}, iBrazo, 'Brazos'),
@@ -435,7 +465,7 @@ print('vs copia Pose (mm medio, max): mano_D', compara(qAF, {'_D': 1.0}, iMano, 
 # ---------- exportar GLB ----------
 aplicar({})
 for o in bpy.context.view_layer.objects: o.select_set(False)
-for o in (arm, cuerpo, pis, bpy.data.objects['Sien_I'], bpy.data.objects['Sien_D']): o.select_set(True)
+for o in [arm, pis, bpy.data.objects['Sien_I'], bpy.data.objects['Sien_D']] + list(piezas.values()): o.select_set(True)
 bpy.context.view_layer.objects.active = arm
 loc = arm.location.copy(); arm.location = (0, 0, 0); bpy.context.view_layer.update()
 props = bpy.ops.export_scene.gltf.get_rna_type().properties.keys()
@@ -449,8 +479,10 @@ usados, pila = set(), list(js['scenes'][0]['nodes'])
 while pila:
     nd = js['nodes'][pila.pop()]; pila += nd.get('children', [])
     if 'mesh' in nd: usados.add(nd['mesh'])
-tris = sum(js['accessors'][p['indices']]['count'] // 3 for i in usados for p in js['meshes'][i]['primitives'])
-print('nodos', [n['name'] for n in js['nodes'] if 'mesh' in n])
+def tri_m(i): return sum(js['accessors'][p['indices']]['count'] // 3 for p in js['meshes'][i]['primitives'])
+tris = sum(tri_m(i) for i in usados)
+print('piezas', {n['name']: tri_m(n['mesh']) for n in js['nodes'] if 'mesh' in n},
+      'skins', len(js['skins']), 'mats', [m['name'] for m in js['materials']])
 print('GLB', K['GLB'], round(os.path.getsize(K['GLB']) / 1024), 'KB', tris, 'tris',
       'huesos', len(js['skins'][0]['joints']), 'anim', [a['name'] for a in js.get('animations', [])])
 aplicar(qPS, {'_D': 1.0})

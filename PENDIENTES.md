@@ -8,19 +8,19 @@
   - `pelo.py`: casco con flequillo en picos (parámetros en K: R, W, D, SK, SIDE, ENV, EDGE, N, M, THICK, MESH).
   - `cara.py`: ojos sólidos, cejas, boca y nariz 3D.
   - `brazos.py`: hombros, mangas con codo y manos de mitón (AGARRE 0–1).
-  - `rig.py`: copia Frente → `Rig_Cuerpo` + armadura `Rig` (28 huesos, sufijos `_I` izquierda / `_D` derecha), pesos, acciones, empties de sien, pistola de prueba, y exporta `blender/chibi_prueba.glb`. Imprime choques con el pelo y triángulos.
+  - `rig.py`: copia Frente → piezas hijas de la armadura `Rig` (28 huesos, sufijos `_I` izquierda / `_D` derecha; parte → pieza en `K['PIEZA']`, material → ranura `av_*` en `K['MAT']`), pesos, acciones, empties de sien, pistola de prueba, y exporta `blender/chibi_prueba.glb`. Imprime choques con el pelo y triángulos por pieza.
 - Acciones actuales: `Reposo`, `AgarreFrente`, `ManoCabeza` (también pone la mano izquierda plana), `PistolaSien` (no tocan los dedos), `Agarre_I` y `Agarre_D` (solo dedos: cuadro 1 relajada, cuadro 10 agarra; en three.js el tiempo es la cantidad de agarre). Empties `Sien_I`/`Sien_D` son hijos del hueso `cabeza`, con +Z local hacia afuera (+Y en three.js).
-- Estado al 10 nov 2026: 18 532 triángulos, 699 KB sin comprimir, sin texturas, 8 materiales. El pelo del juego se decima al 50 % (`K['DECIMA']`), y la subdivisión de juego está en `K['NIVEL']`.
+- Estado al 10 nov 2026 (paso 1): 18 532 triángulos en 7 piezas (Base 5 248, Pelo_1 5 656, Arriba_1 5 040, Abajo_1 1 568, Nariz_1 720, Cejas_1 184, Boca_1 92), 647 KB sin comprimir, sin texturas, 8 materiales `av_*`, un solo skin. El pelo del juego se decima al 50 % (`K['DECIMA']`), y la subdivisión de juego está en `K['NIVEL']`.
 - Estilo: ver la memoria avatar-estilo (ojos sólidos, pelo mate, proporción B1, sin esquinas filosas).
 - **Decisiones (no volver a preguntar):** 6 peinados compartidos; hombre y mujer con el mismo cuerpo y esqueleto (el género solo cambia la selección inicial); 3 prendas arriba y 3 abajo; 3 cejas, 3 bocas y 3 narices; ojos fijos; colores con paleta fija (pelo, piel con 6–8 tonos, prenda de arriba, prenda de abajo); un solo GLB con todas las piezas; editor en pantalla aparte "Mi personaje"; guardado en localStorage y se manda al servidor al entrar a la sala, sin cuentas; accesorios después; sin avatar 2D.
 - **Presupuesto:** 15 000–20 000 triángulos visibles por personaje (se juega en celular). Revisar siempre con lo que imprime rig.py.
 
 ## Paso 1 · Rig por piezas
-- [ ] Definir la convención de nombres de piezas: `Pelo_1..6`, `Cejas_1..3`, `Boca_1..3`, `Nariz_1..3`, `Arriba_1..3`, `Abajo_1..3`, y piezas fijas `Base` (cabeza, ojos, orejas, manos, zapatos).
-- [ ] Cambiar `rig.py` para que **no una todo** en `Rig_Cuerpo`: cada pieza es su propio objeto con pesos, hijo de la armadura `Rig` (mismo esqueleto). Lo actual queda como la opción 1 de cada cosa.
-- [ ] Las piezas de cabeza (pelo, cejas, boca, nariz) van 100 % al hueso `cabeza`; la ropa con pesos automáticos limitados a sus huesos (como ahora).
-- [ ] Materiales con nombres fijos por ranura para cambiarles el color en three.js: `av_pelo`, `av_piel`, `av_arriba`, `av_abajo` (más los fijos: ojo, boca, suela, zapato).
-- [ ] Exportar y comprobar: mismo número de triángulos que hoy, sin choques, y que las 6 acciones sigan.
+- [x] Definir la convención de nombres de piezas: `Pelo_1..6`, `Cejas_1..3`, `Boca_1..3`, `Nariz_1..3`, `Arriba_1..3`, `Abajo_1..3`, y piezas fijas `Base` (cabeza, ojos, orejas, manos, zapatos). — 10 nov 2026: `Arriba_n` incluye las mangas (`Brazos`); los nombres de nodo en el GLB son esos, las mallas se llaman `Rig_<pieza>`.
+- [x] Cambiar `rig.py` para que **no una todo** en `Rig_Cuerpo`: cada pieza es su propio objeto con pesos, hijo de la armadura `Rig` (mismo esqueleto). Lo actual queda como la opción 1 de cada cosa. — 10 nov 2026
+- [x] Las piezas de cabeza (pelo, cejas, boca, nariz) van 100 % al hueso `cabeza`; la ropa con pesos automáticos limitados a sus huesos (como ahora). — 10 nov 2026
+- [x] Materiales con nombres fijos por ranura para cambiarles el color en three.js: `av_pelo`, `av_piel`, `av_arriba`, `av_abajo` (más los fijos: ojo, boca, suela, zapato). — 10 nov 2026: los fijos se llaman `av_ojo`, `av_boca`, `av_suela`, `av_zapato`; son copias, los `chibi_*` de las figuras no cambian. Las cejas usan `av_pelo` (mismo color que el pelo).
+- [x] Exportar y comprobar: mismo número de triángulos que hoy, sin choques, y que las 6 acciones sigan. — 10 nov 2026: 18 532 tris, 0 verts dentro del pelo (PistolaSien y ManoCabeza), 6 acciones. El GLB arrastra un nodo suelto `Cube` (cubo oculto de la escena, fuera de la escena glTF): limpiar algún día.
 
 ## Paso 2 · Peinados 2 a 6
 - [ ] Diseñar 5 peinados nuevos (mezcla para hombre y mujer, p. ej. corto rapado, despeinado, coleta, melena a los hombros, chongo). Mostrar una captura chica de cada uno antes de seguir.
