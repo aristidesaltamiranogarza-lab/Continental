@@ -85,5 +85,7 @@ function arma(par,o={}){const n=Math.max(2,o.n||4),r=radio(n),R=r+ORL,sep=o.sep|
   fieltro(col,logo){const t=fieltro(col,logo==null?o.logo:logo);if(fm.map!==t){fm.map=t;fm.needsUpdate=true}},
   quita(){g.parent&&g.parent.remove(g);g.traverse(x=>{if(x.geometry)x.geometry.dispose();if(x.material&&!x.material.map)x.material.dispose()});if(MESA.m===m)MESA.m=null}};
  m.escala(1);m.lampara(r*1.6);return MESA.m=m}
-window.MESA={arma,radio,ORL,PISO,m:null,asiento:i=>MESA.m&&MESA.m.asiento(i),get centro(){return MESA.m&&MESA.m.centro}};
+// una silla suelta igual a las de la mesa (la casa la usa para sentar personajes en sus mesas); materiales compartidos
+let SM=null;const sillaSola=()=>{SM=SM||[std(0x3a1e0c,.55),std(0x7a2a2a,.85),std(0xc9a24a,.3,{metalness:.8})];return silla(...SM)};
+window.MESA={arma,sillaSola,radio,ORL,PISO,m:null,asiento:i=>MESA.m&&MESA.m.asiento(i),get centro(){return MESA.m&&MESA.m.centro}};
 })();
