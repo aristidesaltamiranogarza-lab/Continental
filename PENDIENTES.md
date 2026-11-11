@@ -8,6 +8,7 @@
   - `pelo.py`: casco con flequillo en picos (parámetros en K: R, W, D, SK, SIDE, ENV, EDGE, N, M, THICK, MESH).
   - `cara.py`: ojos sólidos, cejas, boca y nariz 3D.
   - `brazos.py`: hombros, mangas con codo y manos de mitón (AGARRE 0–1).
+  - `pelos.py`: peinados 2–6 (`EST[n]`, mismos parámetros que pelo.py + `TUFTS` mechones en cono, `E0`/`FLARE` cortina vertical, `EXTRA` tubo/esfera). Deja mallas `pelo_n` y `pelo_n_extra` y figuras de muestra `Peinado_n` (copias ligadas de Frente) en la colección "Peinados", x = 4.6 + 2.2·(n−2). `PRM={'SOLO': [n], n: {...}}`.
   - `rig.py`: copia Frente → piezas hijas de la armadura `Rig` (28 huesos, sufijos `_I` izquierda / `_D` derecha; parte → pieza en `K['PIEZA']`, material → ranura `av_*` en `K['MAT']`), pesos, acciones, empties de sien, pistola de prueba, y exporta `blender/chibi_prueba.glb`. Imprime choques con el pelo y triángulos por pieza.
 - Acciones actuales: `Reposo`, `AgarreFrente`, `ManoCabeza` (también pone la mano izquierda plana), `PistolaSien` (no tocan los dedos), `Agarre_I` y `Agarre_D` (solo dedos: cuadro 1 relajada, cuadro 10 agarra; en three.js el tiempo es la cantidad de agarre). Empties `Sien_I`/`Sien_D` son hijos del hueso `cabeza`, con +Z local hacia afuera (+Y en three.js).
 - Estado al 10 nov 2026 (paso 1): 18 532 triángulos en 7 piezas (Base 5 248, Pelo_1 5 656, Arriba_1 5 040, Abajo_1 1 568, Nariz_1 720, Cejas_1 184, Boca_1 92), 647 KB sin comprimir, sin texturas, 8 materiales `av_*`, un solo skin. El pelo del juego se decima al 50 % (`K['DECIMA']`), y la subdivisión de juego está en `K['NIVEL']`.
@@ -23,8 +24,8 @@
 - [x] Exportar y comprobar: mismo número de triángulos que hoy, sin choques, y que las 6 acciones sigan. — 10 nov 2026: 18 532 tris, 0 verts dentro del pelo (PistolaSien y ManoCabeza), 6 acciones. El GLB arrastra un nodo suelto `Cube` (cubo oculto de la escena, fuera de la escena glTF): limpiar algún día.
 
 ## Paso 2 · Peinados 2 a 6
-- [ ] Diseñar 5 peinados nuevos (mezcla para hombre y mujer, p. ej. corto rapado, despeinado, coleta, melena a los hombros, chongo). Mostrar una captura chica de cada uno antes de seguir.
-- [ ] Hacerlos con `pelo.py` (otros valores de PRM y `MESH` distinto) o con un script nuevo `blender/pelos.py` si la forma no cabe en los parámetros.
+- [ ] Diseñar 5 peinados nuevos (mezcla para hombre y mujer, p. ej. corto rapado, despeinado, coleta, melena a los hombros, chongo). Mostrar una captura chica de cada uno antes de seguir. — 10 nov 2026: primera versión hecha (2 rapado, 3 despeinado, 4 coleta, 5 melena, 6 chongo) y capturas mostradas; falta el visto bueno.
+- [x] Hacerlos con `pelo.py` (otros valores de PRM y `MESH` distinto) o con un script nuevo `blender/pelos.py` si la forma no cabe en los parámetros. — 10 nov 2026: `pelos.py` (coleta y chongo necesitan piezas sueltas y la melena una cortina).
 - [ ] Cada peinado ≤ ~6 000 triángulos en la copia de juego (decimado incluido).
 - [ ] Por cada peinado: `rig.py` calcula sus empties `Sien_I_n`/`Sien_D_n` y su acción `PistolaSien_n` sin choques (el pelo largo puede tapar la sien: revisar).
 - [ ] Revisar que `ManoCabeza` no atraviese ningún peinado (o tener una variante por peinado).
