@@ -41,7 +41,7 @@ function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv
 function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.pose(CA),f=!CAV.on();CAV.set(f);if(!f&&document.pointerLockElement)document.exitPointerLock();
  Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=!f;if(FL.enter)FL.enter(f);
  if(P)CCAM.blendIn(CA,P,600);sfx('tick');render()}
-const EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺'],DANCE=['💃','🕺'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
+const EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DANCE=['💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
  uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.',haciendas:'Pon ranchos y sacbés, cosecha y comercia en Yucatán. Gana quien llegue primero a los puntos.',
  ruleta:'Un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.',
@@ -208,7 +208,7 @@ const POLE=[v3(-1.2,-.4,-.7),v3(1.2,-.4,-.7)],tmp=new THREE.Vector3(),tmp2=new T
 // pasos: piernas y brazos se mecen al caminar (w = qué tanto camina, ph = fase del paso); con un emote, la mano derecha saluda.
 // Bailes (parado): 💃 brazos arriba y cadera de lado a lado; 🕺 de disco, señalando arriba y abajo con la otra mano en la cintura
 // Con personaje (c_avatar.js) los bailes son clips de Mixamo (blender/emotes.py) y duran lo que el más largo (el otro da la vuelta sin brinco)
-const DCLIP={'💃':'Twerk','🕺':'Capoeira'};let dmsPj=0;
+const DCLIP={'💃':'Twerk','🕺':'Capoeira','👯':'Macarena','🎧':'House','👟':'HipHop','🌀':'Footwork','🤸':'Freezes','🎮':'Clasico'};let dmsPj=0;
 const dms=()=>dmsPj||(avYa()&&(dmsPj=Math.max(...Object.values(DCLIP).map(n=>AV.dur(n)))*1000))||DMS;
 const dancing=(a,now)=>{const t=now-a.danceT,D=dms();return a.dance&&t>=0&&t<D&&a.w<.3?Math.min(1,t/300,(D-t)/300):0};
 function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,bt=now/1000*Math.PI*2*1.1,clip=AV.dur(DCLIP[a.dance])?DCLIP[a.dance]:null;

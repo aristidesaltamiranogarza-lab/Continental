@@ -50,7 +50,7 @@ function compra(i,si){const s=PJ.get(i);if(!s)return;s.mano=si?1:0;s.manoT=perfo
 function festeja(i){const s=PJ.get(i);if(s)s.arr=performance.now()}
 function mira(i,a,ms){const s=PJ.get(i);if(s&&a){s.mira=a.clone();s.miraT=performance.now()+(ms||1500)}}
 function fin(g){if(g===finI)return;finI=g;PJ.forEach((s,i)=>{const c=silla(i);
- if(g>=0&&i===g){s.baila=true;AV.gesto(s.p,null);AV.sentar(s.p,false);s.p.position.set(.85,-1.55,-.65);s.ab.visible=false;AV.emote(s.p,Math.random()<.5?'Twerk':'Capoeira')}
+ if(g>=0&&i===g){s.baila=true;AV.gesto(s.p,null);AV.sentar(s.p,false);s.p.position.set(.85,-1.55,-.65);s.ab.visible=false;AV.emote(s.p,['Twerk','Capoeira','Macarena','House','HipHop','Footwork','Freezes','Clasico'][Math.random()*8|0])}
  else if(g>=0){s.perd=true;AV.pose(s.p,'ManoCabeza')}
  else{if(s.baila){AV.emote(s.p,null,0);AV.sentar(s.p,true);s.p.position.copy(SEAT);s.ab.visible=true;s.baila=false}s.perd=false;AV.pose(s.p,'AgarreFrente')}})}
 // cabeza(i,ms): se lleva la mano a la cabeza un rato (Uno: robar de castigo)

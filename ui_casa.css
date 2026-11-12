@@ -78,7 +78,7 @@
 @media (hover:hover){.uh-e:hover{transform:scale(1.08)}}
 .uh-e kbd{position:absolute;right:-4px;bottom:-4px;height:20px;min-width:20px;font-size:11px}
 .uh-ex{position:absolute;width:64px;height:64px}
-.uh-dz{display:flex;gap:10px;margin-top:6px}
+.uh-dz{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px;margin-top:6px;max-width:min(94vw,560px)}
 .uh-dz .ui-pill{height:52px;padding:0 18px 0 12px;background:var(--ui-sheet)}
 .uh-de{font-size:26px}
 

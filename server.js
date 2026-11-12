@@ -94,7 +94,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
 // ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
 const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js'),BJ=require('./g_blackjack.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
 //   // Cubilete de la esquina (sin salas)
-const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺'];
+const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'];
 function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
  // c: código para unirse (solo si espera jugadores); w: código para ir a mirar (si ya empezó)
  const fin=R.G&&R.G.phase=='final';   // partida terminada: ya no cuenta como en curso

@@ -9,7 +9,11 @@
 import bpy, os, re, glob
 from mathutils import Matrix, Quaternion, Vector
 
-K = dict(DIR='C:/Users/aris1/code/Continental/blender/emotes', RIG='Rig', MAX_S=0, LAZO_S=0.75, VENTANA_S=1.5, CABEZA=0.6, CAB_R=0.56, PIE=0.3)
+K = dict(DIR='C:/Users/aris1/code/Continental/blender/emotes', RIG='Rig', MAX_S=0, LAZO_S=0.75, VENTANA_S=1.5, CABEZA=0.6, CAB_R=0.56, PIE=0.3,
+         NOMBRES={'Breakdance Footwork 3': 'Footwork', 'Breakdance Freezes': 'Freezes', 'House Dancing': 'House',
+                  'Macarena Dance': 'Macarena', 'Step Hip Hop Dance': 'HipHop', 'Default dance': 'Clasico'},
+         RECORTE={'House': 12})
+# NOMBRES: archivo -> acción (si no está, la última palabra); RECORTE: segundos máximos por acción (como MAX_S, pero de una)
 # CAB_R: radio de la cabeza; CABEZA: cuánto del giro del cuello pasa (la cabeza del chibi es enorme); PIE: cuánto del giro del
 # tobillo pasa (el zapato va rígido al pie y la pierna del pantalón a la espinilla: con mucho giro se abre la unión y se ve hueco)
 K.update(globals().get('PRM', {}))
@@ -17,12 +21,22 @@ MAPA = {'cadera': 'Hips', 'columna': 'Spine2', 'cabeza': 'Head'}
 for suf, L in (('_I', 'Left'), ('_D', 'Right')):
     MAPA.update({'hombro' + suf: L + 'Shoulder', 'brazo' + suf: L + 'Arm', 'antebrazo' + suf: L + 'ForeArm',
                  'mano' + suf: L + 'Hand', 'muslo' + suf: L + 'UpLeg', 'pierna' + suf: L + 'Leg', 'pie' + suf: L + 'Foot'})
+# Esqueleto de MikuMikuDance (Default dance.fbx, sacado del zip): reposo en A y los huesos de pierna apuntan hacia arriba,
+# así que la dirección de reposo se toma de la articulación al hijo (HIJO) y no del eje Y del hueso
+MMD = {'cadera': '下半身', 'columna': '上半身2', 'cabeza': '頭'}
+for suf, L in (('_I', '.L'), ('_D', '.R')):
+    MMD.update({'hombro' + suf: '肩' + L, 'brazo' + suf: '腕' + L, 'antebrazo' + suf: 'ひじ' + L, 'mano' + suf: '手首' + L,
+                'muslo' + suf: '足D' + L, 'pierna' + suf: 'ひざD' + L, 'pie' + suf: '足首D' + L})
+HIJO = {a + s: b + s for s in ('_I', '_D') for a, b in (('hombro', 'brazo'), ('brazo', 'antebrazo'), ('antebrazo', 'mano'),
+                                                       ('muslo', 'pierna'), ('pierna', 'pie'))}
 DERECHOS = ('cadera', 'columna', 'cabeza', 'pie_I', 'pie_D')   # sin alinear al reposo de Mixamo (el pie quedaba 16° de punta)
 Y = Vector((0, 1, 0))
 
 def q3(m): return m.to_3x3().normalized().to_quaternion()
 def fcurvas(a): return [f for L in a.layers for s in L.strips for cb in s.channelbags for f in cb.fcurves]
-def nombre(p): return re.sub(r'\s*\(\d+\)$', '', os.path.splitext(os.path.basename(p))[0]).split()[-1].capitalize()
+def nombre(p):
+    s = re.sub(r'\s*\(\d+\)$', '', os.path.splitext(os.path.basename(p))[0])
+    return K['NOMBRES'].get(s) or s.split()[-1].capitalize()
 
 arm = bpy.data.objects[K['RIG']]
 FPS0 = (K.get('FPS', 24), 1.0) if 'FPS' in K else (bpy.context.scene.render.fps, bpy.context.scene.render.fps_base)
@@ -64,14 +78,19 @@ def retarget(path):
     nuevos = [o for o in bpy.data.objects if o not in antes]; nacts = [a for a in bpy.data.actions if a not in acts]
     try:
         src = next(o for o in nuevos if o.type == 'ARMATURE'); F = Fuente(src)
-        pref = next(n[:-4] for n in F.B if n.endswith('Hips'))
-        sn = {d: pref + m for d, m in MAPA.items() if pref + m in F.B}
+        mmd = MMD['cadera'] in F.B
+        if mmd: sn = {d: m for d, m in MMD.items() if m in F.B}
+        else:
+            pref = next(n[:-4] for n in F.B if n.endswith('Hips'))
+            sn = {d: pref + m for d, m in MAPA.items() if pref + m in F.B}
         S0 = {d: q3(F.mw @ F.B[m].matrix_local) for d, m in sn.items()}
-        T0 = {d: R0[d] if d in DERECHOS else (R0[d] @ Y).rotation_difference(S0[d] @ Y) @ R0[d] for d in sn}
         w0 = lambda d: F.mw @ F.B[sn[d]].head_local
+        dir0 = lambda d: (w0(HIJO[d]) - w0(d)).normalized() if mmd and HIJO.get(d) in sn else S0[d] @ Y
+        T0 = {d: R0[d] if d in DERECHOS else (R0[d] @ Y).rotation_difference(dir0(d)) @ R0[d] for d in sn}
         esc = PIERNA / (w0('muslo_I').z - w0('pie_I').z); h0 = w0('cadera')
         f0, f1 = src.animation_data.action.frame_range
-        n = int((f1 - f0) * fps / fsrc if not K['MAX_S'] else min((f1 - f0) * fps / fsrc, K['MAX_S'] * fps)) + 1
+        mx = K['RECORTE'].get(nom) or K['MAX_S']
+        n = int((f1 - f0) * fps / fsrc if not mx else min((f1 - f0) * fps / fsrc, mx * fps)) + 1
         G, D = [], []
         for i in range(n):
             pw = F.pose(f0 + i * fsrc / fps)
@@ -143,9 +162,16 @@ def retarget(path):
         return a
     finally:
         datos = [o.data for o in nuevos if o.data]
+        mats = {m for o in nuevos if o.type == 'MESH' for m in o.data.materials if m}
         for o in nuevos: bpy.data.objects.remove(o, do_unlink=True)
         for d in datos:
             if d.users == 0 and isinstance(d, bpy.types.Armature): bpy.data.armatures.remove(d)
+            elif d.users == 0 and isinstance(d, bpy.types.Mesh): bpy.data.meshes.remove(d)   # el FBX del zip trae malla
+        imgs = {n.image for m in mats if m.node_tree for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image}
+        for m in mats:
+            if m.users == 0: bpy.data.materials.remove(m)
+        for i in imgs:
+            if i.users == 0: bpy.data.images.remove(i)
         for x in nacts: bpy.data.actions.remove(x)
 
 for x in [x for x in bpy.data.actions if x.get('emote')]: bpy.data.actions.remove(x)
