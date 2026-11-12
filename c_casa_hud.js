@@ -6,7 +6,7 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 const I=(n,c)=>UI.ico(n,c),$=id=>document.getElementById(id);
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PISO={pb:'Planta baja',sot:'Sótano',alta:'Planta alta',ter:'Terraza'};
-const RUEDA=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕'],BAILES=[['💃','Salsa'],['🕺','Disco'],['👯','Macarena'],['🎧','House'],['👟','Hip hop'],['🌀','Breakdance'],['🤸','Acrobacia'],['🎮','Clásico']];
+const RUEDA=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕'],BAILES=[['💃','Salsa','Twerk'],['🕺','Disco','Capoeira'],['👯','Macarena','Macarena'],['🎧','House','House'],['👟','Hip hop','HipHop'],['🌀','Breakdance','Footwork'],['🤸','Acrobacia','Freezes'],['🎮','Clásico','Clasico']];
 const QH={ligero:'Pantalla 2D clásica. Para celulares sencillos.',medio:'Casa 3D sin sombras. Va bien en casi todo.',completo:'Casa 3D con sombras y todas las luces.'};
 const COL=['#B5482A','#2F6FB0','#2E7D4F','#8E4FB0','#9A6A1E','#22807F','#B03A6A'];
 const col=s=>{let h=0;for(const c of String(s||''))h=(h*31+c.codePointAt(0))|0;return COL[Math.abs(h)%COL.length]};
@@ -43,11 +43,12 @@ const P={
   <div class="uh-2"><button class="ui-btn sec" onclick="CHUD.tog('ayuda')">${I('ayuda')}Cómo se juega</button><button class="ui-btn sec" onclick="CHUD.salir()">${I('salir')}Salir de la casa</button></div>`,'der')},
  chat:c=>sheet('Chat de la casa',`<div class="uh-msgs" id="uiMsgs" aria-live="polite">${msgs.length?msgs.map(mm).join(''):vacio}</div>`,'izq',
   `<div class="uh-say"><input id="uiSay" class="ui-in" maxlength="80" placeholder="Di algo…" aria-label="Mensaje" enterkeyhint="send" onkeydown="if(event.key==='Enter'){event.preventDefault();CHUD.send()}else if(event.key==='Escape')CHUD.close()"><button class="ui-rb on" onclick="CHUD.send()" aria-label="Enviar">${I('enviar')}</button></div>`),
- gestos:c=>{const k=!c.touchy,R=Math.max(84,Math.min(118,innerWidth/2-50));
-  return `<div class="ui uh-rueda" role="dialog" aria-label="Gestos"><span class="uh-rt">Elige un gesto</span><div class="uh-ring" style="width:${2*R+64}px;height:${2*R+64}px">${RUEDA.map((e,i)=>{const a=-Math.PI/2+i*Math.PI/4;
-   return `<button class="uh-e" style="left:${(R+Math.cos(a)*R).toFixed(1)}px;top:${(R+Math.sin(a)*R).toFixed(1)}px" onclick="CHUD.em('${e}')" aria-label="Gesto ${e}">${e}${k?`<kbd>${i+1}</kbd>`:''}</button>`}).join('')}
-   <button class="ui-rb big uh-ex" style="left:${R}px;top:${R}px" onclick="CHUD.close()" aria-label="Cerrar gestos">${I('x')}</button></div>
-   <div class="uh-dz">${BAILES.map(([e,t])=>`<button class="ui-pill" onclick="CHUD.em('${e}')"><span class="uh-de" aria-hidden="true">${e}</span>${t}</button>`).join('')}</div></div>`},
+ gestos:c=>{const k=!c.touchy,R=Math.max(98,Math.min(138,innerWidth/2-46)),T=76,EI=n=>window.EICO?EICO.url(n):'';if(window.EICO)EICO.prep();
+  return `<div class="ui uh-rueda${k?'':' tq'}" role="dialog" aria-label="Bailes y gestos"><div class="uh-ring" style="width:${2*R+T}px;height:${2*R+T}px">
+   <div class="uh-hub" style="left:${R+T/2}px;top:${R+T/2}px"><span id="uhNom" class="uh-nom">Bailes</span><button class="ui-rb uh-ex" onclick="CHUD.close()" aria-label="Cerrar">${I('x')}</button></div>
+   ${BAILES.map(([e,t,cl],i)=>{const a=-Math.PI/2+i*Math.PI/4,u=EI(cl);
+   return `<button class="uh-b" style="left:${(R+Math.cos(a)*R).toFixed(1)}px;top:${(R+Math.sin(a)*R).toFixed(1)}px" onclick="CHUD.em('${e}')" onmouseenter="CHUD.nom('${t}')" onmouseleave="CHUD.nom()" onfocus="CHUD.nom('${t}')" aria-label="${t}"><img data-eico="${cl}"${u?` src="${u}" class="ok"`:''} alt=""><span class="uh-bt">${t}</span></button>`}).join('')}</div>
+   <div class="uh-gz">${RUEDA.map((e,i)=>`<button class="uh-e" onclick="CHUD.em('${e}')" aria-label="Gesto ${i+1}">${e}${k?`<kbd>${i+1}</kbd>`:''}</button>`).join('')}</div></div>`},
  ayuda:c=>sheet('Cómo se juega',(c.touchy?[['Camina','Con el joystick de abajo, o toca el piso.'],['Mira','Arrastra para girar; pellizca para acercar.'],['Juega','Toca una mesa; al llegar, toca «Jugar» abajo.'],['Platica','El botón grande es el chat; el de la carita, los gestos.'],['Pisos','Toca el nombre del piso, arriba, para ir a otro.']]
   :[['Camina','W A S D o flechas, o clic en el piso.'],['Mira','Arrastra para girar; la rueda acerca. V: primera persona.'],['Juega','Clic en una mesa; al llegar, E (o el botón de abajo) abre su panel.'],['Platica','Enter abre el chat; G los gestos; 1 a 8, un gesto directo.'],['Pisos','Clic en el nombre del piso, arriba, para ir a otro.']])
   .map(([t,d])=>`<div class="ui-row uh-ay"><b>${t}</b><span class="ui-sub">${d}</span></div>`).join(''),'der')};
@@ -79,6 +80,7 @@ function key(k){if(k=='escape'){if(!open)return false;close();return true}
 window.CHUD={html,msg,key,tog,close,send,av,isOpen:()=>open,
  pisos:()=>{open=null;if(window.CIR)CIR.tog();else rr()},
  fp:()=>{if(typeof casaFp=='function')casaFp()},
+ nom:t=>{const n=$('uhNom');if(n)n.textContent=t||'Bailes'},
  em:e=>{open=null;if(typeof casaEm=='function')casaEm(e);rr()},
  cal:q=>{if(window.BIEN)BIEN.set(q);rr()},
  tema:t=>{UI.setTema(t);tick();rr()},
