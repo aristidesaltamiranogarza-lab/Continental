@@ -527,5 +527,5 @@ window.casaJoin=c=>{code=c;(window.SALA?sitSala:sit)(()=>joinR())};
 window.casaWatch=c=>sit(()=>watchR(c));
 window.casaEm=e=>{if(!active()||!EMO.includes(e))return;outEm=e;bubble(me,e,1);sfx('tick')};
 window.casaSay=x=>{const t=String(x||'').trim().slice(0,80);if(!t)return;outSay=t;bubble(me,t);sfx('tick')};window.casaFp=()=>fpTog();
-let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>rename(me,pname),350)};
+let nmT=null;window.casaName=()=>{clearTimeout(nmT);nmT=setTimeout(()=>{rename(me,pname);const n=(pname||'').trim();if(n)try{localStorage.setItem('cont_n',n)}catch(e){}},350)};
 })();
