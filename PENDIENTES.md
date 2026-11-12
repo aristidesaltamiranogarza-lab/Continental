@@ -211,7 +211,8 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
   Hecho: `c_blackjack_hud.js` (BJH). Pastillas debajo de la del piso (fichas, fase con cuenta regresiva, Levantarse); barra abajo al centro con fichas de 5/25/100/500 que suman a la apuesta, Borrar, Repetir y Repartir; Seguro/Sin seguro o Seguir y Rendirse; Pedir/Plantarse/Doblar/Dividir/Rendirse solo cuando se pueden; tu resultado al pagar. Sobre la mesa: nombre y fichas de cada jugador y un globito por mano con el total o el resultado (y el del crupier). Los avisos del servidor salen con SAL.aviso.
 - [x] B5 Vista 2D: `c_blackjack2d.js`, botón Vista 2D.
   Hecho: `c_blackjack2d.js` (BJ2D). Botón "2D" en las pastillas (localStorage bj_2d): panel plano con las cartas del crupier y de cada asiento (tú primero), totales, apuestas y resultados; las cartas nuevas entran animadas. Los botones siguen en la barra de BJH y los globitos 3D se esconden. En horizontal bajo el panel va a la derecha.
-- [ ] B6 Sonidos (repartir, fichas, blackjack), quitar el "Próximamente" del Blackjack, probar en celular (375×812, 21:9 y horizontal) y en compu, día y noche.
+- [x] B6 Sonidos (repartir, fichas, blackjack), quitar el "Próximamente" del Blackjack, probar en celular (375×812, 21:9 y horizontal) y en compu, día y noche.
+  Hecho: sonidos nuevos en `cardSfx` (game.js): deal (cada carta que vuela), chip (apostar; apuestas de los demás), chips (pagos) y bj (tu blackjack). El letrero ya decía Mín/Máx. Vista 2D medida en 375×812 y 812×375 (en horizontal el panel deja libre la columna derecha y la barra se corre a la izquierda). Falta probar a mano una ronda completa en celular de verdad.
 
 ### [ ] Póker (sótano, mesa ovalada de 8)
 **Preguntas (hacerlas todas antes de empezar; anotar respuestas aquí):**

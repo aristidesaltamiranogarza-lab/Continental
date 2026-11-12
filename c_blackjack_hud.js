@@ -18,7 +18,7 @@ const total=h=>h.bj?'Blackjack':h.s&&h.t<=21?`${h.t-10} o ${h.t}`:String(h.t);
 function base(a){return pend&&performance.now()-pend.t<1500?pend.ap:a.ap}
 function suma(v,a,d){const top=Math.min(v.max,a.f+a.ap);let n=Math.min(top,Math.max(v.min,base(a)+d));return n-n%5}
 function yo(){const v=BJ3.v,s=BJ3.yo();return v&&s>=0&&v.as[s]?{v,a:v.as[s]}:null}
-function apostar(n){const y=yo();if(!y)return;pend={ap:n,t:performance.now()};BJ3.act('apostar',{v:n});snd('place')}
+function apostar(n){const y=yo();if(!y)return;pend={ap:n,t:performance.now()};BJ3.act('apostar',{v:n});snd('chip')}
 function ficha(d){const y=yo();if(!y)return;const n=suma(y.v,y.a,d);if(n>base(y.a))apostar(n)}
 function op(o){if(o==='borrar'){pend=null;BJ3.act('apostar',{v:0})}else BJ3.act(o);snd('tick')}
 

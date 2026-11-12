@@ -87,7 +87,7 @@ function cartas(v,snap,nueva){const now=performance.now(),T=[];
   if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=caraMat(t.c);if(snap)pon(x,L);else x.volt=now;return}   // su carta tapada: se voltea cuando él la voltea
   if(snap)pon(x,L);else if(cambio&&!x.pend&&!x.volt)ir(x,L.p,L.ry,L.f,320,{arc:.02})})}
 function vuela(x){const L=x.L,Q=PEND[x.s];x.pend=0;if(Q){const i=Q.indexOf(x);if(i>=0)Q.splice(i,1)}
- x.o.position.copy(desde());x.o.rotation.y=L.ry+(x.s<0?0:.6);x.m.rotation.z=PI;x.o.visible=true;if(typeof sfx=='function')sfx('card');
+ x.o.position.copy(desde());x.o.rotation.y=L.ry+(x.s<0?0:.6);x.m.rotation.z=PI;x.o.visible=true;if(typeof sfx=='function')sfx('deal');
  const MP=window.MPJ&&mpjOk&&x.s>=0?MPJ:null;if(MP&&x.j>=2)MP.estira(x.s,mundo(L.p));
  ir(x,L.p,L.ry,L.f,A.vuelo,{arc:A.alto,fin:()=>{if(MP)MP.mira(x.s,mundo(L.p),900)}})}
 function voltea(x){x.volt=0;ir(x,x.L.p,x.L.ry,0,A.volteo,{arc:.05})}
@@ -96,16 +96,17 @@ function barre(x,tras,snap){const i=CAR.indexOf(x);if(i>=0)CAR.splice(i,1);const
 function alCrupier(t,i){if(t==='carta'){const Q=PEND[i];if(Q&&Q.length)vuela(Q[0])}else if(t==='voltea'){const x=CAR.find(x=>x.s<0&&x.volt);if(x)voltea(x)}}
 
 // ---------- fichas: apuesta de cada mano, ganancia al lado y seguro; lo perdido vuela a la charola, lo ganado sale de ella ----------
+const sT={},son=(k,t)=>{const at=performance.now()+(t||0);if(Math.abs((sT[k]||0)-at)<120)return;sT[k]=at;setTimeout(()=>{if(typeof sfx=='function')sfx(k)},t||0)};
 function fichas(v,snap){const F=new Map();
  v.as.forEach((a,s)=>{if(!a)return;const nh=a.manos.length;if(!nh){if(a.ap)F.set(s+':0',{s,v:a.ap,p:enMano(s,0,1)});return}
   a.manos.forEach((h,hi)=>{const r=h.res!=null,ne=r?h.neta||0:0;F.set(s+':'+hi,{s,v:h.a+Math.min(0,ne),p:enMano(s,hi,nh)});
    if(ne>0)F.set(s+':g'+hi,{s,v:ne,p:enMano(s,hi,nh,.095),char:1});
-   const kp=v.ronda+':'+s+':'+hi;if(r&&!PAGO.has(kp)){PAGO.add(kp);if(!snap&&window.MPJ&&mpjOk){if(ne>0)MPJ.festeja(s);else if(ne<0)MPJ.cabeza(s,2200)}}});
+   const kp=v.ronda+':'+s+':'+hi;if(r&&!PAGO.has(kp)){PAGO.add(kp);if(!snap&&s===yo()&&h.res==='bj')son('bj');if(!snap&&ne)son(ne>0?'chips':'chip',A.fichaVuelo*.8);if(!snap&&window.MPJ&&mpjOk){if(ne>0)MPJ.festeja(s);else if(ne<0)MPJ.cabeza(s,2200)}}});
   if(a.seg&&a.manos.some(h=>h.res==null))F.set(s+':s',{s,v:a.seg,p:sitio(s,A.rSeguro,.07)})});
  const fuera=(P,dest)=>ir(P,dest,0,0,A.fichaVuelo,{arc:.15,fin:()=>R.remove(P.o)});
  PILAS.forEach((P,k)=>{if(F.has(k))return;PILAS.delete(k);quitaTw(P);if(snap)R.remove(P.o);else fuera(P,jugador(P.s))});   // fin de la ronda: se las lleva el jugador
  F.forEach((f,k)=>{let P=PILAS.get(k);
-  if(!P){P=pila(f.v);P.s=f.s;P.p=f.p;PILAS.set(k,P);P.o.position.copy(f.p);if(!snap){P.o.position.copy(f.char?charola():jugador(f.s));ir(P,f.p,0,0,A.fichaVuelo,{arc:.15})}return}
+  if(!P){P=pila(f.v);P.s=f.s;P.p=f.p;PILAS.set(k,P);P.o.position.copy(f.p);if(!snap){P.o.position.copy(f.char?charola():jugador(f.s));if(!f.char&&f.s!==yo())son('chip',A.fichaVuelo*.8);ir(P,f.p,0,0,A.fichaVuelo,{arc:.15})}return}
   if(P.p.distanceTo(f.p)>1e-4){P.p=f.p;if(snap)P.o.position.copy(f.p);else ir(P,f.p,0,0,320,{arc:.03})}   // al dividir se recorre
   if(f.v===P.v)return;const d=f.v-P.v;P.v=f.v;if(snap)return llena(P.o,f.v);
   if(d<0){const c=pila(-d);c.o.position.copy(P.o.position);llena(P.o,f.v);fuera(c,charola())}
