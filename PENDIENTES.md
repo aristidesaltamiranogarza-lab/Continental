@@ -215,18 +215,18 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
   Hecho: sonidos nuevos en `cardSfx` (game.js): deal (cada carta que vuela), chip (apostar; apuestas de los demás), chips (pagos) y bj (tu blackjack). El letrero ya decía Mín/Máx. Vista 2D medida en 375×812 y 812×375 (en horizontal el panel deja libre la columna derecha y la barra se corre a la izquierda). Falta probar a mano una ronda completa en celular de verdad.
 
 ### [ ] Póker (sótano, mesa ovalada de 8)
-**Preguntas (hacerlas todas antes de empezar; anotar respuestas aquí):**
-1. Variante: **Texas Hold'em (decidido por el usuario)**. Falta preguntar: sin límite (recomendado) o con límite fijo.
-2. Fichas: ¿igual que Blackjack (se reinician por sesión, recarga al llegar a 0)? ¿Fichas iniciales y ciegas (p. ej. 1,000 con ciegas 5/10)? ¿Ciegas fijas (mesa de efectivo) o que suben con el tiempo (torneo)?
-3. Entrada: asiento libre al llegar (como Blackjack) o sala con inicio del host (torneo hasta que quede uno).
-4. Bots: ¿llenan asientos? ¿Cuántos como máximo? ¿Nivel (fácil / normal que farolea a veces / elegible)?
-5. Crupier: personaje visible al centro de atrás que reparte, o sin crupier (el botón de dealer rota entre jugadores).
-6. Tiempo por decisión (15/20/30 s) y qué pasa al acabarse (pasar si se puede; si no, retirarse).
-7. Mostrar cartas al final: obligatorio solo en el showdown, o elegir mostrar/tirar; ¿el que se retiró puede enseñarlas?
-8. Ayudas: ¿nombre de tu jugada ("Doble par"), probabilidad, botones rápidos de apuesta (½ bote, bote, todo)?
-9. Botes paralelos (all-in con varios): se hacen siempre; confirmar que se ven aparte en la mesa.
-10. Cámara (desde tu silla + Arriba, como Blackjack) y vista 2D (sí/no).
-11. Social: gestos automáticos al ganar un bote grande o quedarse sin fichas (sí/no); fichas de cada quien sobre su asiento; globito de resultado.
+**Decisiones (respondidas el 12 nov 2026; aún no empezar, Aris avisa):**
+- Variante: Texas Hold'em sin límite.
+- Fichas: como Blackjack: 1,000 por sesión, ciegas fijas 5/10 (mesa de efectivo), recarga a 1,000 al llegar a 0; no se guardan.
+- Entrada: asiento libre al llegar (tecla E), juegas desde la siguiente mano. Sin sala ni torneo.
+- Bots: llenan hasta 3 asientos para no jugar solo; se van cuando se sientan jugadores reales. Nivel normal (farolea a veces).
+- Crupier: visible de pie al centro de atrás, reparte; el botón de dealer rota igual para las ciegas. Diseño propio y bien hecho (ajustar en Blender si hace falta): chaleco, moño y ligas en las mangas, otro peinado y colores. El crupier del Blackjack (BJC) también pasa a ese atuendo o uno parecido.
+- Tiempo: 20 s por decisión; al acabarse pasa si puede, si no se retira.
+- Mostrar: las manos del showdown se muestran solas; el que gana sin showdown y los que se retiraron pueden elegir enseñarlas.
+- Ayudas: nombre de tu jugada ("Doble par"), probabilidad de ganar / outs, botones rápidos (½ bote, bote, todo).
+- Botes paralelos: cada uno es su propia pila de fichas en el centro con su cantidad; se pagan uno por uno.
+- Cámara: desde tu silla con MCAM (Arriba/Recentrar) y botón "Vista 2D" como Blackjack.
+- Espectadores: sí; quien esté cerca de la mesa ve la mano (sin cartas ocultas) y puede sentarse cuando se libera un asiento.
 12. Espectadores: ¿se puede mirar la mesa sin jugar?
 **Pasos (ajustar tras las respuestas):** P1 `g_poker.js` (evaluador de manos de 7 cartas con pruebas, rondas de apuesta, botes paralelos, temporizadores) · P2 bots en `g_poker_bot.js` · P3 cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack · P4 HUD con GHUD (subir con deslizador) · P5 vista 2D si se pidió · P6 sonidos, quitar "Próximamente", celular y compu.
 
