@@ -12,13 +12,13 @@ const PISOS=[
 // Icono de cada piso: la casa en corte con ese piso pintado
 const PHL={ter:['<rect x="4" y="3" width="16" height="5" rx="1"/>','#F2B23A'],alta:['<rect x="5" y="8" width="14" height="5"/>','#A88BE0'],pb:['<rect x="5" y="13" width="14" height="5"/>','#E8834F'],sot:['<rect x="6" y="19.5" width="12" height="3.5" rx=".8"/>','#B9A08A']};
 PISOS.forEach(p=>{const h=PHL[p.id];p.i='<svg class="pic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><g opacity=".45"><path d="M5 8V4.5M12 8V4.5M19 8V4.5M4 4.5h16M5 13h14M2 18.5h20"/><rect x="5" y="8" width="14" height="10"/><rect x="6.5" y="20" width="11" height="2.5" stroke-dasharray="2 1.5"/></g><g fill="'+h[1]+'" stroke="currentColor">'+h[0]+'</g></svg>'});
-const ICO=k=>window.SALA&&SALA.ico?'<span class="gic">'+SALA.ico(k)+'</span>':`<img class="gic" src="iconos/${k}.png" alt="">`;
+const ICO=k=>window.SALA&&SALA.ico?SALA.ico(k):`<img class="gic" src="iconos/${k}.png" alt="">`;
 const SUELTOS={cub:[ICO('cub'),'Cubilete'],c4:[ICO('c4'),'Conecta 4'],bg:[ICO('bg'),'Backgammon'],poker:[ICO('poker'),'Póker']};
 const es=s=>typeof esc=='function'?esc(s):String(s);
 function info(g){const H=window.CASA3D;
  if(g=='cub'){if(!window.CUB3)return null;const n=CUB3.n();return {e:ICO('cub'),t:'Cubilete',s:n?n+(CUB3.play()?' jugando':' en la mesa'):'sin partidas',on:n>0}}
  if(g=='blackjack'){if(!window.BJ3)return null;const n=BJ3.v?BJ3.v.as.filter(Boolean).length:0;return {e:ICO('blackjack'),t:'Blackjack',s:n?n+' jugando':'sin partidas',on:n>0}}
- if(g=='poker')return window.SAL&&SAL.P.poker?{e:SUELTOS.poker[0],t:'Póker',s:'',on:false}:null;
+ if(g=='poker')return window.SAL?{e:ICO('poker'),t:'Póker',s:'',on:false}:null;
  if(SUELTOS[g])return window.JG3&&JG3.P&&JG3.P[g]?{e:SUELTOS[g][0],t:SUELTOS[g][1],s:'',on:false}:null;
  const G=typeof GM!='undefined'&&GM[g];if(!G)return null;const {pl,op}=H.tinfo(g);
  return {e:window.SALA&&SALA.ico?SALA.ico(g):G.emoji,t:window.lobbyName?lobbyName(g):G.name,s:[pl?pl+' jugando':'',op.length?op.length+(op.length>1?' salas abiertas':' sala abierta'):''].filter(Boolean).join(' · ')||'sin partidas',on:pl>0||op.length>0}}
