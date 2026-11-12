@@ -6,7 +6,7 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 const I=(n,c)=>UI.ico(n,c),$=id=>document.getElementById(id);
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PISO={pb:'Planta baja',sot:'Sótano',alta:'Planta alta',ter:'Terraza'};
-const RUEDA=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕'],BAILES=[['💃','Salsa','Twerk'],['🕺','Disco','Capoeira'],['👯','Macarena','Macarena'],['🎧','House','House'],['👟','Hip hop','HipHop'],['🌀','Breakdance','Footwork'],['🤸','Acrobacia','Freezes'],['🎮','Clásico','Clasico']];
+const RUEDA=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕'],BAILES=[['💃','Salsa','Twerk'],['🕺','Disco','Capoeira'],['🌀','Breakdance','Footwork'],['🎧','House','House'],['👟','Hip hop','HipHop'],['👯','Macarena','Macarena'],['🤸','Breakdown','Freezes'],['🎮','Default','Clasico']];
 const QH={ligero:'Pantalla 2D clásica. Para celulares sencillos.',medio:'Casa 3D sin sombras. Va bien en casi todo.',completo:'Casa 3D con sombras y todas las luces.'};
 const COL=['#B5482A','#2F6FB0','#2E7D4F','#8E4FB0','#9A6A1E','#22807F','#B03A6A'];
 const col=s=>{let h=0;for(const c of String(s||''))h=(h*31+c.codePointAt(0))|0;return COL[Math.abs(h)%COL.length]};

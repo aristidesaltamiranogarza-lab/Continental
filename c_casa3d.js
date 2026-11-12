@@ -304,7 +304,7 @@ function netSync(d){const seen=new Set(),n0=others.size;
  rooms=d.r||[];const k=JSON.stringify(rooms)+'|'+others.size;synced=true;
  if(k!==roomsKey){const rk=roomsKey.split('|')[0],nk=k.split('|')[0];roomsKey=k;if(rk!==nk)seatSync();if(!inputBusy())render()}}
 // globitos (lo que dijo o su emote) y nombres arriba de cada Mii
-function bubble(a,t,emo){if(!emo&&window.CHUD)CHUD.msg(a===me?(pname||'').trim()||'Tú':a.name,t,a===me);if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
+function bubble(a,t,emo){if(!emo&&window.CHUD)CHUD.msg(a===me?(pname||'').trim()||'Tú':a.name,t,a===me);if(emo&&DANCE.includes(t)){a.dance=t;a.danceT=performance.now();return}if(a.bub)a.bub.remove();const el=document.createElement('div');el.className='h3bub'+(emo?' emo':'');el.textContent=t;lay.appendChild(el);a.bub=el;a.bubT=performance.now()+(emo?3000:6000);if(emo){if(DANCE.includes(t)){a.dance=t;a.danceT=performance.now()}else a.waveT=performance.now()}}
 function toast(t){let box=$id('h3toasts');if(!box){box=document.createElement('div');box.id='h3toasts';lay.appendChild(box)}const el=document.createElement('div');el.className='ui ui-fx ui-glass h3toast';el.textContent=t;box.appendChild(el);setTimeout(()=>el.remove(),3200)}
 const MK=()=>window.MII&&MII.K||1;   // tamaño de los Miis (c_mii.js): nombres y globitos a su altura
 const TOP=a=>a.g.userData.av?AV.alto+.25:3.45*MK();   // altura del nombre: arriba de la cabeza del personaje o del Mii
