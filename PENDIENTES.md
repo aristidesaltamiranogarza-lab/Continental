@@ -246,17 +246,14 @@ Hoy: reglas en `g_monopolydeal.js` (completas, con salas y bots) y pantalla 2D `
 
 ### [ ] Billar (sótano, cuarto del billar)
 El más grande: física propia sin librerías (choques bola-bola y con bandas, troneras, efecto, fricción). Para sincronizar: el que tira manda al servidor solo el tiro (ángulo, fuerza, efecto) y todos corren la misma simulación determinista (paso fijo, sin `Math.random`); el tirador manda las posiciones finales y el servidor las guarda como verdad para el siguiente tiro.
-**Preguntas (hacerlas todas antes de empezar):**
-1. Juego: Bola 8 (recomendado), Bola 9, o los dos a elegir.
-2. Reglas: ¿completas (cantar tronera para la 8, bola en mano en cualquier lado tras falta) o simplificadas (falta = el rival pone la blanca detrás de la línea)?
-3. Jugadores: 1 contra 1; ¿también contra bot? ¿Nivel del bot (fácil/normal/difícil o elegible)?
-4. Entrada: tomar el taco al llegar y retar a alguien del cuarto (como el Conecta 4), o sala.
-5. Apuntar en celular: ¿arrastrar hacia atrás para jalar el taco (fuerza) y girar con un dedo, o deslizador de fuerza + botón Tirar?
-6. Ayudas: ¿línea guía? ¿Hasta dónde (primera bola, también el rebote, nada)? ¿Ajustable?
-7. Efecto (spin) en la blanca: sí/no.
-8. Cámara: ¿detrás del taco al apuntar y que siga la jugada, o que se vaya arriba al tirar? ¿Botón de vista desde arriba?
-9. Personajes: ¿el personaje inclinado con el taco al tirar (animación) o solo el taco?
-10. Tiempo por tiro (30/45/60 s o sin límite).
-11. Vista 2D (mesa desde arriba) como opción: sí/no.
-12. ¿Fichas o apuestas? (recomendado: no).
-**Pasos (ajustar tras las respuestas):** L1 física `c_billar_fis.js` + pruebas deterministas en `tests/` · L2 reglas `g_billar.js` en el servidor · L3 apuntar y tirar (cliente) · L4 cámara · L5 bot · L6 HUD, sonidos, quitar "Próximamente", celular y compu.
+**Decisiones (12 nov 2026; aún no empezar, Aris avisa):**
+- Juego: Bola 8.
+- Reglas simplificadas: sin cantar tronera; tras falta el rival pone la blanca detrás de la línea de cabeza.
+- Rivales: 1 contra 1 con alguien del cuarto o contra bot (fácil / normal / difícil, elegible); también 2 contra 2 (parejas que se turnan; huecos con bots).
+- Entrada: tomar el taco al llegar y retar a alguien del cuarto (como el Conecta 4); los demás miran.
+- Tiro en celular: girar el apunte con un dedo; jalar hacia atrás una barra de fuerza junto a la mesa y soltar para tirar.
+- Guía: línea hasta la primera bola + líneas cortas de hacia dónde van la blanca y la bola tocada.
+- Efecto: sí, sobre la blanca misma en 3D (referencia de Aris): al apuntar la cámara baja detrás de la blanca, que se ve grande al frente con el triángulo detrás; un punto negro chico en la blanca marca dónde pega el taco y se arrastra para dar efecto (abajo = retroceso, arriba = seguimiento, lados = efecto lateral); la punta del taco se ve abajo, alineada al punto.
+- Cámara: detrás del taco al apuntar; al tirar sube un poco y sigue las bolas. Botón de vista desde arriba.
+- Pendientes de responder: personajes al tirar (inclinado con taco o solo taco), tiempo por tiro, vista 2D, fichas/apuestas.
+**Pasos (ajustar a las decisiones):** L1 física `c_billar_fis.js` + pruebas deterministas en `tests/` · L2 reglas `g_billar.js` en el servidor · L3 apuntar y tirar (cliente) · L4 cámara · L5 bot · L6 HUD, sonidos, quitar "Próximamente", celular y compu.
