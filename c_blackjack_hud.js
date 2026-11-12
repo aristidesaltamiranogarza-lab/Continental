@@ -60,7 +60,8 @@ function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=bot
 function etiqueta(k){let e=L.get(k);if(!e){e=document.createElement('div');L.set(k,e)}if(!e.isConnected)(document.getElementById('app')||document.body).appendChild(e);e.vivo=1;return e}   // render() rehace #app: se vuelve a poner
 function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==h){e._h=h;e.innerHTML=h}
  if(!p)return e.style.display='none';p.project(cam);const vis=p.z<1&&Math.abs(p.x)<1.05&&Math.abs(p.y)<1.05;e.style.display=vis?'':'none';
- if(vis)e.style.transform=`translate(${Math.round((p.x+1)/2*W)}px,${Math.round((1-p.y)/2*Hh)}px) translate(-50%,-100%)`}
+ let an='-50%,-100%';if(vis&&p.c){p.c.project(cam);an=p.c.x>p.x?'-100%,-50%':'0,-50%'}   // a un lado de la carta, creciendo hacia afuera
+ if(vis)e.style.transform=`translate(${Math.round((p.x+1)/2*W)}px,${Math.round((1-p.y)/2*Hh)}px) translate(${an})`}
 function paso(v,s,now){tP=now;const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.R()&&H.R().domElement;if(!v||!cam||!cv)return;
  const el=$('bjLeft');if(el){const t=String(segs(v));if(el.textContent!==t)el.textContent=t}
  if(v.msg&&v.msg!==msg&&window.SAL&&(s>=0||BJ3.cerca()))SAL.aviso(v.msg);msg=v.msg||'';
@@ -70,7 +71,7 @@ function paso(v,s,now){tP=now;const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.
    if(i!==s)pon(etiqueta('n'+i),'ui gj-seat bj-n'+(t&&t.s===i?' on':''),`<b>${es(a.n)}</b><small>${mon(a.f)}</small>`,window.MPJ&&MPJ.arriba(i),cam,W,Hh);
    a.manos.forEach((h,m)=>{const r=h.res,cl=r?(h.neta>0?' gana':h.neta<0?' pierde':''):(t&&t.s===i&&t.m===m?' on':'');
     pon(etiqueta('t'+i+':'+m),'ui bj-tot'+cl,r?`${RES[r]||r}${h.neta?` ${h.neta>0?'+':'−'}${mon(h.neta)}`:''}`:total(h),BJ3.pt(i,m,a.manos.length),cam,W,Hh)})});
-  if(v.cr.c.length)pon(etiqueta('cr'),'ui bj-tot cr'+(v.fase=='crupier'?' on':''),`Crupier ${v.cr.t}`,BJ3.pt(-1),cam,W,Hh)}
+  const ct=BJ3.crT();if(ct!=null)pon(etiqueta('cr'),'ui bj-tot cr'+(v.fase=='crupier'?' on':''),`Crupier ${ct}`,BJ3.pt(-1),cam,W,Hh)}
  L.forEach((e,k)=>{if(!e.vivo){e.remove();L.delete(k)}})}
 // fuera del sótano nadie llama paso: se esconden solos
 setInterval(()=>{if(performance.now()-tP>400)L.forEach(e=>{if(e.style.display!=='none')e.style.display='none'})},300);

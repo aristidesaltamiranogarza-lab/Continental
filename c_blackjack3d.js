@@ -11,7 +11,7 @@ const A={
  carta:[.17,.24],                  // ancho y largo de una carta en el paño
  rCarta:1.47,rFicha:1.78,rSeguro:1.15,    // radios desde el centro de la media luna: cartas, fichas (casilla, igual que BJRC de CAS3) y seguro
  cascada:[.042,.055],              // cada carta nueva se corre: de lado y hacia el crupier
- sepMano:.22,sepCr:.13,             // entre manos divididas; entre cartas del crupier
+ sepMano:.22,sepCr:.2,             // entre manos divididas; entre cartas del crupier
  vuelo:430,alto:.32,               // carta de la mano del crupier al paño: duración y altura del arco
  espera:1600,                      // si el crupier no la suelta en este tiempo, vuela sola
  volteo:380,                       // voltear su carta tapada
@@ -192,7 +192,15 @@ function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s
   <span class="uh-at"><b>Jugar Blackjack</b><small>${n?n+' jugando · ':''}Mín $${V.min} · Máx $${V.max}${touchy?' · toca para sentarte':''}</small></span>${touchy?'':'<kbd>E</kbd>'}</button>`}
 function key(k){if(k==='escape'&&yo()>=0){levantarse();return true}if(k==='e'&&yo()<0&&cerca()){sentar();return true}return false}
 
+// globito de una mano: a un lado de su primera carta (p.c = el centro de la carta, para que BJH sepa hacia dónde crece); manos divididas: encima
+function pt(s,h,nh){if(!R)return null;const g=A.carta[0]/2+.035;let c,q;
+ if(s<0){c=v3(LUGAR[0]-.5*A.sepCr,TH,LUGAR[1]);q=v3(c.x-g,TH,c.z)}
+ else{nh=nh||1;c=lugar({s,h:h||0,j:0,nh,c:0}).p;if(nh>1){c.y=TH+.2;return mundo(c)}c.y=TH;const ta=(h-(nh-1)/2)*A.sepMano;q=sitio(s,A.rCarta,ta-g)}
+ q.y=TH+.01;const w=mundo(q);w.c=mundo(c);return w}
+// total del crupier contando solo las cartas que ya cayeron boca arriba (sube con cada carta)
+function crT(){let t=0,as=0,n=0;CAR.forEach(x=>{if(x.s>=0||x.c<0||x.pend||x.volt||!x.o.visible||TW.some(w=>w.x===x))return;const r=x.c%13;n++;if(!r)as++;t+=!r?1:r>=9?10:r+1});
+ return n?(as&&t+10<=21?t+10:t):null}
 const BJ3=window.BJ3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},
- cerca,pt:(s,h,nh)=>{if(!R)return null;const p=s<0?v3(LUGAR[0],TH,LUGAR[1]):lugar({s,h:h||0,j:0,nh:nh||1,c:0}).p;p.y=TH+.2;return mundo(p)},
+ cerca,pt,crT,
  sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
 })();

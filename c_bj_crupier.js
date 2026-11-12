@@ -8,16 +8,18 @@
 if(typeof THREE==='undefined')return;
 const COD='s1p2c2b1n1a1d1-1268',LUGAR=[0,.47];   // código AV: camisa vino y pantalón oscuro
 // gestos encima de AV.GE (radianes desde AgarreFrente; medidos con la mano sobre el paño, el zapato y su carta):
-// apo la izquierda apoyada, zap la izquierda sobre el zapato, rep la derecha lanza al frente, vol la derecha sobre su carta, gir le gira la muñeca
-const GES={apo:{I:[-.6,-.7,-1,-.4]},zap:{I:[-1.5,1,-.4,-.4],D:[-.7,.5,0,0]},rep:{D:[-1.1,-1,.6,0],I:[-.35,0,0,0]},vol:{D:[-.1,.9,-.1,0]},gir:{D:[0,0,0,-1.6]}};
-const G0={cy:0,cx:.2,gy:0,col:0,apo:1,zap:0,rep:0,vol:0,gir:0,mano:0},PJ=new THREE.Vector3();
-let mesa=null,p=null,POS=[0,-.3],ZAP=[.76,.2],cola=[],act=null,mir=null,prev=null,cb=null,g={...G0},giro=0,tA=0,suelto=true;
+// apo/apd las manos juntas apoyadas en la orilla, detrás de la charola (codos parejos; resueltas midiendo manos y codos), zap la izquierda sobre el zapato, rep la derecha lanza al frente, vol la derecha sobre su carta, gir le gira la muñeca
+const GES={apo:{I:[-.16,.06,-.6,-1.84]},apd:{D:[.45,-.18,.56,1.5]},zap:{I:[-1.5,1,-.4,-.4],D:[-.7,.5,0,0]},rep:{D:[-1.1,-1,.6,0],I:[-.35,0,0,0]},vol:{D:[-.1,.9,-.1,0]},gir:{D:[0,0,0,-1.6]}};
+const G0={cy:0,cx:.2,gy:0,col:0,apo:1,apd:1,zap:0,rep:0,vol:0,gir:0,mano:0},PJ=new THREE.Vector3();
+let mesa=null,p=null,LZ=[],POS=[0,-.3],ZAP=[.76,.2],cola=[],act=null,mir=null,prev=null,cb=null,g={...G0},giro=0,tA=0,suelto=true;
 const ang=t=>Math.atan2(t[0]-POS[0],t[1]-POS[1]);   // + hacia su izquierda (+x)
 const dest=i=>i<0||!mesa?LUGAR:mesa.D.casillas[i];
-function pon(m){quita();mesa=m;if(!window.AV||!m)return;const D=m.D;POS=D.crupier||POS;ZAP=D.zapato||ZAP;
+// luz propia: una cálida de frente y arriba (que se le vea la cara y la ropa) y otra detrás que lo despega del papel tapiz; sin sombras
+function luces(G,D){const y=D.tarima||0;[[0xffe6c4,3,2.6,[0,y+2.2,POS[1]+1.1]],[0xffd9a8,2.2,1.6,[0,y+1.9,POS[1]-.65]]].forEach(([c,i,d,q])=>{const l=new THREE.PointLight(c,i,d,1.5);l.position.set(...q);G.add(l);LZ.push(l)})}
+function pon(m){quita();mesa=m;if(!window.AV||!m)return;const D=m.D;POS=D.crupier||POS;ZAP=D.zapato||ZAP;luces(m.G,D);
  AV.crear(COD).then(q=>{if(!q||mesa!==m)return q&&AV.quita(q);p=q;for(const k in GES)AV.GE[k]=GES[k];
-  q.position.set(POS[0],D.tarima||0,POS[1]);q.traverse(o=>{if(o.isMesh)o.castShadow=true});m.G.add(q);AV.pose(q,'AgarreFrente',0);AV.agarre(q,'I',.4);AV.agarre(q,'D',.5)}).catch(()=>{})}
-function quita(){if(p){if(p.parent)p.parent.remove(p);AV.quita(p)}p=null;mesa=null;cola=[];act=null;g={...G0};giro=0}
+  q.position.set(POS[0],D.tarima||0,POS[1]);q.traverse(o=>{if(o.isMesh)o.castShadow=true});m.G.add(q);AV.pose(q,'AgarreFrente',0);AV.agarre(q,'I',.25);AV.agarre(q,'D',.25)}).catch(()=>{})}
+function quita(){LZ.splice(0).forEach(l=>l.parent&&l.parent.remove(l));if(p){if(p.parent)p.parent.remove(p);AV.quita(p)}p=null;mesa=null;cola=[];act=null;g={...G0};giro=0}
 function mete(o){o.en=performance.now();if(cola.length<40)cola.push(o)}
 const reparte=i=>mete({t:'rep',i}),voltea=()=>mete({t:'vol'}),mira=i=>{mir=i==null||i<0?null:i};
 // vista bj: cartas por asiento y del crupier; la ronda nueva se reparte en su orden (dos vueltas: cada casilla y luego él)
@@ -38,7 +40,7 @@ function paso(){if(!p)return;const t=performance.now(),dt=Math.min(.1,(t-(tA||t)
   else{aim=0;m.cx=.35;m.vol=S(0,.25,u)*(1-S(.8,1,u));m.col=.15*m.vol;m.gir=S(.35,.6,u)*(1-S(.8,1,u));m.mano=.2*S(.35,.5,u)*(1-S(.5,.7,u));
    if(!suelto&&u>=.5){suelto=true;if(cb)cb('voltea')}}
   if(u>=1)act=null}
- m.apo=1-m.zap;m.gy=aim*.35;m.cy=aim*.3;const f=Math.min(1,dt*14);
+ m.apo=1-m.zap;m.apd=Math.max(0,1-m.rep-m.vol);m.gy=aim*.35;m.cy=aim*.3;const f=Math.min(1,dt*14);
  for(const k in G0)g[k]+=(m[k]-g[k])*f;giro+=(aim*.45-giro)*f;p.rotation.y=giro;AV.gesto(p,g)}
 function mano(){const b=p&&p.getObjectByName('mano_D');return b?b.getWorldPosition(PJ):null}
 window.BJC={pon,quita,estado,paso,reparte,voltea,mira,mano,al:fn=>{cb=fn},LUGAR,get p(){return p}};

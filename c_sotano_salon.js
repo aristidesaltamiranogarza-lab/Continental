@@ -31,7 +31,7 @@ function texturas(ctex){
   const med=(cx,cy)=>{g.save();g.translate(cx,cy);g.fillStyle=c;g.beginPath();g.ellipse(0,0,26,40,0,0,7);g.fill();g.fillStyle=a;g.beginPath();g.ellipse(0,0,19,31,0,0,7);g.fill();
    g.fillStyle=c;for(let i=0;i<4;i++){g.rotate(PI/2);g.beginPath();g.ellipse(0,-13,5,10,0,0,7);g.fill()}g.beginPath();g.arc(0,0,5,0,7);g.fill();
    [-52,52].forEach(y=>{g.beginPath();g.moveTo(0,y-10);g.lineTo(7,y);g.lineTo(0,y+10);g.lineTo(-7,y);g.closePath();g.fill()});g.restore()};
-  med(64,64);med(192,192)},1);t.repeat.set(1/1.1,1/1.1);return t};
+  g.filter='blur(2.5px)';med(64,64);med(192,192);g.filter='none'},1);t.repeat.set(1/1.1,1/1.1);return t};
  const alf=ctex('alfombra-casino',256,256,(g,w,h)=>{g.fillStyle='#4f1019';g.fillRect(0,0,w,h);
   for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*128+64,y=j*128+64;g.strokeStyle='#c99a3a';g.lineWidth=5;g.beginPath();g.arc(x,y,40,0,7);g.stroke();
    g.fillStyle='#1d3a5a';g.beginPath();g.moveTo(x,y-28);g.lineTo(x+28,y);g.lineTo(x,y+28);g.lineTo(x-28,y);g.closePath();g.fill();g.fillStyle='#e0b85a';g.beginPath();g.arc(x,y,8,0,7);g.fill()}
@@ -41,7 +41,7 @@ function texturas(ctex){
   for(let k=0;k<8;k++){const y=k*32,c=[92+r()*22,50+r()*12,26+r()*8].map(Math.round);g.fillStyle=`rgb(${c})`;g.fillRect(0,y,w,32);
    for(let i=0;i<7;i++){g.fillStyle=`rgba(${r()<.5?'30,14,6':'150,95,55'},${.12+r()*.12})`;g.fillRect(0,y+3+r()*26,w,1)}
    g.fillStyle='rgba(20,10,4,.65)';g.fillRect(0,y,w,1.5);const jx=Math.floor(r()*w);g.fillRect(jx,y,2,32)}},1);due.repeat.set(1/2.2,1/2.2);
- return {cas:dam('vino','#5a1620','rgba(255,210,150,.05)','rgba(214,170,90,.32)'),bil:dam('verde','#1c3a2a','rgba(255,240,200,.04)','rgba(214,190,120,.28)'),alf,due}}
+ return {cas:dam('vino','#4e131c','rgba(255,210,150,.035)','rgba(214,170,90,.2)'),bil:dam('verde','#1c3a2a','rgba(255,240,200,.04)','rgba(214,190,120,.28)'),alf,due}}
 
 // ---------- rockola (mira a +z) ----------
 function rockola(S,std,ctex,x,z,ry){const G=new THREE.Group();G.position.set(x,0,z);G.rotation.y=ry;S.add(G);const w=.95,h=1.75,c=h-w/2;

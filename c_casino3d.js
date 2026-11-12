@@ -23,16 +23,23 @@ function fieltro(g,w,h,c0,c1){const gr=g.createRadialGradient(w/2,h*.45,10,w/2,h
 function curvo(g,t,cx,cy,r,font,col,sp){g.save();g.font=font;g.fillStyle=col;g.textAlign='center';g.textBaseline='middle';
  const cs=[...t],ws=cs.map(c=>g.measureText(c).width+(sp||0)),tot=ws.reduce((p,q)=>p+q,0);let an=PI/2+tot/2/r;
  cs.forEach((c,i)=>{const q=an-ws[i]/2/r;g.save();g.translate(cx+Math.cos(q)*r,cy+Math.sin(q)*r);g.rotate(q-PI/2);g.fillText(c,0,0);g.restore();an-=ws[i]/r});g.restore()}
-const FICHAS={blanca:['#eeeae0','#2a5ab0'],roja:['#c0262a','#f4f1ea'],verde:['#1e8a4a','#f4f1ea'],negra:['#1a1a1a','#f4f1ea'],morada:['#6a2a8a','#f4f1ea']};
+const FICHAS={blanca:['#f2eee4','#b3262e'],roja:['#c81f2a','#f4f1ea'],azul:['#1f4fb0','#f4f1ea'],verde:['#178a45','#f4f1ea'],naranja:['#e07b1a','#f4f1ea'],negra:['#141414','#e9c46a'],morada:['#6a2391','#f4f1ea']};
+// sombra suave de contacto (una mancha difusa sobre el paño) para lo que está encima de la mesa
+function sombra(G,ctex,x,y,z,w,d,ry,op){const t=ctex('sombra-blanda',64,64,(g,W,H)=>{const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(0,0,0,1)');r.addColorStop(.55,'rgba(0,0,0,.6)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H)});
+ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:t,color:0,transparent:true,opacity:op||.55,depthWrite:false}));m.rotation.set(-PI/2,0,ry||0);m.position.set(x,y,z);m.renderOrder=1;G.add(m);return m}
 // orilla de una pila de fichas acostadas: cuatro fichas por cuadro, cada una con sus manchas un poco giradas, y la raya entre ficha y ficha
 function texFicha(ctex,k){const [b,s]=FICHAS[k],t=ctex('ficha4-'+k,64,64,(g,w,h)=>{g.fillStyle=b;g.fillRect(0,0,w,h);
   for(let c=0;c<4;c++){const y=c*16,o=(c*23)%16;g.fillStyle=s;for(let i=0;i<4;i++){const x=(o+i*16)%w;g.fillRect(x,y+3,6,10);g.fillRect(x-w,y+3,6,10)}
    g.fillStyle='rgba(0,0,0,.45)';g.fillRect(0,y+14.5,w,1.5)}},1);t.repeat.set(1,10);return t}
 function texReverso(ctex){return ctex('carta-reverso',64,96,(g,w,h)=>{g.fillStyle='#f4f1ea';g.fillRect(0,0,w,h);g.fillStyle='#a3202a';g.fillRect(5,5,w-10,h-10);
  g.strokeStyle='rgba(255,230,220,.55)';g.lineWidth=1.5;for(let i=-h;i<w+h;i+=8){g.beginPath();g.moveTo(i,5);g.lineTo(i+h,h-5);g.stroke();g.beginPath();g.moveTo(i+h,5);g.lineTo(i,h-5);g.stroke()}})}
-// charola de fichas: tubos acostados a lo largo de z
-function charola(G,std,ctex,x,y,z,w,dz,ks){malla(G,new THREE.BoxGeometry(w,.05,dz+.06),std(0x24130a,.45),x,y,z);
- const n=ks.length,sp=(w-.08)/n;ks.forEach((k,i)=>{const c=malla(G,new THREE.CylinderGeometry(.033,.033,dz,16),std(0xffffff,.5,{map:texFicha(ctex,k)}),x-w/2+.04+sp*(i+.5),y+.045,z);c.rotation.x=PI/2})}
+// charola de fichas: caja de madera con canaletas; los tubos van acostados a lo largo de z, medio hundidos
+function charola(G,std,ctex,x,y,z,w,dz,ks){const md=std(0x2a160b,.4),fo=std(0x120a06,.8),D=dz+.06,n=ks.length,sp=(w-.08)/n;
+ malla(G,new THREE.BoxGeometry(w,.016,D),md,x,y-.017,z);malla(G,new THREE.BoxGeometry(w-.04,.004,dz),fo,x,y-.007,z,false);
+ [-1,1].forEach(k=>{malla(G,new THREE.BoxGeometry(w,.05,.025),md,x,y+.008,z+k*(D/2-.0125));malla(G,new THREE.BoxGeometry(.025,.05,D),md,x+k*(w/2-.0125),y+.008,z)});
+ for(let i=1;i<n;i++)malla(G,new THREE.BoxGeometry(.006,.026,dz),md,x-w/2+.04+sp*i,y+.006,z);
+ ks.forEach((k,i)=>{const c=malla(G,new THREE.CylinderGeometry(.031,.031,dz-.01,18),std(0xffffff,.42,{map:texFicha(ctex,k)}),x-w/2+.04+sp*(i+.5),y+.024,z);c.rotation.x=PI/2});
+ sombra(G,ctex,x,y-.024,z+.02,w+.16,D+.14,0,.6)}
 
 // ---------- silla acolchada (mira a +z, respaldo atrás) ----------
 function silla(std,cuero){const G=new THREE.Group();if(!window.LOTE)return G;const LT=LOTE(),md='#2a160c',cu=cuero||'#6a1c1c',me='#c9a24a';
@@ -77,14 +84,24 @@ function blackjack(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.
  // patas: dos pedestales con su pie
  [-1,1].forEach(sx=>{malla(G,new THREE.CylinderGeometry(.1,.12,TH-.2,16),blk,sx*.95,(TH-.2)/2,.55);malla(G,new THREE.BoxGeometry(.7,.05,.5),blk,sx*.95,.025,.55)});
  // charola de fichas, zapato (a la izquierda del crupier), descartes y letrero de apuestas
- charola(G,std,ctex,0,TH+.01,.19,.96,.22,['blanca','blanca','roja','roja','verde','verde','negra','morada']);
+ charola(G,std,ctex,0,TH+.026,.19,.96,.22,['blanca','roja','azul','verde','naranja','negra','morada']);
  const rv=std(0xffffff,.6,{map:texReverso(ctex)}),bl=std(0xf4f1ea,.6);
- const zp=new THREE.Group();zp.position.set(.76,TH,.2);zp.rotation.y=.42;G.add(zp);const zm=std(0x5a0c12,.25,{metalness:.1});
- malla(zp,new THREE.BoxGeometry(.2,.12,.4),zm,0,.06,-.02);const fr=malla(zp,new THREE.BoxGeometry(.2,.03,.13),zm,0,.1,.2);fr.rotation.x=.55;
- const ca=malla(zp,new THREE.PlaneGeometry(.15,.08),rv,0,.105,.205,false);ca.rotation.x=-PI/2+.55;malla(zp,new THREE.BoxGeometry(.17,.012,.05),bl,0,.012,.215,false);
+ // zapato: caja vino con filos de latón, cara negra con la boca y la carta que asoma; se ven los cantos de las barajas por los lados
+ const zp=new THREE.Group();zp.position.set(.76,TH,.2);zp.rotation.y=.42;G.add(zp);const zm=std(0x5a0c12,.3,{metalness:.1}),lat=std(0xc9a24a,.3,{metalness:.85}),ne=std(0x141010,.5);
+ const canto=std(0xffffff,.7,{map:ctex('bj-cantos',8,64,(g,w,h)=>{g.fillStyle='#efe9dc';g.fillRect(0,0,w,h);g.fillStyle='rgba(0,0,0,.2)';for(let i=0;i<h;i+=3)g.fillRect(0,i,w,1)})});
+ malla(zp,new THREE.BoxGeometry(.17,.012,.36),zm,0,.006,0);[-1,1].forEach(k=>{malla(zp,new THREE.BoxGeometry(.012,.1,.36),zm,k*.079,.05,0);malla(zp,new THREE.BoxGeometry(.004,.06,.3),canto,k*.072,.042,0,false);
+  malla(zp,new THREE.BoxGeometry(.016,.008,.36),lat,k*.079,.103,0)});
+ malla(zp,new THREE.BoxGeometry(.17,.1,.012),zm,0,.05,-.174);malla(zp,new THREE.BoxGeometry(.146,.006,.3),zm,0,.098,-.02);
+ const fr=new THREE.Group();fr.position.set(0,.055,.18);fr.rotation.x=.5;zp.add(fr);malla(fr,new THREE.BoxGeometry(.17,.1,.014),ne,0,0,0);malla(fr,new THREE.BoxGeometry(.17,.008,.018),lat,0,.052,0);
+ malla(fr,new THREE.BoxGeometry(.12,.012,.02),std(0x050404,.9),0,-.03,.002,false);
+ malla(zp,new THREE.BoxGeometry(.13,.004,.07),bl,0,.004,.215,false);malla(zp,new THREE.PlaneGeometry(.125,.065),rv,0,.0065,.215,false).rotation.x=-PI/2;
+ sombra(G,ctex,.76,TH+.002,.2,.3,.5,.42,.6);
+ // descartes: charolita del mismo vino con respaldo y lados bajos, las cartas usadas boca abajo
  const dsc=new THREE.Group();dsc.position.set(-.76,TH,.2);dsc.rotation.y=-.42;G.add(dsc);
- malla(dsc,new THREE.BoxGeometry(.17,.07,.12),bl,0,.035,0);malla(dsc,new THREE.PlaneGeometry(.15,.1),rv,0,.071,0,false).rotation.x=-PI/2;
- malla(dsc,new THREE.BoxGeometry(.21,.15,.15),new THREE.MeshStandardMaterial({color:0xd8e8f0,roughness:.05,transparent:true,opacity:.22,depthWrite:false}),0,.075,0,false);
+ malla(dsc,new THREE.BoxGeometry(.2,.01,.27),zm,0,.005,0);malla(dsc,new THREE.BoxGeometry(.2,.1,.012),zm,0,.05,-.13);[-1,1].forEach(k=>malla(dsc,new THREE.BoxGeometry(.012,.05,.27),zm,k*.094,.025,0));
+ malla(dsc,new THREE.BoxGeometry(.2,.008,.012),lat,0,.1,-.13);
+ malla(dsc,new THREE.BoxGeometry(.17,.05,.24),canto,0,.035,.005);malla(dsc,new THREE.PlaneGeometry(.17,.24),rv,0,.0605,.005,false).rotation.x=-PI/2;
+ sombra(G,ctex,-.76,TH+.002,.2,.3,.4,-.42,.6);
  const lt=ctex('bj-limite',256,150,(g,w,h)=>{g.fillStyle='#1a1410';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=5;g.strokeRect(6,6,w-12,h-12);
   g.fillStyle='#e9c46a';g.textAlign='center';g.font='800 30px Georgia,serif';g.fillText('BLACKJACK',w/2,50);g.fillStyle='#f1ead6';g.font='700 26px Arial,sans-serif';g.fillText('Mín $10 · Máx $500',w/2,102)});
  const pl=new THREE.Group();pl.position.set(-1.68,TH,.04);pl.rotation.y=.5;G.add(pl);malla(pl,new THREE.BoxGeometry(.24,.02,.06),blk,0,.01,0);
@@ -121,7 +138,7 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
  const tg=new THREE.TubeGeometry(new Pista(PB-.09),220,.09,12,true);tg.scale(1,.75,1);malla(G,tg,cu,0,TH+.06,0);
  [-1,1].forEach(sx=>{malla(G,new THREE.CylinderGeometry(.12,.14,TH-.22,16),blk,sx*.85,(TH-.22)/2,0);malla(G,new THREE.BoxGeometry(.95,.05,.16),blk,sx*.85,.025,0);malla(G,new THREE.BoxGeometry(.16,.05,.8),blk,sx*.85,.025,0)});
  // crupier: charola, baraja; un botón de dealer frente a un jugador
- charola(G,std,ctex,0,TH+.008,-.51,.7,.12,['blanca','roja','roja','verde','negra','morada']);
+ charola(G,std,ctex,0,TH+.026,-.51,.7,.12,['blanca','roja','roja','verde','negra','morada']);
  const rv=std(0xffffff,.6,{map:texReverso(ctex)}),bl=std(0xf4f1ea,.6);
  malla(G,new THREE.BoxGeometry(.1,.035,.14),[bl,bl,rv,bl,bl,bl],.52,TH+.018,-.33).rotation.y=.2;
  const bt=ctex('boton-dealer',128,128,(g,w,h)=>{g.fillStyle='#f6f3ea';g.fillRect(0,0,w,h);g.fillStyle='#1a1a1a';g.font='900 26px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('DEALER',w/2,h/2)});
