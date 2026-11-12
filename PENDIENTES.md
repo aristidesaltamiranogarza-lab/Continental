@@ -255,5 +255,8 @@ El más grande: física propia sin librerías (choques bola-bola y con bandas, t
 - Guía: línea hasta la primera bola + líneas cortas de hacia dónde van la blanca y la bola tocada.
 - Efecto: sí, sobre la blanca misma en 3D (referencia de Aris): al apuntar la cámara baja detrás de la blanca, que se ve grande al frente con el triángulo detrás; un punto negro chico en la blanca marca dónde pega el taco y se arrastra para dar efecto (abajo = retroceso, arriba = seguimiento, lados = efecto lateral); la punta del taco se ve abajo, alineada al punto.
 - Cámara: detrás del taco al apuntar; al tirar sube un poco y sigue las bolas. Botón de vista desde arriba.
-- Pendientes de responder: personajes al tirar (inclinado con taco o solo taco), tiempo por tiro, vista 2D, fichas/apuestas.
+- Personajes: tu chibi se inclina sobre la mesa con el taco (pose horneada en Blender) y el taco va y viene antes de tirar; los demás de pie alrededor reaccionan.
+- Tiempo: 45 s por tiro; al acabarse es falta (bola en mano para el rival). Los bots tiran enseguida.
+- Vista 2D: sí, botón "Vista 2D" con la mesa plana desde arriba; también se apunta y tira ahí (bueno para celulares débiles).
+- Fichas: no; solo jugar (quizá un contador de victorias en el cuarto).
 **Pasos (ajustar a las decisiones):** L1 física `c_billar_fis.js` + pruebas deterministas en `tests/` · L2 reglas `g_billar.js` en el servidor · L3 apuntar y tirar (cliente) · L4 cámara · L5 bot · L6 HUD, sonidos, quitar "Próximamente", celular y compu.
