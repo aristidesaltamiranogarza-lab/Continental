@@ -186,7 +186,7 @@ Trabajar uno a la vez en esta sesión (todos tocan las mismas líneas de registr
 ### [x] Conecta 4 en 2D
 Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Conecta 4 de la casa; se juega tocando columnas (`JG3.tap`), ficha que cae y línea ganadora que late; botón Ocultar/Ver tablero 2D (localStorage `c4_2d`). Pendiente menor: probar una partida real de dos y en celular (375×812 y horizontal). No se hizo Conecta 4 en el modo 2D Ligero (si el usuario lo pide, es otra tarea).
 
-### [ ] Blackjack (sótano, salón de casino)
+### [x] Blackjack (sótano, salón de casino)
 **Decisiones (respondidas el 11 nov 2026):**
 - Fichas: se reinician por sesión (al sentarte tienes 1,000; no se guardan). Si llegas a 0, recarga inmediata a 1,000. Sin dinero real.
 - Apuestas: mínimo 10, máximo 500 por casilla. Fichas de 5, 25, 100 y 500.
