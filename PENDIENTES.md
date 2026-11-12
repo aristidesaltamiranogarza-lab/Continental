@@ -226,9 +226,9 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 - Ayudas: nombre de tu jugada ("Doble par"), probabilidad de ganar / outs, botones rápidos (½ bote, bote, todo).
 - Botes paralelos: cada uno es su propia pila de fichas en el centro con su cantidad; se pagan uno por uno.
 - Cámara: desde tu silla con MCAM (Arriba/Recentrar) y botón "Vista 2D" como Blackjack.
+- Social: gestos automáticos (festeja bote grande, se desanima al quedarse sin fichas), fichas de cada quien frente a su asiento, globito de resultado sobre el ganador (p. ej. "+340 Color").
 - Espectadores: sí; quien esté cerca de la mesa ve la mano (sin cartas ocultas) y puede sentarse cuando se libera un asiento.
-12. Espectadores: ¿se puede mirar la mesa sin jugar?
-**Pasos (ajustar tras las respuestas):** P1 `g_poker.js` (evaluador de manos de 7 cartas con pruebas, rondas de apuesta, botes paralelos, temporizadores) · P2 bots en `g_poker_bot.js` · P3 cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack · P4 HUD con GHUD (subir con deslizador) · P5 vista 2D si se pidió · P6 sonidos, quitar "Próximamente", celular y compu.
+**Pasos (ajustar a las decisiones):** P1 `g_poker.js` (evaluador de manos de 7 cartas con pruebas, rondas de apuesta, botes paralelos, temporizadores) · P2 bots en `g_poker_bot.js` · P3 cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack · P4 HUD con GHUD (subir con deslizador) · P5 vista 2D si se pidió · P6 sonidos, quitar "Próximamente", celular y compu.
 
 ### [ ] Monopoly Deal en 3D (salón de la planta baja)
 Hoy: reglas en `g_monopolydeal.js` (completas, con salas y bots) y pantalla 2D `c_monopolydeal.js` (GRANDE, la comparte el 2D Ligero: no tocarla) envuelta por `c_mdeal_hud.js`. Es solo presentación nueva sobre la mesa nueva (MESA/MPJ/MCAM), en módulos chicos nuevos.
