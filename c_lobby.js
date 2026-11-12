@@ -13,7 +13,7 @@ const PAL=['#C2512A','#2D5D8A','#3F7D4F','#8A3F7A','#B8862A','#2E7C83','#7A4A2A'
 const avc=n=>{let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))|0;return PAL[Math.abs(h)%PAL.length]};
 
 // cajas de juego (las mismas de la sala 3D)
-const cajas=(sel,fn)=>`<div class="lb-cajas" role="radiogroup" aria-label="Juego">${lista().map(k=>`<button class="lb-caja${k===sel?' on':''}" style="--f:${COL[k]||'#C2512A'}" role="radio" aria-checked="${k===sel}" onclick="${fn}('${k}')"><span class="ic">${ico(k)}</span><b>${es(nom(k))}</b></button>`).join('')}</div>`;
+const cajas=(sel,fn)=>`<div class="lb-cajas" onscroll="LOBBY.sx=this.scrollLeft" role="radiogroup" aria-label="Juego">${lista().map(k=>`<button class="lb-caja${k===sel?' on':''}" style="--f:${COL[k]||'#C2512A'}" role="radio" aria-checked="${k===sel}" onclick="${fn}('${k}')"><span class="ic">${ico(k)}</span><b>${es(nom(k))}</b></button>`).join('')}</div>`;
 const cab=(k,sub,der)=>`<div class="lb-cab" style="--c:${COL[k]||'#C2512A'}"><span class="lb-ic">${ico(k)}</span><div class="lb-t"><small>${sub}</small><b>${es(nom(k))}</b></div>${der||''}</div>`;
 const tema=()=>`<button class="ui-rb" onclick="LOBBY.tema()" aria-label="Cambiar a tema ${window.UI&&UI.noche()?'de día':'de noche'}">${I(window.UI&&UI.noche()?'sol':'luna')}</button>`;
 const top=()=>`<header class="lb-top"><div class="lb-marca"><span class="lb-logo">${I('casa')}</span><div><small>gamemash</small><h1>Juegos de cartas</h1></div></div>${tema()}</header>`;

@@ -61,6 +61,8 @@ function botGo(R){clearTimeout(R.bt);R.bt=null;const M=GAMES[R.gt];if(!R.G||!M.b
   bump(R)},Math.max(50,best.ms))}
 function touch(R,pl){if(pl){const off=Date.now()-pl.seen>35000;pl.seen=Date.now();if(off)bump(R)}}
 // ---- ausentes: en un juego sin bot, quien lleva FUERA_MS sin conexión a media partida sale (si no, se traba); el host, si se va, pasa a quien sí está ----
+// hay alguien de verdad jugando: humano sentado (no se levantó) y conectado. Sin nadie así, la partida se cierra
+const vivoH=(R,now)=>R.players.some(p=>!p.bot&&!p.out&&!p.away&&now-p.seen<OFF_MS);
 function fuera(R){const M=GAMES[R.gt],now=Date.now(),vivo=p=>!p.bot&&!p.out&&now-p.seen<OFF_MS,av=t=>{R.chat.push({k:-1,name:'Aviso',t,ts:now});if(R.chat.length>60)R.chat.shift()};
  if(R.G&&R.G.phase!='final'&&!M.bot&&!M.auto)R.players.forEach((p,k)=>{if(!p.bot&&!p.out&&now-p.seen>FUERA_MS){av(p.name+' salió de la mesa: se desconectó');kick(R,k);if(M.tick)M.tick(R);bump(R)}});
  if(now-(R.hs||now)>120000){const h=R.players.find(vivo);if(h&&h.tok!=R.host){R.host=h.tok;R.hs=now;av(h.name+' ahora es el anfitrión');bump(R)}}}
@@ -79,7 +81,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
  if(t=='game'){if(!H)return 'Solo el host elige el juego.';if(G)return 'Termina primero esta partida.';const M2=GAMES[m.g];if(!M2)return 'Ese juego no existe.';if(m.g==R.gt)return;
   const ps=R.players.filter(p=>M2.bot||!p.bot);if(ps.length>M2.max)return 'Son demasiados para '+M2.name+' (máximo '+M2.max+').';
   if(ps.length<R.players.length)R.chat.push({k:-1,name:'Aviso',t:M2.name+' todavía no tiene bots: salieron de la sala',ts:Date.now()});
-  R.players=ps;R.gt=m.g;R.opts=Object.assign({},M2.opts);R.chat.push({k:-1,name:'🎲',t:'Ahora van a jugar '+M2.name,ts:Date.now()});return}
+  R.players=ps;R.gt=m.g;R.opts=Object.assign({},M2.opts);R.chat.push({k:-1,name:'Aviso',t:'Ahora van a jugar '+M2.name,ts:Date.now()});return}
  if(t=='addbot'){if(!H)return 'Solo el host puede agregar bots.';if(G)return 'Ya empezó.';if(!M.bot)return 'Este juego todavía no tiene bots.';if(R.players.length>=M.max)return 'La sala está llena (máximo '+M.max+').';
   const nm=(M.botn||BOTN).find(x=>!R.players.some(p=>p.name==x))||'Bot';R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),{bot:true}));return}
  if(t=='start'){if(!H)return 'Solo el host puede empezar.';if(G)return 'Ya empezó.';const n=R.players.length;
@@ -95,7 +97,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
 const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js'),BJ=require('./g_blackjack.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
 //   // Cubilete de la esquina (sin salas)
 const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'];
-function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
+function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.G?vivoH(R,now):R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
  // c: código para unirse (solo si espera jugadores); w: código para ir a mirar (si ya empezó)
  const fin=R.G&&R.G.phase=='final';   // partida terminada: ya no cuenta como en curso
  return {c:R.G?null:R.code,w:R.G&&!fin?R.code:null,g:R.gt,st:R.G?(fin?'fin':'play'):'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),av:ps.slice(0,6).map(p=>p.av||''),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
@@ -140,4 +142,4 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
   if(m.t=='close'){if(R.host!=tok)return out(res,{err:'Solo el host puede cerrar la sala.'});delete rooms[R.code];R.w.forEach(w=>{clearTimeout(w.t);out(w.res,{gone:1})});return out(res,{ok:1})}
   const e=act(R,tok,m);if(e)return out(res,{err:e});bump(R);return out(res,{ok:1})}
  res.writeHead(404);res.end()}).listen(PORT,()=>console.log('Juegos de cartas listo en http://localhost:'+PORT));
-setInterval(()=>{for(const c in rooms){const R=rooms[c],M=GAMES[R.gt],s=R.players.map(p=>p.bot||Date.now()-p.seen<35000?1:0).join('');const ph=R.G&&R.G.round+':'+R.G.phase;if(M.tick)M.tick(R);R.players.forEach(p=>{if(p.away&&Date.now()-p.away>120000&&!p.out){p.away=0;soltar(R,p);bump(R)}});fuera(R);if(R.spec)R.spec=R.spec.filter(x=>Date.now()-x.seen<120000);if(s!==R.sig||(R.G&&R.G.round+':'+R.G.phase)!==ph){R.sig=s;bump(R)}if(Date.now()-R.ts>432e5)delete rooms[c]}},10000);
+setInterval(()=>{for(const c in rooms){const R=rooms[c],M=GAMES[R.gt],s=R.players.map(p=>p.bot||Date.now()-p.seen<35000?1:0).join('');const ph=R.G&&R.G.round+':'+R.G.phase;if(M.tick)M.tick(R);R.players.forEach(p=>{if(p.away&&Date.now()-p.away>120000&&!p.out){p.away=0;soltar(R,p);bump(R)}});fuera(R);if(R.spec)R.spec=R.spec.filter(x=>Date.now()-x.seen<120000);if(s!==R.sig||(R.G&&R.G.round+':'+R.G.phase)!==ph){R.sig=s;bump(R)}if(Date.now()-R.ts>432e5||(R.G&&!vivoH(R,Date.now()))){clearTimeout(R.bt);delete rooms[c];R.w.forEach(w=>{clearTimeout(w.t);out(w.res,{gone:1})});R.w=[]}}},10000);

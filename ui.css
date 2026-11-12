@@ -6,6 +6,9 @@ html[data-tema=noche]{--ui-panel:rgba(40,27,20,.90);--ui-sheet:#2A1D16;--ui-line
  --ui-accent:#E8834F;--ui-on:#24140C;--ui-chip:rgba(255,226,196,.08);--ui-field:rgba(255,255,255,.06);--ui-shadow:0 8px 24px rgba(0,0,0,.45);--ui-scrim:rgba(0,0,0,.48)}
 
 /* ---------- base ---------- */
+/* sin selección azul de toda la página al mantener presionado (iOS); los campos de texto sí se pueden seleccionar */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .ui{font:700 15px/1.3 var(--ui-font);color:var(--ui-text);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 .ui{color-scheme:light}html[data-tema=noche] .ui{color-scheme:dark}
 .ui *,.ui *::before,.ui *::after{box-sizing:border-box}
