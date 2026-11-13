@@ -13,14 +13,14 @@ const P={},M={},signs=[];let KM=null,lastT=0;
 let avT=0;
 function aviso(t){let el=document.getElementById('salAviso');if(!el){el=document.createElement('div');el.id='salAviso';el.className='ui ui-toast';el.setAttribute('role','status');document.body.appendChild(el)}
  el.textContent=t;el.style.display='';clearTimeout(avT);avT=setTimeout(()=>{el.style.display='none'},2800);if(typeof sfx=='function')sfx('tick')}
-const pronto=g=>g=='blackjack'&&window.BJ3?BJ3.tap():aviso(`${NOM[g]}: muy pronto se podrá jugar aquí`);
+const pronto=g=>g=='blackjack'&&window.BJ3?BJ3.tap():g=='poker'&&window.PK3?PK3.tap():aviso(`${NOM[g]}: muy pronto se podrá jugar aquí`);
 const css=document.createElement('style');css.textContent=`.h3sign.sal{position:absolute;left:0;top:0;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);
  -webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);white-space:nowrap;cursor:pointer;pointer-events:auto}
 .h3sign.sal small{color:var(--ui-accent)}.h3sign.sal.det small::after{content:''}`;document.head.appendChild(css);
 function sign(g){const el=document.createElement('div');el.className='ui h3sign sal';el.dataset.g=g;el.innerHTML=`<b>${NOM[g]}</b><small>${g=='blackjack'?'Mín $10 · Máx $500':'Próximamente'}</small>`;el.onclick=()=>pronto(g);signs.push(el);return el}
 const v=new THREE.Vector3();
 function labels(){const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.R()&&H.R().domElement;if(!cam||!cv)return;const W=cv.clientWidth,Hh=cv.clientHeight,app=document.getElementById('app');
- signs.forEach(el=>{const p=P[el.dataset.g];if(!el.isConnected&&app)app.appendChild(el);v.set(p.x,p.y,p.z).project(cam);const vis=!(el.dataset.g=='blackjack'&&window.BJ3&&BJ3.yo()>=0)&&v.z<1&&Math.abs(v.x)<1.1&&Math.abs(v.y)<1.1;
+ signs.forEach(el=>{const p=P[el.dataset.g];if(!el.isConnected&&app)app.appendChild(el);v.set(p.x,p.y,p.z).project(cam);const vis=!(el.dataset.g=='blackjack'&&window.BJ3&&BJ3.yo()>=0)&&!(el.dataset.g=='poker'&&window.PK3&&PK3.yo()>=0)&&v.z<1&&Math.abs(v.x)<1.1&&Math.abs(v.y)<1.1;
   el.style.display=vis?'':'none';if(vis)el.style.transform=`translate(${Math.max(70,Math.min(W-70,(v.x+1)/2*W))}px,${(1-v.y)/2*Hh}px) translate(-50%,-100%)`})}
 // fuera del sótano (o con la Ruleta abierta) nadie llama step: se esconden solos
 setInterval(()=>{if(performance.now()-lastT>400)signs.forEach(el=>{if(el.style.display!=='none')el.style.display='none'})},300);
@@ -119,7 +119,7 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
  rk.traverse(o=>{if(o.isMesh){o.userData.hit={t:'fn',f:()=>{if(typeof musCyc=='function'){musCyc();aviso('Música: '+(typeof musName=='function'?musName():''))}}};hits.push(o)}});
 
  ['billar','blackjack','poker'].forEach(sign);
- const step=()=>{lastT=performance.now();if(window.BJC)BJC.paso();if(window.BJ3)BJ3.paso();const cm=H.cam();if(KM&&cm)CPB.corte(KM,cm.position,H.yo&&H.yo());labels()};
+ const step=()=>{lastT=performance.now();if(window.BJC)BJC.paso();if(window.BJ3)BJ3.paso();if(window.PK3)PK3.paso();const cm=H.cam();if(KM&&cm)CPB.corte(KM,cm.position,H.yo&&H.yo());labels()};
  return {OB,WL:KM.WL,step}}
 
 window.SAL={build,P,M,aviso};

@@ -142,7 +142,7 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
  const rv=std(0xffffff,.6,{map:texReverso(ctex)}),bl=std(0xf4f1ea,.6);
  malla(G,new THREE.BoxGeometry(.1,.035,.14),[bl,bl,rv,bl,bl,bl],.52,TH+.018,-.33).rotation.y=.2;
  const bt=ctex('boton-dealer',128,128,(g,w,h)=>{g.fillStyle='#f6f3ea';g.fillRect(0,0,w,h);g.fillStyle='#1a1a1a';g.font='900 26px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('DEALER',w/2,h/2)});
- const bd=enOvalo(.48,3/9);malla(G,new THREE.CylinderGeometry(.06,.06,.016,24),[bl,std(0xffffff,.5,{map:bt}),bl],bd.x,TH+.008,bd.z);
+ const bd=enOvalo(.48,3/9),boton=malla(G,new THREE.CylinderGeometry(.06,.06,.016,24),[bl,std(0xffffff,.5,{map:bt}),bl],bd.x,TH+.008,bd.z);
  // lugares: 9 a lo largo del óvalo (el 0 es el crupier, sin silla); portavasos en la pista
  const lugares=[],sillas=[];let LT=window.LOTE&&LOTE();
  for(let k=1;k<9;k++){const p=enOvalo(PB+.72,k/9),c=silla(std,e.cuero);c.position.set(p.x,0,p.z);c.rotation.y=Math.atan2(p.nx,p.nz)+PI;G.add(c);sillas.push(c);
@@ -151,7 +151,7 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
  if(LT)G.add(LT.mesh(std(0xffffff,.3,{metalness:.6})));
  if(hit)G.traverse(o=>{if(o.isMesh&&o.parent===G){o.userData.hit=hit;hits.push(o)}});
  const OB=[-.95,0,.95].map(x=>{const w=mundo(G,x,0);return {x:w.x,z:w.z,r:.97}}).concat(lugares.map(l=>({x:l.x,z:l.z,r:.42})));
- return {G,lugares,sillas,OB,D:{TH,PA,PB,crupier:enOvalo(PB+.72,0)}}}
+ return {G,lugares,sillas,OB,D:{TH,PA,PB,crupier:enOvalo(PB+.72,0),boton,enOvalo}}}   // boton y enOvalo: PK3 mueve el botón de dealer
 
 window.CAS3={blackjack,poker,silla,campana,luz};
 })();

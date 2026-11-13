@@ -231,7 +231,8 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 **Pasos:**
 - [x] P1 Reglas: `g_poker.js` (PK, sin salas, `/casa` b.pk) y evaluador compartido `poker_eval.js` (PEV en el cliente: puntos, nombre, mejores, equidad, outs). `act(id,nombre,{op})`: sentar(s) parar mostrar retirar pasar igualar subir(v = total de tu apuesta en la calle) todo. Vista `pk` por jugador: fase espera|mano|pausa|fin, calle 0..3, mesa, btn/sb/bb, turno, alta, minR, botes [{v,e}], res [{v,g,nom}], as[8] {n,bot,f,ap,tot,fold,allin,lim,mos,gan,neta,acc {o,v},c (-1 tapada),nom}, yo; `pkerr`. La apuesta que nadie iguala se devuelve; todo corto no reabre la subida (lim). Pruebas en tests/poker.js (incluye 300 manos con bots cuadrando fichas).
 - [x] P2 Bots: `g_poker_bot.js` (equidad Monte Carlo contra los que siguen, farol ~8 %). Completan hasta 4 en la mesa (máx. 3 bots) mientras haya alguien real; entran y salen entre manos; piensan 1–2.7 s.
-- [ ] P3 Cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack (registrar poker_eval.js en el mapa y en continental3d.html).
+- [x] P3 Cliente 3D `c_poker3d.js` (PK3; registrado con poker_eval.js).
+  Hecho: caras, reverso y fichas de BJ3.kit; cartas propias frente a cada asiento (reparto en orden desde la ciega chica), comunes al centro, apuestas de la calle que vuelan al bote al recoger, un bote por bote paralelo que en el fin vuela a su ganador (T_BOTE entre botes), barrido al descarte, botón de dealer de CAS3 (D.boton, D.enOvalo) que se mueve. Sentarse con E o tocando, cámara propia (primera persona/Arriba). MPJ ahora es fábrica (`MPJ.nueva()`): el Póker lleva su propia instancia. Crupier pendiente para P6; las jugadas llegan con P4 (PKH.hud).
 - [ ] P4 HUD con GHUD (subir con deslizador, ½ bote, bote, todo; tu jugada, probabilidad y outs).
 - [ ] P5 Vista 2D.
 - [ ] P6 Crupier con atuendo propio, sonidos, gestos, quitar "Próximamente", celular y compu.

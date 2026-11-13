@@ -323,7 +323,7 @@ html.c3top #app .gj-seat{display:none}
 .bj-ficha:active:not(:disabled){transform:scale(.92)}
 .bj-ficha:disabled{opacity:.4;cursor:default}
 .bj-n{pointer-events:none}
-html.bjsit .h3sign{display:none!important}   /* sentado: sin letreros de las otras mesas encima de la vista */
+html.bjsit .h3sign,html.pksit .h3sign{display:none!important}   /* sentado: sin letreros de las otras mesas encima de la vista */
 .bj-tot{position:fixed;z-index:9;left:0;top:0;padding:3px 10px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);
  font:800 13px/1.3 var(--ui-font);white-space:nowrap;pointer-events:none;will-change:transform}
 .bj-tot.on{border-color:var(--ui-accent);animation:gjTurn 1.6s ease-in-out infinite}

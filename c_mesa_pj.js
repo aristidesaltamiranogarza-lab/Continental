@@ -6,6 +6,7 @@
 // · cabeza(i,ms) mano a la cabeza un rato · fin(i) baila el ganador y los demás se llevan la mano a la cabeza; fin(-1) regresa todo. suelta() los saca de las sillas (antes de rearmar la mesa).
 (function(){
 if(typeof THREE==='undefined')return;
+function fab(){   // MPJ.nueva() da otra instancia (cada mesa del sótano lleva la suya)
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),PJ=new Map(),SEAT=v3(0,-1.27,-.25),OJO=v3(0,2.02,.25),CWm=.22,CHm=.31,P=v3(0,0,0),Q=v3(0,0,0),U=v3(0,1,0);
 const TILT=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-.4),PLANA=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),qq=new THREE.Quaternion();
 let mesa=null,geo=null,mats=null,dorso=null,carga=null,finI=-2,tl=0;
@@ -70,5 +71,6 @@ function paso(now,turno){const dt=Math.min(100,now-(tl||now)),f=1-Math.exp(-dt/1
    v.m.position.lerpVectors(v.de,Q,e);v.m.position.y+=Math.sin(Math.PI*Math.min(1,k))*1.2*c.scale.x;c.getWorldQuaternion(qq).multiply(TILT);v.m.quaternion.slerpQuaternions(PLANA,qq,e);
    const s0=v.m.userData.s0||(v.m.userData.s0=v.m.scale.x);v.m.scale.setScalar(s0+(c.scale.x-s0)*e);
    if(k>=1){mesa.g.remove(v.m);s.pend=Math.max(0,s.pend-1);return false}return true})})}
-window.MPJ={on:false,sync,suelta,hits,paso,cartas,mano,arriba,roba,estira,compra,festeja,mira,fin,cabeza,codigo};
+const MPJ={on:false,sync,suelta,hits,paso,cartas,mano,arriba,roba,estira,compra,festeja,mira,fin,cabeza,codigo,nueva:fab};return MPJ}
+window.MPJ=fab();
 })();

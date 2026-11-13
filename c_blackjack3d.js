@@ -43,8 +43,9 @@ function caraMat(c){c%=52;if(MAT[c])return MAT[c];const r=c%13,p=c/13|0,col=p==1
   const esq=()=>{g.font='800 30px Georgia,serif';g.fillText(RANGO[r],21,22);g.font='26px serif';g.fillText(ps,21,50)};esq();g.save();g.translate(w,h);g.rotate(PI);esq();g.restore();
   if(r>=10){g.font='800 62px Georgia,serif';g.fillText(RANGO[r],w/2,h/2-10);g.font='34px serif';g.fillText(ps,w/2,h/2+38)}else{g.font=(r?'72px':'92px')+' serif';g.fillText(ps,w/2,h/2+4)}});
  return MAT[c]=new THREE.MeshStandardMaterial({map:t,roughness:.6})}
-function carta(c){if(!GEO){GEO=new THREE.BoxGeometry(A.carta[0],.004,A.carta[1]);ED=new THREE.MeshStandardMaterial({color:0xe9e6dc,roughness:.6});
-  DOR=new THREE.MeshStandardMaterial({roughness:.6,map:tx('carta-reverso',64,96,(g,w,h)=>{g.fillStyle='#f4f1ea';g.fillRect(0,0,w,h);g.fillStyle='#a3202a';g.fillRect(5,5,w-10,h-10)})})}
+function ini0(){if(!GEO){GEO=new THREE.BoxGeometry(A.carta[0],.004,A.carta[1]);ED=new THREE.MeshStandardMaterial({color:0xe9e6dc,roughness:.6});
+  DOR=new THREE.MeshStandardMaterial({roughness:.6,map:tx('carta-reverso',64,96,(g,w,h)=>{g.fillStyle='#f4f1ea';g.fillRect(0,0,w,h);g.fillStyle='#a3202a';g.fillRect(5,5,w-10,h-10)})})}}
+function carta(c){ini0();
  const m=new THREE.Mesh(GEO,[ED,ED,c<0?DOR:caraMat(c),DOR,ED,ED]),o=new THREE.Group();m.receiveShadow=true;o.add(m);R.add(o);return {o,m,c}}
 function fichaMat(d,col){if(FM[d])return FM[d];const t=tx('bj3-ficha-'+d,64,64,(g,w,h)=>{g.fillStyle=col;g.fillRect(0,0,w,h);g.strokeStyle=d==1?'#b3262e':'#f4efe4';
   g.lineWidth=7;g.setLineDash([9,7]);g.beginPath();g.arc(32,32,27,0,7);g.stroke();g.setLineDash([]);g.lineWidth=2;g.beginPath();g.arc(32,32,17,0,7);g.stroke()});
@@ -201,6 +202,6 @@ function pt(s,h,nh){if(!R)return null;const g=A.carta[0]/2+.035;let c,q;
 function crT(){let t=0,as=0,n=0;CAR.forEach(x=>{if(x.s>=0||x.c<0||x.pend||x.volt||!x.o.visible||TW.some(w=>w.x===x))return;const r=x.c%13;n++;if(!r)as++;t+=!r?1:r>=9?10:r+1});
  return n?(as&&t+10<=21?t+10:t):null}
 const BJ3=window.BJ3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},
- cerca,pt,crT,
+ cerca,pt,crT,kit:{caraMat,llena,dorso:()=>(ini0(),{ED,DOR})},   // PK3 (Póker) usa las mismas caras, reverso y fichas
  sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
 })();
