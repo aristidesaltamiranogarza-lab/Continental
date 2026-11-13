@@ -38,11 +38,11 @@ const mon=f=>'$'+Math.round(f||0).toLocaleString('es-MX');
 // ---------- cartas y fichas (texturas de canvas, cacheadas por CASA3D.ctex) ----------
 const tx=(k,w,h,f)=>H().ctex(k,w,h,f);
 function caraMat(c){c%=52;if(MAT[c])return MAT[c];const r=c%13,p=c/13|0,col=p==1||p==2?'#b3202a':'#1d1a17',ps=PALO[p]+'︎';
- const t=tx('bj3-carta-'+c,128,180,(g,w,h)=>{g.fillStyle='#fbf8f1';g.fillRect(0,0,w,h);g.strokeStyle='rgba(0,0,0,.22)';g.lineWidth=3;g.strokeRect(2,2,w-4,h-4);
-  g.fillStyle=col;g.textAlign='center';g.textBaseline='middle';
-  const esq=()=>{g.font='800 30px Georgia,serif';g.fillText(RANGO[r],21,22);g.font='26px serif';g.fillText(ps,21,50)};esq();g.save();g.translate(w,h);g.rotate(PI);esq();g.restore();
-  if(r>=10){g.font='800 62px Georgia,serif';g.fillText(RANGO[r],w/2,h/2-10);g.font='34px serif';g.fillText(ps,w/2,h/2+38)}else{g.font=(r?'72px':'92px')+' serif';g.fillText(ps,w/2,h/2+4)}});
- return MAT[c]=new THREE.MeshStandardMaterial({map:t,roughness:.6})}
+ const t=tx('bj3-c2-'+c,256,360,(g,w,h)=>{g.fillStyle='#f3ecdc';g.fillRect(0,0,w,h);g.strokeStyle='rgba(60,40,20,.35)';g.lineWidth=6;g.strokeRect(3,3,w-6,h-6);
+  g.fillStyle=col;g.textAlign='center';g.textBaseline='middle';const R=RANGO[r],f=R.length>1?72:92;
+  const esq=()=>{g.font='900 '+f+'px Georgia,serif';g.fillText(R,52,62);g.font='68px serif';g.fillText(ps,52,138)};esq();g.save();g.translate(w,h);g.rotate(PI);esq();g.restore();
+  g.font='120px serif';g.fillText(ps,w/2,h/2+8)});t.anisotropy=8;
+ return MAT[c]=new THREE.MeshStandardMaterial({map:t,color:0xe2dccf,roughness:.85})}
 function ini0(){if(!GEO){GEO=new THREE.BoxGeometry(A.carta[0],.004,A.carta[1]);ED=new THREE.MeshStandardMaterial({color:0xe9e6dc,roughness:.6});
   DOR=new THREE.MeshStandardMaterial({roughness:.6,map:tx('carta-reverso',64,96,(g,w,h)=>{g.fillStyle='#f4f1ea';g.fillRect(0,0,w,h);g.fillStyle='#a3202a';g.fillRect(5,5,w-10,h-10)})})}}
 function carta(c){ini0();
@@ -156,7 +156,7 @@ addEventListener('keydown',e=>{if(!sentadoYa()||e.ctrlKey||e.metaKey||e.altKey||
  if(TK[k]){e.stopPropagation();e.preventDefault();teclas.add(TK[k])}else if(k==='+'||k==='='||k==='-'){e.stopPropagation();look.z*=k==='-'?.8:1.25;clampL();rr()}},true);
 addEventListener('keyup',e=>{const k=TK[e.key.toLowerCase()];if(k&&teclas.delete(k))rr()},true);
 addEventListener('blur',()=>teclas.clear());
-function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&!(window.PK3&&PK3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca)}
+function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&!(window.PK3&&PK3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca&&!((x=>x&&Math.hypot(me.pos.x-x.x,me.pos.z-x.z)<Math.hypot(me.pos.x-P.x,me.pos.z-P.z))(SAL.P.poker)))}
 
 // ---------- jugadas ----------
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}

@@ -13,7 +13,7 @@ const A={
  reparte:110,vuelo:420,alto:.22,volteo:380,barre:460,
  ficha:620,tPausa:1300,tBote:2500,tFin:6000,   // vuelo de fichas; espera antes de pagar; entre botes y fin (= T_BOTE y T_FIN del servidor)
  silla:1.55,cerca:4.4,
- cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{alto:2.1,atras:1.5,fov:1.25}}
+ cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{mira:.45,el:1,elV:1.15,ancho:1.45,anchoV:.95,fondo:.8,hmin:58}}
 };
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),MAZO=[.52,-.33],MUCK=[-.5,-.3];
 const touchy=matchMedia('(pointer:coarse)').matches,ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
@@ -90,22 +90,25 @@ function sync(snap){const nueva=mano!=null&&V.mano!==mano;cartas(snap);fichas(sn
 
 // ---------- gente sentada (MPJ en marcos sobre las sillas de CAS3) ----------
 let PJ=null;   // su propia instancia de MPJ
-function gente(now){if(!window.MPJ)return;const MPJ=PJ||(PJ=window.MPJ.nueva());const L=[],y=sentadoYa()&&vista==='yo'?yo():-1;
+function gente(now){if(!window.MPJ)return;const MPJ=PJ||(PJ=window.MPJ.nueva());const L=[],y=sentadoYa()?yo():-1;
  V.as.forEach((a,i)=>{if(!a||i===y)return;const q=quien(a.id);L.push({i,k:a.id,cod:(q&&q.av)||MPJ.codigo(a.n)})});
  const k=JSON.stringify(L);if(k!==mk){const ok=MPJ.sync({g:R,sillas:SIL},L,{listo:()=>{mk=''}});mpjOk=!!(window.AV&&AV.ya&&AV.ya());mk=ok||!L.length?k:''}
  if(mpjOk)MPJ.paso(now,V.fase==='mano'?V.turno:-1)}
 
 // ---------- tu lugar y la cámara: 'yo' = tus ojos, inclinado sobre la mesa · 'arriba' = toda la mesa desde detrás de tu silla ----------
-let vista='yo',fov0=0,dbl=0,pz=0;const look={y:0,p:0,z:1},teclas=new Set(),toques=new Map();
+let vista='yo',fov0=0,vfA=0,dbl=0,pz=0;const look={y:0,p:0,z:1},teclas=new Set(),toques=new Map();
 const CD=new THREE.PerspectiveCamera(),Pc=v3(0,0,0),Lc=v3(0,0,0),Dv=v3(0,0,0);
 const clampL=()=>{const C=A.cam;look.y=Math.max(-C.giro,Math.min(C.giro,look.y));look.p=Math.max(-C.baja,Math.min(C.sube,look.p));look.z=Math.max(1,Math.min(C.zoom,look.z))};
 function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares[s],fx=Math.sin(l.ry),fz=Math.cos(l.ry),Q=A.cam;
  if(teclas.size){const g=dt*1.6/look.z;if(teclas.has('l'))look.y+=g;if(teclas.has('r'))look.y-=g;if(teclas.has('u'))look.p+=g*.7;if(teclas.has('d'))look.p-=g*.7;clampL()}
  if(vista==='yo'){Pc.set(l.x+fx*Q.adelante,Q.ojo,l.z+fz*Q.adelante);const c=lugar({s,j:.5,c:0}).p;Lc.set(c.x*(1-Q.mira),TH,c.z*(1-Q.mira));m.G.localToWorld(Lc)}
- else{const a=Q.arriba,o=ov(.2+a.atras,s);Pc.set(o.x,TH+a.alto,o.z);m.G.localToWorld(Pc);Lc.set(0,TH,0);m.G.localToWorld(Lc)}
+ else{const a=Q.arriba,c=lugar({s,j:.5,c:0}).p,o=ov(1,s),un=Math.hypot(o.x,o.z)||1,asp=C.aspect||1,port=asp<1,rd=PI/180,t2=x=>Math.tan(x*rd/2);
+  vfA=Math.min(100,Math.max(fov0||C.fov,2*Math.atan(t2(a.hmin)/asp)/rd));const hf=2*Math.atan(t2(vfA)*asp)/rd,el=port?a.elV:a.el;
+  const d=Math.max(1.4,Math.min(5,Math.max((port?a.anchoV:a.ancho)/t2(hf),a.fondo/t2(vfA))));Lc.set(c.x*a.mira,TH,c.z*a.mira);
+  Pc.set(Lc.x+o.x/un*Math.cos(el)*d,TH+Math.sin(el)*d,Lc.z+o.z/un*Math.cos(el)*d);m.G.localToWorld(Pc);m.G.localToWorld(Lc)}
  Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.5,Math.min(.5,pa+look.p));
  Dv.set(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));CD.position.copy(Pc);CD.lookAt(Lc.copy(Pc).add(Dv));
- if(!fov0)fov0=C.fov;const f=Math.min(100,fov0*(vista==='arriba'?Q.arriba.fov:1))/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
+ if(!fov0)fov0=C.fov;const f=Math.min(100,(vista==='arriba'?vfA:fov0))/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
  if(!p0){p0=C.position.clone();q0=C.quaternion.clone();camT=now}const e=ease(Math.min(1,(now-camT)/Q.blend));
  C.position.lerpVectors(p0,Pc,e);C.quaternion.slerpQuaternions(q0,CD.quaternion,e);C.updateMatrixWorld()}
 function ver(v){const C=H()&&H().cam();vista=v==null?(vista==='yo'?'arriba':'yo'):v;Object.assign(look,{y:0,p:0,z:1});if(C){p0=C.position.clone();q0=C.quaternion.clone();camT=performance.now()}mk='';rr()}
@@ -130,7 +133,7 @@ addEventListener('keydown',e=>{if(!sentadoYa()||e.ctrlKey||e.metaKey||e.altKey||
  if(TK[k]){e.stopPropagation();e.preventDefault();teclas.add(TK[k])}else if(k==='+'||k==='='||k==='-'){e.stopPropagation();look.z*=k==='-'?.8:1.25;clampL();rr()}},true);
 addEventListener('keyup',e=>{const k=TK[e.key.toLowerCase()];if(k&&teclas.delete(k))rr()},true);
 addEventListener('blur',()=>teclas.clear());
-function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.poker;return !!(me&&P&&!(window.BJ3&&BJ3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca)}
+function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.poker;return !!(me&&P&&!(window.BJ3&&BJ3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca&&!((x=>x&&Math.hypot(me.pos.x-x.x,me.pos.z-x.z)<Math.hypot(me.pos.x-P.x,me.pos.z-P.z))(SAL.P.blackjack)))}
 
 // ---------- jugadas ----------
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}
