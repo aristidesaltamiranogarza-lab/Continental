@@ -156,7 +156,7 @@ addEventListener('keydown',e=>{if(!sentadoYa()||e.ctrlKey||e.metaKey||e.altKey||
  if(TK[k]){e.stopPropagation();e.preventDefault();teclas.add(TK[k])}else if(k==='+'||k==='='||k==='-'){e.stopPropagation();look.z*=k==='-'?.8:1.25;clampL();rr()}},true);
 addEventListener('keyup',e=>{const k=TK[e.key.toLowerCase()];if(k&&teclas.delete(k))rr()},true);
 addEventListener('blur',()=>teclas.clear());
-function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca)}
+function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&!(window.PK3&&PK3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca)}
 
 // ---------- jugadas ----------
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}
