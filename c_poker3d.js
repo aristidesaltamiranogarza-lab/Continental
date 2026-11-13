@@ -120,7 +120,7 @@ function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares
  if(teclas.size){const g=dt*1.6/look.z;if(teclas.has('l'))look.y+=g;if(teclas.has('r'))look.y-=g;if(teclas.has('u'))look.p+=g*.7;if(teclas.has('d'))look.p-=g*.7;clampL()}
  if(vista==='yo'){Pc.set(l.x+fx*Q.adelante,Q.ojo,l.z+fz*Q.adelante);const c=lugar({s,j:.5,c:0}).p;Lc.set(c.x*(1-Q.mira),TH,c.z*(1-Q.mira));m.G.localToWorld(Lc)}
  else{const a=Q.arriba,asp=C.aspect||1,ck=s+'|'+asp.toFixed(3)+'|'+banda();vfA=fov0||C.fov;
-  if(ext.k!==ck){const c=m.G.localToWorld(v3(0,TH,0)),o1=ov(1,s),W=q=>m.G.localToWorld(q).sub(c);
+  if(ext.k!==ck){const c=m.G.localToWorld(v3(0,TH,0)),o1=m.G.worldToLocal(v3(l.x,TH,l.z)),W=q=>m.G.localToWorld(q).sub(c);
    // el eje largo de la mesa (x local) va a lo largo de la pantalla; tu lugar abajo si queda en ese eje, si no a la izquierda
    const vx=asp<1,ej=vx?'x':'z',lo=o1[ej],ot=o1[ej==='x'?'z':'x'],uL=v3(0,TH,0);uL[ej]=Math.abs(lo)>.25?(lo>=0?-1:1):1;
    let u=W(uL),un=Math.hypot(u.x,u.z)||1,ux=u.x/un,uz=u.z/un,px=uz,pz=-ux;
