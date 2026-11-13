@@ -16,7 +16,7 @@ function cargaRev(){return revP||(revP=CGLB.cargador().then(L=>new Promise((ok,m
  s.updateMatrixWorld(true);const a=s.getObjectByName('Rev_Agarre');rev={s,inv:a.matrixWorld.clone().invert()};return rev}).catch(e=>{revP=null;console.warn('[RRPJ] no cargó el revólver',e);throw e}))}
 function listo(){return Promise.all([AV.listo(),cargaRev()])}
 const ya=()=>!!rev&&AV.ya();
-function pj(cod){const av=AV.crearYa(cod);if(!av)return null;av.position.copy(SEAT);AV.sentar(av,true);AV.pose(av,'AgarreFrente',0);AV.agarre(av,'I',.3);AV.agarre(av,'D',.3);
+function pj(cod){const av=AV.crearYa(cod);if(!av)return null;av.position.copy(SEAT);AV.sentar(av,true);AV.pose(av,'AgarreFrente',0);AV.agarre(av,'I',.3);AV.agarre(av,'D',.3);AV.encoge(av,AV.K);
  return {av,agr:av.getObjectByName('Rig_Agarre')}}
 // el revólver dentro de w (mientras carga, piezas vacías para que el juego no truene)
 function arma(w,sombra=true){const d=w.userData;d.spin=d.spin||-1e9;

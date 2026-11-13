@@ -21,7 +21,12 @@ function top(c){const p=PISO[c.piso]||'Casa';
  return `<div id="uiTop" class="ui uh-top"><button class="ui-pill" onclick="CHUD.pisos()" aria-label="Estás en ${p}. Ir a otro piso">${I('casa')}<span>${p}</span>${I('abajo','uh-chev')}</button>
  <span class="uh-tr"><button class="ui-pill" onclick="CHUD.tog('gente')" aria-label="Quién está en la casa: ${c.n}" aria-expanded="${open=='gente'}">${I('gente')}<span>${c.n}</span></button>
  <button class="ui-rb" onclick="CHUD.tog('ajustes')" aria-label="Ajustes" aria-expanded="${open=='ajustes'}">${I('menu')}</button></span></div>`}
-function br(c){const k=!c.touchy,fl=c.fp?'Volver a tercera persona':'Primera persona';
+// sentado en el Póker o el Blackjack del sótano, el botón de la cámara cambia entre tus ojos y la vista Arriba de la mesa
+const mesa=()=>window.PK3&&PK3.yo()>=0?PK3:window.BJ3&&BJ3.yo()>=0?BJ3:null;
+function br(c){const k=!c.touchy,m=mesa();if(m){const ar=m.vista()==='arriba',t=ar?'Ver con tus ojos':'Ver toda la mesa desde arriba';
+  c=Object.assign({},c,{canFp:false});const r=br0(c);return r.replace('<div class="ui uh-br">',`<div class="ui uh-br"><button class="ui-rb${ar?' on':''}" onclick="CHUD.fp()" aria-label="${t}" aria-pressed="${ar}" title="${t}${k?' (V)':''}">${I(ar?'persona':'arriba')}</button>`)}
+ return br0(c)}
+function br0(c){const k=!c.touchy,fl=c.fp?'Volver a tercera persona':'Primera persona';
  return `<div class="ui uh-br">${c.canFp?`<button class="ui-rb${c.fp?' on':''}" onclick="CHUD.fp()" aria-label="${fl}" aria-pressed="${c.fp}" title="${fl}${k?' (V)':''}">${I(c.fp?'persona':'ojo')}</button>`:''}
  <span class="uh-row"><button class="ui-rb mid${open=='gestos'?' on':''}" onclick="CHUD.tog('gestos')" aria-label="Gestos" aria-expanded="${open=='gestos'}" title="Gestos${k?' (G)':''}">${I('gesto')}${k?'<kbd>G</kbd>':''}</button>
  <button class="ui-rb big" onclick="CHUD.tog('chat')" aria-label="Chat${unread?', '+unread+' mensajes nuevos':''}" aria-expanded="${open=='chat'}" title="Chat${k?' (Enter)':''}">${I('chat')}<span class="ui-badge" id="uiChatN">${unread||''}</span>${k?'<kbd>Enter</kbd>':''}</button></span></div>`}
@@ -79,7 +84,7 @@ function key(k){if(k=='escape'){if(!open)return false;close();return true}
  return false}
 window.CHUD={html,msg,key,tog,close,send,av,isOpen:()=>open,
  pisos:()=>{open=null;if(window.CIR)CIR.tog();else rr()},
- fp:()=>{if(typeof casaFp=='function')casaFp()},
+ fp:()=>{const m=mesa();if(m)return m.ver();if(typeof casaFp=='function')casaFp()},mesa,
  nom:t=>{const n=$('uhNom');if(n)n.textContent=t||'Bailes'},
  em:e=>{open=null;if(typeof casaEm=='function')casaEm(e);rr()},
  cal:q=>{if(window.BIEN)BIEN.set(q);rr()},

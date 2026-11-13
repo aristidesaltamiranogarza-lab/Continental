@@ -375,3 +375,15 @@ html.pksit.pk2on .pk-jug{display:none}
 .bj2s.pk2o{opacity:.6}
 @media (max-height:520px){.pk2{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
  html.pksit.pk2on .bj-bar{left:calc(25% + env(safe-area-inset-left,0px));max-width:calc(50% - 32px)}}.bj2cs.pk2f{filter:grayscale(.7)}
+/* Póker: vista previa de tus dos cartas (PKH, solo mientras tocas Ver) */
+.pk-mias{position:fixed;z-index:12;right:calc(14px + env(safe-area-inset-right,0px));top:calc(120px + env(safe-area-inset-top,0px));display:flex;gap:6px;padding:8px;border-radius:16px;background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);box-shadow:var(--ui-shadow);cursor:pointer;pointer-events:auto}
+.pk-mias .bj2c{width:56px;height:80px;padding:4px 6px;border-radius:8px}.pk-mias .bj2c b{font-size:24px}.pk-mias .bj2c span{font-size:26px}
+@media (max-height:520px){.pk-mias{top:auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));right:auto;left:calc(14px + env(safe-area-inset-left,0px))}}
+/* C2D (c_casino2d.js): Blackjack y Póker en 2D en el modo Ligero; sin casa no hay botones de cámara ni barra de abajo */
+html.c2don .bj-top{top:calc(14px + env(safe-area-inset-top,0px))}
+html.c2don .bj-top .ui-rb:not(.c2k){display:none}
+html.c2don .bj2{top:calc(118px + env(safe-area-inset-top,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+html.c2don .lb-casa{display:none}
+html.c2don .bj-bar{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+html.c2don .pk-jug{top:calc(64px + env(safe-area-inset-top,0px))}
+.c2d-err{position:fixed;z-index:14;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top,0px))}

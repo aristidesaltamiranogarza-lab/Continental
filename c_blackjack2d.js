@@ -16,7 +16,8 @@ function carta(c,k){const nv=!firma&&!quieto&&!vio.has(k);if(!firma)vio.add(k);
 function mano(h,i,m,act){const k=`${i}:${m}:`,r=h.res,cl=r?(h.neta>0?' gana':h.neta<0?' pierde':''):act?' on':'';
  return `<div class="bj2m${act?' on':''}"><div class="bj2cs">${h.c.map((c,j)=>carta(c,k+j+':'+c)).join('')}</div>
   <div class="bj2i"><span class="bj2t${cl}">${r?`${RES[r]||r}${h.neta?` ${h.neta>0?'+':'−'}${mon(h.neta)}`:''}`:total(h)}</span><small>${mon(h.a)}</small></div></div>`}
-function html(v,s,sinT){if(!on||!v)return '';firma=!!sinT;
+let fz=false;   // C2D (Ligero): siempre en 2D sin tocar la preferencia de la casa
+function html(v,s,sinT){if(!(on||fz)||!v)return '';firma=!!sinT;
  if(v.fase=='apuestas')vio.clear();   // ronda nueva: se olvidan las cartas vistas
  const t=v.fase=='turnos'&&v.turno?v.turno:null;
  const orden=v.as.map((a,i)=>i).filter(i=>v.as[i]).sort((x,y)=>(y===s)-(x===s)||x-y);
@@ -30,5 +31,5 @@ function html(v,s,sinT){if(!on||!v)return '';firma=!!sinT;
 function boton(){return `<button class="ui-rb bj2b${on?' on':''}" onclick="BJ2D.tog()" title="${on?'Volver a la vista 3D':'Vista 2D'}" aria-label="Vista 2D" aria-pressed="${on}">2D</button>`}
 const cls=()=>document.documentElement.classList.toggle('bj2on',on);cls();
 function tog(){on=!on;cls();quieto=true;vio.clear();try{localStorage.setItem('bj_2d',on?'1':'0')}catch(e){}if(typeof sfx=='function')sfx('tick');if(typeof render=='function')render()}
-window.BJ2D={html,boton,tog,on:()=>on};
+window.BJ2D={html,boton,tog,on:()=>on||fz,forzar:b=>{fz=!!b}};
 })();

@@ -49,10 +49,9 @@ function botones(v,s,a){const t=turnoDe(v),h0=a.manos[0];
 function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=botones(v,s,a);
  return `<div class="ui bj-top"><span class="ui-pill bj-f"><small>Fichas</small><b>${mon(a.f)}</b></span>
   <span class="ui-pill gj-turn${f.me?' me':''}"><span>${f.t}${f.left?` · <span id="bjLeft">${sinT?'':segs(v)}</span> s`:''}</span></span>
-  <button class="ui-rb${BJ3.vista()=='arriba'?' on':''}" onclick="BJ3.ver()" title="${BJ3.vista()=='arriba'?'Ver tus cartas':'Ver toda la mesa'}" aria-label="Ver toda la mesa" aria-pressed="${BJ3.vista()=='arriba'}">${I('arriba')}</button>
   ${BJ3.mirando()?`<button class="ui-rb" onclick="BJ3.recentra()" title="Recentrar (doble toque)" aria-label="Recentrar">${I('cuadrar')}</button>`:''}
   ${window.BJ2D?BJ2D.boton():''}
-  <button class="ui-rb" onclick="BJ3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
+  <button class="ui-rb c2k" onclick="BJ3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
  ${window.BJ2D?BJ2D.html(v,s,sinT):''}
  ${b?`<div class="ui bj-bar" role="group" aria-label="Jugadas"><div class="bj-bb">${b}</div></div>`:''}`}
 

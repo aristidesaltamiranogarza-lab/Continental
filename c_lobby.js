@@ -38,7 +38,7 @@ function home(){on();const k=GM[pgame]?pgame:'continental',g=GM[k],sel=lista().i
   <div class="lb-dos"><button class="ui-btn" onclick="mk('listo')">${I('jugar')}Crear y jugar</button><button class="ui-btn sec" onclick="mk('host')">${I('llave')}Solo administrar</button></div>
   <p class="ui-sub lb-nota"><b>Crear y jugar</b>: abres la sala y te sientas. <b>Solo administrar</b>: eres el anfitrión, no juegas.</p></section>
  <section class="ui-card lb-card"><h2>${I('gente')}Unirme a una sala</h2><div class="lb-join"><input class="ui-in lb-code" placeholder="CÓDIGO" maxlength="5" value="${es(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala" autocomplete="off" autocapitalize="characters"><button class="ui-btn" onclick="joinR()">Unirme</button></div>${err()}</section>
- ${ajustes()}${reglas(g)}</div>`}
+ ${window.C2D?C2D.tarjeta():''}${ajustes()}${reglas(g)}</div>`}
 
 // sala de espera sin casa: misma idea que el boleto de c_sala.js, en la página
 function sala(g){on();const v=V,k=v.game,host=!!v.host,me=v.me;

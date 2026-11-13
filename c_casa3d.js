@@ -92,7 +92,7 @@ function init(){if(ready)return;ready=true;
   else if(k=='e'&&(window.BJ3&&BJ3.key('e')||window.PK3&&PK3.key('e')))e.preventDefault()
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
-  else if(k=='v'){e.preventDefault();fpTog()}
+  else if(k=='v'){e.preventDefault();const m=window.CHUD&&CHUD.mesa&&CHUD.mesa();if(m)m.ver();else fpTog()}
   else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(window.BJ3&&BJ3.key('escape'))return;if(window.PK3&&PK3.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
   else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}

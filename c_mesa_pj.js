@@ -18,7 +18,7 @@ function codigo(nom){let x=2166136261;for(const c of String(nom||'Jugador'))x=Ma
 function cartaM(){if(!geo){geo=new THREE.BoxGeometry(CWm,CHm,.008);const ed=new THREE.MeshStandardMaterial({color:0xe9e6dc,roughness:.6});
   mats=[ed,ed,ed,ed,new THREE.MeshStandardMaterial({roughness:.6}),new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:.7})]}
  if(mats[4].map!==dorso){mats[4].map=dorso;mats[4].needsUpdate=true}const m=new THREE.Mesh(geo,mats);m.castShadow=true;return m}
-function nuevo(w){const p=AV.crearYa(w.cod);if(!p)return null;AV.sentar(p,true);AV.pose(p,'AgarreFrente',0);AV.agarre(p,'I',.55);AV.agarre(p,'D',.55);p.position.copy(SEAT);
+function nuevo(w){const p=AV.crearYa(w.cod);if(!p)return null;AV.sentar(p,true);AV.pose(p,'AgarreFrente',0);AV.agarre(p,'I',.55);AV.agarre(p,'D',.55);p.position.copy(SEAT);AV.encoge(p,AV.K);p.userData.sit=p.position.clone();
  const hit=new THREE.Mesh(new THREE.BoxGeometry(1.1,2.3,1.05),new THREE.MeshBasicMaterial({visible:false}));hit.position.set(0,.25,-.2);hit.userData.hit={t:'seat',k:w.k};
  const ab=new THREE.Group();
  return {p,hit,ab,k:w.k,cod:w.cod,i:w.i,mi:p.getObjectByName('mano_I'),md:p.getObjectByName('mano_D'),cs:[],n:0,pend:0,vu:[],
@@ -40,8 +40,8 @@ function abanico(s){const n=Math.max(0,s.n-s.pend);while(s.cs.length<n){const m=
 // centro de sus manos en el marco de la silla (si la derecha está ocupada, la izquierda sola)
 function entreManos(s,out){const c=silla(s.i);if(!s.mi||!s.md||!c)return out.set(0,.9,.35);s.mi.getWorldPosition(P);s.md.getWorldPosition(Q);const g=s.g;out.copy(P).lerp(Q,.5*Math.max(0,1-Math.min(1,g.est+g.mano+g.arr)));c.worldToLocal(out);return out.add(Q.set(0,.02,.03))}
 function mano(i){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;c.updateMatrixWorld();return c.localToWorld(entreManos(s,v3(0,0,0)))}
-function arriba(i){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(v3(s.baila?.85:0,1.65,s.baila?-.65:SEAT.z))}
-function cabeza(i,out){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(out.copy(OJO).add(SEAT))}
+function arriba(i){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(v3(s.baila?.85:0,s.baila?1.65:1.65*AV.K,s.baila?-.65:SEAT.z))}
+function cabeza(i,out){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(out.copy(OJO).multiplyScalar(AV.K).add(SEAT))}
 const vis=s=>{const c=silla(s.i);return !!(c&&c.visible)};
 // reacciones
 function roba(i,de,w){const s=PJ.get(i);if(!s||!vis(s)||!mesa)return;estira(i,de);if(RMo())return;
@@ -53,7 +53,7 @@ function mira(i,a,ms){const s=PJ.get(i);if(s&&a){s.mira=a.clone();s.miraT=perfor
 function fin(g){if(g===finI)return;finI=g;PJ.forEach((s,i)=>{const c=silla(i);
  if(g>=0&&i===g){s.baila=true;AV.gesto(s.p,null);AV.sentar(s.p,false);s.p.position.set(.85,-1.55,-.65);s.ab.visible=false;AV.emote(s.p,['Twerk','Capoeira','Macarena','House','HipHop','Footwork','Freezes','Clasico'][Math.random()*8|0])}
  else if(g>=0){s.perd=true;AV.pose(s.p,'ManoCabeza')}
- else{if(s.baila){AV.emote(s.p,null,0);AV.sentar(s.p,true);s.p.position.copy(SEAT);s.ab.visible=true;s.baila=false}s.perd=false;AV.pose(s.p,'AgarreFrente')}})}
+ else{if(s.baila){AV.emote(s.p,null,0);AV.sentar(s.p,true);s.p.position.copy(s.p.userData.sit||SEAT);s.ab.visible=true;s.baila=false}s.perd=false;AV.pose(s.p,'AgarreFrente')}})}
 // cabeza(i,ms): se lleva la mano a la cabeza un rato (Uno: robar de castigo)
 function cabeza(i,ms){const s=PJ.get(i);if(!s||s.baila||finI>=0)return;s.perd=true;s.perdH=performance.now()+(ms||2500);AV.pose(s.p,'ManoCabeza')}
 // cada cuadro: cabezas al turno, brazos según las reacciones, cartas en las manos y las que vuelan

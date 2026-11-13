@@ -50,14 +50,19 @@ function botones(v,s,a,sinT){
  return `<div class="pk-sube">${d>0?`<input id="pkRng" class="pk-rng" type="range" min="${c.min}" max="${c.max}" step="${v.minR>=10?5:1}" value="${x}" oninput="PKH.fija(this.value)" aria-label="Cuánto subir">`:''}
   <div class="pk-rap">${rap.map(([t,n])=>B(t,`PKH.fija(${n})`,'ghost')).join('')}</div></div>`
   +h+B((x>=c.max?'Todo · ':(v.alta?'Subir a ':'Apostar '))+mon(x),'PKH.sube(PKH.sub())','go',false,'pkSub')}
+// vista previa de tus dos cartas (solo mientras las ves; en 2D ya van en tu fila)
+const PALO=['♠','♥','♦','♣'],RANGO=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function previa(v,a){if(!PK3.veo()||!a.c||!a.c.length||a.c[0]<0||a.fold||window.PK2D&&PK2D.on())return '';
+ return `<div class="ui pk-mias" onclick="PK3.verTus(false)" title="Tapar">${a.c.map(c=>{c%=52;const r=c%13,p=c/13|0;return `<i class="bj2c${p==1||p==2?' r':''}"><b>${RANGO[r]}</b><span>${PALO[p]}︎</span></i>`}).join('')}</div>`}
 function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=botones(v,s,a,sinT),j=jugada(v,a);
  return `<div class="ui bj-top"><span class="ui-pill bj-f"><small>Fichas</small><b>${mon(a.f)}</b></span>
   <span class="ui-pill gj-turn${f.me?' me':''}"><span>${f.t}${f.left?` · <span id="pkLeft">${sinT?'':segs(v)}</span> s`:''}</span></span>
-  <button class="ui-rb${PK3.vista()=='arriba'?' on':''}" onclick="PK3.ver()" title="${PK3.vista()=='arriba'?'Ver tus cartas':'Ver toda la mesa'}" aria-label="Ver toda la mesa" aria-pressed="${PK3.vista()=='arriba'}">${I('arriba')}</button>
+  ${a.c&&a.c.length&&!a.fold?`<button class="ui-rb c2k${PK3.tusVis()?' on':''}" onclick="PK3.verTus()" title="${PK3.tusVis()?'Tapar tus cartas':'Ver tus cartas'}" aria-label="Ver tus cartas" aria-pressed="${PK3.tusVis()}">${I('ojo')}</button>`:''}
   ${PK3.mirando()?`<button class="ui-rb" onclick="PK3.recentra()" title="Recentrar (doble toque)" aria-label="Recentrar">${I('cuadrar')}</button>`:''}
   ${window.PK2D?PK2D.boton():''}
-  <button class="ui-rb" onclick="PK3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
+  <button class="ui-rb c2k" onclick="PK3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
  ${window.PK2D?PK2D.html(v,s,sinT,j):''}
+ ${previa(v,a)}
  ${j?`<div class="ui pk-jug"><span class="ui-pill"><b>${es(j.nom)}</b><small>${j.p} % de ganar${j.o?` · ${j.o} outs`:''}</small></span></div>`:''}
  ${b?`<div class="ui bj-bar" role="group" aria-label="Jugadas"><div class="bj-bb">${b}</div></div>`:''}`}
 

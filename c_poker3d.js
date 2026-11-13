@@ -14,7 +14,8 @@ const A={
  vuelo:420,alto:.22,volteo:380,barre:460,
  ficha:620,tPausa:1300,tBote:2500,tFin:6000,   // vuelo de fichas; espera antes de pagar; entre botes y fin (= T_BOTE y T_FIN del servidor)
  silla:1.55,cerca:4.4,
- cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{mira:.45,el:1,elV:1.15,ancho:1.45,anchoV:.95,fondo:.8,hmin:58}}
+ cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{inc:1.555,r:.06,mv:1.45,mh:1.2,baja:.08}},   // arriba: casi perpendicular a la mesa, tu lugar abajo; encuadra de cerca tu mano y las comunes (r: orilla extra en m; mv/mh: margen; baja: corrimiento por las barras)
+ tus:{asoma:.2,ver:2.2,sube:.025,vel:9}   // tus cartas boca abajo con la orilla levantada (asoma) o paradas hacia ti (ver), en radianes
 };
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),MAZO=[.5,-.5],MUCK=[-.5,-.5];
 const touchy=matchMedia('(pointer:coarse)').matches,ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
@@ -59,11 +60,20 @@ function cartas(snap){const T=new Map(),m=V.mano,n0=V.sb>=0?V.sb:0;let orden=[];
  (V.mesa||[]).forEach((c,j)=>T.set(m+':m'+j,{s:-1,j,c}));
  let nb=0;CAR.forEach((x,k)=>{if(T.has(k))return;CAR.delete(k);barre(x,nb++*40,snap)});
  let nn=0;T.forEach((t,k)=>{const L=lugar(t);let x=CAR.get(k);
-  if(!x){x=carta(t.c);x.L=L;CAR.set(k,x);if(snap){pon(x,L);return}
+  if(!x){x=carta(t.c);x.L=L;x.s=t.s;CAR.set(k,x);if(snap){pon(x,L);if(tapo(t))x.m.rotation.z=PI;return}
    const i=t.s<0?nn++:orden.indexOf(k);x.o.visible=false;x.o.position.set(MAZO[0],TH+.05,MAZO[1]);x.o.rotation.y=L.ry+.5;x.m.rotation.z=PI;
-   const tr=i*A.reparte+(t.s<0?250:0);ir(x,L.p,L.ry,t.c<0?PI:0,A.vuelo,{arc:A.alto,tras:tr,ve:1});if(window.PKC)PKC.reparte(t.s,performance.now()+tr);return}
+   const tr=i*A.reparte+(t.s<0?250:0);ir(x,L.p,L.ry,t.c<0||tapo(t)?PI:0,A.vuelo,{arc:A.alto,tras:tr,ve:1});if(window.PKC)PKC.reparte(t.s,performance.now()+tr);return}
   if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=K().caraMat(t.c);if(snap)pon(x,L);else{x.m.rotation.z=PI;ir(x,L.p,L.ry,0,A.volteo,{arc:.05})}}})}
-function barre(x,tras,snap){quitaTw(x);const fin=()=>R.remove(x.o);if(snap||!x.o.visible)return fin();ir(x,v3(MUCK[0],TH+.06,MUCK[1]),-.4,PI,A.barre,{arc:.1,tras,fin})}
+// ---------- tus cartas: nadie las ve en tu pantalla hasta que tocas Ver (se vuelven a tapar en cada mano); en el showdown se voltean ----------
+let vis=false;
+function abierta(){const s=mio(),a=V&&s>=0?V.as[s]:null;return !!a&&V.fase==='fin'&&(!!a.mos||V.as.some((b,j)=>b&&j!==s&&b.c&&b.c[0]>=0))}
+const tapo=t=>t.s>=0&&t.s===mio()&&!abierta();
+function misCartas(dt){const s=mio(),ab=abierta(),T=A.tus,h=A.carta[1],k=Math.min(1,dt*T.vel);
+ CAR.forEach(x=>{if(x.s!==s||s<0||!x.o.visible)return;if(x.ab!==ab){const pr=x.ab!=null;x.ab=ab;if(pr&&!TW.some(t=>t.x===x))ir(x,x.L.p,x.L.ry,ab?0:PI,A.volteo,{arc:.05})}
+  const want=ab?0:vis?T.ver:T.asoma;x.phi=(x.phi||0)+(want-(x.phi||0))*k;const f=x.phi;
+  x.m.rotation.x=-f;x.m.position.set(0,h/2*Math.sin(f)+(vis&&!ab?T.sube*Math.min(1,f/T.ver):0),-h/2*(1-Math.cos(f)))})}
+function verTus(v){vis=v==null?!vis:!!v;son('tick');mk='';rr()}
+function barre(x,tras,snap){quitaTw(x);x.m.rotation.x=0;x.m.position.set(0,0,0);const fin=()=>R.remove(x.o);if(snap||!x.o.visible)return fin();ir(x,v3(MUCK[0],TH+.06,MUCK[1]),-.4,PI,A.barre,{arc:.1,tras,fin})}
 
 // ---------- fichas: apuesta de la calle frente a cada quien; al recoger van al bote; en el fin cada bote vuela a quien lo gana ----------
 function finEl(){const nb=Math.max(1,(V.res||[]).length);return A.tFin+A.tBote*(nb-1)-V.left+(performance.now()-V.t0)}
@@ -87,7 +97,7 @@ function pasoPilas(now){PILAS.forEach(P=>{if(P.en&&now>=P.en){P.en=0;K().llena(P
 
 function boton(snap){const b=M0&&M0.D.boton;if(!b||!V||V.btn<0)return;const p=btnPos(V.btn);if(!BT)BT=v3(b.position.x,b.position.y,b.position.z);
  BT.copy(p);if(snap)b.position.copy(p)}
-function sync(snap){const nueva=mano!=null&&V.mano!==mano;cartas(snap);fichas(snap);boton(snap);mano=V.mano;if(nueva&&!snap)son('tick');reacciona(snap)}
+function sync(snap){const nueva=mano!=null&&V.mano!==mano;if(nueva||mano==null&&V.mano!=null&&!snap)vis=false;cartas(snap);fichas(snap);boton(snap);mano=V.mano;if(nueva&&!snap)son('tick');reacciona(snap)}
 // la crupier mira al del turno (al final, al ganador); al cerrar la mano festeja quien gana un bote grande y se agarra la cabeza quien se queda sin fichas
 let finK=null;
 function reacciona(snap){const fin=V.fase==='fin',G=V.as.map((a,s)=>a&&a.gan>0?s:-1).filter(s=>s>=0);
@@ -103,17 +113,24 @@ function gente(now){if(!window.MPJ)return;const MPJ=PJ||(PJ=window.MPJ.nueva());
  if(mpjOk)MPJ.paso(now,V.fase==='mano'?V.turno:-1)}
 
 // ---------- tu lugar y la cámara: 'yo' = tus ojos, inclinado sobre la mesa · 'arriba' = toda la mesa desde detrás de tu silla ----------
-let vista='yo',fov0=0,vfA=0,dbl=0,pz=0;const look={y:0,p:0,z:1},teclas=new Set(),toques=new Map();
+let vista='yo',fov0=0,vfA=0,dbl=0,pz=0;const ext={k:''};const look={y:0,p:0,z:1},teclas=new Set(),toques=new Map();
 const CD=new THREE.PerspectiveCamera(),Pc=v3(0,0,0),Lc=v3(0,0,0),Dv=v3(0,0,0);
 const clampL=()=>{const C=A.cam;look.y=Math.max(-C.giro,Math.min(C.giro,look.y));look.p=Math.max(-C.baja,Math.min(C.sube,look.p));look.z=Math.max(1,Math.min(C.zoom,look.z))};
 function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares[s],fx=Math.sin(l.ry),fz=Math.cos(l.ry),Q=A.cam;
  if(teclas.size){const g=dt*1.6/look.z;if(teclas.has('l'))look.y+=g;if(teclas.has('r'))look.y-=g;if(teclas.has('u'))look.p+=g*.7;if(teclas.has('d'))look.p-=g*.7;clampL()}
  if(vista==='yo'){Pc.set(l.x+fx*Q.adelante,Q.ojo,l.z+fz*Q.adelante);const c=lugar({s,j:.5,c:0}).p;Lc.set(c.x*(1-Q.mira),TH,c.z*(1-Q.mira));m.G.localToWorld(Lc)}
- else{const a=Q.arriba,c=lugar({s,j:.5,c:0}).p,o=ov(1,s),un=Math.hypot(o.x,o.z)||1,asp=C.aspect||1,port=asp<1,rd=PI/180,t2=x=>Math.tan(x*rd/2);
-  vfA=Math.min(100,Math.max(fov0||C.fov,2*Math.atan(t2(a.hmin)/asp)/rd));const hf=2*Math.atan(t2(vfA)*asp)/rd,el=port?a.elV:a.el;
-  const d=Math.max(1.4,Math.min(5,Math.max((port?a.anchoV:a.ancho)/t2(hf),a.fondo/t2(vfA))));Lc.set(c.x*a.mira,TH,c.z*a.mira);
-  Pc.set(Lc.x+o.x/un*Math.cos(el)*d,TH+Math.sin(el)*d,Lc.z+o.z/un*Math.cos(el)*d);m.G.localToWorld(Pc);m.G.localToWorld(Lc)}
- Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.5,Math.min(.5,pa+look.p));
+ else{const a=Q.arriba,asp=C.aspect||1,ck=s+'|'+asp.toFixed(3);vfA=fov0||C.fov;
+  if(ext.k!==ck){const c=m.G.localToWorld(v3(0,TH,0)),u=m.G.localToWorld(v3(0,TH,ov(1,s).z>=0?-1:1)).sub(c),un=Math.hypot(u.x,u.z)||1,ux=u.x/un,uz=u.z/un,px=uz,pz=-ux;
+   // encuadre: tus dos cartas, las cinco comunes, tu apuesta y el bote (la mesa se puede recortar); el centro es el del recuadro
+   const [cw,ch]=A.carta,P=[];for(let j=0;j<2;j++){const L=lugar({s,j,c:0});for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(L.p.x+dx*ch/2,TH,L.p.z+dz*ch/2))}
+   for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(dx*(2*A.sepMesa+cw/2),TH,A.zMesa+dz*ch/2));P.push(apPos(s),botePos(0,1));
+   let v0=1e9,v1=-1e9,h0=1e9,h1=-1e9;P.forEach(q=>{const w=m.G.localToWorld(q.clone()).sub(c),a1=w.x*ux+w.z*uz,a2=w.x*px+w.z*pz;v0=Math.min(v0,a1);v1=Math.max(v1,a1);h0=Math.min(h0,a2);h1=Math.max(h1,a2)});
+   const tv=Math.tan(vfA*PI/360),hv=(v1-v0)/2+a.r,hh=(h1-h0)/2+a.r,cv=(v0+v1)/2,chh=(h0+h1)/2;
+   // las barras de arriba y abajo tapan más en vertical: el centro baja un poco en pantalla (sube en la mesa)
+   const cc=c.clone().add(v3(ux*cv+px*chh,0,uz*cv+pz*chh)),d=Math.max(hv*a.mv/tv,hh*a.mh/(tv*asp));cc.addScaledVector(v3(ux,0,uz),-d*tv*a.baja);
+   Object.assign(ext,{k:ck,c:cc,yw:Math.atan2(ux,uz),d})}
+  const yw=ext.yw;Lc.copy(ext.c);Pc.set(Lc.x-Math.sin(yw)*Math.cos(a.inc)*ext.d,Lc.y+Math.sin(a.inc)*ext.d,Lc.z-Math.cos(yw)*Math.cos(a.inc)*ext.d)}
+ Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.56,Math.min(.5,pa+look.p));
  Dv.set(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));CD.position.copy(Pc);CD.lookAt(Lc.copy(Pc).add(Dv));
  if(!fov0)fov0=C.fov;const f=Math.min(100,(vista==='arriba'?vfA:fov0))/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
  if(!p0){p0=C.position.clone();q0=C.quaternion.clone();camT=now}const e=ease(Math.min(1,(now-camT)/Q.blend));
@@ -156,13 +173,13 @@ function arma(){const m=M();if(!m||!H()||!K()||!m.D.enOvalo)return false;if(R&&R
  ini=true;mk='';BT=null;if(V)sync(true);return true}
 function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000);if((!ini||M()!==M0)&&!arma())return;
  if(now-tP>1000){acaba();mk=''}   // pestaña dormida: todo a su lugar
- tP=now;pasoTw(now);pasoPilas(now);if(!V)return;if(V.fase==='fin')fichas(false);
+ tP=now;pasoTw(now);pasoPilas(now);if(!V)return;misCartas(dt);if(V.fase==='fin')fichas(false);
  const b=M0.D.boton;if(b&&BT&&b.position.distanceTo(BT)>1e-3)b.position.lerp(BT,Math.min(1,dt*5));
  gente(now);const s=yo(),me=quien(yoId());
  if(s>=0){if(!ancla)sienta(s);if(me&&ancla){if(Math.hypot(me.pos.x-ancla.x,me.pos.z-ancla.z)>.4)levantarse();else{if(mpjOk)me.g.visible=false;camara(now,s,dt)}}}
  else if(ancla)suelta();
  document.documentElement.classList.toggle('pksit',sentadoYa());
- const k=[s,s<0&&cerca(),vista,mirando(),s>=0?V.as[s].f:V.as.filter(Boolean).length,V.fase,V.turno,window.PKH?PKH.firma(V,s):''].join('|');if(k!==hk){hk=k;rr()}
+ const k=[s,s<0&&cerca(),vista,vis,abierta(),mirando(),s>=0?V.as[s].f:V.as.filter(Boolean).length,V.fase,V.turno,window.PKH?PKH.firma(V,s):''].join('|');if(k!==hk){hk=k;rr()}
  if(window.PKH)PKH.paso(V,s,now)}
 
 // ---------- aviso de la mesa (al centro abajo, como CMESA); sentado, la interfaz es PKH ----------
@@ -175,7 +192,7 @@ function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s
   <span class="uh-at"><b>Jugar Póker</b><small>${n?n+' en la mesa · ':''}Ciegas $${sb}/$${bb}${touchy?' · toca para sentarte':''}</small></span>${touchy?'':'<kbd>E</kbd>'}</button>`}
 function key(k){if(k==='escape'&&yo()>=0){levantarse();return true}if(k==='e'&&yo()<0&&cerca()){sentar();return true}return false}
 
-const PK3=window.PK3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},cerca,
+const PK3=window.PK3={A,v:null,verTus,veo:()=>vis||abierta(),tusVis:()=>vis,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},cerca,
  arriba:i=>PJ&&mpjOk?PJ.arriba(i):null,ptAsiento:s=>R?mundo(enMesa(ov(A.rCarta+.02,s),.02)):null,ptBote:(k,n)=>R?mundo(botePos(k,n).setY(TH+.05)):null,   // PKH: globitos
  sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
 })();

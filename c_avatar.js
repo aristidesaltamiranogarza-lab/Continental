@@ -167,7 +167,11 @@ function cambiar(p,cod){const u=p.userData.av;if(!u)return p;const pelo=u.o.p;ap
 function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.stopAllAction();u.mixer.uncacheRoot(p);
  for(const k in u.mat)u.mat[k].dispose();if(p.parent)p.parent.remove(p);p.userData.av=null}
 
-window.AV={PAL,RP,GE,gesto,mezcla,amartilla,post,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
+// encoge(p,k): escala el personaje k veces alrededor de su cadera (sentado no se hunde ni flota); llamar después de ponerle posición
+function encoge(p,k){if(!p||k===1)return;p.updateMatrixWorld(true);const a=p.getObjectByName('muslo_D'),b=p.getObjectByName('muslo_I');if(!a||!b){p.scale.multiplyScalar(k);return}
+ const V=THREE.Vector3,h=a.getWorldPosition(new V()).add(b.getWorldPosition(new V())).multiplyScalar(.5);p.worldToLocal(h);
+ p.position.add(h.multiplyScalar(p.scale.x*(1-k)).applyQuaternion(p.quaternion));p.scale.multiplyScalar(k)}
+window.AV={encoge,K:.8,PAL,RP,GE,gesto,mezcla,amartilla,post,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},get alto(){return alto},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
  mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}
