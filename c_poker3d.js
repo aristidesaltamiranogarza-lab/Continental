@@ -14,7 +14,7 @@ const A={
  vuelo:420,alto:.22,volteo:380,barre:460,
  ficha:620,tPausa:1300,tBote:2500,tFin:6000,   // vuelo de fichas; espera antes de pagar; entre botes y fin (= T_BOTE y T_FIN del servidor)
  silla:1.55,cerca:4.4,
- cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{inc:1.555,r:.06,mv:1.45,mh:1.2,baja:.08}},   // arriba: casi perpendicular a la mesa, tu lugar abajo; encuadra de cerca tu mano y las comunes (r: orilla extra en m; mv/mh: margen; baja: corrimiento por las barras)
+ cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{inc:1.555,r:.06,mv:1.1,mh:1.12,techo:2.85,fmax:95}},   // arriba: casi perpendicular a la mesa, tu lugar abajo; encuadra de cerca tu mano y las comunes (r: orilla extra en m; mv/mh: margen; baja: corrimiento por las barras)
  tus:{asoma:.2,ver:2.2,sube:.025,vel:9}   // tus cartas boca abajo con la orilla levantada (asoma) o paradas hacia ti (ver), en radianes
 };
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),MAZO=[.5,-.5],MUCK=[-.5,-.5];
@@ -119,22 +119,33 @@ const clampL=()=>{const C=A.cam;look.y=Math.max(-C.giro,Math.min(C.giro,look.y))
 function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares[s],fx=Math.sin(l.ry),fz=Math.cos(l.ry),Q=A.cam;
  if(teclas.size){const g=dt*1.6/look.z;if(teclas.has('l'))look.y+=g;if(teclas.has('r'))look.y-=g;if(teclas.has('u'))look.p+=g*.7;if(teclas.has('d'))look.p-=g*.7;clampL()}
  if(vista==='yo'){Pc.set(l.x+fx*Q.adelante,Q.ojo,l.z+fz*Q.adelante);const c=lugar({s,j:.5,c:0}).p;Lc.set(c.x*(1-Q.mira),TH,c.z*(1-Q.mira));m.G.localToWorld(Lc)}
- else{const a=Q.arriba,asp=C.aspect||1,ck=s+'|'+asp.toFixed(3);vfA=fov0||C.fov;
-  if(ext.k!==ck){const c=m.G.localToWorld(v3(0,TH,0)),u=m.G.localToWorld(v3(0,TH,ov(1,s).z>=0?-1:1)).sub(c),un=Math.hypot(u.x,u.z)||1,ux=u.x/un,uz=u.z/un,px=uz,pz=-ux;
-   // encuadre: tus dos cartas, las cinco comunes, tu apuesta y el bote (la mesa se puede recortar); el centro es el del recuadro
-   const [cw,ch]=A.carta,P=[];for(let j=0;j<2;j++){const L=lugar({s,j,c:0});for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(L.p.x+dx*ch/2,TH,L.p.z+dz*ch/2))}
-   for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(dx*(2*A.sepMesa+cw/2),TH,A.zMesa+dz*ch/2));P.push(apPos(s),botePos(0,1));
-   let v0=1e9,v1=-1e9,h0=1e9,h1=-1e9;P.forEach(q=>{const w=m.G.localToWorld(q.clone()).sub(c),a1=w.x*ux+w.z*uz,a2=w.x*px+w.z*pz;v0=Math.min(v0,a1);v1=Math.max(v1,a1);h0=Math.min(h0,a2);h1=Math.max(h1,a2)});
-   const tv=Math.tan(vfA*PI/360),hv=(v1-v0)/2+a.r,hh=(h1-h0)/2+a.r,cv=(v0+v1)/2,chh=(h0+h1)/2;
-   // las barras de arriba y abajo tapan más en vertical: el centro baja un poco en pantalla (sube en la mesa)
-   const cc=c.clone().add(v3(ux*cv+px*chh,0,uz*cv+pz*chh)),d=Math.max(hv*a.mv/tv,hh*a.mh/(tv*asp));cc.addScaledVector(v3(ux,0,uz),-d*tv*a.baja);
-   Object.assign(ext,{k:ck,c:cc,yw:Math.atan2(ux,uz),d})}
-  const yw=ext.yw;Lc.copy(ext.c);Pc.set(Lc.x-Math.sin(yw)*Math.cos(a.inc)*ext.d,Lc.y+Math.sin(a.inc)*ext.d,Lc.z-Math.cos(yw)*Math.cos(a.inc)*ext.d)}
+ else{const a=Q.arriba,asp=C.aspect||1,ck=s+'|'+asp.toFixed(3)+'|'+banda();vfA=fov0||C.fov;
+  if(ext.k!==ck){const c=m.G.localToWorld(v3(0,TH,0)),o1=ov(1,s),W=q=>m.G.localToWorld(q).sub(c);
+   // el eje largo de la mesa (x local) va a lo largo de la pantalla; tu lugar abajo si queda en ese eje, si no a la izquierda
+   const vx=asp<1,ej=vx?'x':'z',lo=o1[ej],ot=o1[ej==='x'?'z':'x'],uL=v3(0,TH,0);uL[ej]=Math.abs(lo)>.25?(lo>=0?-1:1):1;
+   let u=W(uL),un=Math.hypot(u.x,u.z)||1,ux=u.x/un,uz=u.z/un,px=uz,pz=-ux;
+   if(Math.abs(lo)<=.25){const sw=W(v3(o1.x,TH,o1.z));if(sw.x*px+sw.z*pz>0){ux=-ux;uz=-uz;px=-px;pz=-pz}}
+   // encuadre (horizontal): tus dos cartas, las cinco comunes, tu apuesta y el bote (la mesa se puede recortar); el centro es el del recuadro
+   const [cw,ch]=A.carta,P=[];if(!vx)for(let j=0;j<2;j++){const L=lugar({s,j,c:0});for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(L.p.x+dx*ch/2,TH,L.p.z+dz*ch/2))}
+   for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(dx*(2*A.sepMesa+cw/2),TH,A.zMesa+dz*ch/2));P.push(botePos(0,1));if(!vx)P.push(apPos(s));   // en vertical no cabe todo: comunes y bote de cerca; tu mano, en la vista previa del ojo
+   let v0=1e9,v1=-1e9,h0=1e9,h1=-1e9;P.forEach(q=>{const w=W(q.clone()),a1=w.x*ux+w.z*uz,a2=w.x*px+w.z*pz;v0=Math.min(v0,a1);v1=Math.max(v1,a1);h0=Math.min(h0,a2);h1=Math.max(h1,a2)});
+   let f=vfA,tv=Math.tan(f*PI/360);const hv=(v1-v0)/2+a.r,hh=(h1-h0)/2+a.r,cv=(v0+v1)/2,chh=(h0+h1)/2,cc=c.clone().add(v3(ux*cv+px*chh,0,uz*cv+pz*chh));
+   const [yLo,yHi]=banda().split(',').map(Number),bh=(yHi-yLo)/2,yc=(yHi+yLo)/2;
+   let d=Math.max(hv*a.mv/(tv*bh),hh*a.mh/(tv*asp));const dm=(a.techo-cc.y)/Math.sin(a.inc);
+   if(d>dm){tv=tv*d/dm;f=Math.min(a.fmax,2*Math.atan(tv)*360/(2*PI));tv=Math.tan(f*PI/360);d=dm}   // bajo el techo: abre el ángulo en vez de subir
+   cc.addScaledVector(v3(ux,0,uz),-d*tv*yc);   // el contenido va al centro del espacio libre entre las barras
+   Object.assign(ext,{k:ck,c:cc,yw:Math.atan2(ux,uz),d,f})}
+  vfA=ext.f;const yw=ext.yw;Lc.copy(ext.c);Pc.set(Lc.x-Math.sin(yw)*Math.cos(a.inc)*ext.d,Lc.y+Math.sin(a.inc)*ext.d,Lc.z-Math.cos(yw)*Math.cos(a.inc)*ext.d)}
  Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.56,Math.min(.5,pa+look.p));
  Dv.set(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));CD.position.copy(Pc);CD.lookAt(Lc.copy(Pc).add(Dv));
  if(!fov0)fov0=C.fov;const f=Math.min(100,(vista==='arriba'?vfA:fov0))/look.z;if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*Math.min(1,dt*12);C.updateProjectionMatrix()}
  if(!p0){p0=C.position.clone();q0=C.quaternion.clone();camT=now}const e=ease(Math.min(1,(now-camT)/Q.blend));
  C.position.lerpVectors(p0,Pc,e);C.quaternion.slerpQuaternions(q0,CD.quaternion,e);C.updateMatrixWorld()}
+// espacio libre en pantalla (en NDC, abajo,arriba) entre la barra de arriba (.bj-top) y la de jugadas (.bj-bar); se mide cada medio segundo
+let bnd='-.7,.7',bndT=0;
+function banda(){const t=performance.now();if(t-bndT<500)return bnd;bndT=t;const H=innerHeight||1,a=document.querySelector('.bj-top'),b=document.querySelector('.bj-bar');
+ const j=document.querySelector('.pk-jug'),top=Math.max(a?a.getBoundingClientRect().bottom:80,j?j.getBoundingClientRect().bottom:0)+8,bot=Math.max(b?H-b.getBoundingClientRect().top:0,H<=520?132:touchy?292:148)+8;   // nunca menos que la barra con deslizador: la cámara no brinca cuando te toca
+ const lo=Math.min(.3,-1+2*bot/H),hi=Math.max(lo+.4,1-2*top/H);return bnd=lo.toFixed(2)+','+hi.toFixed(2)}
 function ver(v){const C=H()&&H().cam();vista=v==null?(vista==='yo'?'arriba':'yo'):v;Object.assign(look,{y:0,p:0,z:1});if(C){p0=C.position.clone();q0=C.quaternion.clone();camT=performance.now()}mk='';rr()}
 function recentra(){Object.assign(look,{y:0,p:0,z:1});rr()}
 const mirando=()=>Math.abs(look.y)>.05||Math.abs(look.p)>.05||look.z>1.05;
