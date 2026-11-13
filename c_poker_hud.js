@@ -1,4 +1,4 @@
-// c_poker_hud.js — PKH: la interfaz del Póker del sótano (PK3, c_poker3d.js). Estilos en ui_juegos.css (.bj-… compartidas y .pk-…).
+// c_poker_hud.js — PKH: la interfaz del Póker del sótano (PK3, c_poker3d.js). Estilos en ui_juegos.css (.bj-… compartidas y .pk-…). Vista 2D: PK2D (c_poker2d.js).
 // PKH.hud(v,s) sentado: pastillas (fichas, turno con cuenta regresiva, tu jugada con probabilidad y outs, Arriba, Recentrar, Levantarse) y la barra
 // (Retirarse, Pasar/Igualar, Subir con deslizador y ½ bote / Bote / Todo; Mostrar al final). PKH.firma(v,s) cambia cuando hay que redibujar.
 // PKH.paso(v,s,now) cada cuadro: nombre, fichas y última jugada sobre cada jugador, el resultado del ganador y la cantidad de cada bote.
@@ -55,7 +55,9 @@ function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=bot
   <span class="ui-pill gj-turn${f.me?' me':''}"><span>${f.t}${f.left?` · <span id="pkLeft">${sinT?'':segs(v)}</span> s`:''}</span></span>
   <button class="ui-rb${PK3.vista()=='arriba'?' on':''}" onclick="PK3.ver()" title="${PK3.vista()=='arriba'?'Ver tus cartas':'Ver toda la mesa'}" aria-label="Ver toda la mesa" aria-pressed="${PK3.vista()=='arriba'}">${I('arriba')}</button>
   ${PK3.mirando()?`<button class="ui-rb" onclick="PK3.recentra()" title="Recentrar (doble toque)" aria-label="Recentrar">${I('cuadrar')}</button>`:''}
+  ${window.PK2D?PK2D.boton():''}
   <button class="ui-rb" onclick="PK3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
+ ${window.PK2D?PK2D.html(v,s,sinT,j):''}
  ${j?`<div class="ui pk-jug"><span class="ui-pill"><b>${es(j.nom)}</b><small>${j.p} % de ganar${j.o?` · ${j.o} outs`:''}</small></span></div>`:''}
  ${b?`<div class="ui bj-bar" role="group" aria-label="Jugadas"><div class="bj-bb">${b}</div></div>`:''}`}
 
@@ -68,7 +70,7 @@ function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==
 function paso(v,s,now){tP=now;const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.R()&&H.R().domElement;if(!v||!cam||!cv)return;
  const el=$('pkLeft');if(el){const t=String(segs(v));if(el.textContent!==t)el.textContent=t}
  L.forEach(e=>{e.vivo=0});
- if(s>=0||PK3.cerca()){const W=cv.clientWidth,Hh=cv.clientHeight,fin=v.fase==='fin';
+ if((s>=0||PK3.cerca())&&!(s>=0&&window.PK2D&&PK2D.on())){const W=cv.clientWidth,Hh=cv.clientHeight,fin=v.fase==='fin';
   v.as.forEach((a,i)=>{if(!a)return;const ac=a.acc&&!fin?`${ACC[a.acc.o]||''}${a.acc.v&&a.acc.o!=='todo'?' '+mon(a.acc.v):''}`:'';
    if(i!==s)pon(etiqueta('n'+i),'ui gj-seat bj-n'+(v.fase==='mano'&&v.turno===i?' on':''),`<b>${es(a.n)}</b><small>${mon(a.f)}${ac?' · '+ac:''}</small>`,PK3.arriba(i),cam,W,Hh);
    if(fin&&a.jug&&(a.neta>0||a.nom)){const r=(v.res||[]).find(r=>r.g.includes(i));

@@ -362,3 +362,16 @@ html.bjsit .h3sign,html.pksit .h3sign{display:none!important}   /* sentado: sin 
 .bj2t.on{border-color:var(--ui-accent)}.bj2t.gana{background:var(--ui-accent);color:var(--ui-on);border-color:transparent}.bj2t.pierde{color:var(--ui-sub)}
 .bj2v{color:var(--ui-sub);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bj2c.nv{animation:none}}
+/* Póker 2D (PK2D): reusa .bj2…; la barra del póker es más alta (deslizador) */
+.pk2{bottom:calc(390px + env(safe-area-inset-bottom,0px))}
+@media (hover:hover) and (pointer:fine){.pk2{bottom:calc(230px + env(safe-area-inset-bottom,0px))}}
+html.pksit.pk2on .pk-jug{display:none}
+.pk2m{flex-wrap:wrap}.pk2c{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0}
+.pk2cs .bj2c+.bj2c{margin-left:4px}.bj2c.pk2h{background:none;border:1px dashed var(--ui-line);box-shadow:none}
+.pk2b{display:flex;flex-wrap:wrap;gap:4px}
+.pk2e{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.pk2d{font:800 11px/1 var(--ui-font);font-style:normal;padding:3px 6px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);color:var(--ui-sub)}
+.pk2j{color:var(--ui-sub);font-size:12px}
+.bj2s.pk2o{opacity:.6}
+@media (max-height:520px){.pk2{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+ html.pksit.pk2on .bj-bar{left:calc(25% + env(safe-area-inset-left,0px));max-width:calc(50% - 32px)}}.bj2cs.pk2f{filter:grayscale(.7)}

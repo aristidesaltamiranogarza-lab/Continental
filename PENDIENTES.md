@@ -235,7 +235,7 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
   Hecho: caras, reverso y fichas de BJ3.kit; cartas propias frente a cada asiento (reparto en orden desde la ciega chica), comunes al centro, apuestas de la calle que vuelan al bote al recoger, un bote por bote paralelo que en el fin vuela a su ganador (T_BOTE entre botes), barrido al descarte, botón de dealer de CAS3 (D.boton, D.enOvalo) que se mueve. Sentarse con E o tocando, cámara propia (primera persona/Arriba). MPJ ahora es fábrica (`MPJ.nueva()`): el Póker lleva su propia instancia. Crupier pendiente para P6; las jugadas llegan con P4 (PKH.hud).
 - [x] P4 Interfaz `c_poker_hud.js` (PKH).
   Hecho: pastillas como Blackjack (fichas, turno con cuenta regresiva, Arriba, Recentrar, Levantarse) y debajo tu jugada con % de ganar (PEV.equidad contra los que siguen) y outs en flop/turn. Barra: Retirarse, Pasar/Igualar (o Todo si no alcanza), deslizador para subir con ½ bote, Bote y Todo, y Subir a/Apostar; al final tu resultado y Mostrar. Sobre la mesa: nombre, fichas y última jugada de cada quien, cantidad de cada bote y el globito del ganador (+340 Color). Sentado en una mesa ya no sale el aviso de la otra. Falta mirar los globitos de los asientos en celular vertical con la vista Arriba (el panel del navegador estaba oculto).
-- [ ] P5 Vista 2D.
+- [x] P5 Vista 2D `c_poker2d.js` (PK2D; botón 2D en PKH, localStorage pk_2d): comunes con huecos, botes, cada asiento con cartas, D/CC/CG, apuesta, última jugada y resultado; tu jugada va en tu fila. Reusa .bj2…; falta mirarla en una mano real en celular.
 - [ ] P6 Crupier con atuendo propio, sonidos, gestos, quitar "Próximamente", celular y compu.
 
 ### [ ] Monopoly Deal en 3D (salón de la planta baja)
