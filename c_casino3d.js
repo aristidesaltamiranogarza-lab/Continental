@@ -140,7 +140,8 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
  // crupier: charola, baraja; un botón de dealer frente a un jugador
  charola(G,std,ctex,0,TH+.026,-.51,.7,.12,['blanca','roja','roja','verde','negra','morada']);
  const rv=std(0xffffff,.6,{map:texReverso(ctex)}),bl=std(0xf4f1ea,.6);
- malla(G,new THREE.BoxGeometry(.1,.035,.14),[bl,bl,rv,bl,bl,bl],.52,TH+.018,-.33).rotation.y=.2;
+ malla(G,new THREE.BoxGeometry(.1,.035,.14),[bl,bl,rv,bl,bl,bl],.5,TH+.018,-.5).rotation.y=.2;
+ malla(G,new THREE.BoxGeometry(1.4,.38,.8),std(0x2a1a10,.7),0,.19,-1.38);   // tarima del crupier (como la del Blackjack)
  const bt=ctex('boton-dealer',128,128,(g,w,h)=>{g.fillStyle='#f6f3ea';g.fillRect(0,0,w,h);g.fillStyle='#1a1a1a';g.font='900 26px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('DEALER',w/2,h/2)});
  const bd=enOvalo(.48,3/9),boton=malla(G,new THREE.CylinderGeometry(.06,.06,.016,24),[bl,std(0xffffff,.5,{map:bt}),bl],bd.x,TH+.008,bd.z);
  // lugares: 9 a lo largo del óvalo (el 0 es el crupier, sin silla); portavasos en la pista
@@ -150,8 +151,8 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
   if(LT){const q=enOvalo(.705,k/9+.022);LT.geo(new THREE.TorusGeometry(.045,.009,6,18).rotateX(PI/2),'#c8ccd0',q.x,TH+.03,q.z);LT.geo(new THREE.CircleGeometry(.04,16).rotateX(-PI/2),'#141414',q.x,TH+.028,q.z)}}
  if(LT)G.add(LT.mesh(std(0xffffff,.3,{metalness:.6})));
  if(hit)G.traverse(o=>{if(o.isMesh&&o.parent===G){o.userData.hit=hit;hits.push(o)}});
- const OB=[-.95,0,.95].map(x=>{const w=mundo(G,x,0);return {x:w.x,z:w.z,r:.97}}).concat(lugares.map(l=>({x:l.x,z:l.z,r:.42})));
- return {G,lugares,sillas,OB,D:{TH,PA,PB,crupier:enOvalo(PB+.72,0),boton,enOvalo}}}   // boton y enOvalo: PK3 mueve el botón de dealer
+ const OB=[-.95,0,.95].map(x=>{const w=mundo(G,x,0);return {x:w.x,z:w.z,r:.97}}).concat([-.4,.4].map(x=>{const w=mundo(G,x,-1.45);return {x:w.x,z:w.z,r:.45}}),lugares.map(l=>({x:l.x,z:l.z,r:.42})));
+ return {G,lugares,sillas,OB,D:{TH,PA,PB,crupier:[0,-1.25],tarima:.38,zapato:[.5,-.5],casillas:[...Array(8)].map((_,s)=>{const p=enOvalo(.47,(s+1)/9);return [p.x,p.z]}),boton,enOvalo}}}   // boton y enOvalo: PK3 mueve el botón de dealer
 
 window.CAS3={blackjack,poker,silla,campana,luz};
 })();

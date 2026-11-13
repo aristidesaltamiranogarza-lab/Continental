@@ -10,12 +10,13 @@ const A={
  carta:[.11,.155],rCarta:.47,sepCarta:.07,      // tamaño; radio de las cartas propias desde el óvalo; separación entre tus dos cartas
  sepMesa:.13,zMesa:.04,                        // comunes: separación y dónde (al centro)
  rAp:.3,zBote:-.24,sepBote:.17,                // apuestas de la calle; botes
- reparte:110,vuelo:420,alto:.22,volteo:380,barre:460,
+ reparte:230,     // entre cartas (= rep de PKC, la crupier de c_bj_crupier.js, que lanza cada una)
+ vuelo:420,alto:.22,volteo:380,barre:460,
  ficha:620,tPausa:1300,tBote:2500,tFin:6000,   // vuelo de fichas; espera antes de pagar; entre botes y fin (= T_BOTE y T_FIN del servidor)
  silla:1.55,cerca:4.4,
  cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{mira:.45,el:1,elV:1.15,ancho:1.45,anchoV:.95,fondo:.8,hmin:58}}
 };
-const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),MAZO=[.52,-.33],MUCK=[-.5,-.3];
+const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),MAZO=[.5,-.5],MUCK=[-.5,-.5];
 const touchy=matchMedia('(pointer:coarse)').matches,ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const CAR=new Map(),TW=[],PILAS=new Map(),SIL=[],cola=[];
 let V=null,R=null,M0=null,TH=1.5,ini=false,tP=0,mano=null,pide=-1,pideT=0,parando=false,ancla=null,meVis=null,p0=null,q0=null,camT=0,mk='',mpjOk=false,hk='',GEO=null,BT=null;
@@ -46,7 +47,7 @@ function ir(x,p,ry,f,d,o){o=o||{};quitaTw(x);const y0=x.o.rotation.y;
  TW.push({x,p0:x.o.position.clone(),p1:p.clone(),y0,y1:y0+wrap(ry-y0),f0:x.m?x.m.rotation.z:0,f1:f,t0:performance.now()+(o.tras||0),d,arc:o.arc||0,fin:o.fin,ve:o.ve})}
 function pon(x,L){x.o.position.copy(L.p);x.o.rotation.y=L.ry;if(x.m)x.m.rotation.z=0;x.o.visible=true}
 function pasoTw(now){for(let i=TW.length-1;i>=0;i--){const t=TW[i];if(!t)continue;const k=(now-t.t0)/t.d;if(k<0)continue;const e=ease(Math.min(1,k)),o=t.x.o;
- if(t.ve){t.ve=0;o.visible=true;if(t.x.m)son('deal')}
+ if(t.ve){t.ve=0;o.visible=true;if(t.x.m){son('deal');const h=window.PKC&&PKC.mano();if(h)t.p0.copy(R.worldToLocal(h.clone()))}}
  o.position.lerpVectors(t.p0,t.p1,e);if(t.arc)o.position.y+=Math.sin(PI*Math.min(1,k))*t.arc;o.rotation.y=t.y0+(t.y1-t.y0)*e;if(t.x.m)t.x.m.rotation.z=t.f0+(t.f1-t.f0)*e;
  if(k>=1){TW.splice(TW.indexOf(t),1);if(t.fin)t.fin()}}}
 function acaba(){for(let n=0;TW.length&&n<5;n++)TW.splice(0).forEach(t=>{t.x.o.visible=true;t.x.o.position.copy(t.p1);t.x.o.rotation.y=t.y1;if(t.x.m)t.x.m.rotation.z=t.f1;if(t.fin)t.fin()})}
@@ -60,7 +61,7 @@ function cartas(snap){const T=new Map(),m=V.mano,n0=V.sb>=0?V.sb:0;let orden=[];
  let nn=0;T.forEach((t,k)=>{const L=lugar(t);let x=CAR.get(k);
   if(!x){x=carta(t.c);x.L=L;CAR.set(k,x);if(snap){pon(x,L);return}
    const i=t.s<0?nn++:orden.indexOf(k);x.o.visible=false;x.o.position.set(MAZO[0],TH+.05,MAZO[1]);x.o.rotation.y=L.ry+.5;x.m.rotation.z=PI;
-   ir(x,L.p,L.ry,t.c<0?PI:0,A.vuelo,{arc:A.alto,tras:i*A.reparte+(t.s<0?250:0),ve:1});return}
+   const tr=i*A.reparte+(t.s<0?250:0);ir(x,L.p,L.ry,t.c<0?PI:0,A.vuelo,{arc:A.alto,tras:tr,ve:1});if(window.PKC)PKC.reparte(t.s,performance.now()+tr);return}
   if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=K().caraMat(t.c);if(snap)pon(x,L);else{x.m.rotation.z=PI;ir(x,L.p,L.ry,0,A.volteo,{arc:.05})}}})}
 function barre(x,tras,snap){quitaTw(x);const fin=()=>R.remove(x.o);if(snap||!x.o.visible)return fin();ir(x,v3(MUCK[0],TH+.06,MUCK[1]),-.4,PI,A.barre,{arc:.1,tras,fin})}
 
@@ -86,7 +87,13 @@ function pasoPilas(now){PILAS.forEach(P=>{if(P.en&&now>=P.en){P.en=0;K().llena(P
 
 function boton(snap){const b=M0&&M0.D.boton;if(!b||!V||V.btn<0)return;const p=btnPos(V.btn);if(!BT)BT=v3(b.position.x,b.position.y,b.position.z);
  BT.copy(p);if(snap)b.position.copy(p)}
-function sync(snap){const nueva=mano!=null&&V.mano!==mano;cartas(snap);fichas(snap);boton(snap);mano=V.mano;if(nueva&&!snap)son('tick')}
+function sync(snap){const nueva=mano!=null&&V.mano!==mano;cartas(snap);fichas(snap);boton(snap);mano=V.mano;if(nueva&&!snap)son('tick');reacciona(snap)}
+// la crupier mira al del turno (al final, al ganador); al cerrar la mano festeja quien gana un bote grande y se agarra la cabeza quien se queda sin fichas
+let finK=null;
+function reacciona(snap){const fin=V.fase==='fin',G=V.as.map((a,s)=>a&&a.gan>0?s:-1).filter(s=>s>=0);
+ if(window.PKC)PKC.mira(V.fase==='mano'?V.turno:fin&&G.length?G[0]:null);
+ if(!fin||finK===V.mano)return;finK=V.mano;if(snap||!PJ)return;
+ V.as.forEach((a,s)=>{if(!a)return;if(a.gan>=200)PJ.festeja(s);else if(!a.f)PJ.cabeza(s,3000)})}
 
 // ---------- gente sentada (MPJ en marcos sobre las sillas de CAS3) ----------
 let PJ=null;   // su propia instancia de MPJ
