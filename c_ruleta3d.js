@@ -14,7 +14,7 @@ GM.ruleta={name:'Ruleta Rusa',emoji:'',max:6,rules,lobby,body:body0,face:()=>({h
 const K=window.C3D,OK3=typeof THREE!=='undefined'&&!!K;let CH=null;   // CH: CASA3D, lo pone c_casa3d.js (carga después de este archivo)
 // cuarto ±W y techo HT; mesa de radio TBR a la altura TH (la de las mesas de la casa); 6 sillas a CR del centro
 // el sótano sigue a la izquierda hasta XL: la cantina (c_sotano.js) y, pasando sus arcos, el casino y el billar (c_sotano_salon.js)
-const XL=-32,RW=5.2-XL,CX=(5.2+XL)/2;
+const XL=-35,RW=5.2-XL,CX=(5.2+XL)/2;
 const W=5.2,HT=3.9,TH=1.5,TBR=1.7,CR=2.35,NS=6,POLE=OK3?[new THREE.Vector3(-1.2,-.4,-.7),new THREE.Vector3(1.2,-.4,-.7)]:null;
 let R,SC,CA,root,cv,lay,fxv,dv,shR=false,hand=null,swT=-1e9,ready=false,failed=false,shown=false,raf=0,tPrev=0,Wd=0,Hd=0;
 const v3=(x,y,z)=>new THREE.Vector3(x,y,z),rnd=(a,b)=>a+Math.random()*(b-a),cl=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=x=>x<0?0:x>1?1:x*x*(3-2*x);

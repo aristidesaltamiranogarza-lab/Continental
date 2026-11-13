@@ -5,7 +5,7 @@
 // Lo arma c_sotano.js en SOT.piso(): SAL.build({S,hits,HT,W,XL,TH}) → {OB,WL,step}. SAL.P = dónde está cada mesa; SAL.M = las mesas.
 (function(){
 if(typeof THREE==='undefined')return;
-const PI=Math.PI,X1=-14,X2=-23,A1=.35;   // muro cantina | casino (arco en z=A1) y arco ancho casino | billar
+const PI=Math.PI,X1=-14,X2=-26,A1=.35;   // muro cantina | casino (arco en z=A1) y arco ancho casino | billar
 const NOM={billar:'Billar',blackjack:'Blackjack',poker:'Póker'};
 const P={},M={},signs=[];let KM=null,lastT=0;
 
@@ -82,37 +82,37 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
    g.strokeText(txt,w/2,h/2);g.fillStyle=c1;g.fillText(txt,w/2,h/2);g.shadowBlur=10;g.fillText(txt,w/2,h/2)});
   const m=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),new THREE.MeshBasicMaterial({map:t,transparent:true,toneMapped:false,depthWrite:false}));m.position.set(x,y,z);m.rotation.y=ry;S.add(m);return m};
  neon('casino','♠ Casino ♥','#ffe6a8','#ff9a2a','italic bold 84px Georgia,serif',1.54,.48,X1+.17,3.65,A1,PI/2);
- neon('billar','Billar','#d8fff0','#18d6a0','italic bold 96px Georgia,serif',1.7,.53,-27.5,3.22,-W+.08,0);
+ neon('billar','Billar','#d8fff0','#18d6a0','italic bold 96px Georgia,serif',1.7,.53,-30.5,3.22,-W+.08,0);
 
  // ---------- casino ----------
  const C3=window.CAS3,hit=g=>({t:'fn',g,f:()=>pronto(g)});
- if(C3){const pk=C3.poker({S,hits,std,ctex,TH,x:-18.5,z:-2.9,ry:0,hit:hit('poker'),cuero:'#5a1a1a'});
+ if(C3){const pk=C3.poker({S,hits,std,ctex,TH,x:-21.5,z:-2.9,ry:0,hit:hit('poker'),cuero:'#5a1a1a'});
   const bj=C3.blackjack({S,hits,std,ctex,TH,x:-18.5,z:3.3,ry:PI,hit:hit('blackjack'),cuero:'#5a1a1a'});
-  M.poker=pk;M.blackjack=bj;if(window.BJC)BJC.pon(bj);OB.push(...pk.OB,...bj.OB);P.poker={x:-18.5,y:TH+2.1,z:-2.9};P.blackjack={x:-18.5,y:TH+2.1,z:2.75};
+  M.poker=pk;M.blackjack=bj;if(window.BJC)BJC.pon(bj);OB.push(...pk.OB,...bj.OB);P.poker={x:-21.5,y:TH+2.1,z:-2.9};P.blackjack={x:-18.5,y:TH+2.1,z:2.75};
   // lámparas: dos campanas sobre el póker y una sobre el blackjack (una luz cada mesa; en calidad Media se apagan, los focos siguen)
-  C3.campana(S,std,-19.3,2.85,-2.9,HT);C3.campana(S,std,-17.7,2.85,-2.9,HT);C3.luz(S,-18.5,2.6,-2.9,11,7);
+  C3.campana(S,std,-22.3,2.85,-2.9,HT);C3.campana(S,std,-20.7,2.85,-2.9,HT);C3.luz(S,-21.5,2.6,-2.9,11,7);
   C3.campana(S,std,-18.5,2.85,2.9,HT,1.15);C3.luz(S,-18.5,2.6,2.9,10,6.5)}
  // apliques y el cuadro (as de espadas) en la pared del fondo del casino
  const ap=new THREE.MeshStandardMaterial({color:0xfff0d0,emissive:0xffcf8a,emissiveIntensity:1.1,roughness:.5});
- [-20.3,-16.7].forEach(x=>{cyl(.07,.07,.03,lat,x,2.45,-W+.06,S,16).rotation.x=PI/2;box(.03,.03,.22,lat,x,2.45,-W+.17,S);
+ [-23.3,-19.7].forEach(x=>{cyl(.07,.07,.03,lat,x,2.45,-W+.06,S,16).rotation.x=PI/2;box(.03,.03,.22,lat,x,2.45,-W+.17,S);
   const t=new THREE.Mesh(new THREE.LatheGeometry([[.03,0],[.07,.04],[.1,.12],[.11,.18]].map(p=>new THREE.Vector2(p[0],p[1])),16),ap);t.position.set(x,2.42,-W+.28);S.add(t)});
  const as=ctex('cuadro-as',256,360,(g,w,h)=>{g.fillStyle='#f4efe2';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=6;g.strokeRect(14,14,w-28,h-28);g.fillStyle='#1a1a1a';
   g.font='bold 54px Georgia,serif';g.textAlign='center';g.fillText('A',44,70);g.save();g.translate(w-44,h-70);g.rotate(PI);g.fillText('A',0,0);g.restore();g.font='190px Georgia,serif';g.textBaseline='middle';g.fillText('♠',w/2,h/2+10)});
- box(1.1,1.5,.06,std(0x8a6a2a,.35,{metalness:.6}),-18.5,2.45,-W+.08,S);const pic=new THREE.Mesh(new THREE.PlaneGeometry(.94,1.34),std(0xffffff,.7,{map:as}));pic.position.set(-18.5,2.45,-W+.115);S.add(pic);
+ box(1.1,1.5,.06,std(0x8a6a2a,.35,{metalness:.6}),-21.5,2.45,-W+.08,S);const pic=new THREE.Mesh(new THREE.PlaneGeometry(.94,1.34),std(0xffffff,.7,{map:as}));pic.position.set(-21.5,2.45,-W+.115);S.add(pic);
  // plantas (modelo de Poly Haven, el mismo de la planta alta)
- if(window.CGLB)[[-22.35,-4.55],[-14.65,-4.55]].forEach(([x,z],i)=>{S.add(CGLB.pon('sot','planta',{pos:[x,0,z],rot:i*1.3,esc:3,sombra:true}));OB.push({x,z,r:.45})});
+ if(window.CGLB)[[-25.35,-4.55],[-14.65,-4.55],[-25.35,4.55]].forEach(([x,z],i)=>{S.add(CGLB.pon('sot','planta',{pos:[x,0,z],rot:i*1.3,esc:3,sombra:true}));OB.push({x,z,r:.45})});
 
  // ---------- billar ----------
- if(window.BIL){const b=BIL.build({S,hits,std,ctex,x:-27.5,z:-.3,ry:0,top:HT,hit:hit('billar')});M.billar=b;OB.push(...b.OB);P.billar={x:-27.5,y:TH+1.7,z:-.3};
-  BIL.taquera({S,std,x:XL+.06,z:1.8,ry:PI/2});BIL.marcador({S,std,x:-27.5,y:2.38,z:-W+.06,ry:0});OB.push({x:XL+.4,z:1.8,r:.5})}
+ if(window.BIL){const b=BIL.build({S,hits,std,ctex,x:-30.5,z:-.3,ry:0,top:HT,hit:hit('billar')});M.billar=b;OB.push(...b.OB);P.billar={x:-30.5,y:TH+1.7,z:-.3};
+  BIL.taquera({S,std,x:XL+.06,z:1.8,ry:PI/2});BIL.marcador({S,std,x:-30.5,y:2.38,z:-W+.06,ry:0});OB.push({x:XL+.4,z:1.8,r:.5})}
  // banca para mirar (contra el fondo) y mesita alta con dos bancos
  if(window.LOTE){const LT=LOTE(),md='#3a1f10',cu='#2a4a36';
-  LT.box(3.6,.08,.52,md,-27.5,.86,-W+.62);LT.box(3.5,.1,.46,cu,-27.5,.93,-W+.62);LT.box(3.6,.55,.08,md,-27.5,1.35,-W+.3,0,.1,0);LT.box(3.5,.42,.07,cu,-27.5,1.36,-W+.36,0,.1,0);
-  [-29.2,-27.5,-25.8].forEach(x=>{LT.box(.08,.82,.08,md,x,.41,-W+.84);LT.box(.08,.82,.08,md,x,.41,-W+.4)});
-  const mx=-30.7,mz=3.95;LT.cyl(.4,.4,.05,md,mx,1.18,mz,24);LT.cyl(.05,.05,1.15,'#151515',mx,.6,mz,10);LT.cyl(.3,.32,.04,'#151515',mx,.02,mz,20);
+  LT.box(3.6,.08,.52,md,-30.5,.86,-W+.62);LT.box(3.5,.1,.46,cu,-30.5,.93,-W+.62);LT.box(3.6,.55,.08,md,-30.5,1.35,-W+.3,0,.1,0);LT.box(3.5,.42,.07,cu,-30.5,1.36,-W+.36,0,.1,0);
+  [-32.2,-30.5,-28.8].forEach(x=>{LT.box(.08,.82,.08,md,x,.41,-W+.84);LT.box(.08,.82,.08,md,x,.41,-W+.4)});
+  const mx=-33.7,mz=3.95;LT.cyl(.4,.4,.05,md,mx,1.18,mz,24);LT.cyl(.05,.05,1.15,'#151515',mx,.6,mz,10);LT.cyl(.3,.32,.04,'#151515',mx,.02,mz,20);
   [[-1,-.1],[1,.25]].forEach(([s,dz])=>{const x=mx+s*.7,z=mz+dz;LT.cyl(.22,.2,.08,'#6a1c16',x,.84,z,16);LT.cyl(.035,.045,.8,'#707478',x,.42,z,8);LT.cyl(.2,.22,.03,'#707478',x,.015,z,16);OB.push({x,z,r:.28})});
   const m=LT.mesh(std(0xffffff,.55));m.castShadow=m.receiveShadow=true;S.add(m);
-  OB.push({x:-28.9,z:-W+.62,r:.45},{x:-27.5,z:-W+.62,r:.45},{x:-26.1,z:-W+.62,r:.45},{x:mx,z:mz,r:.45})}
+  OB.push({x:-31.9,z:-W+.62,r:.45},{x:-30.5,z:-W+.62,r:.45},{x:-29.1,z:-W+.62,r:.45},{x:mx,z:mz,r:.45})}
 
  // ---------- cantina: la rockola junto al arco ----------
  const rk=rockola(S,std,ctex,X1+.5,3.75,PI/2);OB.push({x:X1+.55,z:3.75,r:.62});
