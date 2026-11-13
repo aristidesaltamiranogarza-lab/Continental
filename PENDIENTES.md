@@ -268,4 +268,7 @@ El más grande: física propia sin librerías (choques bola-bola y con bandas, t
 - Tiempo: 45 s por tiro; al acabarse es falta (bola en mano para el rival). Los bots tiran enseguida.
 - Vista 2D: sí, botón "Vista 2D" con la mesa plana desde arriba; también se apunta y tira ahí (bueno para celulares débiles).
 - Fichas: no; solo jugar (quizá un contador de victorias en el cuarto).
+- (13 nov) Meter la 8 antes de tiempo o junto con falta: pierdes. Saque al azar; tras el saque la mesa queda abierta aunque caigan bolas (la primera bola metida legalmente después decide lisas/rayadas).
+- (13 nov) Física sobre el plano (posición 2D, giro 3D), sin saltos ni massé; el tiro se simula completo al soltar y se reproduce; 2D y 3D son dos vistas del mismo estado. Valores ajustables en un objeto (como BJ3.A).
+- (13 nov) Sonidos: grabaciones reales CC0 (choque, banda, tronera, taco), volumen y tono según la velocidad del golpe. 2v2: compañero y mirones ven el apunte en vivo (actualización baja y suavizada).
 **Pasos (ajustar a las decisiones):** L1 física `c_billar_fis.js` + pruebas deterministas en `tests/` · L2 reglas `g_billar.js` en el servidor · L3 apuntar y tirar (cliente) · L4 cámara · L5 bot · L6 HUD, sonidos, quitar "Próximamente", celular y compu.
