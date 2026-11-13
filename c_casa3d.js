@@ -254,6 +254,8 @@ function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.m
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}});
  // muros (FL.WL: segmentos [ax,az,bx,bz,r] sin los vanos, de c_casa_pb.js)
  (FL.WL||[]).forEach(([ax,az,bx,bz,r])=>{const vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((p.x-ax)*vx+(p.z-az)*vz)/(vx*vx+vz*vz||1))),qx=ax+vx*t,qz=az+vz*t,dx=p.x-qx,dz=p.z-qz,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=qx+dx/d*r;p.z=qz+dz/d*r}})}
+// chocar con los demás Miis de tu piso: te empuja fuera de su círculo (te deslizas alrededor) y vuelve a respetar muros
+function bump(p){let hit=false;others.forEach(a=>{if(!a.g.visible)return;const dx=p.x-a.pos.x,dz=p.z-a.pos.z,d=Math.hypot(dx,dz),R=.62;if(d<R){hit=true;if(d<1e-4){p.x+=R;return}p.x=a.pos.x+dx/d*R;p.z=a.pos.z+dz/d*R}});if(hit)solve(p)}
 function turn(a,yaw){let d=yaw-a.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));a.g.rotation.y+=d*.18}
 let wp=[],wpFor=null;   // ruta (c_casa_ruta.js) hacia tgt, punto por punto
 function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
@@ -261,7 +263,7 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
  if(!dir.lengthSq()&&tgt){if(tgt!==wpFor){wpFor=tgt;wp=window.RUTA?RUTA.find(p,tgt,FL,TB.concat(OB)):[]}while(wp.length>1&&Math.hypot(wp[0].x-p.x,wp[0].z-p.z)<.35)wp.shift();
   const aim=wp.length>1?wp[0]:tgt;dir.subVectors(aim,p).setY(0);if(aim===tgt&&dir.length()<.12){dir.set(0,0,0);arrive()}}
  const sp=5.2*dt/1000;let mv=0;
- if(dir.lengthSq()){dir.normalize();const q=p.clone();p.addScaledVector(dir,sp);solve(p);mv=q.distanceTo(p);
+ if(dir.lengthSq()){dir.normalize();const q=p.clone();p.addScaledVector(dir,sp);solve(p);bump(p);mv=q.distanceTo(p);
   // si moviste la cámara, se queda donde la dejaste (no sigue a tu Mii) hasta que toques Cuadrar
   if(panned()){const dx=p.x-q.x,dz=p.z-q.z;VT.ox-=dx;VT.oz-=dz;VW.ox-=dx;VW.oz-=dz}a.yaw=Math.atan2(dir.x,dir.z);a.danceT=-1e9;if(!moved){moved=true;render()}
   // atorado contra una silla o mueble camino a una mesa: ya llegó
