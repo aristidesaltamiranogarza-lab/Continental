@@ -57,7 +57,7 @@ function previa(v,a){if(!PK3.veo()||!a.c||!a.c.length||a.c[0]<0||a.fold||window.
 function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=botones(v,s,a,sinT),j=jugada(v,a);
  return `<div class="ui bj-top"><span class="ui-pill bj-f"><small>Fichas</small><b>${mon(a.f)}</b></span>
   <span class="ui-pill gj-turn${f.me?' me':''}"><span>${f.t}${f.left?` · <span id="pkLeft">${sinT?'':segs(v)}</span> s`:''}</span></span>
-  ${a.c&&a.c.length&&!a.fold?`<button class="ui-rb c2k${PK3.tusVis()?' on':''}" onclick="PK3.verTus()" title="${PK3.tusVis()?'Tapar tus cartas':'Ver tus cartas'}" aria-label="Ver tus cartas" aria-pressed="${PK3.tusVis()}">${I('ojo')}</button>`:''}
+  ${`<button class="ui-rb c2k pk-ojo${PK3.tusVis()?' on':''}" onclick="PK3.verTus()" title="${PK3.tusVis()?'Tapar tus cartas':'Ver tus cartas'}" aria-label="Ver tus cartas" aria-pressed="${PK3.tusVis()}">${I('ojo')}</button>`}
   ${PK3.mirando()?`<button class="ui-rb" onclick="PK3.recentra()" title="Recentrar (doble toque)" aria-label="Recentrar">${I('cuadrar')}</button>`:''}
   ${window.PK2D?PK2D.boton():''}
   <button class="ui-rb c2k" onclick="PK3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>

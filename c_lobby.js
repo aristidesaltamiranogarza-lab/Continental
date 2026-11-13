@@ -2,10 +2,14 @@
 // Reemplaza home() de game.js; render() llama LOBBY.sala(g) en la sala de espera. Iconos y colores de cada juego: SALA (c_sala.js). Estilos: ui_lobby.css.
 (function(){
 const I=n=>window.UI?UI.ico(n):'',es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const COL={continental:'#1F6B4A',uno:'#B23A2E',monopolydeal:'#2D5D8A',merida:'#3F7D4F',haciendas:'#8A6A2A',rummy:'#24527A',ruleta:'#6A2436'};
+const COL={continental:'#1F6B4A',uno:'#B23A2E',monopolydeal:'#2D5D8A',merida:'#3F7D4F',haciendas:'#8A6A2A',rummy:'#24527A',ruleta:'#6A2436',bj:'#1E5A3C',pk:'#2E3F6E',billar:'#2F6B3A'};
+// mesas del sótano (no son salas): Blackjack y Póker abren C2D; el Billar aún no se juega
+const CAS={bj:{n:'Blackjack',ic:'blackjack'},pk:{n:'Póker',ic:'poker'},billar:{n:'Billar',ic:'billar'}};
+let cas='';
+const c2d=()=>!!(window.C2D&&C2D.ok&&C2D.ok());
 const ORD=['continental','uno','monopolydeal','merida','haciendas','rummy','ruleta'];
-const nom=k=>window.lobbyName?lobbyName(k):(GM[k]||{}).name||k;
-const ico=k=>window.SALA&&SALA.ico?SALA.ico(k):`<span class="lb-emo">${(GM[k]||{}).emoji||''}</span>`;
+const nom=k=>CAS[k]?CAS[k].n:window.lobbyName?lobbyName(k):(GM[k]||{}).name||k;
+const ico=k=>CAS[k]?`<img src="iconos/${CAS[k].ic}.png" alt="">`:window.SALA&&SALA.ico?SALA.ico(k):`<span class="lb-emo">${(GM[k]||{}).emoji||''}</span>`;
 const lista=()=>ORD.filter(x=>GM[x]).concat(Object.keys(GM).filter(x=>!ORD.includes(x)));
 const on=()=>document.documentElement.classList.add('lbon');
 const ini=n=>es((Array.from(String(n||'?').trim())[0]||'?').toUpperCase());
@@ -13,7 +17,7 @@ const PAL=['#C2512A','#2D5D8A','#3F7D4F','#8A3F7A','#B8862A','#2E7C83','#7A4A2A'
 const avc=n=>{let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))|0;return PAL[Math.abs(h)%PAL.length]};
 
 // cajas de juego (las mismas de la sala 3D)
-const cajas=(sel,fn)=>`<div class="lb-cajas" onscroll="LOBBY.sx=this.scrollLeft" role="radiogroup" aria-label="Juego">${lista().map(k=>`<button class="lb-caja${k===sel?' on':''}" style="--f:${COL[k]||'#C2512A'}" role="radio" aria-checked="${k===sel}" onclick="${fn}('${k}')"><span class="ic">${ico(k)}</span><b>${es(nom(k))}</b></button>`).join('')}</div>`;
+const cajas=(sel,fn,c)=>`<div class="lb-cajas" data-scroll onscroll="LOBBY.sx=this.scrollLeft" role="radiogroup" aria-label="Juego">${lista().concat(c&&c2d()?Object.keys(CAS):[]).map(k=>`<button class="lb-caja${k===sel?' on':''}" style="--f:${COL[k]||'#C2512A'}" role="radio" aria-checked="${k===sel}" onclick="${fn}('${k}')"><span class="ic">${ico(k)}</span><b>${es(nom(k))}</b></button>`).join('')}</div>`;
 const cab=(k,sub,der)=>`<div class="lb-cab" style="--c:${COL[k]||'#C2512A'}"><span class="lb-ic">${ico(k)}</span><div class="lb-t"><small>${sub}</small><b>${es(nom(k))}</b></div>${der||''}</div>`;
 const tema=()=>`<button class="ui-rb" onclick="LOBBY.tema()" aria-label="Cambiar a tema ${window.UI&&UI.noche()?'de día':'de noche'}">${I(window.UI&&UI.noche()?'sol':'luna')}</button>`;
 const top=()=>`<header class="lb-top"><div class="lb-marca"><span class="lb-logo">${I('casa')}</span><div><small>gamemash</small><h1>Juegos de cartas</h1></div></div>${tema()}</header>`;
@@ -30,15 +34,15 @@ const ajustes=()=>`<section class="ui-card lb-card"><h2>${I('ajustes')}Ajustes</
 const reglas=g=>g&&g.rules?`<section class="ui-card lb-card lb-reglas">${g.rules.replace('<summary>Reglas</summary>',`<summary>${I('ayuda')}Cómo se juega ${es(nom(typeof gnow=='function'?gnow():pgame))}</summary>`)}</section>`:'';
 const err=()=>msg?`<p class="lb-err" role="alert">${es(msg)}</p>`:'';
 
-function home(){on();const k=GM[pgame]?pgame:'continental',g=GM[k],sel=lista().includes(k)?k:'continental';
+function home(){on();if(cas&&!c2d())cas='';const k=cas||(GM[pgame]?pgame:'continental'),g=GM[k]||{},sel=k;
  return `<div class="ui lb" style="--lb-c:${COL[k]||'#C2512A'}">${top()}
  <section class="ui-card lb-card"><label class="ui-lbl" for="lbNom">Tu nombre</label><input id="lbNom" class="ui-in" placeholder="¿Cómo te llamas?" maxlength="14" value="${es(pname)}" oninput="pname=this.value" autocomplete="nickname"></section>
- <section class="ui-card lb-card"><h2>${I('nuevo')}Crear una sala</h2>${cajas(sel,'LOBBY.elige')}
-  ${cab(k,'Hasta '+(g.max||6)+' jugadores')}
-  <div class="lb-dos"><button class="ui-btn" onclick="mk('listo')">${I('jugar')}Crear y jugar</button><button class="ui-btn sec" onclick="mk('host')">${I('llave')}Solo administrar</button></div>
-  <p class="ui-sub lb-nota"><b>Crear y jugar</b>: abres la sala y te sientas. <b>Solo administrar</b>: eres el anfitrión, no juegas.</p></section>
+ <section class="ui-card lb-card"><h2>${I('nuevo')}Crear una sala</h2>${cajas(sel,'LOBBY.elige',1)}
+  ${cas?cab(k,cas==='billar'?'Aún no está lista':'Mesa del sótano'):cab(k,'Hasta '+(g.max||6)+' jugadores')}
+  <div class="lb-dos">${cas==='billar'?'<button class="ui-btn" disabled>Muy pronto</button>':cas?`<button class="ui-btn" onclick="C2D.abre('${cas}')">${I('jugar')}Ir a la mesa</button>`:`<button class="ui-btn" onclick="mk('listo')">${I('jugar')}Crear y jugar</button>`}</div>
+  ${cas&&cas!=='billar'?'<p class="ui-sub lb-nota">Juegas con quien esté en la casa.</p>':''}</section>
  <section class="ui-card lb-card"><h2>${I('gente')}Unirme a una sala</h2><div class="lb-join"><input class="ui-in lb-code" placeholder="CÓDIGO" maxlength="5" value="${es(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala" autocomplete="off" autocapitalize="characters"><button class="ui-btn" onclick="joinR()">Unirme</button></div>${err()}</section>
- ${window.C2D?C2D.tarjeta():''}${ajustes()}${reglas(g)}</div>`}
+ ${ajustes()}${cas?'':reglas(g)}</div>`}
 
 // sala de espera sin casa: misma idea que el boleto de c_sala.js, en la página
 function sala(g){on();const v=V,k=v.game,host=!!v.host,me=v.me;
@@ -63,7 +67,7 @@ function sala(g){on();const v=V,k=v.game,host=!!v.host,me=v.me;
  ${juego}${rr}${gente}${ajustes()}${reglas(g)}</div>`}
 
 window.LOBBY={home,sala,carga:t=>{on();return `<div class="lb-carga" role="progressbar" aria-label="${es(t)}"><span class="lb-logo">${I('casa')}</span><i class="lb-barra"></i></div>`},abre:x=>{abre=x},
- elige:k=>{pgame=k;render()},
+ elige:k=>{if(CAS[k])cas=k;else{cas='';pgame=k}render()},
  juego:k=>{if(V&&V.host&&k!==V.game)send({t:'game',g:k})},
  tema:()=>{if(window.UI)UI.setTema(UI.noche()?'dia':'noche');render()},
  invita:()=>{if(!V)return;const u=location.origin+'/#'+V.code;if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(V.game)+' conmigo! Código '+V.code,url:u}).catch(()=>{});

@@ -77,7 +77,8 @@ function draw(g,w,h,here){g.fillStyle='#efe3c4';g.fillRect(0,0,w,h);g.strokeStyl
   if(on){g.font='bold 13px "Segoe UI",Arial,sans-serif';g.fillText('● Estás aquí',44,m+11)}});
  g.textAlign='center';g.fillStyle='#4a2814';g.font='bold 14px "Segoe UI",Arial,sans-serif';g.fillText('🧭 Toca para ir a otro piso',w/2,300)}
 // e: {S,hits,OB,x,z,ry,here,s (escala)}. Atril de madera con marco dorado; tocarlo abre el 🧭
-function plano(e){const h=H(),{S,hits,OB}=e,G=new THREE.Group();G.position.set(e.x,0,e.z);G.rotation.y=e.ry||0;G.scale.setScalar(e.s||1);S.add(G);
+function plano(e){return;   // los atriles con el plano se quitaron (feos e innecesarios); "Ir a" sigue en el HUD
+const h=H(),{S,hits,OB}=e,G=new THREE.Group();G.position.set(e.x,0,e.z);G.rotation.y=e.ry||0;G.scale.setScalar(e.s||1);S.add(G);
  const wd=h.std(0x4a2814,.45),gold=h.std(0xc9a24a,.35,{metalness:.7}),box=(a,b,c,m,x,y,z)=>h.box(a,b,c,m,x,y,z,G);
  const pic=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.5),h.std(0xffffff,.8,{map:h.ctex('plano-'+e.here,256,320,(g,w,hh)=>draw(g,w,hh,e.here))}));pic.position.set(0,2.55,.075);G.add(pic);
  box(1.24,1.54,.06,wd,0,2.55,.02);[[0,3.36,1.4,.12],[0,1.74,1.4,.12],[-.64,2.55,.12,1.74],[.64,2.55,.12,1.74]].forEach(([x,y,a,b])=>box(a,b,.1,gold,x,y,.07));

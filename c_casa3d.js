@@ -275,8 +275,10 @@ function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos
  // caminar hasta una puerta que lleva a otro piso (o a la escalera) = cambiar de piso
  if(mv>.001&&!fBusy){const d=TB.find(x=>x.to&&canGo(x.to)&&Math.hypot(p.x-x.x,p.z-x.z)<x.r+1.05)||LK.find(l=>Math.hypot(p.x-l.x,p.z-l.z)<l.r);if(d&&goFloor(d.to))return}
  if(closed&&closed!==near)closed=null;if(picked&&!tgtG&&near!==picked)picked=null;const want=near&&near===picked&&near!==closed?near:null;if(want!==sel){sel=want;if(sel){sfx('tick');if(document.pointerLockElement)document.exitPointerLock()}render()}}
-// los demás: se deslizan suave hacia la última posición que mandó el servidor
-function walkOthers(dt,now){const f=1-Math.exp(-dt/110);others.forEach((a,id)=>{a.g.visible=(a.f||'pb')===FL.id&&!(window.BJ3&&BJ3.sentado(id))&&!(window.PK3&&PK3.sentado(id));const q=a.pos.clone();a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
+// los demás: van a velocidad pareja de donde se ven hacia la última posición del servidor, tardando lo que tarda en llegar la siguiente
+// (antes corrían al punto y se quedaban quietos hasta la otra muestra: se veían trabados)
+function walkOthers(dt,now){const f=1-Math.exp(-dt/110),t=performance.now();others.forEach((a,id)=>{a.g.visible=(a.f||'pb')===FL.id&&!(window.BJ3&&BJ3.sentado(id))&&!(window.PK3&&PK3.sentado(id));const q=a.pos.clone();
+ if(a.fr)a.pos.lerpVectors(a.fr,a.to,Math.min(1,(t-a.t0)/a.dur));else a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
  a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g),a.pos.z);pose(a,now,false)});
  seated.forEach(s=>{if(!s.av)poseSeated(s,now)});if(window.OCUP)OCUP.paso(now)}
 function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}
@@ -295,9 +297,12 @@ async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
  try{const d=await api('casa',b);if(active()){netSync(d);if(window.BJC)BJC.estado(d.bj);if(window.BJ3)BJ3.estado(d.bj,d.bjerr);if(window.PK3)PK3.estado(d.pk,d.pkerr);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
-  if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`👋 ${o.name} entró a la casa`)}
+  if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`${o.name} entró a la casa`)}
   else if(a.name!==o.name)rename(a,o.name);
   if((o.av||'')!==a.av){a.av=o.av||'';refresh(a)}
+  {const t=performance.now(),d=pos.distanceTo(a.to),fl=(o.f||'pb')!==(a.f||'pb');
+   if(d>.001){const iv=t-(a.tm||0);if(iv<1200)a.iv=a.iv?a.iv*.7+iv*.3:iv;a.tm=t;
+    if(d>4||fl){a.fr=null;a.pos.copy(pos)}else{a.fr=(a.fr||new THREE.Vector3()).copy(a.pos);a.t0=t;a.dur=Math.min(800,Math.max(120,(a.iv||350)*1.15))}}}
   a.f=o.f||'pb';a.to.copy(pos);if(!o.w&&a.to.distanceTo(a.pos)<.05)a.tyaw=+o.yaw||a.tyaw;
   if(o.em&&o.emN!==a.emN){a.emN=o.emN;bubble(a,o.em,1)}if(o.say&&o.sayN!==a.sayN){a.sayN=o.sayN;bubble(a,o.say)}});
  others.forEach((a,id)=>{if(!seen.has(id)){if(synced)toast(`${a.name} salió`);dropAv(a);others.delete(id)}});

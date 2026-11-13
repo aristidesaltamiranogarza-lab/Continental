@@ -1,4 +1,4 @@
-// c_casino2d.js — C2D: Blackjack y Póker en 2D para el modo Ligero (sin casa 3D). El inicio (c_lobby.js) los ofrece con C2D.tarjeta().
+// c_casino2d.js — C2D: Blackjack y Póker en 2D para el modo Ligero (sin casa 3D). El inicio (c_lobby.js) los ofrece en sus cajas (C2D.ok).
 // Habla con POST /casa como c_casa3d.js (piso '2d': nadie lo ve caminar) y reusa BJ3/PK3 (estado, act, yo), BJH/PKH (barras) y BJ2D/PK2D (mesa, forzada en 2D).
 // Envuelve home() de game.js/c_lobby.js mientras hay mesa abierta. Estilos en ui_juegos.css (html.c2don).
 (function(){
@@ -37,10 +37,7 @@ function abre(k){if(!ok()||!NOM[k])return;g=k;hk='';err='';D().forzar(true);clea
 function sienta(){const v=J().v;if(!v)return;const i=v.as.findIndex(a=>!a);if(i<0)return;J().act('sentar',{s:i});if(typeof sfx=='function')sfx('tick');tick()}
 async function cierra(){if(!g)return;const k=g;if(J().yo()>=0){J().levantarse();busy=false;await tick()}
  g=null;clearInterval(tm);clearInterval(tc);(k==='pk'?window.PK2D:window.BJ2D).forzar(false);document.documentElement.classList.remove('c2don');hk='';rr()}
-function tarjeta(){if(!ok()||tres())return '';
- return `<section class="ui-card lb-card"><h2>${I('jugar')}Casino</h2><p class="ui-sub lb-nota">Las mesas del sótano en 2D. Juegas con quien esté en la casa.</p>
-  <div class="lb-dos">${B('Blackjack',"C2D.abre('bj')",'sec')}${B('Póker',"C2D.abre('pk')",'sec')}</div></section>`}
 
-window.C2D={abre,cierra,sienta,tarjeta,on:()=>!!g};
+window.C2D={abre,cierra,sienta,ok:()=>ok()&&!tres(),on:()=>!!g};
 const h0=window.home;window.home=function(){return g?pagina():h0.apply(this,arguments)};
 })();

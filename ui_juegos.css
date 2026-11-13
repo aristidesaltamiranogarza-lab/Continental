@@ -387,3 +387,7 @@ html.c2don .lb-casa{display:none}
 html.c2don .bj-bar{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 html.c2don .pk-jug{top:calc(64px + env(safe-area-inset-top,0px))}
 .c2d-err{position:fixed;z-index:14;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top,0px))}
+/* ojo de tus cartas del Póker: siempre en el mismo lugar (abajo a la izquierda; en celular, bajo las pastillas de arriba) */
+.pk-ojo{position:fixed;z-index:13;left:calc(14px + env(safe-area-inset-left,0px));top:calc(126px + env(safe-area-inset-top,0px))}
+html.c2don .pk-ojo{top:calc(72px + env(safe-area-inset-top,0px))}
+@media (min-width:768px) and (hover:hover){.pk-ojo,html.c2don .pk-ojo{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}}

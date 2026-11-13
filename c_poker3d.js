@@ -65,14 +65,14 @@ function cartas(snap){const T=new Map(),m=V.mano,n0=V.sb>=0?V.sb:0;let orden=[];
    const tr=i*A.reparte+(t.s<0?250:0);ir(x,L.p,L.ry,t.c<0||tapo(t)?PI:0,A.vuelo,{arc:A.alto,tras:tr,ve:1});if(window.PKC)PKC.reparte(t.s,performance.now()+tr);return}
   if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=K().caraMat(t.c);if(snap)pon(x,L);else{x.m.rotation.z=PI;ir(x,L.p,L.ry,0,A.volteo,{arc:.05})}}})}
 // ---------- tus cartas: nadie las ve en tu pantalla hasta que tocas Ver (se vuelven a tapar en cada mano); en el showdown se voltean ----------
-let vis=false;
+let vis=false;try{vis=localStorage.pk_ver==='1'}catch(e){}   // ver tus cartas: se queda como lo dejaste entre manos
 function abierta(){const s=mio(),a=V&&s>=0?V.as[s]:null;return !!a&&V.fase==='fin'&&(!!a.mos||V.as.some((b,j)=>b&&j!==s&&b.c&&b.c[0]>=0))}
 const tapo=t=>t.s>=0&&t.s===mio()&&!abierta();
 function misCartas(dt){const s=mio(),ab=abierta(),T=A.tus,h=A.carta[1],k=Math.min(1,dt*T.vel);
  CAR.forEach(x=>{if(x.s!==s||s<0||!x.o.visible)return;if(x.ab!==ab){const pr=x.ab!=null;x.ab=ab;if(pr&&!TW.some(t=>t.x===x))ir(x,x.L.p,x.L.ry,ab?0:PI,A.volteo,{arc:.05})}
   const want=ab?0:vis?T.ver:T.asoma;x.phi=(x.phi||0)+(want-(x.phi||0))*k;const f=x.phi;
   x.m.rotation.x=-f;x.m.position.set(0,h/2*Math.sin(f)+(vis&&!ab?T.sube*Math.min(1,f/T.ver):0),-h/2*(1-Math.cos(f))+(x.j||0)*T.sep*Math.min(1,f/T.ver))})}   // levantadas, la segunda va un poco al frente: no se atraviesan
-function verTus(v){vis=v==null?!vis:!!v;son('tick');mk='';rr()}
+function verTus(v){vis=v==null?!vis:!!v;try{localStorage.pk_ver=vis?'1':'0'}catch(e){}son('tick');mk='';rr()}
 function barre(x,tras,snap){quitaTw(x);x.m.rotation.x=0;x.m.position.set(0,0,0);const fin=()=>R.remove(x.o);if(snap||!x.o.visible)return fin();ir(x,v3(MUCK[0],TH+.06,MUCK[1]),-.4,PI,A.barre,{arc:.1,tras,fin})}
 
 // ---------- fichas: apuesta de la calle frente a cada quien; al recoger van al bote; en el fin cada bote vuela a quien lo gana ----------
@@ -97,7 +97,7 @@ function pasoPilas(now){PILAS.forEach(P=>{if(P.en&&now>=P.en){P.en=0;K().llena(P
 
 function boton(snap){const b=M0&&M0.D.boton;if(!b||!V||V.btn<0)return;const p=btnPos(V.btn);if(!BT)BT=v3(b.position.x,b.position.y,b.position.z);
  BT.copy(p);if(snap)b.position.copy(p)}
-function sync(snap){const nueva=mano!=null&&V.mano!==mano;if(nueva||mano==null&&V.mano!=null&&!snap)vis=false;cartas(snap);fichas(snap);boton(snap);mano=V.mano;if(nueva&&!snap)son('tick');reacciona(snap)}
+function sync(snap){const nueva=mano!=null&&V.mano!==mano;cartas(snap);fichas(snap);boton(snap);mano=V.mano;if(nueva&&!snap)son('tick');reacciona(snap)}
 // la crupier mira al del turno (al final, al ganador); al cerrar la mano festeja quien gana un bote grande y se agarra la cabeza quien se queda sin fichas
 let finK=null;
 function reacciona(snap){const fin=V.fase==='fin',G=V.as.map((a,s)=>a&&a.gan>0?s:-1).filter(s=>s>=0);
