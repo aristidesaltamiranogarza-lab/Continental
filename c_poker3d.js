@@ -15,7 +15,7 @@ const A={
  ficha:620,tPausa:1300,tBote:2500,tFin:6000,   // vuelo de fichas; espera antes de pagar; entre botes y fin (= T_BOTE y T_FIN del servidor)
  silla:1.55,cerca:4.4,
  cam:{ojo:2.25,adelante:.4,mira:.35,zoom:3.2,giro:1.6,sube:.9,baja:.7,sens:.005,blend:700,arriba:{inc:1.555,r:.06,mv:1.1,mh:1.12,techo:2.85,fmax:95}},   // arriba: casi perpendicular a la mesa, tu lugar abajo; encuadra de cerca tu mano y las comunes (r: orilla extra en m; mv/mh: margen; baja: corrimiento por las barras)
- tus:{asoma:.2,ver:2.2,sube:.025,vel:9}   // tus cartas boca abajo con la orilla levantada (asoma) o paradas hacia ti (ver), en radianes
+ tus:{asoma:.2,ver:2.2,sube:.025,vel:9,sep:.016}   // tus cartas boca abajo con la orilla levantada (asoma) o paradas hacia ti (ver), en radianes
 };
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),MAZO=[.5,-.5],MUCK=[-.5,-.5];
 const touchy=matchMedia('(pointer:coarse)').matches,ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
@@ -60,7 +60,7 @@ function cartas(snap){const T=new Map(),m=V.mano,n0=V.sb>=0?V.sb:0;let orden=[];
  (V.mesa||[]).forEach((c,j)=>T.set(m+':m'+j,{s:-1,j,c}));
  let nb=0;CAR.forEach((x,k)=>{if(T.has(k))return;CAR.delete(k);barre(x,nb++*40,snap)});
  let nn=0;T.forEach((t,k)=>{const L=lugar(t);let x=CAR.get(k);
-  if(!x){x=carta(t.c);x.L=L;x.s=t.s;CAR.set(k,x);if(snap){pon(x,L);if(tapo(t))x.m.rotation.z=PI;return}
+  if(!x){x=carta(t.c);x.L=L;x.s=t.s;x.j=t.j;CAR.set(k,x);if(snap){pon(x,L);if(tapo(t))x.m.rotation.z=PI;return}
    const i=t.s<0?nn++:orden.indexOf(k);x.o.visible=false;x.o.position.set(MAZO[0],TH+.05,MAZO[1]);x.o.rotation.y=L.ry+.5;x.m.rotation.z=PI;
    const tr=i*A.reparte+(t.s<0?250:0);ir(x,L.p,L.ry,t.c<0||tapo(t)?PI:0,A.vuelo,{arc:A.alto,tras:tr,ve:1});if(window.PKC)PKC.reparte(t.s,performance.now()+tr);return}
   if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=K().caraMat(t.c);if(snap)pon(x,L);else{x.m.rotation.z=PI;ir(x,L.p,L.ry,0,A.volteo,{arc:.05})}}})}
@@ -71,7 +71,7 @@ const tapo=t=>t.s>=0&&t.s===mio()&&!abierta();
 function misCartas(dt){const s=mio(),ab=abierta(),T=A.tus,h=A.carta[1],k=Math.min(1,dt*T.vel);
  CAR.forEach(x=>{if(x.s!==s||s<0||!x.o.visible)return;if(x.ab!==ab){const pr=x.ab!=null;x.ab=ab;if(pr&&!TW.some(t=>t.x===x))ir(x,x.L.p,x.L.ry,ab?0:PI,A.volteo,{arc:.05})}
   const want=ab?0:vis?T.ver:T.asoma;x.phi=(x.phi||0)+(want-(x.phi||0))*k;const f=x.phi;
-  x.m.rotation.x=-f;x.m.position.set(0,h/2*Math.sin(f)+(vis&&!ab?T.sube*Math.min(1,f/T.ver):0),-h/2*(1-Math.cos(f)))})}
+  x.m.rotation.x=-f;x.m.position.set(0,h/2*Math.sin(f)+(vis&&!ab?T.sube*Math.min(1,f/T.ver):0),-h/2*(1-Math.cos(f))+(x.j||0)*T.sep*Math.min(1,f/T.ver))})}   // levantadas, la segunda va un poco al frente: no se atraviesan
 function verTus(v){vis=v==null?!vis:!!v;son('tick');mk='';rr()}
 function barre(x,tras,snap){quitaTw(x);x.m.rotation.x=0;x.m.position.set(0,0,0);const fin=()=>R.remove(x.o);if(snap||!x.o.visible)return fin();ir(x,v3(MUCK[0],TH+.06,MUCK[1]),-.4,PI,A.barre,{arc:.1,tras,fin})}
 

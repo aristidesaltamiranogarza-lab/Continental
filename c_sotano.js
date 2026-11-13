@@ -6,7 +6,7 @@
 // (casa_seat en localStorage, lo guarda c_ruleta3d.js).
 (function(){
 if(typeof THREE==='undefined')return;
-let C=null,F=null,bad=false,walkL=null;const lamps=[],obs=[],MOD=[];
+let C=null,F=null,bad=false,walkL=null;const SOT_RELL=1.6;const lamps=[],obs=[],MOD=[];
 // con el modelo puesto se esconde su mueble de código
 const modTick=()=>MOD.forEach(([g,c])=>{const v=!g.children.length;c.forEach(o=>{if(o.visible!==v)o.visible=v})});
 
@@ -60,7 +60,9 @@ function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,T
  obs.push({x:-13.35,z:-2.35,r:.5},{x:-7,z:4.55,r:.5},{x:-5.95,z:4.75,r:.6});
  mod('diana',{pos:[-13.84,2.05,-2.1],rot:Math.PI/2,esc:1.4});mod('reloj',{pos:[-13.84,2.8,3.75],rot:Math.PI/2,esc:1.5});
  // luz suave para caminar con la cámara de arriba (en la partida se apaga: ahí manda el foco)
- walkL=new THREE.HemisphereLight(0xffe2c0,0x2a1a10,.95);walkL.visible=false;S.add(walkL)}
+ walkL=new THREE.HemisphereLight(0xffe2c0,0x2a1a10,.95);walkL.visible=false;S.add(walkL)
+ // relleno de calidad Media: ahí se apagan las lámparas (luces puntuales) y el sótano quedaba casi negro; three.js lee visible en cada cuadro
+ const rell=new THREE.HemisphereLight(0xffe6c8,0x3a2418,SOT_RELL);Object.defineProperty(rell,'visible',{get:()=>window.CALIDAD==='medio',set(){}});S.add(rell)}
 function modo(m){if(walkL)walkL.visible=m!=='juego';if(F)F.TB[0].ring.visible=m!=='juego'}   // en la partida no se ve el aro de "acércate"
 
 // ---------- el piso para c_casa3d.js ----------

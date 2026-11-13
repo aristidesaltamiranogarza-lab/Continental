@@ -378,7 +378,7 @@ html.pksit.pk2on .pk-jug{display:none}
 /* Póker: vista previa de tus dos cartas (PKH, solo mientras tocas Ver) */
 .pk-mias{position:fixed;z-index:12;right:calc(14px + env(safe-area-inset-right,0px));top:calc(120px + env(safe-area-inset-top,0px));display:flex;gap:6px;padding:8px;border-radius:16px;background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);box-shadow:var(--ui-shadow);cursor:pointer;pointer-events:auto}
 .pk-mias .bj2c{width:56px;height:80px;padding:4px 6px;border-radius:8px}.pk-mias .bj2c b{font-size:24px}.pk-mias .bj2c span{font-size:26px}
-@media (max-height:520px){.pk-mias{top:auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));right:auto;left:calc(14px + env(safe-area-inset-left,0px))}}
+@media (max-height:520px){.pk-mias{top:calc(64px + env(safe-area-inset-top,0px));padding:6px}.pk-mias .bj2c{width:44px;height:62px}.pk-mias .bj2c b{font-size:19px}.pk-mias .bj2c span{font-size:20px}}
 /* C2D (c_casino2d.js): Blackjack y Póker en 2D en el modo Ligero; sin casa no hay botones de cámara ni barra de abajo */
 html.c2don .bj-top{top:calc(14px + env(safe-area-inset-top,0px))}
 html.c2don .bj-top .ui-rb:not(.c2k){display:none}
