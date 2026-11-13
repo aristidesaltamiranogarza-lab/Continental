@@ -215,7 +215,7 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
   Hecho: sonidos nuevos en `cardSfx` (game.js): deal (cada carta que vuela), chip (apostar; apuestas de los demás), chips (pagos) y bj (tu blackjack). El letrero ya decía Mín/Máx. Vista 2D medida en 375×812 y 812×375 (en horizontal el panel deja libre la columna derecha y la barra se corre a la izquierda). Falta probar a mano una ronda completa en celular de verdad.
 
 ### [ ] Póker (sótano, mesa ovalada de 8)
-**Decisiones (respondidas el 12 nov 2026; aún no empezar, Aris avisa):**
+**Decisiones (respondidas el 12 nov 2026):**
 - Variante: Texas Hold'em sin límite.
 - Fichas: como Blackjack: 1,000 por sesión, ciegas fijas 5/10 (mesa de efectivo), recarga a 1,000 al llegar a 0; no se guardan.
 - Entrada: asiento libre al llegar (tecla E), juegas desde la siguiente mano. Sin sala ni torneo.
@@ -228,7 +228,13 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 - Cámara: desde tu silla con MCAM (Arriba/Recentrar) y botón "Vista 2D" como Blackjack.
 - Social: gestos automáticos (festeja bote grande, se desanima al quedarse sin fichas), fichas de cada quien frente a su asiento, globito de resultado sobre el ganador (p. ej. "+340 Color").
 - Espectadores: sí; quien esté cerca de la mesa ve la mano (sin cartas ocultas) y puede sentarse cuando se libera un asiento.
-**Pasos (ajustar a las decisiones):** P1 `g_poker.js` (evaluador de manos de 7 cartas con pruebas, rondas de apuesta, botes paralelos, temporizadores) · P2 bots en `g_poker_bot.js` · P3 cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack · P4 HUD con GHUD (subir con deslizador) · P5 vista 2D si se pidió · P6 sonidos, quitar "Próximamente", celular y compu.
+**Pasos:**
+- [x] P1 Reglas: `g_poker.js` (PK, sin salas, `/casa` b.pk) y evaluador compartido `poker_eval.js` (PEV en el cliente: puntos, nombre, mejores, equidad, outs). `act(id,nombre,{op})`: sentar(s) parar mostrar retirar pasar igualar subir(v = total de tu apuesta en la calle) todo. Vista `pk` por jugador: fase espera|mano|pausa|fin, calle 0..3, mesa, btn/sb/bb, turno, alta, minR, botes [{v,e}], res [{v,g,nom}], as[8] {n,bot,f,ap,tot,fold,allin,lim,mos,gan,neta,acc {o,v},c (-1 tapada),nom}, yo; `pkerr`. La apuesta que nadie iguala se devuelve; todo corto no reabre la subida (lim). Pruebas en tests/poker.js (incluye 300 manos con bots cuadrando fichas).
+- [x] P2 Bots: `g_poker_bot.js` (equidad Monte Carlo contra los que siguen, farol ~8 %). Completan hasta 4 en la mesa (máx. 3 bots) mientras haya alguien real; entran y salen entre manos; piensan 1–2.7 s.
+- [ ] P3 Cliente 3D `c_poker3d.js` reusando cartas, fichas y crupier del Blackjack (registrar poker_eval.js en el mapa y en continental3d.html).
+- [ ] P4 HUD con GHUD (subir con deslizador, ½ bote, bote, todo; tu jugada, probabilidad y outs).
+- [ ] P5 Vista 2D.
+- [ ] P6 Crupier con atuendo propio, sonidos, gestos, quitar "Próximamente", celular y compu.
 
 ### [ ] Monopoly Deal en 3D (salón de la planta baja)
 Hoy: reglas en `g_monopolydeal.js` (completas, con salas y bots) y pantalla 2D `c_monopolydeal.js` (GRANDE, la comparte el 2D Ligero: no tocarla) envuelta por `c_mdeal_hud.js`. Es solo presentación nueva sobre la mesa nueva (MESA/MPJ/MCAM), en módulos chicos nuevos.

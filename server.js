@@ -94,7 +94,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
   soltar(R,p);if(M.tick)M.tick(R);return}
  return M.act(R,tok,m)}
 // ---- casa de juegos: quién anda caminando (posición, emote, lo que dijo) y qué salas hay en cada mesa ----
-const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js'),BJ=require('./g_blackjack.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
+const CUB=require('./g_cubilete.js'),JG=require('./g_casajuegos.js'),BJ=require('./g_blackjack.js'),PK=require('./g_poker.js');   // JG: Conecta 4 y Backgammon sueltos en la casa
 //   // Cubilete de la esquina (sin salas)
 const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'];
 function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.G?vivoH(R,now):R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
@@ -107,10 +107,10 @@ function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
   if(EMO.includes(b.em)){o.em=b.em;o.emT=now}if(b.say){const s=String(b.say).trim().slice(0,80);if(s){o.say=s;o.sayT=now}}o.ts=now}
  if(id&&b.cub)CUB.act(id,casa[id].name,b.cub);
  let jerr=id&&b.jg?JG.act(id,casa[id].name,b.jg):null;if(id)JG.act(id,casa[id].name,null);
- let bjerr=id&&b.bj?BJ.act(id,casa[id].name,b.bj):null;
+ let bjerr=id&&b.bj?BJ.act(id,casa[id].name,b.bj):null; let pkerr=id&&b.pk?PK.act(id,casa[id].name,b.pk):null;
  for(const k in casa)if(now-casa[k].ts>8000)delete casa[k];
- CUB.tick(k=>!!casa[k]);JG.tick(k=>!!casa[k]);BJ.tick(k=>!!casa[k]);
- return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,av:o.av||'',x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view(),jg:JG.view(id),jerr,bj:BJ.view(),bjerr}}
+ CUB.tick(k=>!!casa[k]);JG.tick(k=>!!casa[k]);BJ.tick(k=>!!casa[k]);PK.tick(k=>!!casa[k]);
+ return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,av:o.av||'',x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),cub:CUB.view(),jg:JG.view(id),jerr,bj:BJ.view(),bjerr,pk:PK.view(id),pkerr}}
 // ---- HTTP ----
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p])return SM.envia(req,res,path.join(__dirname,files[p][0]),files[p][1],files[p][1]=='audio/mpeg'?'public, max-age=604800':'no-store');   // por partes (srv_modelos.js)
