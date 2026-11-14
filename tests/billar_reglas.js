@@ -88,4 +88,12 @@ ok('bots contra bots terminan la partida sin errores y todo se reproduce',()=>{l
   if(m.S.fase=='fin')fines++}
  assert(fines>=4,'solo terminaron '+fines)});
 
+const BOT=require('../billar_bot.js');
+ok('bot difícil: mete un corte suave y no comete falta',()=>{const E=vacia([0,-.3,.05],[3,.6,.35]);
+ const t=BOT.tiro({E,c:E[0],legales:[1,2,3,4,5,6,7],mias:[1,2,3,4,5,6,7],niv:2,rnd:sem(3)}),r=F.simula(E,t);
+ const met=r.ev.filter(v=>v.k=='tronera').map(v=>v.a);assert(met.includes(3)&&!met.includes(0),'metió '+met)});
+ok('bot con bola en mano: la pone libre en la cocina',()=>{const E=vacia([5,.2,-.1],[12,-.5,.2]);
+ const t=BOT.tiro({E,c:[-L/4,0],legales:[5],mias:[1,2,3,4,5,6,7],niv:1,mano:1,rnd:sem(4)});
+ assert(t.x<=-L/4+1e-9&&F.libre(E,t.x,t.z,true))});
+
 console.log('billar reglas: '+n+' pruebas bien');

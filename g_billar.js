@@ -9,7 +9,7 @@
 // el rival pone la blanca detrás de la línea de cabeza. La 8 antes de tiempo o con falta: pierdes. La 8 en el saque: se acomoda
 // de nuevo y saca el mismo.
 // 2 contra 2: los equipos se turnan y dentro del equipo se alternan los dos en cada entrada.
-const F=require('./billar_fis.js');
+const F=require('./billar_fis.js'),BOT=require('./billar_bot.js');
 const T_TIRO=45000,T_RETO=60000,T_FIN=20000,T_BOT=1200,T_REP=800;   // T_REP: margen tras ver el tiro antes de contar el tiempo
 const NOMBOTS=['Paco','Chabela','Don Lalo','Meche','Rigo','Tere'];
 const LISAS=[1,2,3,4,5,6,7],RAYADAS=[9,10,11,12,13,14,15],GR={l:LISAS,r:RAYADAS};
@@ -22,19 +22,8 @@ function lugar(E,coc){if(E[0]&&F.libre(E,E[0][0],E[0][1],coc))return E[0].slice(
   for(let d=1;d<8;d++)if(F.libre(E,x0-d*R,z,coc))return [r4(x0-d*R),z]}
  return [x0,0]}
 
-// bot provisional (L5 lo cambia): tiro recto a la bola legal con menor corte hacia algún hoyo; niv 0..2 = menos ruido
-function botSimple(o){const {E,legales,niv,rnd}=o,c=o.c;
- if(o.saque)return {a:Math.atan2(0-c[1],L/4-c[0])+(rnd()-.5)*.02,v:F.A.vmax*.92,ex:0,ey:.1};
- let mejor=null;
- for(const i of legales){const b=E[i];if(!b)continue;
-  for(const h of P){const dx=h.x-b[0],dz=h.z-b[1],dl=Math.sqrt(dx*dx+dz*dz),gx=b[0]-2*R*dx/dl,gz=b[1]-2*R*dz/dl;
-   const ax=gx-c[0],az=gz-c[1],al=Math.sqrt(ax*ax+az*az),co=(ax*dx+az*dz)/(al*dl);
-   const pts=co-.15*(al+dl);if(co>.35&&(!mejor||pts>mejor.pts))mejor={pts,a:Math.atan2(az,ax),v:Math.min(F.A.vmax,1.2+1.1*(al+dl)/Math.max(co,.5))}}}
- if(!mejor){const i=legales.find(i=>E[i]);const b=E[i];return {a:Math.atan2(b[1]-c[1],b[0]-c[0]),v:3,ex:0,ey:0}}
- const ruido=[.05,.02,.006][niv]||.02;return {a:mejor.a+(rnd()-.5)*2*ruido,v:mejor.v,ex:0,ey:0}}
-
 function mesa(o={}){
- const now=o.now||Date.now,rnd=o.rnd||Math.random,botTiro=o.bot||botSimple;
+ const now=o.now||Date.now,rnd=o.rnd||Math.random,botTiro=o.bot||BOT.tiro;
  const S={fase:'libre',modo:1,eq:[[null],[null]],org:null,inv:null,niv:1,plazo:0,E:null,gr:null,ti:[0,0],turno:-1,mano:null,saque:0,n:0,ult:null,gana:-1,por:'',botT:0,nb:0};
  const todos=()=>S.eq[0].concat(S.eq[1]).filter(Boolean),humanos=()=>todos().filter(p=>!p.bot);
  const donde=id=>{for(let e=0;e<2;e++){const j=S.eq[e].findIndex(p=>p&&p.id===id);if(j>=0)return [e,j]}return null};
@@ -86,8 +75,8 @@ function mesa(o={}){
   if(!isFinite(T.a)||!isFinite(T.v)||T.v<=0||!isFinite(T.ex)||!isFinite(T.ey))return 'Tiro inválido';
   juzga(p,E,F.simula(E,T))}
  function tiroBot(p){const coc=S.mano=='cocina',c=S.mano||!S.E[0]?lugar(S.E,coc):S.E[0];
-  let d=null;try{d=botTiro({E:S.E,c,legales:legales(),saque:S.saque,niv:p.niv,rnd})}catch(_){}
-  d=Object.assign({},d||{},{x:c[0],z:c[1]});if(tirar(p,d))tirar(p,{x:c[0],z:c[1],a:0,v:2})}
+  let d=null;try{d=botTiro({E:S.E,c,legales:legales(),saque:S.saque,niv:p.niv,rnd,mano:!!S.mano&&!S.saque,mias:mias(S.turno)})}catch(_){}
+  d=Object.assign({x:c[0],z:c[1]},d||{});if(tirar(p,d))tirar(p,{x:c[0],z:c[1],a:0,v:2})}
  function tiempo(){const p=quien();S.n++;S.ult={n:S.n,E0:S.E.map(e=>e&&e.slice()),tiro:null,por:p.id,e:S.turno,dur:0,pri:-1,met:[],fal:'Se acabó el tiempo',sigue:0,msg:''};
   if(!S.saque)S.mano='cocina';pasa();reloj(0)}
 
@@ -133,4 +122,4 @@ function mesa(o={}){
    E:S.E,n:S.n,ult:S.ult,gana:S.gana,por:S.por}}
  return {act,tick,view,S,legales}}
 
-module.exports=Object.assign(mesa(),{mesa,lugar,botSimple,T_TIRO});
+module.exports=Object.assign(mesa(),{mesa,lugar,T_TIRO});
