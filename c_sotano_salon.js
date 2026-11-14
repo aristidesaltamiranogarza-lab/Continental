@@ -13,7 +13,7 @@ const P={},M={},signs=[];let KM=null,lastT=0;
 let avT=0;
 function aviso(t){let el=document.getElementById('salAviso');if(!el){el=document.createElement('div');el.id='salAviso';el.className='ui ui-toast';el.setAttribute('role','status');document.body.appendChild(el)}
  el.textContent=t;el.style.display='';clearTimeout(avT);avT=setTimeout(()=>{el.style.display='none'},2800);if(typeof sfx=='function')sfx('tick')}
-const pronto=g=>g=='blackjack'&&window.BJ3?BJ3.tap():g=='poker'&&window.PK3?PK3.tap():aviso(`${NOM[g]}: muy pronto se podrá jugar aquí`);
+const pronto=g=>g=='blackjack'&&window.BJ3?BJ3.tap():g=='poker'&&window.PK3?PK3.tap():g=='billar'&&window.BIJ?BIJ.tap():aviso(`${NOM[g]}: muy pronto se podrá jugar aquí`);
 const css=document.createElement('style');css.textContent=`.h3sign.sal{position:absolute;left:0;top:0;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);
  -webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);white-space:nowrap;cursor:pointer;pointer-events:auto}
 .h3sign.sal small{color:var(--ui-accent)}.h3sign.sal.det small::after{content:''}`;document.head.appendChild(css);
@@ -119,7 +119,7 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
  rk.traverse(o=>{if(o.isMesh){o.userData.hit={t:'fn',f:()=>{if(typeof musCyc=='function'){musCyc();aviso('Música: '+(typeof musName=='function'?musName():''))}}};hits.push(o)}});
 
  ['billar','blackjack','poker'].forEach(sign);
- const step=()=>{lastT=performance.now();if(window.BJC)BJC.paso();if(window.PKC)PKC.paso();if(window.BJ3)BJ3.paso();if(window.PK3)PK3.paso();const cm=H.cam();if(KM&&cm)CPB.corte(KM,cm.position,H.yo&&H.yo());labels()};
+ const step=()=>{lastT=performance.now();if(window.BJC)BJC.paso();if(window.PKC)PKC.paso();if(window.BJ3)BJ3.paso();if(window.PK3)PK3.paso();if(window.BIJ)BIJ.paso();const cm=H.cam();if(KM&&cm)CPB.corte(KM,cm.position,H.yo&&H.yo());labels()};
  return {OB,WL:KM.WL,step}}
 
 window.SAL={build,P,M,aviso};
