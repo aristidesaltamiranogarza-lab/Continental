@@ -6,8 +6,8 @@
 // chica (en L4 pasa a la blanca en 3D). Bola en mano: arrastrar la blanca y soltar. Guía: hasta la primera bola + hacia dónde van.
 // c_casa3d.js: BIJ.estado(v,err), BIJ.out(), BIJ.hud(busy), BIJ.key(k), BIJ.oculto(id). SAL.step llama BIJ.paso(). Ajustes en BIJ.A.
 (function(){
-if(typeof THREE==='undefined'||!window.BFIS||!window.BREP)return;
-const A={sens:.0042,fino:.12,tecla:.9,carga:.65,cerca:3.4,camAtras:1.75,camAlto:.8,camMira:1.2,inc:1.12,techo:3.5,suave:6,
+if(typeof THREE==='undefined'||!window.BFIS||!window.BREP||!window.BCAM)return;
+const A={sens:.0042,fino:.12,tecla:.9,carga:.65,cerca:3.4,suave:6,
  tilt:.09,largo:1.47,jalon:.32,guiaObj:.45,guiaBl:.3};
 const PI=Math.PI,FM=BFIS.M,R=FM.R,touchy=matchMedia('(pointer:coarse)').matches,v3=(x,y,z)=>new THREE.Vector3(x,y,z);
 const H=()=>window.CASA3D,M=()=>window.SAL&&SAL.M&&SAL.M.billar||null;
@@ -38,7 +38,7 @@ function estado(v,err){if(err){if(window.SAL)SAL.aviso(err);if(pend){pend=null;B
   if(pend&&u.tiro&&u.tiro.a===pend.a&&u.tiro.v===pend.v&&u.tiro.ex===pend.ex&&u.tiro.ey===pend.ey){pend=null;return}   // ya lo estamos viendo
   pend=null;if(M0&&u.tiro)reproduce(u.E0,u.tiro);else if(M0&&v.E&&!jug)BREP.pon(M0,v.E)}
  else if(M0&&v.E&&!jug&&!pend&&!miTurno())BREP.pon(M0,v.E)}
-function reproduce(E0,t){const m=M0,res=BFIS.simula(E0,t);jug=true;
+function reproduce(E0,t){const m=M0,res=BFIS.simula(E0,t);jug=true;BCAM.tiro(t.a);
  BREP.juega(m,res,{al:ev=>{if(ev.k==='tronera')son('card')},fin:()=>{jug=false;if(V&&V.E)BREP.pon(m,V.E);tk=''}})}
 function tira(){if(!puedo()||fase!=='apunta'||pot<.02){pot=0;return}const e=E();if(!e[0])return;
  const t=BFIS.norma({a:ang,v:Math.max(.05,pot*pot*BFIS.A.vmax),ex,ey}),m={op:'tiro',a:t.a,v:t.v,ex:t.ex,ey:t.ey};if(V.mano){m.x=r4(bx);m.z=r4(bz)}
@@ -68,16 +68,11 @@ function dibTaco(now){const e=E(),c=e[0];const ver=puedo()&&fase==='apunta'&&c||
   atras=(R*.35+pot*A.jalon)*k+R;
  taco.position.set((cc[0]-dx*atras-dz*ex*o)*K,M0.D.Y+(R+ey*o)*K,(cc[1]-dz*atras+dx*ex*o)*K);taco.rotation.set(0,-ang,-A.tilt)}
 
-// ---------- cámara (básica; L4 la afina) ----------
+// ---------- cámara (BCAM decide la pose; aquí se suaviza) ----------
 const CD=new THREE.Camera(),Pc=v3(0,0,0),Lc=v3(0,0,0);
-function camara(dt){const C=H()&&H().cam();if(!C||!M0)return;const D=M0.D,K=D.K,G0=M0.G;if(!fov0)fov0=C.fov;let f=fov0;
- const e=E(),c=e[0]||[bx,bz];
- if(puedo()&&fase==='apunta'&&vista==='taco'){const dx=Math.cos(ang),dz=Math.sin(ang);Pc.set((c[0]-dx*A.camAtras/K)*K,D.Y+R*K+A.camAlto,(c[1]-dz*A.camAtras/K)*K);
-  Lc.set((c[0]+dx*A.camMira/K)*K,D.Y,(c[1]+dz*A.camMira/K)*K)}
- else{const asp=C.aspect||1,vx=asp<1,hl=D.L/2+.35,ha=D.A/2+.35,tv=Math.tan(f*PI/360),
-  w=vx?ha:hl,hgt=(vx?hl:ha)*Math.sin(A.inc),d0=Math.max(w/(tv*asp),hgt/tv)*1.05,dm=(A.techo-D.Y)/Math.sin(A.inc);let d=d0;
-  if(d>dm){f=Math.min(100,2*Math.atan(tv*d0/dm)*180/PI);d=dm}const ci=Math.cos(A.inc)*d,si=Math.sin(A.inc)*d;
-  Lc.set(0,D.Y,0);if(vx)Pc.set(-ci,D.Y+si,0);else Pc.set(0,D.Y+si,ci)}
+const enTaco=()=>puedo()&&fase==='apunta'&&vista==='taco';
+function camara(dt){const C=H()&&H().cam();if(!C||!M0)return;const G0=M0.G;if(!fov0)fov0=C.fov;
+ const c=E()[0]||[bx,bz],p=BCAM.pose({m:M0,modo:jug&&vista!=='arriba'?'sigue':enTaco()?'taco':'mesa',c,ang,asp:C.aspect||1,fov0,dt}),f=p.f;Pc.copy(p.P);Lc.copy(p.L);
  G0.localToWorld(Pc);G0.localToWorld(Lc);CD.position.copy(Pc);CD.lookAt(Lc);
  if(!cp){cp=C.position.clone();cq=C.quaternion.clone()}const s=1-Math.exp(-dt*A.suave);cp.lerp(Pc,s);cq.slerp(CD.quaternion,s);
  C.position.copy(cp);C.quaternion.copy(cq);if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*s;C.updateProjectionMatrix()}C.updateMatrixWorld()}
@@ -91,7 +86,7 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(esp&&puedo()&&fase==='apunta')pot=Math.min(1,pot+dt*A.carga);
  if(keys.size&&puedo()&&fase==='apunta'){const g=dt*A.tecla*(keys.has('f')?A.fino*1.5:1);if(keys.has('l'))ang-=g;if(keys.has('r'))ang+=g}
  if(puedo()){if(V.mano)BREP.pon(M0,E());if(fase==='apunta')guia();else[ln,lo,lb,ring].forEach(o=>o.visible=false)}else[ln,lo,lb,ring].forEach(o=>o.visible=false);
- dibTaco(now);
+ dibTaco(now);BCAM.punto(M0,E()[0],ang,ex,ey,dueno&&enTaco());
  const quiero=enJuego()&&enSot();if(quiero){if(!dueno){dueno=true;const me=quien(yoId());if(me){meVis=me.g.visible}}camara(dt)}else if(dueno)suelta();
  muestra(puedo()&&fase==='apunta');
  const seg=V.fase==='juego'?Math.ceil(Math.max(0,V.left-(now-V.t0))/1000):0,k=[V.fase,enJuego(),cerca(),miTurno(),jug,!!pend,fase,vista,seg,V.turno,V.inv,V.gana].join('|');if(k!==hk){hk=k;rr()}}
@@ -119,7 +114,7 @@ function ctl(){let el=document.getElementById('bijCtl');if(el)return el;css();el
  eb.addEventListener('pointerup',()=>{ef=null});eb.addEventListener('dblclick',()=>{ex=ey=0});return el}
 function muestra(on){const el=on?ctl():document.getElementById('bijCtl');if(!el)return;el.style.display=on?'':'none';if(!on)return;
  el.querySelector('.bij-pot b').style.height=`calc(${(pot*100).toFixed(1)}% - ${pot?12*pot:0}px)`;el.querySelector('.bij-pot span').textContent=pot>.01?Math.round(pot*100)+'%':'Jalar';
- const d=el.querySelector('.bij-ef i');d.style.left=(50+ex*.85*50)+'%';d.style.top=(50-ey*.85*50)+'%'}
+ el.querySelector('.bij-ef').style.display=vista==='taco'?'none':'';const d=el.querySelector('.bij-ef i');d.style.left=(50+ex*.85*50)+'%';d.style.top=(50-ey*.85*50)+'%'}
 
 // ---------- entrada sobre el lienzo ----------
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),pl=new THREE.Plane(),hit=v3(0,0,0);let toque=null;
@@ -130,8 +125,9 @@ function arrastra(e,ini){const p=(fase==='coloca'||vista==='arriba')?enMesa(e):n
  if(fase==='coloca'){if(p){const x=r4(p[0]),z=r4(p[1]),Es=E();if(BFIS.libre(Es,x,z,V.mano==='cocina')){bx=x;bz=z}}return}
  if(vista==='arriba'){if(p){const c=E()[0];if(c&&Math.hypot(p[0]-c[0],p[1]-c[1])>R)ang=Math.atan2(p[1]-c[1],p[0]-c[0])}return}
  if(!ini){ang+=(e.clientX-toque.x)*A.sens+(e.clientY-toque.y)*A.sens*A.fino}}
-addEventListener('pointerdown',e=>{if(!lienzo(e))return;e.stopPropagation();toque={id:e.pointerId,x:e.clientX,y:e.clientY};arrastra(e,true)},true);
-addEventListener('pointermove',e=>{if(!toque||toque.id!==e.pointerId)return;e.stopPropagation();if(puedo())arrastra(e,false);toque.x=e.clientX;toque.y=e.clientY},true);
+const efe=(e,l)=>fase==='apunta'&&vista==='taco'?BCAM.efecto(e,H().cam(),H().R().domElement,M0,E()[0],ang,l):null;
+addEventListener('pointerdown',e=>{if(!lienzo(e))return;e.stopPropagation();const f=efe(e,false);toque={id:e.pointerId,x:e.clientX,y:e.clientY,ef:!!f};if(f){[ex,ey]=f;return}arrastra(e,true)},true);
+addEventListener('pointermove',e=>{if(!toque||toque.id!==e.pointerId)return;e.stopPropagation();if(toque.ef){const f=puedo()&&efe(e,true);if(f)[ex,ey]=f;return}if(puedo())arrastra(e,false);toque.x=e.clientX;toque.y=e.clientY},true);
 const fin=e=>{if(!toque||toque.id!==e.pointerId)return;e.stopPropagation();toque=null;if(fase==='coloca'&&puedo()){fase='apunta';apuntaInicial();rr()}};
 addEventListener('pointerup',fin,true);addEventListener('pointercancel',fin,true);
 const keys=new Set(),TK={arrowleft:'l',a:'l',arrowright:'r',d:'r'};
@@ -149,7 +145,7 @@ function hud(busy){if(busy||!V||!enSot())return '';css();const me=yoId();
  if(enJuego()){const yo=V.yo[0],g=V.gr&&V.gr[yo],gt=g=='l'?'Lisas':g=='r'?'Rayadas':'Mesa abierta',now=performance.now(),seg=Math.ceil(Math.max(0,V.left-(now-V.t0))/1000);
   let b,s,bt='';
   if(V.fase==='fin'){b=V.gana===yo?'Ganaste':'Ganó '+esc(V.eq[V.gana]?V.eq[V.gana].map(nom).join(' y '):'');s=esc(V.por);bt=`<button class="ui-btn" onclick="BIJ.act('revancha')">Revancha</button>`}
-  else if(miTurno()&&!jug&&!pend){b=`Tu tiro · ${seg} s`;s=fase==='coloca'?'Arrastra la blanca a su lugar':touchy?'Arrastra para apuntar · jala la barra':'Arrastra o A/D para apuntar · Espacio para tirar';
+  else if(miTurno()&&!jug&&!pend){b=`Tu tiro · ${seg} s`;s=fase==='coloca'?'Arrastra la blanca a su lugar':(touchy?'Arrastra para apuntar · jala la barra':'Arrastra o A/D para apuntar · Espacio para tirar')+(vista==='taco'?' · la blanca da efecto':'');
    bt=(fase==='apunta'?`<button class="ui-btn sec" onclick="BIJ.vista()">${vista==='taco'?'Arriba':'Detrás'}</button>`:'')+(V.mano&&fase==='apunta'?`<button class="ui-btn sec" onclick="BIJ.mover()">Mover blanca</button>`:'')}
   else{const p=V.turno>=0&&V.eq[V.turno]?V.eq[V.turno][V.ti[V.turno]]:null;b=jug||pend?'Mirando el tiro':p?'Tira '+esc(nom(p)):'Billar';s=V.ult&&V.ult.msg?esc(V.ult.msg):V.ult&&V.ult.fal?esc(V.ult.fal):""}
   return `<div class="ui bij-bar"><div class="bij-st" role="status"><b>${b}</b><small>${[s,V.fase==="juego"?gt:""].filter(Boolean).join(" · ")}</small></div>${bt}<button class="ui-btn ghost" onclick="BIJ.act('salir')" aria-label="Salir del Billar">${I('salir')}</button></div>`}
