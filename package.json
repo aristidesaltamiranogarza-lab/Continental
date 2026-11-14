@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node server3d.js",
-    "test": "node tests/blackjack.js && node tests/poker.js && node tests/rummy.js"
+    "test": "node tests/blackjack.js && node tests/poker.js && node tests/rummy.js && node tests/billar.js"
   },
   "engines": {
     "node": ">=18"

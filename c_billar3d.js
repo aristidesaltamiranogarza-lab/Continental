@@ -7,17 +7,12 @@
 if(typeof THREE==='undefined')return;
 const V2=THREE.Vector2,PI=Math.PI;
 const K=1.42;   // escala de la casa: las mesas de juego van más grandes que las reales (los Miis son cabezones)
-// mesa de 9 pies (WPA) por K: paño L×A, bola R, altura del paño Y, banda (ancho CW, alto CH), riel de madera RW,
-// boca de buchaca de esquina MC y de en medio MS, radio de su hoyo PC y PS
-const L=2.54*K,A=1.27*K,R=.05715/2*K,Y=.762*K,CW=.05*K,CH=.045*K,RW=.13*K,MC=.116*K,MS=.13*K,PC=.062*K,PS=.066*K,RT=Y+CH;
-// buchacas (o: hacia afuera)
-const P=[];[-1,1].forEach(sx=>[-1,1].forEach(sz=>P.push({x:sx*(L/2+.028*K),z:sz*(A/2+.028*K),r:PC,ox:sx,oz:sz})));
-[-1,1].forEach(sz=>P.push({x:0,z:sz*(A/2+.045*K),r:PS,ox:0,oz:sz}));
-// bandas: nariz (lo que toca la bola) y fondo; las quijadas cierran hacia la buchaca (esquina 142°, en medio 103.5°)
-const a=MC/Math.SQRT2,dc=CW/Math.tan(38*PI/180),ds=CW/Math.tan(76.5*PI/180),BANDAS=[];
-[-1,1].forEach(s=>{const n=s*A/2,f=s*(A/2+CW);
- BANDAS.push([[-L/2+a,n],[-MS/2,n],[-MS/2+ds,f],[-L/2+a-dc,f]],[[MS/2,n],[L/2-a,n],[L/2-a+dc,f],[MS/2-ds,f]]);
- const m=s*L/2,g=s*(L/2+CW);BANDAS.push([[m,-A/2+a],[m,A/2-a],[g,A/2-a+dc],[g,-A/2+a-dc]])});
+// mesa de 9 pies (WPA) por K. Lo que tocan las bolas sale de la física (billar_fis.js, BFIS.M en metros reales): paño L×A, bola R,
+// banda CW, buchacas P (o: hacia afuera) y bandas (nariz 0→1, fondo 2→3, quijadas 0→3 y 1→2). Aquí: altura del paño Y, alto de
+// la banda CH y riel de madera RW
+const FM=window.BFIS&&BFIS.M;if(!FM)return;
+const L=FM.L*K,A=FM.A*K,R=FM.R*K,CW=FM.CW*K,Y=.762*K,CH=.045*K,RW=.13*K,RT=Y+CH;
+const P=FM.P.map(p=>({x:p.x*K,z:p.z*K,r:p.r*K,ox:p.ox,oz:p.oz})),BANDAS=FM.BANDAS.map(b=>b.map(([x,z])=>[x*K,z*K]));
 const D={K,L,A,R,Y,RT,CW,CH,P,cabeza:[-L/4,0],pie:[L/4,0],
  bandas:BANDAS.map(b=>[b[0][0],b[0][1],b[1][0],b[1][1]]),quijadas:BANDAS.flatMap(b=>[[b[0][0],b[0][1],b[3][0],b[3][1]],[b[1][0],b[1][1],b[2][0],b[2][1]]])};
 
@@ -48,10 +43,8 @@ function texBola(ctex,n){return ctex('bola-'+n,256,128,(g,w,h)=>{const c=COL[n>8
  [w*.25,w*.75].forEach(x=>{if(!n){g.fillStyle='#c0262a';g.beginPath();g.arc(x,h/2,5,0,7);g.fill();return}
   g.fillStyle='#f7f3e8';g.beginPath();g.arc(x,h/2,22,0,7);g.fill();g.fillStyle='#151515';g.font='bold '+(n>9?24:29)+'px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';
   g.fillText(n,x,h/2+1);if(n==6||n==9)g.fillRect(x-7,h/2+13,14,2.5)})})}
-// triángulo de 8: la 1 en la punta (sobre el pie), la 8 al centro, lisa y rayada en las esquinas de atrás
-const ORD=[1,9,2,10,8,3,11,7,14,4,5,13,15,6,12];
-function acomodo(){const o=[[D.cabeza[0],D.cabeza[1]]],g=R+.0007;let k=0;
- for(let i=0;i<5;i++)for(let j=0;j<=i;j++)o[ORD[k++]]=[D.pie[0]+i*Math.sqrt(3)*g,(2*j-i)*g];return o}
+// triángulo de 8 (BFIS.rack: la 8 al centro, lisa y rayada en las esquinas de atrás) y la blanca en la cabeza
+function acomodo(){return BFIS.rack(BFIS.azar(8)).map(([x,z])=>[x*K,z*K])}
 
 // ---------- tacos (LOTE: una malla para todos) ----------
 // de abajo hacia arriba: goma, casquillo, puño, antebrazo, unión, flecha, virola y suela; 1.47 m reales
