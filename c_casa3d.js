@@ -93,7 +93,7 @@ function init(){if(ready)return;ready=true;
   else if({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k]){e.preventDefault();camBtn({q:'rl',e:'rr',r:'tu',f:'td','+':'zi','=':'zi','-':'zo'}[k])}
   else if(k=='home'){e.preventDefault();camHome()}
   else if(k=='v'){e.preventDefault();const m=window.CHUD&&CHUD.mesa&&CHUD.mesa();if(m)m.ver();else fpTog()}
-  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(window.BJ3&&BJ3.key('escape'))return;if(window.PK3&&PK3.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
+  else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(window.BJ3&&BJ3.key('escape'))return;if(window.PK3&&PK3.key('escape'))return;if(window.BIJ&&BIJ.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
   else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
@@ -488,7 +488,7 @@ function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||
  R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
  if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
  const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
-window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,myId:()=>myId,quien:id=>id===myId?me:others.get(id),ancla,fondo,arranca,
+window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,myId:()=>myId,quien:id=>id===myId?me:others.get(id),otros:()=>[...others].filter(([,a])=>(a.f||'pb')===FL.id).map(([id,a])=>({id,n:a.name})),ancla,fondo,arranca,
  sala:{gente:(g,n,av,yo)=>{salaPs=n&&n.length?{g,n,av:av||[],me:yo>0?yo:0}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
   sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+cp(c).x,TH+1.02,t.z+cp(c).z)):[]}}};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)

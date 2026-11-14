@@ -1,6 +1,6 @@
 // Sótano: el piso de abajo de la casa. Es el mismo cuarto de la Ruleta Rusa (c_ruleta3d.js), agrandado hacia la izquierda con una cantina:
 // barra con botellas y bancos, el Cubilete en la punta de la barra, letrero de neón, dos mesitas, barriles, diana y reloj (modelos de Poly Haven); pasando el arco, el casino y el billar
-// (c_sotano_salon.js: Póker, Blackjack y mesa de billar, "próximamente").
+// (c_sotano_salon.js: Póker, Blackjack y mesa de billar).
 // c_casa3d.js lo usa como piso (SOT.piso): escena, mesas, obstáculos, cosas que se tocan, límites y la escalera para subir.
 // Solo se arma la primera vez que bajas (o que juegas Ruleta). También el aviso "tu lugar te espera" cuando te levantas de una partida
 // (casa_seat en localStorage, lo guarda c_ruleta3d.js).

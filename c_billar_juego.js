@@ -39,10 +39,10 @@ function estado(v,err){if(err){if(window.SAL)SAL.aviso(err);if(pend){pend=null;B
   pend=null;if(M0&&u.tiro)reproduce(u.E0,u.tiro);else if(M0&&v.E&&!jug)BREP.pon(M0,v.E)}
  else if(M0&&v.E&&!jug&&!pend&&!miTurno())BREP.pon(M0,v.E)}
 function reproduce(E0,t){const m=M0,res=BFIS.simula(E0,t);jug=true;BCAM.tiro(t.a);
- BREP.juega(m,res,{al:ev=>{if(ev.k==='tronera')son('card')},fin:()=>{jug=false;if(V&&V.E)BREP.pon(m,V.E);tk=''}})}
+ BREP.juega(m,res,{al:ev=>{if(window.BSON)BSON.ev(ev);else if(ev.k==='tronera')son('card')},fin:()=>{jug=false;if(V&&V.E)BREP.pon(m,V.E);tk=''}})}
 function tira(){if(!puedo()||fase!=='apunta'||pot<.02){pot=0;return}const e=E();if(!e[0])return;
  const t=BFIS.norma({a:ang,v:Math.max(.05,pot*pot*BFIS.A.vmax),ex,ey}),m={op:'tiro',a:t.a,v:t.v,ex:t.ex,ey:t.ey};if(V.mano){m.x=r4(bx);m.z=r4(bz)}
- cola.length=0;cola.push(m);pend=Object.assign({t:performance.now()},t);golpe=performance.now();pot=0;son('tick');reproduce(e,t)}
+ cola.length=0;cola.push(m);pend=Object.assign({t:performance.now()},t);golpe=performance.now();pot=0;reproduce(e,t)}
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}));son('tick');rr()}
 
 // ---------- dibujo: guía y taco ----------
@@ -149,13 +149,14 @@ function hud(busy){if(busy||!V||!enSot())return '';css();const me=yoId();
    bt=(fase==='apunta'?`<button class="ui-btn sec" onclick="BIJ.vista()">${vista==='taco'?'Arriba':'Detrás'}</button>`:'')+(V.mano&&fase==='apunta'?`<button class="ui-btn sec" onclick="BIJ.mover()">Mover blanca</button>`:'')}
   else{const p=V.turno>=0&&V.eq[V.turno]?V.eq[V.turno][V.ti[V.turno]]:null;b=jug||pend?'Mirando el tiro':p?'Tira '+esc(nom(p)):'Billar';s=V.ult&&V.ult.msg?esc(V.ult.msg):V.ult&&V.ult.fal?esc(V.ult.fal):""}
   return `<div class="ui bij-bar"><div class="bij-st" role="status"><b>${b}</b><small>${[s,V.fase==="juego"?gt:""].filter(Boolean).join(" · ")}</small></div>${bt}<button class="ui-btn ghost" onclick="BIJ.act('salir')" aria-label="Salir del Billar">${I('salir')}</button></div>`}
+ if(window.BIH)return BIH.hud(V,me,cerca(),touchy);
  if(V.fase==='arma'&&V.inv===me){const o=V.eq[0][0];return `<button class="ui uh-aviso" onclick="BIJ.act('unir')" aria-label="Aceptar reto de Billar"><span class="uh-ai" aria-hidden="true">${I('jugar')}</span>
   <span class="uh-at"><b>${esc(nom(o))} te reta al Billar</b><small>Toca para aceptar</small></span></button>`}
  if(!cerca()||V.fase!=='libre')return '';
  return `<button class="ui uh-aviso" onclick="BIJ.tap()" aria-label="Jugar Billar"><span class="uh-ai" aria-hidden="true">${I('jugar')}</span>
   <span class="uh-at"><b>Jugar Billar</b><small>Bola 8 contra bot${touchy?' · toca para empezar':''}</small></span>${touchy?'':'<kbd>E</kbd>'}</button>`}
-function tap(){if(V&&V.fase==='libre'&&!enJuego())act('retar',{modo:1,bot:1,niv:1});else if(window.SAL)SAL.aviso('La mesa de billar está ocupada')}
-function key(k){if(k==='e'&&V&&V.fase==='libre'&&cerca()){tap();return true}return false}
+function tap(){if(window.BIH&&V&&!enJuego()&&(V.fase==='libre'||V.fase==='arma'))return BIH.abre();if(V&&V.fase==='libre'&&!enJuego())act('retar',{modo:1,bot:1,niv:1});else if(window.SAL)SAL.aviso('La mesa de billar está ocupada')}
+function key(k){if(k==='escape'&&window.BIH&&BIH.cierra())return true;if(k==='e'&&V&&(V.fase==='libre'||V.fase==='arma'&&!V.yo)&&cerca()){tap();return true}return false}
 
 const BIJ=window.BIJ={A,v:null,estado,paso,hud,key,act,tap,out:()=>cola.shift()||null,
  vista:()=>{vista=vista==='taco'?'arriba':'taco';rr()},mover:()=>{if(puedo()&&V.mano){fase='coloca';rr()}},

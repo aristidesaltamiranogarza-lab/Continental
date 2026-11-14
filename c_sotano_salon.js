@@ -17,7 +17,7 @@ const pronto=g=>g=='blackjack'&&window.BJ3?BJ3.tap():g=='poker'&&window.PK3?PK3.
 const css=document.createElement('style');css.textContent=`.h3sign.sal{position:absolute;left:0;top:0;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);
  -webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);white-space:nowrap;cursor:pointer;pointer-events:auto}
 .h3sign.sal small{color:var(--ui-accent)}.h3sign.sal.det small::after{content:''}`;document.head.appendChild(css);
-function sign(g){const el=document.createElement('div');el.className='ui h3sign sal';el.dataset.g=g;el.innerHTML=`<b>${NOM[g]}</b><small>${g=='blackjack'?'Mín $10 · Máx $500':g=='poker'?'Ciegas $5 / $10':'Próximamente'}</small>`;el.onclick=()=>pronto(g);signs.push(el);return el}
+function sign(g){const el=document.createElement('div');el.className='ui h3sign sal';el.dataset.g=g;el.innerHTML=`<b>${NOM[g]}</b><small>${g=='blackjack'?'Mín $10 · Máx $500':g=='poker'?'Ciegas $5 / $10':g=='billar'?'Bola 8':'Próximamente'}</small>`;el.onclick=()=>pronto(g);signs.push(el);return el}
 const v=new THREE.Vector3();
 function labels(){const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.R()&&H.R().domElement;if(!cam||!cv)return;const W=cv.clientWidth,Hh=cv.clientHeight,app=document.getElementById('app');
  signs.forEach(el=>{const p=P[el.dataset.g];if(!el.isConnected&&app)app.appendChild(el);v.set(p.x,p.y,p.z).project(cam);const vis=!(el.dataset.g=='blackjack'&&window.BJ3&&BJ3.yo()>=0)&&!(el.dataset.g=='poker'&&window.PK3&&PK3.yo()>=0)&&v.z<1&&Math.abs(v.x)<1.1&&Math.abs(v.y)<1.1;
