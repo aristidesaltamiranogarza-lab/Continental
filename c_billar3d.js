@@ -70,9 +70,9 @@ function build(e){const {S,hits,std,ctex}=e,G=new THREE.Group();G.position.set(e
  const pano=ctex('billar-pano',512,256,(g,w,h)=>{const gr=g.createRadialGradient(w/2,h/2,20,w/2,h/2,w*.62);gr.addColorStop(0,'#237a46');gr.addColorStop(1,'#185e34');g.fillStyle=gr;g.fillRect(0,0,w,h);
   for(let i=0;i<5200;i++){g.fillStyle=Math.random()<.5?'rgba(255,255,255,.035)':'rgba(0,0,0,.05)';g.fillRect(Math.random()*w,Math.random()*h,1.4,1.4)}
   const hx=L/2+CW;[D.cabeza[0],D.pie[0]].forEach(x=>{g.fillStyle='rgba(10,20,12,.75)';g.beginPath();g.arc((x+hx)/(2*hx)*w,h/2,2.6,0,7);g.fill()})});
- const M={pano:std(0xffffff,.93,{map:pano}),banda:std(0x1b6838,.9),hoyo:new THREE.MeshBasicMaterial({color:0x040302}),garg:std(0x1c130d,.9,{side:THREE.BackSide}),
-  riel:new THREE.MeshPhysicalMaterial({color:0x5a2a12,roughness:.4,clearcoat:.6,clearcoatRoughness:.28}),fald:std(0x3a1a0b,.48),mold:std(0x24100a,.5),
-  lat:std(0xc9a24a,.3,{metalness:.85}),cuero:std(0x2a1a10,.55),perla:std(0xf4f0e6,.28,{emissive:0x302d26})};
+ const B=window.BLOOK,M={pano:B?B.matPano(pano):std(0xffffff,.93,{map:pano}),banda:std(0x1b6838,.9),hoyo:new THREE.MeshBasicMaterial({color:0x040302}),garg:std(0x1c130d,.9,{side:THREE.BackSide}),
+  riel:B?B.matMadera(0x5a2a12,.8):new THREE.MeshPhysicalMaterial({color:0x5a2a12,roughness:.4,clearcoat:.6,clearcoatRoughness:.28}),fald:B?B.matMadera(0x3a1a0b,.45,true):std(0x3a1a0b,.48),mold:std(0x24100a,.5),
+  lat:std(0xc9a24a,.3,{metalness:.85}),cuero:B?B.matCuero(0x2a1a10):std(0x2a1a10,.55),malla:B?B.matMalla():std(0x2a1a10,.55),perla:std(0xf4f0e6,.28,{emissive:0x302d26})};
  const add=(geo,m,x,y,z,sh)=>{const o=new THREE.Mesh(geo,m);o.position.set(x||0,y||0,z||0);o.castShadow=sh!==false;o.receiveShadow=true;G.add(o);return o};
  const hx=L/2+CW,hz=A/2+CW,ox=hx+RW,oz=hz+RW;
  // paño con las buchacas mordidas; abajo de cada hoyo, su garganta oscura
@@ -80,7 +80,7 @@ function build(e){const {S,hits,std,ctex}=e,G=new THREE.Group();G.position.set(e
  P.forEach(p=>{add(new THREE.CylinderGeometry(p.r+.004,p.r*.85,.16,22,1,true),M.garg,p.x,Y-.078,p.z,false);
   const d=new THREE.Mesh(new THREE.CircleGeometry(p.r*.86,22),M.hoyo);d.rotation.x=-PI/2;d.position.set(p.x,Y-.155,p.z);G.add(d)});
  // bandas
- BANDAS.forEach(b=>add(alza(new THREE.Shape(b.map(([x,z])=>new V2(x,-z))),CH-.01,.005,RT),M.banda));
+ BANDAS.forEach(b=>add(B?B.banda(b,R,Y,RT):alza(new THREE.Shape(b.map(([x,z])=>new V2(x,-z))),CH-.01,.005,RT),M.banda));
  // riel de madera con las muescas, forro de cuero en cada buchaca y esquinas de latón
  const rs=rrect(ox,oz,.05);rs.holes.push(new THREE.Path(muescas(hx,hz,P.map(p=>Object.assign({},p,{r:p.r+.01})),1)));add(alza(rs,.1,.014,RT),M.riel);
  P.forEach(p=>{const esq=p.ox!==0,arc=esq?PI*1.25:PI*1.02,to=Math.atan2(p.oz,p.ox),g=new THREE.TorusGeometry(p.r+.012,.016,6,22,arc);
@@ -95,14 +95,14 @@ function build(e){const {S,hits,std,ctex}=e,G=new THREE.Group();G.position.set(e
   add(new THREE.BoxGeometry(2*ox-.02,.035,.03),M.mold,0,fb-fh+.02,s*(oz-.035));add(new THREE.BoxGeometry(.03,.035,2*oz-.05),M.mold,s*(ox-.035),fb-fh+.02,0)});
  add(new THREE.BoxGeometry(.34,.07,.008),M.lat,0,fb-fh/2,oz-.02+.004,false);
  const cp=[[.12,.24],[.115,.2],[.1,.12],[.08,.05],[.05,.01],[.001,0]].map(q=>new V2(q[0],q[1])).reverse(),cg=new THREE.LatheGeometry(cp,16);
- P.forEach(p=>add(cg,M.cuero,p.x,fb-fh-.13,p.z));
+ const cr=new THREE.TorusGeometry(.12,.012,6,20).rotateX(PI/2);P.forEach(p=>{add(cg,M.malla,p.x,fb-fh-.13,p.z);add(cr,M.cuero,p.x,fb-fh+.11,p.z)});
  const lp=[[.001,0],[.13,0],[.13,.04],[.1,.07],[.075,.16],[.105,.3],[.12,.4],[.09,.5],[.065,.62],[.09,.72],[.11,.8],[.11,fb-fh+.02],[.001,fb-fh+.02]].map(q=>new V2(q[0],q[1])),lg=new THREE.LatheGeometry(lp,18);
  [-1,1].forEach(sx=>[-1,1].forEach(sz=>add(lg,M.fald,sx*(L/2-.42),0,sz*(A/2-.08))));
  // gises en dos esquinas
  [[-1,1],[1,-1]].forEach(([sx,sz])=>add(new THREE.BoxGeometry(.045,.04,.045),std(0x2a63b8,.8),sx*(hx+RW*.55),RT+.02,sz*(hz+RW*.55)));
  // bolas
- const sg=new THREE.SphereGeometry(R,18,12),pos=acomodo(),bolas=[];
- for(let n=0;n<16;n++){const b=new THREE.Mesh(sg,std(0xffffff,.16,{map:texBola(ctex,n)}));b.position.set(pos[n][0],Y+R,pos[n][1]);
+ const sg=B?B.geoBola(R):new THREE.SphereGeometry(R,18,12),pos=acomodo(),bolas=[];
+ for(let n=0;n<16;n++){const b=new THREE.Mesh(sg,B?B.matBola(n,COL):std(0xffffff,.16,{map:texBola(ctex,n)}));b.position.set(pos[n][0],Y+R,pos[n][1]);
   b.rotation.set(Math.random()*7,Math.random()*7,Math.random()*7);b.castShadow=true;b.userData.n=n;G.add(b);bolas.push(b)}
  // golpes: la mesa y sus bolas se tocan (el aviso de próximamente o, después, abrir la partida)
  if(e.hit)G.traverse(o=>{if(o.isMesh){o.userData.hit=e.hit;hits.push(o)}});
