@@ -2,7 +2,7 @@
 // L3 apuntar y tirar: el tiro se simula aquí al soltar (BFIS, igual que el servidor) y se reproduce con BREP sin esperar; cuando
 // llega ult del servidor con el mismo tiro no se repite. Los tiros de los demás se reproducen al cambiar ult.
 // Apuntar: arrastrar sobre el lienzo (horizontal gira, vertical afina) o A/D y flechas (Shift fino); en la vista de arriba el apunte
-// sigue al dedo. Fuerza: jalar hacia abajo la barra de la derecha y soltar, o mantener Espacio. Efecto: arrastrar el punto de la bola
+// sigue al dedo. Fuerza: botón Tirar y jalar la barra hacia abajo (c_billar_ctl.js), o mantener Espacio. Efecto: arrastrar el punto de la bola
 // chica (en L4 pasa a la blanca en 3D). Bola en mano: arrastrar la blanca y soltar. Guía: hasta la primera bola + hacia dónde van.
 // c_casa3d.js: BIJ.estado(v,err), BIJ.out(), BIJ.hud(busy), BIJ.key(k), BIJ.oculto(id). SAL.step llama BIJ.paso(). Ajustes en BIJ.A.
 (function(){
@@ -66,18 +66,19 @@ function guia(){const e=E(),c=e[0],K=M0.D.K,y=M0.D.Y+.006;[ln,lo,lb,ring].forEac
 function dibTaco(now){const e=E(),c=e[0];const ver=puedo()&&fase==='apunta'&&c||(golpe&&now-golpe<140);taco.visible=!!ver;if(!ver)return;
  const K=M0.D.K,cc=c||[bx,bz],dx=Math.cos(ang),dz=Math.sin(ang),o=BFIS.A.efmax*R,k=golpe&&now-golpe<140?Math.max(0,1-(now-golpe)/90):1,
   atras=(R*.35+pot*A.jalon)*k+R;
- taco.position.set((cc[0]-dx*atras-dz*ex*o)*K,M0.D.Y+(R+ey*o)*K,(cc[1]-dz*atras+dx*ex*o)*K);taco.rotation.set(0,-ang,-A.tilt)}
+ const j=pot>.8?(pot-.8)/.2*k:0,jl=j*R*.07*Math.sin(now*.083),jv=j*R*.05*Math.sin(now*.121+1);
+ taco.position.set((cc[0]-dx*atras-dz*(ex*o+jl))*K,M0.D.Y+(R+ey*o+jv)*K,(cc[1]-dz*atras+dx*(ex*o+jl))*K);taco.rotation.set(0,-ang+j*.004*Math.sin(now*.07),-A.tilt)}
 
 // ---------- cámara (BCAM decide la pose; aquí se suaviza) ----------
 const CD=new THREE.Camera(),Pc=v3(0,0,0),Lc=v3(0,0,0);
 const enTaco=()=>puedo()&&fase==='apunta'&&vista==='taco';
 function camara(dt){const C=H()&&H().cam();if(!C||!M0)return;const G0=M0.G;if(!fov0)fov0=C.fov;
- const c=E()[0]||[bx,bz],p=BCAM.pose({m:M0,modo:jug&&vista!=='arriba'?'sigue':enTaco()?'taco':'mesa',c,ang,asp:C.aspect||1,fov0,dt}),f=p.f;Pc.copy(p.P);Lc.copy(p.L);
+ const c=E()[0]||[bx,bz],p=BCAM.pose({m:M0,modo:jug&&vista!=='arriba'?'sigue':enTaco()?'taco':'mesa',c,ang,pot,asp:C.aspect||1,fov0,dt}),f=p.f;Pc.copy(p.P);Lc.copy(p.L);
  G0.localToWorld(Pc);G0.localToWorld(Lc);CD.position.copy(Pc);CD.lookAt(Lc);
  if(!cp){cp=C.position.clone();cq=C.quaternion.clone()}const s=1-Math.exp(-dt*A.suave);cp.lerp(Pc,s);cq.slerp(CD.quaternion,s);
  C.position.copy(cp);C.quaternion.copy(cq);if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*s;C.updateProjectionMatrix()}C.updateMatrixWorld()}
 function suelta(){const C=H()&&H().cam(),me=quien(yoId());dueno=false;cp=cq=null;if(C&&fov0){C.fov=fov0;C.updateProjectionMatrix()}fov0=0;
- if(C&&window.CCAM)CCAM.blendIn(C,CCAM.pose(C),700);if(me&&meVis!=null)me.g.visible=meVis;meVis=null;muestra(false)}
+ if(C&&window.CCAM)CCAM.blendIn(C,CCAM.pose(C),700);if(me&&meVis!=null)me.g.visible=meVis;meVis=null}
 
 let mOn=null;
 function modo(on){if(on===mOn)return;mOn=on;document.documentElement.classList.toggle('bijon',on);css();
@@ -91,43 +92,16 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(puedo()){if(V.mano)BREP.pon(M0,E());if(fase==='apunta')guia();else[ln,lo,lb,ring].forEach(o=>o.visible=false)}else[ln,lo,lb,ring].forEach(o=>o.visible=false);
  dibTaco(now);BCAM.punto(M0,E()[0],ang,ex,ey,dueno&&enTaco());
  const quiero=enJuego()&&enSot();modo(quiero);if(quiero){if(!dueno){dueno=true;const me=quien(yoId());if(me){meVis=me.g.visible}}camara(dt)}else if(dueno)suelta();
- muestra(puedo()&&fase==='apunta');
- const seg=V.fase==='juego'?Math.ceil(Math.max(0,V.left-(now-V.t0))/1000):0,sg=document.getElementById('bijSeg');if(sg&&sg.textContent!=seg)sg.textContent=seg;
- vbtn(dueno);const k=[V.fase,enJuego(),cerca(),miTurno(),jug,!!pend,fase,vista,V.turno,V.inv,V.gana].join('|');if(k!==hk){hk=k;rr()}}
+ const seg=V.fase==='juego'?Math.ceil(Math.max(0,V.left-(now-V.t0))/1000):0;
+ if(window.BCTL)BCTL.paso({on:dueno,tiro:puedo()&&fase==='apunta',vista,pot,ex,ey,mano:!!(V.mano&&puedo()&&fase==='apunta'),fin:V.fase==='fin',chip:dueno?chip(seg):''});const k=[V.fase,enJuego(),cerca(),miTurno(),jug,!!pend,fase,vista,V.turno,V.inv,V.gana].join('|');if(k!==hk){hk=k;rr()}}
 
-// ---------- barra de fuerza y efecto (DOM) ----------
-let pz=null,ef=null;
-function css(){if(document.getElementById('bijCss'))return;const s=document.createElement('style');s.id='bijCss';s.textContent=`
-.bij-ctl{position:fixed;right:max(14px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:30;touch-action:none;user-select:none}
-.bij-ef{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ece6da 60%,#cfc6b6);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);position:relative;cursor:grab}
-.bij-ef i{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#222;left:50%;top:50%}
-.bij-pot{width:56px;height:min(40vh,240px);border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);position:relative;overflow:hidden;cursor:ns-resize}
-.bij-pot b{position:absolute;left:6px;right:6px;top:6px;border-radius:999px;background:var(--ui-accent);height:0}
-.bij-pot span{position:absolute;left:0;right:0;bottom:10px;text-align:center;font:800 12px var(--ui-font);color:var(--ui-sub)}
-.bij-bar{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px);z-index:30}
-.bij-bar .bij-st{padding:10px 18px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);display:flex;flex-direction:column;line-height:1.2}
-html.bijon #joy,html.bijon .h3sign{display:none!important}html.bijon canvas{touch-action:none}
-.bij-vista{position:fixed;left:max(14px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);z-index:31;min-height:56px;min-width:56px;display:flex;align-items:center;gap:8px;padding:0 18px}
-.bij-vista .ui-ico{width:22px;height:22px}
-.bij-bar .bij-st small{color:var(--ui-sub);font-weight:700}.bij-bar .ui-btn{min-height:44px}`;document.head.appendChild(s)}
-function ctl(){let el=document.getElementById('bijCtl');if(el)return el;css();el=document.createElement('div');el.id='bijCtl';el.className='ui bij-ctl';el.style.display='none';
- el.innerHTML='<div class="bij-ef" aria-label="Efecto: arrastra el punto"><i></i></div><div class="bij-pot" aria-label="Fuerza: jala hacia abajo y suelta"><b></b><span>Jalar</span></div>';
- (document.getElementById('app')||document.body).appendChild(el);const po=el.querySelector('.bij-pot'),eb=el.querySelector('.bij-ef');
- po.addEventListener('pointerdown',e=>{if(!puedo())return;e.preventDefault();po.setPointerCapture(e.pointerId);pz={y:e.clientY,h:po.clientHeight-12}});
- po.addEventListener('pointermove',e=>{if(!pz)return;pot=Math.max(0,Math.min(1,(e.clientY-pz.y)/pz.h))});
- const suelto=e=>{if(!pz)return;pz=null;tira()};po.addEventListener('pointerup',suelto);po.addEventListener('pointercancel',()=>{pz=null;pot=0});
- const efm=e=>{const r=eb.getBoundingClientRect();let x=(e.clientX-r.left)/r.width*2-1,y=-((e.clientY-r.top)/r.height*2-1);const m=Math.hypot(x,y);if(m>.85){x*=.85/m;y*=.85/m}ex=Math.abs(x)<.06?0:x/.85;ey=Math.abs(y)<.06?0:y/.85};
- eb.addEventListener('pointerdown',e=>{e.preventDefault();eb.setPointerCapture(e.pointerId);ef=1;efm(e)});eb.addEventListener('pointermove',e=>{if(ef)efm(e)});
- eb.addEventListener('pointerup',()=>{ef=null});eb.addEventListener('dblclick',()=>{ex=ey=0});return el}
-function muestra(on){const el=on?ctl():document.getElementById('bijCtl');if(!el)return;el.style.display=on?'':'none';if(!on)return;
- el.querySelector('.bij-pot b').style.height=`calc(${(pot*100).toFixed(1)}% - ${pot?12*pot:0}px)`;el.querySelector('.bij-pot span').textContent=pot>.01?Math.round(pot*100)+'%':'Jalar';
- el.querySelector('.bij-ef').style.display=vista==='taco'?'none':'';const d=el.querySelector('.bij-ef i');d.style.left=(50+ex*.85*50)+'%';d.style.top=(50-ey*.85*50)+'%'}
-
-// botón fijo Detrás / Arriba (a media altura a la izquierda; siempre en el mismo lugar mientras la cámara es del Billar). Tecla C.
-function vbtn(on){let b=document.getElementById('bijVista');if(!on){if(b)b.style.display='none';return}
- if(!b){css();b=document.createElement('button');b.id='bijVista';b.className='ui ui-btn bij-vista';b.onclick=e=>{e.stopPropagation();BIJ.vista()};
-  b.addEventListener('pointerdown',e=>e.stopPropagation());(document.getElementById('app')||document.body).appendChild(b)}
- b.style.display='';const t=vista==='taco'?'Arriba':'Detrás';if(b.dataset.t!==t){b.dataset.t=t;b.innerHTML=`${I(vista==='taco'?'arriba':'camara')}<span>${t}</span>`;b.setAttribute('aria-label','Vista: '+t)}}
+// ---------- controles (c_billar_ctl.js) ----------
+function css(){if(document.getElementById('bijCss'))return;const s=document.createElement('style');s.id='bijCss';s.textContent='html.bijon canvas{touch-action:none}';document.head.appendChild(s)}
+function chip(seg){if(!enJuego())return '';const yo=V.yo[0],g=V.gr&&V.gr[yo],gt=g=='l'?'Lisas':g=='r'?'Rayadas':'Mesa abierta';
+ if(V.fase==='fin')return `<b>${V.gana===yo?'Ganaste':'Ganó '+esc(V.eq[V.gana]?V.eq[V.gana].map(nom).join(' y '):'')}</b>${V.por?'<small>'+esc(V.por)+'</small>':''}`;
+ if(miTurno()&&!jug&&!pend)return `<b>Tu tiro · ${seg} s</b><small>${fase==='coloca'?'Coloca la blanca':gt}</small>`;
+ const p=V.turno>=0&&V.eq[V.turno]?V.eq[V.turno][V.ti[V.turno]]:null,m=V.ult&&(V.ult.msg||V.ult.fal);
+ return `<b>${jug||pend?'Mirando el tiro':p?'Tira '+esc(nom(p)):'Billar'}</b><small>${[m?esc(m):'',gt].filter(Boolean).join(' · ')}</small>`}
 addEventListener('keydown',e=>{if(!dueno||e.repeat||e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;if(e.key.toLowerCase()==='c'){e.stopPropagation();e.preventDefault();BIJ.vista()}},true);
 
 // ---------- entrada sobre el lienzo ----------
@@ -150,19 +124,13 @@ addEventListener('keydown',e=>{if(!dueno||!puedo()||e.ctrlKey||e.metaKey||e.altK
  else if(k===' '){e.stopPropagation();e.preventDefault();if(fase==='apunta'&&!esp){esp=true;pot=0}}
  else if(k==='w'||k==='s'||k==='arrowup'||k==='arrowdown'){e.stopPropagation();e.preventDefault()}},true);
 addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(TK[k])keys.delete(TK[k]);if(k==='shift')keys.delete('f');if(k===' '&&esp){esp=false;tira()}},true);
-addEventListener('blur',()=>{keys.clear();esp=false;pz=null});
+addEventListener('blur',()=>{keys.clear();esp=false});
 
 // ---------- aviso de la mesa / barra de juego ----------
 function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P&&SAL.P.billar;return !!(me&&P&&enSot()&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca)}
 const nom=p=>p?p.n:'',I=n=>window.UI?UI.ico(n):'',esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 function hud(busy){if(busy||!V||!enSot())return '';css();const me=yoId();
- if(enJuego()){const yo=V.yo[0],g=V.gr&&V.gr[yo],gt=g=='l'?'Lisas':g=='r'?'Rayadas':'Mesa abierta',now=performance.now(),seg=Math.ceil(Math.max(0,V.left-(now-V.t0))/1000);
-  let b,s,bt='';
-  if(V.fase==='fin'){b=V.gana===yo?'Ganaste':'Ganó '+esc(V.eq[V.gana]?V.eq[V.gana].map(nom).join(' y '):'');s=esc(V.por);bt=`<button class="ui-btn" onclick="BIJ.act('revancha')">Revancha</button>`}
-  else if(miTurno()&&!jug&&!pend){b=`Tu tiro · <span id="bijSeg">${seg}</span> s`;s=fase==='coloca'?'Arrastra la blanca a su lugar':(touchy?'Arrastra para apuntar · jala la barra':'Arrastra o A/D para apuntar · Espacio para tirar')+(vista==='taco'?' · la blanca da efecto':'');
-   bt=(V.mano&&fase==='apunta'?`<button class="ui-btn sec" onclick="BIJ.mover()">Mover blanca</button>`:'')}
-  else{const p=V.turno>=0&&V.eq[V.turno]?V.eq[V.turno][V.ti[V.turno]]:null;b=jug||pend?'Mirando el tiro':p?'Tira '+esc(nom(p)):'Billar';s=V.ult&&V.ult.msg?esc(V.ult.msg):V.ult&&V.ult.fal?esc(V.ult.fal):""}
-  return `<div class="ui bij-bar"><div class="bij-st" role="status"><b>${b}</b><small>${[s,V.fase==="juego"?gt:""].filter(Boolean).join(" · ")}</small></div>${bt}<button class="ui-btn ghost" onclick="BIJ.act('salir')" aria-label="Salir del Billar">${I('salir')}</button></div>`}
+ if(enJuego())return '';
  if(window.BIH)return BIH.hud(V,me,cerca(),touchy);
  if(V.fase==='arma'&&V.inv===me){const o=V.eq[0][0];return `<button class="ui uh-aviso" onclick="BIJ.act('unir')" aria-label="Aceptar reto de Billar"><span class="uh-ai" aria-hidden="true">${I('jugar')}</span>
   <span class="uh-at"><b>${esc(nom(o))} te reta al Billar</b><small>Toca para aceptar</small></span></button>`}
@@ -173,6 +141,7 @@ function tap(){if(window.BIH&&V&&!enJuego()&&(V.fase==='libre'||V.fase==='arma')
 function key(k){if(k==='escape'&&window.BIH&&BIH.cierra())return true;if(k==='e'&&V&&(V.fase==='libre'||V.fase==='arma'&&!V.yo)&&cerca()){tap();return true}return false}
 
 const BIJ=window.BIJ={A,v:null,estado,paso,hud,key,act,tap,out:()=>cola.shift()||null,
- vista:()=>{vista=vista==='taco'?'arriba':'taco';vbtn(dueno);rr()},mover:()=>{if(puedo()&&V.mano){fase='coloca';rr()}},
+ vista:()=>{vista=vista==='taco'?'arriba':'taco';rr()},mover:()=>{if(puedo()&&V.mano){fase='coloca';rr()}},
  oculto:id=>!!(dueno&&id===yoId()),jugando:()=>enJuego()};
+if(window.BCTL)BCTL.cfg({pot:v=>{if(puedo())pot=v},tira,vista:BIJ.vista,ef:(x,y)=>{ex=x;ey=y},act,mover:BIJ.mover});
 })();

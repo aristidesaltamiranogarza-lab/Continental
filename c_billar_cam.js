@@ -5,7 +5,7 @@
 // BCAM.efecto(ev,C,cv,m,c,ang,libre) → [ex,ey] si el dedo está sobre la blanca (libre: siempre, ya arrastrando).
 (function(){
 if(typeof THREE==='undefined'||!window.BFIS)return;
-const A={atras:.3,alto:.1,mira:1.2,sAtras:1.3,sAlto:1.35,sigueT:2.2,centro:.25,margen:.5,inc:1.12,techo:3.5,punto:.14};
+const A={jalon:.35,atras:.3,alto:.1,mira:1.2,sAtras:1.3,sAlto:1.35,sigueT:2.2,centro:.25,margen:.5,inc:1.12,techo:3.5,punto:.14};
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),P=v3(0,0,0),L=v3(0,0,0),T=v3(0,0,0),prev=[],q=new THREE.Quaternion();
 let sd=[1,0],sigue=false,dot=null;
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),pl=new THREE.Plane(),hit=v3(0,0,0),esf=new THREE.Sphere();
@@ -13,7 +13,7 @@ const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),pl=new THREE.Plane(),hit
 function tiro(a){sd=[Math.cos(a),Math.sin(a)];sigue=false;prev.length=0}
 function pose(o){const m=o.m,D=m.D,K=D.K,Rw=D.R;let f=o.fov0;
  if(o.modo==='taco'){const dx=Math.cos(o.ang),dz=Math.sin(o.ang),cx=o.c[0]*K,cz=o.c[1]*K;
-  P.set(cx-dx*A.atras,D.Y+Rw+A.alto,cz-dz*A.atras);L.set(cx+dx*A.mira,D.Y,cz+dz*A.mira);return {P,L,f}}
+  const at=A.atras+(o.pot||0)*A.jalon;P.set(cx-dx*at,D.Y+Rw+A.alto+(o.pot||0)*.05,cz-dz*at);L.set(cx+dx*A.mira,D.Y,cz+dz*A.mira);return {P,L,f}}
  if(o.modo==='sigue'){const dt=Math.max(o.dt,1e-3);let sx=0,sz=0,sw=0;
   m.bolas.forEach((b,i)=>{const p=prev[i];if(p&&b.visible){const v=b.position.distanceTo(p)/dt;if(v>.03){const w=v+.05;sx+=b.position.x*w;sz+=b.position.z*w;sw+=w}}
    if(p)p.copy(b.position);else prev[i]=b.position.clone()});
