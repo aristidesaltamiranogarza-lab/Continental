@@ -130,7 +130,7 @@ function buildProps(){const y=TH;
 function buildBulb(){const pv=new THREE.Group();pv.position.set(0,HT,0);SC.add(pv);const L=.95;
  cyl(.008,.008,L,std(0x111111,.6),0,-L/2,0,pv,6);cyl(.045,.04,.1,std(0x2b2724,.5,{metalness:.5}),0,-L-.03,0,pv,12);
  const gm=new THREE.MeshStandardMaterial({color:0xfff4d8,emissive:0xffd690,emissiveIntensity:2.2,roughness:.2});const gs=new THREE.Mesh(new THREE.SphereGeometry(.085,16,12),gm);gs.position.y=-L-.14;pv.add(gs);
- const lt=new THREE.PointLight(0xffc47e,34,13,1.55);lt.position.y=-L-.16;lt.castShadow=true;lt.shadow.mapSize.set(1024,1024);lt.shadow.bias=-.003;lt.shadow.camera.near=.1;pv.add(lt);
+ const lt=new THREE.PointLight(0xffc47e,34,13,1.55);lt.position.y=-L-.16;lt.castShadow=true;lt.shadow.mapSize.set(1024,1024);lt.shadow.bias=-.003;lt.shadow.camera.near=.1;lt.shadow.camera.far=8.5;pv.add(lt);
  bulb={pv,gm,lt,x:0,z:0,vx:0,vz:0,fl:0,next:performance.now()+4000}}
 // ---------- los jugadores: personajes AV (c_avatar.js) sentados en su silla; el revólver es revolver.glb (c_rr_pj.js) ----------
 let P=[],sig='',me=-1,G0=null,stg=null,lastFx=-1,shk=0,nv=0,brStop=null,deadT=-1,look={y:0,p:0},drag=null,camE=null,camA=null,avP=null;
@@ -213,7 +213,7 @@ function camStep(now,dt){const s=stg,alive=me>=0&&P[me]&&!P[me].dead;let eye,at;
 function stepRoom(now,dt){const s=dt/1000,b=bulb;
  b.vx+=(-11*b.x-.25*b.vx)*s;b.vz+=(-11*b.z-.25*b.vz)*s;b.x+=b.vx*s;b.z+=b.vz*s;b.pv.rotation.set(b.x+.012*Math.sin(now/1700),0,b.z+.01*Math.sin(now/2300));
  if(now>b.next){b.fl=now;b.next=now+rnd(5000,14000);RRS.snd('chispa');RRS.flick()}
- const k=now-b.fl<420?(Math.random()<.45?.06:.8+Math.random()*.2):.96+.04*Math.sin(now/53)*Math.sin(now/131);b.lt.intensity=34*k;b.gm.emissiveIntensity=2.2*k;
+ const k=now-b.fl<420?(Math.random()<.45?.06:.8+Math.random()*.2):.96+.04*Math.sin(now/53)*Math.sin(now/131);b.lt.intensity=34*k;const cv=shown?CA.position:window.CASA3D&&CASA3D.yo();if(cv)b.lt.shadow.autoUpdate=Math.abs(cv.x)<W+.3&&Math.abs(cv.z)<W+.3;b.gm.emissiveIntensity=2.2*k;
  ember.m.material.color.setHSL(.05,1,.45+.1*Math.sin(now/180)+.05*Math.random());ember.l.intensity=.4+.25*Math.sin(now/170)+.1*Math.random();
  smoke.forEach(q=>{q.t+=s;if(q.t>q.life){q.t=0;q.life=4+Math.random()*2.5;q.ox=rnd(-.02,.02)}const f=q.t/q.life;
   q.s.position.set(ember.p.x+(q.ox||0)+Math.sin(q.t*1.3+q.life)*.15*f,ember.p.y+f*1.1,ember.p.z+Math.cos(q.t*.9)*.12*f);q.s.scale.setScalar(.04+f*.45);q.s.material.opacity=.22*Math.sin(Math.PI*Math.min(1,f*1.2))*(1-f*.3)})}

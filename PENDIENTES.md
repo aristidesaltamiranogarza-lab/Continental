@@ -116,8 +116,8 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 - En c_continental3d.js: `buildTable` (arma MESA y el cuarto viejo), `zoneLay`/`meldLay` (bajadas por zona), `pjLog`/`fxLog` (reacciones y efectos desde `G.log`), `vivo` (cámara viva y luz), `corte`, `nearTgt`/`dragHi` (imán al arrastrar), `finT` en `active()` (3 s del baile al cerrar la ronda).
 
 ## Otros pendientes (de la lista anterior)
-- [ ] FPS bajan cerca de las dos mesas altas del sótano (cantina, `mesa_cantina`): medir ocultando vasos, rockola y luces de esa zona.
-- [ ] Un cuadro de 244 ms al entrar al sótano (`CASA3D.ir('sot')`): probablemente armar el piso o compilar shaders.
+- [x] FPS cerca de las mesas altas de la cantina: era la sombra de cubo del foco de la Ruleta (1006 llamadas en vez de 444). Ahora su alcance llega a 8.5 m y la sombra se congela fuera del cuarto (c_ruleta3d.js); en Completo, de 10.6 a 8.1 ms por cuadro en la laptop.
+- [x] Cuadro de 244 ms al entrar al sótano: solo con la caché fría (la primera vez tras abrir el navegador); con caché caliente ningún cuadro pasa de 40 ms. Si vuelve a molestar: R.compileAsync en goFloor antes del fundido de entrada.
 - [x] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
 - [x] Paso 5 de la UI (prompt_ui.md), en pausa.
 - [x] 4d Mesas ocupadas: c_casa_ocupada.js (OCUP), mazo, pila, cartas que vuelan y aro de turno.
