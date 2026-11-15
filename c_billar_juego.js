@@ -32,7 +32,7 @@ function apuntaInicial(){const e=E(),c=e[0];if(!c)return;if(V.saque){ang=Math.at
 function nuevoTurno(){pot=0;ex=0;ey=0;vista='taco';if(V.mano){[bx,bz]=lugar(V.E||[],V.mano==='cocina');fase='coloca'}else fase='apunta';apuntaInicial()}
 
 function estado(v,err){if(err){if(window.SAL)SAL.aviso(err);if(pend){pend=null;BREP.para();jug=false;if(M0&&V&&V.E)BREP.pon(M0,V.E)}}
- if(!v)return;v.t0=performance.now();const prim=!V;V=v;BIJ.v=v;if(v.yo&&v.fase==='fin'&&!enSot()&&!cola.some(c=>c.op==='salir'))cola.push({op:'salir'});const u=v.ult,k=u?u.n+'|'+u.por+'|'+(u.tiro?u.tiro.a+','+u.tiro.v:'-'):'';
+ if(!v)return;v.t0=performance.now();const prim=!V;V=v;BIJ.v=v;if(!enSot())modo(false);if(v.yo&&v.fase==='fin'&&!enSot()&&!cola.some(c=>c.op==='salir'))cola.push({op:'salir'});const u=v.ult,k=u?u.n+'|'+u.por+'|'+(u.tiro?u.tiro.a+','+u.tiro.v:'-'):'';
  if(prim){uk=k;if(M0&&v.E)BREP.pon(M0,v.E);return}
  if(k!==uk){uk=k;if(!u)return;
   if(pend&&u.tiro&&u.tiro.a===pend.a&&u.tiro.v===pend.v&&u.tiro.ex===pend.ex&&u.tiro.ey===pend.ey){pend=null;return}   // ya lo estamos viendo
@@ -79,6 +79,9 @@ function camara(dt){const C=H()&&H().cam();if(!C||!M0)return;const G0=M0.G;if(!f
 function suelta(){const C=H()&&H().cam(),me=quien(yoId());dueno=false;cp=cq=null;if(C&&fov0){C.fov=fov0;C.updateProjectionMatrix()}fov0=0;
  if(C&&window.CCAM)CCAM.blendIn(C,CCAM.pose(C),700);if(me&&meVis!=null)me.g.visible=meVis;meVis=null;muestra(false)}
 
+let mOn=null;
+function modo(on){if(on===mOn)return;mOn=on;document.documentElement.classList.toggle('bijon',on);css();
+ if(M0&&M0.lampara)M0.lampara.traverse(o=>{if(o.isMesh)o.visible=!on})}
 // ---------- cada cuadro ----------
 function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000);tP=now;if((!M0||M()!==M0)&&!arma())return;
  if(!V)return;if(pend&&now-pend.t>8000){pend=null}   // el servidor no contestó: que mande su verdad
@@ -87,7 +90,7 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(keys.size&&puedo()&&fase==='apunta'){const g=dt*A.tecla*(keys.has('f')?A.fino*1.5:1);if(keys.has('l'))ang-=g;if(keys.has('r'))ang+=g}
  if(puedo()){if(V.mano)BREP.pon(M0,E());if(fase==='apunta')guia();else[ln,lo,lb,ring].forEach(o=>o.visible=false)}else[ln,lo,lb,ring].forEach(o=>o.visible=false);
  dibTaco(now);BCAM.punto(M0,E()[0],ang,ex,ey,dueno&&enTaco());
- const quiero=enJuego()&&enSot();if(quiero){if(!dueno){dueno=true;const me=quien(yoId());if(me){meVis=me.g.visible}}camara(dt)}else if(dueno)suelta();
+ const quiero=enJuego()&&enSot();modo(quiero);if(quiero){if(!dueno){dueno=true;const me=quien(yoId());if(me){meVis=me.g.visible}}camara(dt)}else if(dueno)suelta();
  muestra(puedo()&&fase==='apunta');
  const seg=V.fase==='juego'?Math.ceil(Math.max(0,V.left-(now-V.t0))/1000):0,sg=document.getElementById('bijSeg');if(sg&&sg.textContent!=seg)sg.textContent=seg;
  vbtn(dueno);const k=[V.fase,enJuego(),cerca(),miTurno(),jug,!!pend,fase,vista,V.turno,V.inv,V.gana].join('|');if(k!==hk){hk=k;rr()}}
@@ -103,6 +106,7 @@ function css(){if(document.getElementById('bijCss'))return;const s=document.crea
 .bij-pot span{position:absolute;left:0;right:0;bottom:10px;text-align:center;font:800 12px var(--ui-font);color:var(--ui-sub)}
 .bij-bar{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px);z-index:30}
 .bij-bar .bij-st{padding:10px 18px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);color:var(--ui-text);display:flex;flex-direction:column;line-height:1.2}
+html.bijon #joy,html.bijon .h3sign{display:none!important}html.bijon canvas{touch-action:none}
 .bij-vista{position:fixed;left:max(14px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);z-index:31;min-height:56px;min-width:56px;display:flex;align-items:center;gap:8px;padding:0 18px}
 .bij-vista .ui-ico{width:22px;height:22px}
 .bij-bar .bij-st small{color:var(--ui-sub);font-weight:700}.bij-bar .ui-btn{min-height:44px}`;document.head.appendChild(s)}
@@ -128,11 +132,11 @@ addEventListener('keydown',e=>{if(!dueno||e.repeat||e.ctrlKey||e.metaKey||e.altK
 
 // ---------- entrada sobre el lienzo ----------
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),pl=new THREE.Plane(),hit=v3(0,0,0);let toque=null;
-const lienzo=e=>{const r=H()&&H().R&&H().R();return !!r&&e.target===r.domElement&&dueno&&puedo()};
+const lienzo=e=>{const r=H()&&H().R&&H().R(),t=e.target;return !!r&&dueno&&puedo()&&(t===r.domElement||!(t.closest&&t.closest('.ui,button,input,#joy,.h3sign')))};
 function enMesa(e){const C=H().cam(),cv=H().R().domElement,r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,C);
  const o=M0.G.localToWorld(v3(0,M0.D.Y+R*M0.D.K,0));pl.set(v3(0,1,0),-o.y);if(!ray.ray.intersectPlane(pl,hit))return null;const p=M0.G.worldToLocal(hit.clone());return [p.x/M0.D.K,p.z/M0.D.K]}
 function arrastra(e,ini){const p=(fase==='coloca'||vista==='arriba')?enMesa(e):null;
- if(fase==='coloca'){if(p){const x=r4(p[0]),z=r4(p[1]),Es=E();if(BFIS.libre(Es,x,z,V.mano==='cocina')){bx=x;bz=z}}return}
+ if(fase==='coloca'){if(p){const coc=V.mano==='cocina',m=R*1.01,x=r4(Math.max(-FM.L/2+m,Math.min(coc?-FM.L/4:FM.L/2-m,p[0]))),z=r4(Math.max(-FM.A/2+m,Math.min(FM.A/2-m,p[1]))),Es=E();if(BFIS.libre(Es,x,z,coc)){bx=x;bz=z}}return}
  if(vista==='arriba'){if(p){const c=E()[0];if(c&&Math.hypot(p[0]-c[0],p[1]-c[1])>R)ang=Math.atan2(p[1]-c[1],p[0]-c[0])}return}
  if(!ini){ang+=(e.clientX-toque.x)*A.sens+(e.clientY-toque.y)*A.sens*A.fino}}
 const efe=(e,l)=>fase==='apunta'&&vista==='taco'?BCAM.efecto(e,H().cam(),H().R().domElement,M0,E()[0],ang,l):null;

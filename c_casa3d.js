@@ -421,7 +421,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&!S&&casaInv.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass"><span>Te invitaron a la sala <b>${esc(casaInv)}</b></span><i><button class="ui-btn" onclick="casaInvSi()">Unirme</button><button class="ui-btn sec" onclick="casaInvNo()">No, gracias</button></i></div>`;
  o+=mh;
- if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(busy);if(window.BJ3&&FL.id==='sot')o+=BJ3.hud(busy);if(window.PK3&&FL.id==='sot')o+=PK3.hud(busy);if(window.BIJ&&FL.id==='sot')o+=BIJ.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
+ {const bb=busy||!!(window.BIJ&&BIJ.jugando());if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(bb);if(window.BJ3&&FL.id==='sot')o+=BJ3.hud(bb);if(window.PK3&&FL.id==='sot')o+=PK3.hud(bb)}if(window.BIJ&&FL.id==='sot')o+=BIJ.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
  if(window.CIR)o+=CIR.hud(busy);
  if(window.SOT)o+=SOT.seatHud();
  return o}
