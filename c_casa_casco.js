@@ -21,7 +21,8 @@ const VA=[
  {lado:'izq',u:5.4,y:4.8,w:2.2,h:3,nueva:1},                  // rincón de lectura
  {lado:'der',u:.4,y:2.7,w:3.2,h:5.4,puerta:1},                // balcón
  {lado:'der',u:-7.6,y:4.6,w:2.4,h:3.2,nueva:1},               // corredor, junto al reloj
- {lado:'fr',u:-9.6,y:4.6,w:2.6,h:3.4,nueva:1},{lado:'fr',u:-1.8,y:4.6,w:2.6,h:3.4,nueva:1},   // a la calle
+ {lado:'fr',u:-9.6,y:4.6,w:2.6,h:3.4,nueva:1},  // la segunda es la puerta del balcón (c_casa_balcon.js)
+ {lado:'fr',u:-1.8,y:2.7,w:3.2,h:5.4,puerta:1,balcon:1},   // a la calle
  {lado:'at',u:-11.8,y:7.35,w:2,h:1,nueva:1,alta:1},{lado:'at',u:-5.3,y:7.35,w:2,h:1,nueva:1,alta:1},{lado:'at',u:1.2,y:7.35,w:2,h:1,nueva:1,alta:1}];   // altas, sobre los libreros
 // dónde va cada ventana por dentro (para VENT.pon): x, z y hacia dónde mira el vidrio (al cuarto)
 const dentro=v=>v.lado==='izq'?{x:-X,z:v.u,ry:Math.PI/2}:v.lado==='der'?{x:X,z:v.u,ry:-Math.PI/2}:v.lado==='fr'?{x:v.u,z:ZF,ry:Math.PI}:{x:v.u,z:ZB,ry:0};
@@ -29,22 +30,25 @@ const dentro=v=>v.lado==='izq'?{x:-X,z:v.u,ry:Math.PI/2}:v.lado==='der'?{x:X,z:v
 const P=(l,u,k)=>l==='fr'?[u,ZF+T+k]:l==='at'?[u,ZB-T-k]:l==='izq'?[-X-T-k,u]:[X+T+k,u],RY=l=>l==='izq'||l==='der'?Math.PI/2:0;
 let HECHO=false;
 // tu Mii está afuera de la planta baja (banqueta o patio)
+// tu Mii está en el balcón (planta alta, del lado de la calle)
+const balc=()=>{const y=window.CASA3D&&CASA3D.piso&&CASA3D.piso()==='alta'&&CASA3D.yo&&CASA3D.yo();return !!y&&(y.z>ZF+.1||Math.abs(y.x)>X+.1)};
 const fuera=()=>{const y=window.CASA3D&&CASA3D.piso&&CASA3D.piso()==='pb'&&CASA3D.yo&&CASA3D.yo();return !!y&&(y.z>PF||y.z<PZ||Math.abs(y.x)>PX)};
 
 function build(k){if(HECHO||!window.LOTE||!window.CIELO||!CIELO.pisos||!window.CCALLE)return;HECHO=true;
  const CC=window.CCALLE,mat=()=>new THREE.MeshStandardMaterial({roughness:.85}),G={};
- ['azo','pb','alta','ter'].forEach(n=>{G[n]=new THREE.Group();G[n].name='casco-'+n;CIELO.mundo.add(G[n])});
+ ['azo','pb','alta','ter','hue'].forEach(n=>{G[n]=new THREE.Group();G[n].name='casco-'+n;CIELO.mundo.add(G[n])});
  CIELO.pisos(G.azo,p=>p==='alta'||p==='ter'||(p==='pb'&&fuera()));
  CIELO.pisos(G.pb,['alta','ter']);
- CIELO.pisos(G.alta,p=>p==='ter'||(p==='pb'&&fuera()));
- CIELO.pisos(G.ter,p=>p==='pb'&&fuera());
+ CIELO.pisos(G.alta,p=>p==='ter'||(p==='pb'&&fuera())||(p==='alta'&&balc()));
+ CIELO.pisos(G.ter,p=>(p==='pb'&&fuera())||(p==='alta'&&balc()));
+ CIELO.pisos(G.hue,p=>p==='ter'||(p==='pb'&&fuera()));   // el fondo oscuro de la puerta del balcón (desde la alta se ve el cuarto de verdad)
  // de noche los muros se oscurecen igual que las fachadas de abajo (CCALLE.tinte), así el farol de la calle no los deja más prendidos;
  // la azotea no: ya la oscurece la luna como a las de los vecinos
  const arma=(g,L,V,sinT)=>{const ms=[L.mesh(sinT?mat():CC.tinte(mat()))];if(V.n())ms.push(CC.vidrio(V.mesh(new THREE.MeshBasicMaterial()),0x2c3640));ms.forEach(m=>g.add(m));return ms};
  const [Z,Lb,Vb]=bajo();CC.zona(arma(G.azo,Z,LOTE(),1),[-PX,PX,A-.4,A+.1,PZ,PF]);arma(G.pb,Lb,Vb);
- const sube=arma(G.alta,...alta()).concat(arma(G.ter,...terraza()));
- // si la cámara queda dentro de la alta o de la terraza, o la tapan, se esconden
- CC.zona(sube,[-X-T-.7,X+T+.7,A,TE+5.5,ZB-T-.7,ZF+T+.7]);CC.tema()}
+ const [La,Va,Ha]=alta(),ma=arma(G.alta,La,Va).concat(arma(G.hue,Ha,LOTE()));
+ // si tapan a tu Mii se esconden: los muros de la alta solo por debajo del piso de la terraza (si no, desde la terraza la casa flotaba)
+ CC.zona(ma,[-X-T-.7,X+T+.7,A,TE-.3,ZB-T-.7,ZF+T+.7]);CC.zona(arma(G.ter,...terraza()),[-X-T-.7,X+T+.7,A,TE+5.5,ZB-T-.7,ZF+T+.7]);CC.tema()}
 
 // ---------- la planta baja vista desde arriba ----------
 function bajo(){const L=LOTE(),V=LOTE(),Z=LOTE();
@@ -77,24 +81,28 @@ function bajo(){const L=LOTE(),V=LOTE(),Z=LOTE();
  return [Z,L,V]}
 
 // ---------- la planta alta por fuera ----------
-function alta(){const L=LOTE(),V=LOTE(),H=TE-A,yc=(A+TE)/2,W=2*(X+T);
+function alta(){const L=LOTE(),V=LOTE(),Hd=LOTE(),H=TE-A,yc=(A+TE)/2,W=2*(X+T);
  const b=(l,w,h,d,c,u,y,kk,Q)=>{const [x,z]=P(l,u,kk);(Q||L).box(w,h,d,c,x,y,z,RY(l))};
  // muros: ocre a la calle y a los lados, amarillo al patio (como las fachadas de abajo)
- L.box(W,H,T,OC,0,yc,ZF+T/2);L.box(W,H,T,AM,0,yc,ZB-T/2);[-1,1].forEach(s=>L.box(T,H,ZF-ZB,OC,s*(X+T/2),yc,(ZF+ZB)/2));
+ {const d=VA.find(v=>v.balcon),a=d.u-d.w/2,c=d.u+d.w/2,hd=d.y+d.h/2;   // muro de la calle con el vano de la puerta del balcón
+  L.box(a+W/2,H,T,OC,(a-W/2)/2,yc,ZF+T/2);L.box(W/2-c,H,T,OC,(c+W/2)/2,yc,ZF+T/2);L.box(d.w,H-hd,T,OC,d.u,A+(hd+H)/2,ZF+T/2);
+  Hd.box(d.w,d.h,.04,OSC,d.u,A+d.y,ZF-.02)}
+ L.box(W,H,T,AM,0,yc,ZB-T/2);[-1,1].forEach(s=>L.box(T,H,ZF-ZB,OC,s*(X+T/2),yc,(ZF+ZB)/2));
  const lados=[['fr',W,OC],['at',W,AM],['izq',ZF-ZB+2*T,OC],['der',ZF-ZB+2*T,OC]],cu=l=>l==='izq'||l==='der'?(ZF+ZB)/2:0;
  lados.forEach(([l,w,c])=>{const u=cu(l);
-  b(l,w+.08,.7,.06,dk(c),u,A+.35,.03);                                        // zócalo
+  if(l==='fr'){const d=VA.find(v=>v.balcon),e=[-w/2,d.u-d.w/2-.13],f=[d.u+d.w/2+.13,w/2];[e,f].forEach(([p,q])=>b(l,q-p,.7,.06,dk(c),(p+q)/2,A+.35,.03))}   // zócalo (con el vano de la puerta)
+  else b(l,w+.08,.7,.06,dk(c),u,A+.35,.03);
   [-1,1].forEach(s=>b(l,.5,H-.9,.1,CR,u+s*(w/2-.25),A+.7+(H-.9)/2,.05));         // pilastras en las esquinas
   b(l,w+.3,.22,.3,CR,u,TE-.62,.15);b(l,w+.5,.34,.5,CR,u,TE-.2,.25)});          // cornisa (arriba va el pretil de la terraza)
  // ventanas: vidrio (de noche con luz), marco de cantera, reja y postigos verdes abiertos
  VA.forEach(v=>{const {lado:l,u,w,h}=v,y=A+v.y;
-  b(l,w,h,.02,LUZ,u,y,.01,V);
+  if(!v.balcon)b(l,w,h,.02,LUZ,u,y,.01,V);
   [-1,1].forEach(s=>b(l,.26,h+.26,.12,CR,u+s*(w/2+.13),y,.06));b(l,w+.8,.3,.16,CR,u,y+h/2+.28,.08);
   if(!v.puerta)b(l,w+.6,.14,.36,CR,u,y-h/2-.07,.18);
   if(v.puerta){b(l,w+.9,.12,.7,PI,u,A+.06,.35);[-1,1].forEach(s=>b(l,w/2,h-.2,.06,VE,u+s*(w*.75+.3),y-.1,.05))}
   else if(!v.alta){const n=Math.max(3,Math.round(w/.24));for(let i=1;i<n;i++)b(l,.04,h,.04,HI,u-w/2+i*w/n,y,.16);[.3,.7].forEach(f=>b(l,w,.04,.04,HI,u,y-h/2+h*f,.16));
    [-1,1].forEach(s=>{b(l,w/2,h,.05,VE,u+s*(w*.75+.3),y,.05);for(let yy=y-h/2+.3;yy<y+h/2-.2;yy+=.3)b(l,w/2-.12,.05,.03,VO,u+s*(w*.75+.3),yy,.09)})}});
- return [L,V]}
+ return [L,V,Hd]}
 
 // ---------- la terraza vista desde abajo: piso, pretil, cubo de la escalera, tinaco y postes ----------
 function terraza(){const L=LOTE(),V=LOTE();
@@ -107,5 +115,5 @@ function terraza(){const L=LOTE(),V=LOTE();
  const RX=-3.6,RZ=-1.6;[[RX-4.6,RZ-4.4],[RX+4.6,RZ-4.4],[RX+4.6,RZ+4.4],[RX-4.6,RZ+4.4]].forEach(([x,z])=>{L.cyl(.07,.09,4.6,0x3a2212,x,TE+2.3,z,6);V.bola(.12,1,1,1,0xffd27a,x,TE+4.4,z,0)});
  return [L,V]}
 
-window.CASCO={build,VA,dentro,fuera,medidas:{A,TE,X,ZB,ZF,T,PX,PF,PZ}};
+window.CASCO={build,VA,dentro,fuera,balc,medidas:{A,TE,X,ZB,ZF,T,PX,PF,PZ}};
 })();

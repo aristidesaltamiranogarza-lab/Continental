@@ -42,7 +42,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
  // lambrín, moldura, remate arriba y el corte de paredes; por fuera las pinta c_casa_casco.js
  const KM=window.CPB&&CPB.kit?CPB.kit({SC:S,hits,std,box:H.box,cyl:H.cyl,ctex},CEIL):null;
  if(KM){const wt=wp.clone();wt.needsUpdate=true;wt.repeat.set(.25,.25);const M={m:std(0xffffff,.9,{map:wt}),lam:std(0x5a3418,.55),lamH:2.2,rod:std(0x2e1f14,.5)};
-  KM.ext('x',ZB,1,-XW,XW,M);KM.ext('z',-XW,1,ZB,ZF,M);KM.ext('z',XW,-1,ZB,ZF,M);KM.ext('x',ZF,-1,-XW,XW,M)}
+  KM.ext('x',ZB,1,-XW,XW,M);KM.ext('z',-XW,1,ZB,ZF,M);KM.ext('z',XW,-1,ZB,ZF,M);KM.ext('x',ZF,-1,-XW,XW,M,window.BALC?[BALC.vano]:null)}
  else{wall(XW*2,0,ZB,0);wall(ZF-ZB,-XW,(ZF+ZB)/2,Math.PI/2);wall(ZF-ZB,XW,(ZF+ZB)/2,-Math.PI/2);wall(XW*2,0,ZF,Math.PI)}
  // techo: el plano mira hacia abajo (desde arriba no se ve); vigas y ventilador solo con la cámara debajo del techo (step)
  const top=new THREE.Group();top.visible=false;S.add(top);
@@ -137,8 +137,10 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
  const d=new Date(),m=d.getMinutes()+d.getSeconds()/60;ck.m.rotation.z=-m/60*Math.PI*2;ck.h.rotation.z=-((d.getHours()%12)+m/60)/12*Math.PI*2;
   if(!lo()){ck.pe.rotation.z=Math.sin(now/1000*Math.PI)*.16;if(top.visible)fan.rotation.y+=.025}
   const on=typeof musName=='function'&&musName()!='apagada';dial.emissive.setHex(on?0xffb04a:0);dial.emissiveIntensity=on?.9:0};
- F={id:'alta',SC:S,TB,OB,hits,links:[dn.lk,up],bx:[-XW+1,XW-1,ZB+1.2,ZF-1],cb:[-XW,XW,ZB,ZF],k:1,ext:true,
+ if(window.BALC&&KM)BALC.pon({S,F:null,H,OB,VF,fr,box,cyl});
+ F={id:'alta',SC:S,TB,OB,hits,links:[dn.lk,up],bx:[-XW+1,XW-1,ZB+1.2,ZF-1],cb:[-XW,XW,ZB,ZF],WL:KM?KM.WL:null,k:1,ext:true,
   spawn:from=>from==='ter'?{x:11.2,z:-1.2,yaw:0}:{x:7.6,z:6.6,yaw:-Math.PI/2},enter:fp=>{top.visible=!!fp;q=null;qual()},step};
+ if(window.BALC&&KM)BALC.limites(F);
  return F}
 window.ALTA={ok,piso};
 })();
