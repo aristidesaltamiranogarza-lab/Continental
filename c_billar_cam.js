@@ -5,7 +5,10 @@
 // BCAM.efecto(ev,C,cv,m,c,ang,libre) → [ex,ey] si el dedo está sobre la blanca (libre: siempre, ya arrastrando).
 (function(){
 if(typeof THREE==='undefined'||!window.BFIS)return;
-const A={jalon:.35,atras:.3,alto:.1,mira:1.2,sAtras:1.3,sAlto:1.35,sigueT:2.2,centro:.25,margen:.5,inc:1.12,techo:3.5,punto:.14};
+const A={jalon:.35,atras:.3,alto:.1,mira:1.2,sAtras:1.3,sAlto:1.35,sigueT:2.2,centro:.25,margen:.5,inc:1.32,techo:3.5,punto:.14,
+ ui:[160,225],uiH:[96,84],zoom:3.2};   // vista de arriba: casi cenital; px que tapan los botones arriba y abajo (vertical; horizontal) y zoom máximo
+// vista de arriba movible: VM.z zoom (1 = toda la mesa), VM.x / VM.y desplazamiento en coordenadas de la mesa (BIJ lo cambia con dos dedos, rueda o clic derecho)
+const VM={z:1,x:0,y:0};
 const PI=Math.PI,v3=(x,y,z)=>new THREE.Vector3(x,y,z),P=v3(0,0,0),L=v3(0,0,0),T=v3(0,0,0),prev=[],q=new THREE.Quaternion();
 let sd=[1,0],sigue=false,dot=null;
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),pl=new THREE.Plane(),hit=v3(0,0,0),esf=new THREE.Sphere();
@@ -22,10 +25,14 @@ function pose(o){const m=o.m,D=m.D,K=D.K,Rw=D.R;let f=o.fov0;
   L.set(T.x*(1-A.centro),D.Y,T.z*(1-A.centro));const hx=D.L/2+A.margen,hz=D.A/2+A.margen;
   P.set(Math.max(-hx,Math.min(hx,L.x-sd[0]*A.sAtras)),Math.min(A.techo-.1,D.Y+A.sAlto),Math.max(-hz,Math.min(hz,L.z-sd[1]*A.sAtras)));return {P,L,f}}
  sigue=false;
- const asp=o.asp||1,vx=asp<1,hl=D.L/2+.35,ha=D.A/2+.35,tv=Math.tan(f*PI/360),w=vx?ha:hl,hgt=(vx?hl:ha)*Math.sin(A.inc),
-  d0=Math.max(w/(tv*asp),hgt/tv)*1.05,dm=(A.techo-D.Y)/Math.sin(A.inc);let d=d0;
- if(d>dm){f=Math.min(100,2*Math.atan(tv*d0/dm)*180/PI);d=dm}const ci=Math.cos(A.inc)*d,si=Math.sin(A.inc)*d;
- L.set(0,D.Y,0);if(vx)P.set(-ci,D.Y+si,0);else P.set(0,D.Y+si,ci);return {P,L,f}}
+ // la mesa cabe en la franja libre entre los botones de arriba y los de abajo, centrada en ella
+ const asp=o.asp||1,vx=asp<1,hl=D.L/2+.3,ha=D.A/2+.3,tv=Math.tan(f*PI/360),w=vx?ha:hl,hgt=(vx?hl:ha)*Math.sin(A.inc),
+  Hp=Math.max(200,innerHeight||800),[ut,ub]=vx?A.ui:A.uiH,fy=Math.max(.45,1-(ut+ub)/Hp),cy=(ut-ub)/(2*Hp),
+  d0=Math.max(w/(tv*asp),hgt/(tv*fy))*1.04,dm=(A.techo-D.Y)/Math.sin(A.inc);let d=d0,tf=tv;
+ if(d>dm){tf=tv*d0/dm;f=Math.min(100,2*Math.atan(tf)*180/PI);tf=Math.tan(f*PI/360);d=dm}
+ VM.z=Math.max(1,Math.min(A.zoom,VM.z));VM.x=Math.max(-D.L/2,Math.min(D.L/2,VM.x));VM.y=Math.max(-D.A/2,Math.min(D.A/2,VM.y));d/=VM.z;
+ const ci=Math.cos(A.inc)*d,si=Math.sin(A.inc)*d,fx=vx?1:0,fz=vx?0:-1,g=cy*2*tf*d/Math.sin(A.inc);
+ L.set(VM.x+fx*g,D.Y,VM.y+fz*g);P.set(L.x-fx*ci,D.Y+si,L.z-fz*ci);return {P,L,f}}
 
 // punto negro sobre la blanca: donde pega el taco (ex a la derecha, ey arriba, ×efmax del radio)
 function punto(m,c,ang,ex,ey,ver){if(!dot||dot.parent!==m.G){if(dot&&dot.parent)dot.parent.remove(dot);
@@ -44,5 +51,5 @@ function efecto(e,C,cv,m,c,ang,libre){if(!c)return null;const r=cv.getBoundingCl
  const rr=D.R*BFIS.A.efmax;let x=a/rr,y=b/rr;const h=Math.hypot(x,y);if(h>1){x/=h;y/=h}
  return [Math.abs(x)<.06?0:x,Math.abs(y)<.06?0:y]}
 
-window.BCAM={A,pose,tiro,punto,efecto};
+window.BCAM={A,VM,pose,tiro,punto,efecto};
 })();

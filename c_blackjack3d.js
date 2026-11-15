@@ -11,7 +11,7 @@ const A={
  carta:[.17,.24],                  // ancho y largo de una carta en el paño
  rCarta:1.47,rFicha:1.78,rSeguro:1.15,    // radios desde el centro de la media luna: cartas, fichas (casilla, igual que BJRC de CAS3) y seguro
  cascada:[.042,.055],              // cada carta nueva se corre: de lado y hacia el crupier
- sepMano:.22,sepCr:.2,             // entre manos divididas; entre cartas del crupier
+ sepMano:.22,sepMano3:.19,sepCr:.2,   // entre manos divididas (2; 3 o más); entre cartas del crupier
  vuelo:430,alto:.32,               // carta de la mano del crupier al paño: duración y altura del arco
  espera:1600,                      // si el crupier no la suelta en este tiempo, vuela sola
  volteo:380,                       // voltear su carta tapada
@@ -57,11 +57,14 @@ function pila(v){const o=new THREE.Group();llena(o,v);R.add(o);return {o,m:null,
 
 // ---------- dónde va cada cosa ----------
 const ang=s=>{const q=M0&&M0.D.ang?M0.D.ang(s):PI/2;return [Math.cos(q),Math.sin(q)]};   // hacia afuera desde el centro de la media luna (CAS3)
+// manos divididas: sobre el arco de la media luna, más juntas desde 3 y corridas hacia el centro de la mesa (en los lugares de la orilla no se salen ni de la vista)
+const angQ=s=>M0&&M0.D.ang?M0.D.ang(s):PI/2;
+function taM(s,h,nh){if(nh<2)return 0;const sep=nh>2?A.sepMano3:A.sepMano,d=angQ(s)-PI/2,sh=-Math.sign(d)*Math.min(1,Math.abs(d))*(nh-1)/2*sep;return (h-(nh-1)/2)*sep+sh}
 function lugar(x){if(x.s<0)return {p:v3(LUGAR[0]+(x.j-.5)*A.sepCr,TH+.003+x.j*.0015,LUGAR[1]),ry:0,f:x.c<0?PI:0};
- const [ux,uz]=ang(x.s),ta=(x.h-(x.nh-1)/2)*A.sepMano+x.j*A.cascada[0],r=A.rCarta-x.j*A.cascada[1];
- return {p:v3(ux*r-uz*ta,TH+.003+x.j*.0015,-CZ+uz*r+ux*ta),ry:Math.atan2(ux,uz),f:0}}
-function sitio(s,r,ta){const [ux,uz]=ang(s);return v3(ux*r-uz*ta,TH+.002,-CZ+uz*r+ux*ta)}
-const enMano=(s,h,nh,lado)=>sitio(s,A.rFicha,(h-(nh-1)/2)*A.sepMano+(lado||0));
+ const r=A.rCarta-x.j*A.cascada[1],q=angQ(x.s)+(taM(x.s,x.h,x.nh)+x.j*A.cascada[0])/r,ux=Math.cos(q),uz=Math.sin(q);
+ return {p:v3(ux*r,TH+.003+x.j*.0015,-CZ+uz*r),ry:Math.atan2(ux,uz),f:0}}
+function sitio(s,r,ta){const q=angQ(s)+ta/r;return v3(Math.cos(q)*r,TH+.002,-CZ+Math.sin(q)*r)}
+const enMano=(s,h,nh,lado)=>sitio(s,A.rFicha,taM(s,h,nh)+(lado||0));
 const jugador=s=>{const p=sitio(s,2.6,0);p.y=TH+.35;return p},charola=()=>v3(CHAR[0],TH+.06,CHAR[1]);
 const desde=()=>{const p=window.BJC&&BJC.mano();return p?R.worldToLocal(p.clone()):v3(ZAP[0],TH+.13,ZAP[1])};
 
@@ -127,7 +130,7 @@ const CD=new THREE.PerspectiveCamera(),Pc=v3(0,0,0),Lc=v3(0,0,0),Dv=v3(0,0,0);
 const clampL=()=>{const K=A.cam;look.y=Math.max(-K.giro,Math.min(K.giro,look.y));look.p=Math.max(-K.baja,Math.min(K.sube,look.p));look.z=Math.max(1,Math.min(K.zoom,look.z))};
 function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares[s],fx=Math.sin(l.ry),fz=Math.cos(l.ry),K=A.cam;
  if(teclas.size){const g=dt*1.6/look.z;if(teclas.has('l'))look.y+=g;if(teclas.has('r'))look.y-=g;if(teclas.has('u'))look.p+=g*.7;if(teclas.has('d'))look.p-=g*.7;clampL()}
- if(vista==='yo'){Pc.set(l.x+fx*K.adelante,K.ojo,l.z+fz*K.adelante);const c=lugar({s,h:0,j:0,nh:1,c:0}).p;Lc.set(c.x+(LUGAR[0]-c.x)*K.mira,TH,c.z+(LUGAR[1]-c.z)*K.mira);m.G.localToWorld(Lc)}
+ if(vista==='yo'){Pc.set(l.x+fx*K.adelante,K.ojo,l.z+fz*K.adelante);const nh=Math.max(1,(V&&V.as&&V.as[s]&&V.as[s].manos||[]).length),c=sitio(s,A.rCarta,nh>1?(taM(s,0,nh)+taM(s,nh-1,nh))/2:0);Lc.set(c.x+(LUGAR[0]-c.x)*K.mira,TH,c.z+(LUGAR[1]-c.z)*K.mira);m.G.localToWorld(Lc)}
  else{const a=K.arriba;Pc.set(0,TH+a.alto,a.z);m.G.localToWorld(Pc);Lc.set(0,TH,a.mira);m.G.localToWorld(Lc)}
  Dv.subVectors(Lc,Pc);const y0=Math.atan2(Dv.x,Dv.z),pa=Math.atan2(Dv.y,Math.hypot(Dv.x,Dv.z)),yw=y0+look.y,pt=Math.max(-1.5,Math.min(.5,pa+look.p));
  Dv.set(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));CD.position.copy(Pc);CD.lookAt(Lc.copy(Pc).add(Dv));
@@ -196,7 +199,7 @@ function key(k){if(k==='escape'&&yo()>=0){levantarse();return true}if(k==='e'&&y
 // globito de una mano: a un lado de su primera carta (p.c = el centro de la carta, para que BJH sepa hacia dónde crece); manos divididas: encima
 function pt(s,h,nh){if(!R)return null;const g=A.carta[0]/2+.035;let c,q;
  if(s<0){c=v3(LUGAR[0]-.5*A.sepCr,TH,LUGAR[1]);q=v3(c.x-g,TH,c.z)}
- else{nh=nh||1;c=lugar({s,h:h||0,j:0,nh,c:0}).p;if(nh>1){c.y=TH+.2;return mundo(c)}c.y=TH;const ta=(h-(nh-1)/2)*A.sepMano;q=sitio(s,A.rCarta,ta-g)}
+ else{nh=nh||1;c=lugar({s,h:h||0,j:0,nh,c:0}).p;if(nh>1){c.y=TH+.2;return mundo(c)}c.y=TH;q=sitio(s,A.rCarta,taM(s,h,nh)-g)}
  q.y=TH+.01;const w=mundo(q);w.c=mundo(c);return w}
 // total del crupier contando solo las cartas que ya cayeron boca arriba (sube con cada carta)
 function crT(){let t=0,as=0,n=0;CAR.forEach(x=>{if(x.s>=0||x.c<0||x.pend||x.volt||!x.o.visible||TW.some(w=>w.x===x))return;const r=x.c%13;n++;if(!r)as++;t+=!r?1:r>=9?10:r+1});

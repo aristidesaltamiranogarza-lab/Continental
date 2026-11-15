@@ -1,12 +1,14 @@
 // c_billar_ctl.js — BCTL: controles del Billar durante la partida. Abajo-derecha, en lugar del ojo y los gestos: Tirar (abre la barra de
 // fuerza) y Vista (detrás / arriba, tecla C). La barra se jala hacia abajo con el dedo o el ratón; el taco se mueve con ella y cerca del
-// máximo tiembla. Al soltar tira (menos de 3 %: no tira). Abajo-izquierda: salir, Mover blanca y Revancha; a media altura, el efecto en la vista de
-// arriba. Arriba al centro: de quién es el tiro y el tiempo. Cuelga de <body>: #app se redibuja y en la casa no recibe toques.
+// máximo tiembla. Al soltar tira (menos de 3 %: no tira). Abajo-izquierda: salir, Mover blanca y Revancha; junto a salir, el efecto en la vista de
+// arriba (fuera de la mesa). Arriba al centro: de quién es el tiro y el tiempo. Fuera de tu tiro caminas: Vista es "Ver la mesa" / "Volver a caminar"
+// y los botones de la izquierda suben sobre el joystick. Cuelga de <body>: #app se redibuja y en la casa no recibe toques.
 // c_billar_juego.js: BCTL.cfg({pot,tira,vista,ef,act,mover}) una vez y BCTL.paso({on,tiro,vista,pot,ex,ey,mano,fin,chip}) cada cuadro.
 (function(){
 let cb={},carga=false,pz=null,ef=0,R=null,S={},maxOn=false;
 const I=n=>window.UI?UI.ico(n):'',q=s=>R.querySelector(s),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 function css(){if(document.getElementById('bctlCss'))return;const s=document.createElement('style');s.id='bctlCss';s.textContent=`
+.bctl.camina .bctl-izq{bottom:calc(200px + env(safe-area-inset-bottom,0px))}.bctl.camina .bctl-vis{bottom:calc(196px + env(safe-area-inset-bottom,0px))}
 html.bijon #joy,html.bijon .h3sign,html.bijon .uh-br .ui-rb:not(.big){display:none!important}
 .bctl>*{position:fixed;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none}
 .bctl [hidden],.bctl[hidden]{display:none!important}
@@ -18,7 +20,7 @@ html.bijon #joy,html.bijon .h3sign,html.bijon .uh-br .ui-rb:not(.big){display:no
 .bctl-tir{right:calc(98px + env(safe-area-inset-right,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:13;min-height:58px;min-width:112px;font-size:16px;padding:0 22px}
 .bctl-izq{left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:13;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:8px;pointer-events:none!important}
 .bctl-izq>*{pointer-events:auto}.bctl-izq .ui-btn{min-height:46px}
-.bctl-ef{left:calc(16px + env(safe-area-inset-left,0px));top:50%;margin-top:-36px;z-index:13;width:72px;height:72px;border-radius:50%;cursor:grab;
+.bctl-ef{left:calc(80px + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:13;width:60px;height:60px;border-radius:50%;cursor:grab;
  background:radial-gradient(circle at 35% 30%,#fff,#ece6da 60%,#cfc6b6);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow)}
 .bctl-ef i{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#222;left:50%;top:50%}
 .bctl-pot{right:calc(18px + env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:14;width:84px;height:min(48vh,320px);display:flex;flex-direction:column;align-items:center;gap:8px;cursor:ns-resize}
@@ -32,7 +34,8 @@ html.bijon #joy,html.bijon .h3sign,html.bijon .uh-br .ui-rb:not(.big){display:no
 .bctl-pot.max .bctl-kn{animation:bctlTi .07s linear infinite alternate}.bctl-pot.max .bctl-tr b{opacity:1}
 @keyframes bctlTi{from{translate:-2px 1px}to{translate:2px -1px}}
 @media (max-height:520px){.bctl-chip{top:calc(62px + env(safe-area-inset-top,0px))}.bctl-vis{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(78px + env(safe-area-inset-bottom,0px))}
- .bctl-tir{right:calc(82px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px))}.bctl-izq{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+ .bctl-tir{right:calc(82px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px))}.bctl-izq{bottom:calc(12px + env(safe-area-inset-bottom,0px))}.bctl-ef{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+ .bctl.camina .bctl-izq{bottom:calc(150px + env(safe-area-inset-bottom,0px))}.bctl.camina .bctl-vis{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 .bctl-pot{height:min(70vh,260px)}}`;document.head.appendChild(s)}
 function arma(){css();R=document.createElement('div');R.className='ui bctl';R.hidden=true;
  R.innerHTML=`<div class="bctl-chip" role="status"></div>
@@ -58,8 +61,9 @@ const show=(s,on)=>{const e=q(s);if(e.hidden===on)e.hidden=!on;return e};
 function paso(s){S=s;if(!s.on){if(R&&!R.hidden){R.hidden=true;carga=false;pz=null}return}if(!R)arma();R.hidden=false;
  if(!s.tiro){carga=false;pz=null}
  const ch=show('.bctl-chip',!!s.chip);if(ch.dataset.h!==s.chip){ch.dataset.h=s.chip;ch.innerHTML=s.chip}
- const ar=s.vista==='arriba',v=q('.bctl-vis'),vt=ar?'Ver desde detrás de la blanca':'Ver toda la mesa desde arriba';
- if(v.dataset.t!==vt){v.dataset.t=vt;v.innerHTML=I(ar?'camara':'arriba');v.setAttribute('aria-label',vt);v.title=vt+(matchMedia('(hover:hover)').matches?' (C)':'');v.classList.toggle('on',ar)}
+ R.classList.toggle('camina',!!s.camina);
+ const ar=s.fuera?!s.camina:s.vista==='arriba',v=q('.bctl-vis'),vt=s.fuera?(s.camina?'Ver la mesa':'Volver a caminar'):ar?'Ver desde detrás de la blanca':'Ver toda la mesa desde arriba';
+ if(v.dataset.t!==vt){v.dataset.t=vt;v.innerHTML=I(s.fuera?(s.camina?'arriba':'persona'):ar?'camara':'arriba');v.setAttribute('aria-label',vt);v.title=vt+(matchMedia('(hover:hover)').matches?' (C)':'');v.classList.toggle('on',ar)}
  const t=show('.bctl-tir',!!s.tiro),tt=carga?'Cancelar':'Tirar';if(t.textContent!==tt){t.textContent=tt;t.classList.toggle('sec',carga)}
  show('.bctl-mov',!!s.mano);show('.bctl-rev',!!s.fin);
  const p=show('.bctl-pot',!!s.tiro&&(carga||s.pot>.01||!!pz));if(!p.hidden){const pt=s.pot||0,h=Math.max(40,q('.bctl-tr').clientHeight-62);
