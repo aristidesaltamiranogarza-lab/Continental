@@ -111,14 +111,14 @@ function mueve(p,m){const u=p&&p.userData.av;if(!u)return;const on=!!m&&((m.w||0
 // gestos por código encima de la pose (c_mesa_pj.js); se llama cada cuadro mientras duren, null los quita. g: cy voltea la cabeza
 // (+ hacia su izquierda), cx la agacha (+ abajo), est 0–1 estira el brazo derecho al frente, col inclina el torso al frente, gy lo gira (+ a su izquierda), mano 0–1 levanta la mano derecha, arr 0–1 los dos brazos arriba.
 // cartas 0–1: las dos manos juntas frente al pecho (sostiene el abanico); cede ante los demás gestos de ese brazo.
-// GE (AV.GE para probar): por gesto y lado, radianes [brazo X, brazo Z, antebrazo X, antebrazo Z] desde 'AgarreFrente' sentado; C inclina el torso.
+// GE (AV.GE para probar): por gesto y lado, radianes [brazo X, brazo Z, antebrazo X, antebrazo Z, brazo Y opcional] desde 'AgarreFrente' sentado; C inclina el torso.
 const GE={cartas:{I:[-2.5,-2.375,1.5,0],D:[0,.25,0,0]},est:{D:[-.5,.25,0,0],C:.25},mano:{D:[-2,.625,0,0]},arr:{D:[-2,.625,0,0],I:[-.125,2,0,0]},ret:{D:[-.4,0,-.35,0]}};
 function gesto(p,g){const u=p&&p.userData.av;if(!u||(!g&&!u.ges))return;u.ges=g||null;u.hasta=Math.max(u.hasta,performance.now()+150);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function ges(p,u){const g=u.ges,h=u.ej||(u.ej=ejes(p));gira(h,'cabeza',1,g.cy||0);gira(h,'cabeza',0,g.cx||0);let col=0;
  for(const n in GE)if(GE[n].C&&g[n])col+=GE[n].C*g[n];gira(h,'columna',0,col+(g.col||0));gira(h,'columna',1,g.gy||0);
- for(const l of 'ID'){let o=0;for(const n in GE)if(n!=='cartas'&&GE[n][l])o+=g[n]||0;const r=[0,0,0,0];
-  for(const n in GE){const v=GE[n][l];let w=g[n]||0;if(n==='cartas')w*=Math.max(0,1-o);if(w&&v)for(let j=0;j<4;j++)r[j]+=v[j]*w}
-  gira(h,'brazo_'+l,0,r[0]);gira(h,'brazo_'+l,2,r[1]);gira(h,'antebrazo_'+l,0,r[2]);gira(h,'antebrazo_'+l,2,r[3])}}
+ for(const l of 'ID'){let o=0;for(const n in GE)if(n!=='cartas'&&GE[n][l])o+=g[n]||0;const r=[0,0,0,0,0];
+  for(const n in GE){const v=GE[n][l];let w=g[n]||0;if(n==='cartas')w*=Math.max(0,1-o);if(w&&v)for(let j=0;j<v.length;j++)r[j]+=v[j]*w}
+  gira(h,'brazo_'+l,0,r[0]);gira(h,'brazo_'+l,2,r[1]);gira(h,'brazo_'+l,1,r[4]);gira(h,'antebrazo_'+l,0,r[2]);gira(h,'antebrazo_'+l,2,r[3])}}
 function sentar(p,si){const u=p.userData.av;if(!u)return;u.sentado=!!si;if(si&&!u.hueso){u.hueso={};for(const n of ['muslo_D','muslo_I','pierna_D','pierna_I'])u.hueso[n]=p.getObjectByName(n)}despierta(p,40)}
 function despierta(p,ms){const u=p.userData.av;upd(p,0);u.hasta=Math.max(u.hasta,performance.now()+ms);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function paso(t){const dt=Math.min(.1,(t-t0)/1000);t0=t;
