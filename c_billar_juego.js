@@ -30,19 +30,22 @@ function apuntaInicial(){const e=E(),c=e[0];if(!c)return;if(V.saque){ang=Math.at
  const g=V.gr&&V.gr[V.yo[0]],mias=g=='l'?[1,2,3,4,5,6,7]:g=='r'?[9,10,11,12,13,14,15]:[1,2,3,4,5,6,7,9,10,11,12,13,14,15];
  let obj=mias.filter(i=>e[i]);if(!obj.length)obj=[8];let b=-1,bd=1e9;obj.forEach(i=>{const d=Math.hypot(e[i][0]-c[0],e[i][1]-c[1]);if(d<bd){bd=d;b=i}});
  if(b>=0)ang=Math.atan2(e[b][1]-c[1],e[b][0]-c[0])}
-function nuevoTurno(){pot=0;ex=0;ey=0;vista='taco';mira=false;if(V.mano){[bx,bz]=lugar(V.E||[],V.mano==='cocina');fase='coloca'}else fase='apunta';apuntaInicial()}
+function nuevoTurno(){pot=0;ex=0;ey=0;hoyo=-1;vista=V.canta?'arriba':'taco';mira=false;if(V.mano){[bx,bz]=lugar(V.E||[],V.mano==='cocina');fase='coloca'}else fase='apunta';apuntaInicial()}
 
-function estado(v,err){if(err){if(window.SAL)SAL.aviso(err);if(pend){pend=null;BREP.para();jug=false;if(M0&&V&&V.E)BREP.pon(M0,V.E)}}
- if(!v)return;v.t0=performance.now();const prim=!V;V=v;BIJ.v=v;if(!enSot())modo(false);if(v.yo&&v.fase==='fin'&&!enSot()&&!cola.some(c=>c.op==='salir'))cola.push({op:'salir'});const u=v.ult,k=u?u.n+'|'+u.por+'|'+(u.tiro?u.tiro.a+','+u.tiro.v:'-'):'';
+function estado(v,err){if(err){if(window.SAL)SAL.aviso(err);if(pend){pend=null;BREP.para();jug=false;destapa();if(M0&&V&&V.E)BREP.pon(M0,V.E)}}
+ if(!v)return;v.t0=performance.now();const prim=!V,ant=V;real=v;V=jug&&tapa?Object.assign({},v,tapa):v;BIJ.v=V;if(!enSot())modo(false);if(v.yo&&v.fase==='fin'&&!enSot()&&!cola.some(c=>c.op==='salir'))cola.push({op:'salir'});const u=v.ult,k=u?u.n+'|'+u.por+'|'+(u.tiro?u.tiro.a+','+u.tiro.v:'-'):'';
  if(prim){uk=k;if(M0&&v.E)BREP.pon(M0,v.E);return}
  if(k!==uk){uk=k;if(!u)return;
   if(pend&&u.tiro&&u.tiro.a===pend.a&&u.tiro.v===pend.v&&u.tiro.ex===pend.ex&&u.tiro.ey===pend.ey){pend=null;return}   // ya lo estamos viendo
-  pend=null;if(M0&&u.tiro)reproduce(u.E0,u.tiro);else if(M0&&v.E&&!jug)BREP.pon(M0,v.E)}
+  pend=null;if(M0&&u.tiro)reproduce(u.E0,u.tiro,ant);else if(M0&&v.E&&!jug)BREP.pon(M0,v.E)}
  else if(M0&&v.E&&!jug&&!pend&&!miTurno())BREP.pon(M0,v.E)}
-function reproduce(E0,t){const m=M0,res=BFIS.simula(E0,t);jug=true;BCAM.tiro(t.a);
- BREP.juega(m,res,{al:ev=>{if(window.BSON)BSON.ev(ev);else if(ev.k==='tronera')son('card')},fin:()=>{jug=false;mio=false;if(V&&V.E)BREP.pon(m,V.E);tk=''}})}
-function tira(){if(!puedo()||fase!=='apunta'||pot<.02){pot=0;return}const e=E();if(!e[0])return;
- const t=BFIS.norma({a:ang,v:Math.max(.05,pot*pot*BFIS.A.vmax),ex,ey}),m={op:'tiro',a:t.a,v:t.v,ex:t.ex,ey:t.ey};if(V.mano){m.x=r4(bx);m.z=r4(bz)}
+// mientras ruedan las bolas se sigue mostrando el estado de antes del tiro (turno, grupo, ganador, aviso): el resultado llega al detenerse
+const OC=['fase','turno','ti','gr','gana','por','ult','mano','saque'];let tapa=null,real=null;
+function destapa(){tapa=null;if(real){V=real;BIJ.v=real}}
+function reproduce(E0,t,ant){const m=M0,res=BFIS.simula(E0,t),b=ant||V;if(b&&!tapa){tapa={};OC.forEach(f=>tapa[f]=b[f]);if(V)V=Object.assign({},V,tapa)}jug=true;BCAM.tiro(t.a);Object.assign(BCAM.VM,{z:1,x:0,y:0});
+ BREP.juega(m,res,{al:ev=>{if(window.BSON)BSON.ev(ev);else if(ev.k==='tronera')son('card')},fin:()=>{jug=false;mio=false;destapa();if(V&&V.E)BREP.pon(m,V.E);tk=''}})}
+function tira(){if(!puedo()||fase!=='apunta'||pot<.02){pot=0;return}if(V.canta&&hoyo<0){pot=0;vista='arriba';rr();if(window.SAL)SAL.aviso('Toca el hoyo donde va a entrar la 8');return}const e=E();if(!e[0])return;
+ const t=BFIS.norma({a:ang,v:Math.max(.05,pot*pot*BFIS.A.vmax),ex,ey}),m={op:'tiro',a:t.a,v:t.v,ex:t.ex,ey:t.ey};if(V.mano){m.x=r4(bx);m.z=r4(bz)}if(V.canta)m.h=hoyo;
  cola.length=0;cola.push(m);pend=Object.assign({t:performance.now()},t);golpe=performance.now();pot=0;mio=true;reproduce(e,t)}
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}));son('tick');rr()}
 
@@ -74,7 +77,7 @@ function dibTaco(now){const e=E(),c=e[0];const ver=puedo()&&fase==='apunta'&&c||
 const CD=new THREE.Camera(),Pc=v3(0,0,0),Lc=v3(0,0,0);
 const enTaco=()=>puedo()&&fase==='apunta'&&vista==='taco';
 function camara(dt){const C=H()&&H().cam();if(!C||!M0)return;const G0=M0.G;if(!fov0)fov0=C.fov;
- const c=E()[0]||[bx,bz],p=BCAM.pose({m:M0,modo:cm=jug&&vista!=='arriba'?'sigue':enTaco()?'taco':'mesa',c,ang,pot,asp:C.aspect||1,fov0,dt}),f=p.f;Pc.copy(p.P);Lc.copy(p.L);
+ const c=E()[0]||[bx,bz],p=BCAM.pose({m:M0,modo:cm=jug?'mesa':enTaco()?'taco':'mesa',c,ang,pot,asp:C.aspect||1,fov0,dt}),f=p.f;Pc.copy(p.P);Lc.copy(p.L);
  G0.localToWorld(Pc);G0.localToWorld(Lc);CD.position.copy(Pc);CD.lookAt(Lc);
  if(!cp){cp=C.position.clone();cq=C.quaternion.clone()}const s=1-Math.exp(-dt*A.suave);cp.lerp(Pc,s);cq.slerp(CD.quaternion,s);
  C.position.copy(cp);C.quaternion.copy(cq);if(Math.abs(C.fov-f)>.01){C.fov+=(f-C.fov)*s;C.updateProjectionMatrix()}C.updateMatrixWorld()}
@@ -91,7 +94,7 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(esp&&puedo()&&fase==='apunta')pot=Math.min(1,pot+dt*A.carga);
  if(keys.size&&puedo()&&fase==='apunta'){const g=dt*A.tecla*(keys.has('f')?A.fino*1.5:1);if(keys.has('l'))ang-=g;if(keys.has('r'))ang+=g}
  if(puedo()){if(V.mano)BREP.pon(M0,E());if(fase==='apunta')guia();else[ln,lo,lb,ring].forEach(o=>o.visible=false)}else[ln,lo,lb,ring].forEach(o=>o.visible=false);
- dibTaco(now);BCAM.punto(M0,E()[0],ang,ex,ey,dueno&&enTaco());
+ dibTaco(now);BCAM.punto(M0,E()[0],ang,ex,ey,dueno&&enTaco());marca();
  // fuera de tu tiro caminas y haces emotes (la cámara vuelve a la casa), salvo que pidas ver la mesa; tu tiro se sigue hasta que acaba
  const quiero=enJuego()&&enSot(),tomo=quiero&&(miTurno()||!!pend||(jug&&mio)||mira);if(!quiero){mira=false;Object.assign(BCAM.VM,{z:1,x:0,y:0})}
  modo(tomo);if(tomo){if(!dueno){dueno=true;const me=quien(yoId());if(me){meVis=me.g.visible}}camara(dt)}else if(dueno)suelta();
@@ -104,7 +107,7 @@ function css(){if(document.getElementById('bijCss'))return;const s=document.crea
 function bola(g,t){return `<span class="bij-bo bij-${g||'a'}" role="img" aria-label="${t}"></span>`}
 function chip(seg){if(!enJuego())return '';const yo=V.yo[0],gr=e=>V.gr&&V.gr[e],gt=g=>g=='l'?'Lisas':g=='r'?'Rayadas':'Mesa abierta';
  if(V.fase==='fin')return `<b>${V.gana===yo?'Ganaste':'Ganó '+esc(V.eq[V.gana]?V.eq[V.gana].map(nom).join(' y '):'')}</b>${V.por?'<small>'+esc(V.por)+'</small>':''}`;
- if(miTurno()&&!jug&&!pend)return `<b>${bola(gr(yo),gt(gr(yo)))}Tu tiro · ${seg} s</b>${fase==='coloca'?'<small>Coloca la blanca</small>':''}`;
+ if(miTurno()&&!jug&&!pend)return `<b>${bola(gr(yo),gt(gr(yo)))}Tu tiro · ${seg} s</b>${fase==='coloca'?'<small>Coloca la blanca</small>':V.canta?'<small>'+(hoyo<0?'Toca el hoyo de la 8':'La 8 va al hoyo marcado')+'</small>':''}`;
  const m=V.ult&&(V.ult.msg||V.ult.fal),t=V.turno;
  return `<b>${t>=0?bola(gr(t),gt(gr(t))):''}${jug||pend?'Mirando el tiro':t>=0?seg+' s':'Billar'}</b>${m?'<small>'+esc(m)+'</small>':''}`}
 addEventListener('keydown',e=>{if(!(enJuego()&&enSot())||e.repeat||e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;if(e.key.toLowerCase()==='c'){e.stopPropagation();e.preventDefault();BIJ.vista()}},true);
@@ -115,9 +118,18 @@ const lienzo=e=>{const r=H()&&H().R&&H().R(),t=e.target;return !!r&&dueno&&puedo
 function enMesa(e){const C=H().cam(),cv=H().R().domElement,r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,C);
  const o=M0.G.localToWorld(v3(0,M0.D.Y+R*M0.D.K,0));pl.set(v3(0,1,0),-o.y);if(!ray.ray.intersectPlane(pl,hit))return null;const p=M0.G.worldToLocal(hit.clone());return [p.x/M0.D.K,p.z/M0.D.K]}
 function arrastra(e,ini){const p=(fase==='coloca'||vista==='arriba')?enMesa(e):null;
+ if(ini&&p&&fase==='apunta'&&V.canta){const h=cerHoyo(p);if(h>=0){hoyo=h;toque.hoyo=1;rr();return}}if(toque&&toque.hoyo)return;
  if(fase==='coloca'){if(p){const coc=V.mano==='cocina',m=R*1.01,x=r4(Math.max(-FM.L/2+m,Math.min(coc?-FM.L/4:FM.L/2-m,p[0]))),z=r4(Math.max(-FM.A/2+m,Math.min(FM.A/2-m,p[1]))),Es=E();if(BFIS.libre(Es,x,z,coc)){bx=x;bz=z}}return}
  if(vista==='arriba'){if(p){const c=E()[0];if(c&&Math.hypot(p[0]-c[0],p[1]-c[1])>R)ang=Math.atan2(p[1]-c[1],p[0]-c[0])}return}
  if(!ini){ang+=(e.clientX-toque.x)*A.sens+(e.clientY-toque.y)*A.sens*A.fino}}
+// hoyo de la 8: cuando solo te queda la 8 tocas el hoyo donde va a entrar (aro en el hoyo); si entra en otro, pierdes
+let hoyo=-1,aro=null;
+function cerHoyo(p){let b=-1,d=1e9;FM.P.forEach((o,i)=>{const k=Math.hypot(p[0]-o.x,p[1]-o.z);if(k<d){d=k;b=i}});return d<FM.P[b].r*2.2?b:-1}
+function marca(){const ve=!!(dueno&&miTurno()&&V.canta&&!jug&&!pend);if(!aro&&!ve)return;const m=M0;
+ if(!aro||aro.parent!==m.G){if(aro&&aro.parent)aro.parent.remove(aro);aro=new THREE.Mesh(new THREE.RingGeometry(.8,1,40),new THREE.MeshBasicMaterial({color:0xf2b84b,transparent:true,depthWrite:false,side:THREE.DoubleSide}));aro.rotation.x=-Math.PI/2;aro.renderOrder=5;m.G.add(aro)}
+ const D=m.D,t=performance.now()/1000;aro.visible=ve;if(!ve)return;
+ if(hoyo>=0){const o=FM.P[hoyo];aro.position.set(o.x*D.K,D.Y+.004,o.z*D.K);aro.scale.setScalar(o.r*D.K*1.25);aro.material.opacity=1}
+ else{const o=FM.P[Math.floor(t*1.6)%FM.P.length];aro.position.set(o.x*D.K,D.Y+.004,o.z*D.K);aro.scale.setScalar(o.r*D.K*1.25);aro.material.opacity=.55}}
 const efe=(e,l)=>fase==='apunta'&&vista==='taco'?BCAM.efecto(e,H().cam(),H().R().domElement,M0,E()[0],ang,l):null;
 // vista de arriba movible: dos dedos acercan (pellizco) y mueven la mesa; rueda acerca; clic derecho, o un dedo cuando no es tu tiro, la mueve;
 // doble clic la regresa. Un dedo en tu tiro sigue apuntando (el segundo dedo cancela ese apunte).
@@ -127,7 +139,7 @@ function gIni(){const p=[...dedos.values()];if(!p.length){gest=null;return}const
 function gMueve(){const p=[...dedos.values()];if(!gest||!p.length)return;const a=p[0],b=p[1]||a,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
  if(gest.dos&&p.length>1)BCAM.VM.z=Math.max(1,Math.min(BCAM.A.zoom,gest.z*Math.hypot(a.x-b.x,a.y-b.y)/gest.d));
  const p0=enMesa({clientX:gest.cx,clientY:gest.cy}),p1=enMesa({clientX:cx,clientY:cy});if(p0&&p1){BCAM.VM.x-=(p1[0]-p0[0])*M0.D.K;BCAM.VM.y-=(p1[1]-p0[1])*M0.D.K}gest.cx=cx;gest.cy=cy}
-addEventListener('pointerdown',e=>{if(!sobre(e))return;const pan=e.button===1||e.button===2||!puedo()||fase!=='apunta';if(e.pointerType!=='touch'&&!pan)return;
+addEventListener('pointerdown',e=>{if(!sobre(e))return;const pan=e.button===1||e.button===2||!puedo()||fase!=='apunta'&&fase!=='coloca';if(e.pointerType!=='touch'&&!pan)return;
  dedos.set(e.pointerId,{x:e.clientX,y:e.clientY,pan});if(dedos.size>1&&toque){ang=toque.a0;toque=null}
  if(dedos.size>1||pan){e.stopImmediatePropagation();gIni()}},true);
 addEventListener('pointermove',e=>{const d=dedos.get(e.pointerId);if(!d)return;d.x=e.clientX;d.y=e.clientY;if(gest){e.stopImmediatePropagation();gMueve()}},true);

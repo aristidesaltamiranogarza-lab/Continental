@@ -41,7 +41,7 @@ function arma(){css();R=document.createElement('div');R.className='ui bctl';R.hi
  R.innerHTML=`<div class="bctl-chip" role="status"></div>
  <div class="bctl-pot" aria-label="Fuerza: jala hacia abajo y suelta para tirar"><div class="bctl-tr"><b></b><i class="bctl-kn">${I('abajo')}</i></div><span>0%</span></div>
  <button class="ui-rb mid bctl-vis"></button><button class="ui-btn bctl-tir"></button>
- <div class="bctl-izq"><button class="ui-rb bctl-sal" aria-label="Salir del Billar" title="Salir del Billar">${I('salir')}</button>
+ <div class="bctl-izq"><button class="ui-rb bctl-sal" hidden></button>
   <button class="ui-btn sec bctl-mov">Mover blanca</button><button class="ui-btn bctl-rev">Revancha</button></div>
  <div class="bctl-ef" aria-label="Efecto: arrastra el punto"><i></i></div>`;document.body.appendChild(R);
  const tap=(s,f)=>{const b=q(s);b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();f()})};
@@ -63,7 +63,7 @@ function paso(s){S=s;if(!s.on){if(R&&!R.hidden){R.hidden=true;carga=false;pz=nul
  const ch=show('.bctl-chip',!!s.chip);if(ch.dataset.h!==s.chip){ch.dataset.h=s.chip;ch.innerHTML=s.chip}
  R.classList.toggle('camina',!!s.camina);
  const ar=s.fuera?!s.camina:s.vista==='arriba',v=q('.bctl-vis'),vt=s.fuera?(s.camina?'Ver la mesa':'Volver a caminar'):ar?'Ver desde detrás de la blanca':'Ver toda la mesa desde arriba';
- if(v.dataset.t!==vt){v.dataset.t=vt;v.innerHTML=I(s.fuera?(s.camina?'arriba':'persona'):ar?'camara':'arriba');v.setAttribute('aria-label',vt);v.title=vt+(matchMedia('(hover:hover)').matches?' (C)':'');v.classList.toggle('on',ar)}
+ if(v.dataset.t!==vt){v.dataset.t=vt;v.innerHTML=I(s.fuera?(s.camina?'arriba':'persona'):ar?'bola':'arriba');v.setAttribute('aria-label',vt);v.title=vt+(matchMedia('(hover:hover)').matches?' (C)':'');v.classList.toggle('on',ar)}
  const t=show('.bctl-tir',!!s.tiro),tt=carga?'Cancelar':'Tirar';if(t.textContent!==tt){t.textContent=tt;t.classList.toggle('sec',carga)}
  show('.bctl-mov',!!s.mano);show('.bctl-rev',!!s.fin);
  const p=show('.bctl-pot',!!s.tiro&&(carga||s.pot>.01||!!pz));if(!p.hidden){const pt=s.pot||0,h=Math.max(40,q('.bctl-tr').clientHeight-62);

@@ -55,10 +55,13 @@ ok('meter una propia: sigue; solo una ajena (sin falta): pasa',()=>{const m=duel
  const m2=duelo();m2.S.gr=['r','l'];m2.S.E=vacia(...enLinea(1,.3,.8),...resto);m2.act('a','Ana',{op:'tiro',...recto});   // toca la 1 primero: falta
  assert(m2.S.ult.fal)});
 
-ok('la 8 antes de tiempo pierde; con el grupo limpio gana',()=>{const m=duelo();m.S.gr=['l','r'];m.S.E=vacia(...enLinea(8,.3,.8),[1,-1,-.4],[9,-.8,-.4]);
+ok('la 8 antes de tiempo pierde; con el grupo limpio gana solo en el hoyo cantado',()=>{const m=duelo();m.S.gr=['l','r'];m.S.E=vacia(...enLinea(8,.3,.8),[1,-1,-.4],[9,-.8,-.4]);
  m.act('a','Ana',{op:'tiro',...recto});assert.strictEqual(m.S.gana,1);
- const g=duelo();g.S.gr=['l','r'];g.S.E=vacia(...enLinea(8,.3,.8),[9,-.8,-.4]);g.act('a','Ana',{op:'tiro',...recto});
- const v=g.view('b');assert.strictEqual(v.fase,'fin');assert.strictEqual(v.gana,0);assert.strictEqual(v.por,'Metió la 8')});
+ const g8=()=>{const g=duelo();g.S.gr=['l','r'];g.S.E=vacia(...enLinea(8,.3,.8),[9,-.8,-.4]);return g};
+ const g0=g8();assert(g0.view('a').canta);assert.strictEqual(g0.act('a','Ana',{op:'tiro',...recto}),'Elige el hoyo de la 8');
+ const gs=[0,1,2,3,4,5].map(h=>{const g=g8();g.act('a','Ana',{op:'tiro',...recto,h});return g.view('b')});
+ assert.strictEqual(gs.filter(v=>v.fase=='fin'&&v.gana===0&&v.por=='Metió la 8').length,1);
+ assert.strictEqual(gs.filter(v=>v.fase=='fin'&&v.gana===1&&v.por=='Metió la 8 en otro hoyo').length,5)});
 
 ok('la 8 en el saque: se acomoda de nuevo y saca el mismo',()=>{const m=duelo();Object.assign(m.S,{saque:1,mano:null});m.S.E=vacia(...enLinea(8,.3,.8),[1,-1,-.4]);
  m.act('a','Ana',{op:'tiro',...recto});assert.strictEqual(m.S.fase,'juego');assert.strictEqual(m.S.turno,0);assert.strictEqual(m.S.saque,1);

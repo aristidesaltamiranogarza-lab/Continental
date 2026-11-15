@@ -14,7 +14,7 @@ const aviso=(t,s,kbd)=>`<button class="ui uh-aviso" onclick="BIH.abre()" aria-la
 const nom=p=>p?esc(p.n)+(p.bot?' (bot)':''):'<span class="h3n">libre</span>';
 function equipos(V){return V.eq.map((t,e)=>`<div class="h3n"><b>Equipo ${e+1}:</b> ${t.map(nom).join(' y ')}</div>`).join('')}
 function panelLibre(){const ks=gente();
- return win(`<div class="h3d">Bola 8: mete tus bolas (lisas o rayadas) y al final la 8.</div>
+ return win(`<div class="h3d">Bola 8: mete tus bolas (lisas o rayadas) y al final la 8 en el hoyo que elijas.</div>
   <div class="ui-lbl">Nivel del bot</div><div class="ui-seg" role="group" aria-label="Nivel del bot">${NIV.map((n,i)=>`<button class="${i===niv?'on':''}" onclick="BIH.niv(${i})">${n}</button>`).join('')}</div>
   <div class="h3b"><button class="ui-btn" onclick="BIH.bot()">Jugar contra bot</button><button class="ui-btn sec" onclick="BIH.dos()">2 contra 2</button></div>
   <div class="ui-lbl">Retar a alguien</div><div class="h3b">${ks.map(p=>`<button class="ui-btn sec" onclick="BIH.reta('${esc(p.id)}')">${esc(p.n)}</button>`).join('')||'<span class="h3n">No hay nadie más en el sótano.</span>'}</div>`)}

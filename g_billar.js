@@ -3,7 +3,7 @@
 // en ult el E0 y el tiro normalizado para que cada cliente lo reproduzca igual (BFIS.simula(ult.E0,ult.tiro)); E es el estado final.
 // Fases: libre → arma (reto: 1 contra 1 con alguien del cuarto o con bot; 2 contra 2, los huecos los llenan bots) → juego → fin
 // (revancha o vuelve a libre).
-// Reglas simplificadas: sin cantar tronera; saque al azar; tras el saque la mesa queda abierta aunque caigan bolas y la primera bola
+// Reglas simplificadas: solo se canta el hoyo de la 8 (h en el tiro; si entra en otro, pierdes); saque al azar; tras el saque la mesa queda abierta aunque caigan bolas y la primera bola
 // metida sin falta después decide lisas/rayadas. Sigues tirando si metes una tuya (o cualquiera en el saque / con la mesa abierta).
 // Falta: no tocar nada, tocar primero una que no es tuya (con la mesa abierta, la 8), meter la blanca o acabarse los 45 s;
 // el rival pone la blanca detrás de la línea de cabeza. La 8 antes de tiempo o con falta: pierdes. La 8 en el saque: se acomoda
@@ -33,6 +33,7 @@ function mesa(o={}){
  function libre(){Object.assign(S,{fase:'libre',modo:1,eq:[[null],[null]],org:null,inv:null,plazo:0,E:null,gr:null,turno:-1,mano:null,saque:0,ult:null,gana:-1,por:''})}
  function reloj(espera){const t=now()+espera;S.plazo=t+T_TIRO;S.botT=t+T_BOT}
  // bolas que puede tocar primero el que tira
+ const canta=()=>S.fase=='juego'&&!S.saque&&!!S.gr&&S.turno>=0&&!quedan(S.E,S.turno);
  function legales(){if(S.saque)return LISAS.concat(RAYADAS);const e=S.turno;if(!S.gr)return LISAS.concat(RAYADAS);
   return quedan(S.E,e)?mias(e):[8]}
 
@@ -43,7 +44,7 @@ function mesa(o={}){
  function gana(e,por,espera){S.fase='fin';S.gana=e;S.por=por;S.turno=-1;S.mano=null;S.plazo=now()+espera+T_FIN}
 
  // reglas sobre lo que pasó en la simulación r desde E0
- function juzga(p,E0,r){const e=S.turno,ev=r.ev,saque=S.saque,mi=mias(e),en8=!!mi&&!quedan(E0,e);
+ function juzga(p,E0,r,h){const e=S.turno,ev=r.ev,saque=S.saque,mi=mias(e),en8=!!mi&&!quedan(E0,e);
   let pri=-1;for(const v of ev)if(v.k=='bola'&&(v.a===0||v.b===0)){pri=v.a===0?v.b:v.a;break}
   const met=ev.filter(v=>v.k=='tronera').map(v=>v.a),obj=met.filter(i=>i!=0&&i!=8);
   let fal='';
@@ -52,10 +53,11 @@ function mesa(o={}){
   else if(!saque&&!mi&&pri==8)fal='Con la mesa abierta no se toca primero la 8';
   else if(!saque&&mi&&(en8?pri!=8:!mi.includes(pri)))fal='Tocó primero una bola que no es suya';
   S.n++;S.saque=0;S.E=r.fin.map(b=>b&&[b[0],b[1]]);
-  const u=S.ult={n:S.n,E0,tiro:r.tiro,por:p.id,e,dur:r.dur,pri,met,fal,sigue:0,msg:''},espera=Math.round(r.dur*1000)+T_REP;
+  const u=S.ult={n:S.n,E0,tiro:r.tiro,por:p.id,e,dur:r.dur,pri,met,fal,sigue:0,msg:'',h:en8?h:-1},espera=Math.round(r.dur*1000)+T_REP;
   if(met.includes(8)){
    if(saque){u.msg='La 8 en el saque: se acomoda de nuevo';S.E=F.rack(rnd);S.mano='cocina';S.saque=1;u.sigue=1;return reloj(espera)}
    if(fal||!en8){u.msg=fal?'Metió la 8 con falta':'Metió la 8 antes de tiempo';return gana(1-e,u.msg,espera)}
+   const h8=(ev.find(v=>v.k=='tronera'&&v.a==8)||{}).p;if(h8!==h){u.msg='Metió la 8 en otro hoyo';return gana(1-e,u.msg,espera)}
    u.msg='Metió la 8';return gana(e,u.msg,espera)}
   let sigue=false;
   if(!fal){if(saque)sigue=obj.length>0;
@@ -66,17 +68,20 @@ function mesa(o={}){
   reloj(espera)}
 
  // devuelve un texto si no se pudo
- function tirar(p,m){const E=S.E.map(e=>e&&e.slice());
+ function tirar(p,m){const E=S.E.map(e=>e&&e.slice()),h=+m.h,c8=canta();if(c8&&!(Number.isInteger(h)&&h>=0&&h<P.length))return 'Elige el hoyo de la 8';
   if(S.mano){const coc=S.mano=='cocina';let x=+m.x,z=+m.z;
    if(m.x==null||m.z==null||!isFinite(x)||!isFinite(z))[x,z]=lugar(E,coc);
    x=r4(x);z=r4(z);if(!F.libre(E,x,z,coc))return 'La blanca no cabe ahí';E[0]=[x,z]}
   if(!E[0])E[0]=lugar(E,true);
   const T={a:+m.a,v:+m.v,ex:+m.ex||0,ey:+m.ey||0};
   if(!isFinite(T.a)||!isFinite(T.v)||T.v<=0||!isFinite(T.ex)||!isFinite(T.ey))return 'Tiro inválido';
-  juzga(p,E,F.simula(E,T))}
+  juzga(p,E,F.simula(E,T),c8?h:-1)}
  function tiroBot(p){const coc=S.mano=='cocina',c=S.mano||!S.E[0]?lugar(S.E,coc):S.E[0];
   let d=null;try{d=botTiro({E:S.E,c,legales:legales(),saque:S.saque,niv:p.niv,rnd,mano:!!S.mano&&!S.saque,mias:mias(S.turno)})}catch(_){}
-  d=Object.assign({x:c[0],z:c[1]},d||{});if(tirar(p,d))tirar(p,{x:c[0],z:c[1],a:0,v:2})}
+  d=Object.assign({x:c[0],z:c[1]},d||{});
+  // el bot canta el hoyo al que va su tiro (si no mete la 8, cualquiera)
+  if(canta()){const E=S.E.map(e=>e&&e.slice());if(S.mano||!E[0])E[0]=[+d.x,+d.z];let t=null;try{t=F.simula(E,{a:+d.a,v:+d.v,ex:+d.ex||0,ey:+d.ey||0}).ev.find(v=>v.k=='tronera'&&v.a==8)}catch(_){}d.h=t?t.p:0}
+  if(tirar(p,d))tirar(p,{x:c[0],z:c[1],a:0,v:2,h:0})}
  function tiempo(){const p=quien();S.n++;S.ult={n:S.n,E0:S.E.map(e=>e&&e.slice()),tiro:null,por:p.id,e:S.turno,dur:0,pri:-1,met:[],fal:'Se acabó el tiempo',sigue:0,msg:''};
   if(!S.saque)S.mano='cocina';pasa();reloj(0)}
 
@@ -119,7 +124,7 @@ function mesa(o={}){
  function view(id){const w=donde(id);
   return {fase:S.fase,modo:S.modo,niv:S.niv,org:S.org,inv:S.inv,left:S.plazo?Math.max(0,S.plazo-now()):0,
    eq:S.eq.map(t=>t.map(p=>p&&{id:p.id,n:p.n,bot:p.bot})),yo:w,turno:S.turno,ti:S.ti,gr:S.gr,mano:S.mano,saque:S.saque,
-   E:S.E,n:S.n,ult:S.ult,gana:S.gana,por:S.por}}
+   E:S.E,n:S.n,ult:S.ult,gana:S.gana,por:S.por,canta:canta()}}
  return {act,tick,view,S,legales,tiene:id=>!!donde(id),gente:()=>humanos().map(p=>p.id)}}
 
 // Varias partidas a la vez en la misma mesa física (hasta LIM): cada quien ve solo la suya; a los de las otras no los ve (ocultos).
