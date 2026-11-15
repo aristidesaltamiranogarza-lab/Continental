@@ -100,5 +100,5 @@ function yip(p){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)(
  [0,.17].forEach(dl=>{const t=t0+dl,o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();o.type='sawtooth';f.type='bandpass';f.frequency.value=1500*p;f.Q.value=2.2;
   o.frequency.setValueAtTime(720*p,t);o.frequency.exponentialRampToValueAtTime(1300*p,t+.03);o.frequency.exponentialRampToValueAtTime(620*p,t+.11);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.012);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.13)})}catch(_){}}
-window.PERROS={build,zona,step,get dogs(){return dogs}};
+window.PERROS={build,zona,step,etiqueta,corazon,get dogs(){return dogs}};
 })();
