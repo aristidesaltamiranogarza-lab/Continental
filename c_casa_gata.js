@@ -53,15 +53,19 @@ function piensa(now,dt){const p=o.G.position,feliz=now-o.pet<2400;
 
 // ---------- cargarla ----------
 function yoG(){const C=window.CASA3D;return C&&C.quien&&C.quien(C.myId())}
+// en brazos: los dos antebrazos al frente a la altura de la cintura (gesto 'gata' en AV.GE) y ella acostada de lado sobre ellos
+const BRZ=['antebrazo_D','mano_D','antebrazo_I','mano_I'],v1=new THREE.Vector3();
 function lleva(now,dt){const me=yoG(),C=window.CASA3D;if(!me||!me.g){suelta();return}
- const g=me.g,yaw=me.yaw!=null?me.yaw:g.rotation.y,w=new THREE.Vector3(g.position.x+Math.sin(yaw)*o.adel,g.position.y+o.alto,g.position.z+Math.cos(yaw)*o.adel);
- o.P.updateWorldMatrix(true,false);const L=o.P.worldToLocal(w.clone()),F=o.P.worldToLocal(w.clone().add(new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw))));
- o.G.position.copy(L);o.ry=Math.atan2(F.x-L.x,F.z-L.z);
- if(window.AV&&AV.gesto&&g.userData.av)AV.gesto(g,{cartas:1});
- const fuera=L.x<BOX[0]-.5||L.x>BOX[1]+.5||L.z<BOX[2]-.5||L.z>BOX[3]+.5||(C.piso&&C.piso()!=='pb');
+ const g=me.g,yaw=me.yaw!=null?me.yaw:g.rotation.y,av=window.AV&&AV.gesto&&g.userData.av,w=new THREE.Vector3();
+ if(av)AV.gesto(g,{gata:1});
+ const hs=av?BRZ.map(n=>g.getObjectByName(n)).filter(Boolean):[];
+ if(hs.length===4){hs.forEach(b=>w.add(b.getWorldPosition(v1)));w.multiplyScalar(.25);w.y-=.07}   // la panza (.11 arriba de sus patas) sobre los antebrazos
+ else w.set(g.position.x+Math.sin(yaw)*.3,g.position.y+.25,g.position.z+Math.cos(yaw)*.3);
+ o.P.updateWorldMatrix(true,false);const Lc=o.P.worldToLocal(w.clone()),F=o.P.worldToLocal(w.clone().add(v1.set(Math.cos(yaw),0,-Math.sin(yaw))));
+ o.G.position.copy(Lc);o.ry=Math.atan2(F.x-Lc.x,F.z-Lc.z);
+ const fuera=Lc.x<BOX[0]-.5||Lc.x>BOX[1]+.5||Lc.z<BOX[2]-.5||Lc.z>BOX[3]+.5||(C.piso&&C.piso()!=='pb');
  if(fuera||(o.carga-=dt)<=0)suelta()}
-function carga(){const me=yoG();if(!me||!me.g)return;const g=me.g,hm=g.getObjectByName('hombro_D');g.updateWorldMatrix(true,true);   // en brazos, un poco abajo del hombro
- o.alto=hm?hm.getWorldPosition(new THREE.Vector3()).y-g.position.y-.12:.25;o.adel=hm?.24:.3;
+function carga(){const me=yoG();if(!me||!me.g)return;if(window.AV&&AV.GE&&!AV.GE.gata)AV.GE.gata={I:[-.3,-.3,-1,0],D:[-.3,.3,-1,0]};
  o.carga=R(18000,28000);o.st='carga';o.hop=null;o.pet=performance.now();ronroneo()}
 function suelta(){const me=yoG(),p=o.G.position;o.carga=0;if(me&&me.g&&window.AV&&AV.gesto)AV.gesto(me.g,null);
  const x=cl(p.x,BOX[0]+.3,BOX[1]-.3),z=cl(p.z,BOX[2]+.3,BOX[3]-.3);brinca(p.x,p.y,p.z,x,0,z,()=>{o.st='idle';o.t=R(1500,4000)})}
