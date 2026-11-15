@@ -56,7 +56,7 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,hits,std,box,cyl,ctex,TB,HX
   ham=G;for(let x=x0;x<=x1+.01;x+=L/4)OB.push({x,z,r:.75})}
 
  if(window.GATA)GATA.build(e);   // Bagera, la gata del patio (c_casa_gata.js)
- if(window.PERROS)PERROS.build(e);   // Harry y Mapacha en el patio (c_casa_perros.js)
+ if(window.PERROS)PERROS.build(e);   // ya no hace nada: Harry y Mapacha viven en el balcón (c_casa_perros.js)
 }
 function hands(){if(!clk)return;const d=new Date(),m=d.getMinutes()+d.getSeconds()/60,h=d.getHours()%12+m/60;clk.mm.rotation.z=-m/60*Math.PI*2;clk.hh.rotation.z=-h/12*Math.PI*2}
 function step(now,dt){if(!E)return;

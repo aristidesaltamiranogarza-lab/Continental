@@ -3,19 +3,24 @@
 // Pasean por el patio esquivando el flamboyán, los pilares y el lavadero, se echan a dormir en su cama y, al tocarlos, brincan, ladran y dicen su nombre.
 (function(){
 if(typeof THREE==='undefined')return;
-// cada casa de los perros: el patio (planta baja) y la azotea de atrás de la planta alta (c_casa_balcon.js). Van al piso donde estás.
+// los perros viven solo al fondo de la azotea de atrás de la planta alta (c_casa_balcon.js), junto al pretil; ahí dejaron una popo.
 // BOX: por dónde pasean; OBS: [x,z,r] a esquivar, la cama al final
 const SPOT=[[-.2,.02],[.22,-.04]],ZN={pb:{BOX:[-14.4,14.4,-40,-27.4],CAMA:{x:-12.4,z:-27.5},MA:[3,-34],
   OBS:[[-8.6,-36.2,2.3],[2.5,-30.4,.8],[8.7,-30.4,.8],[13.6,-41.2,2],[4.4,-38.6,.6],[11,-38.6,.6],[-7.4,-26.1,.9],[-1.2,-26.1,.9]]},
- alta:{BOX:[-15.4,15.4,-23.8,-13.4],CAMA:{x:-13.6,z:-13.8},MA:[4,-19],OBS:[[-16,-24,.7],[16,-24,.7]]}},
+ alta:{BOX:[-15.4,15.4,-23.8,-19.6],CAMA:{x:-13.2,z:-22.9},MA:[4,-22.4],POPO:{x:8.6,z:-23.3},OBS:[[-16,-24,.7],[16,-24,.7],[8.6,-23.3,.35]]}},
  DEF=[{n:'Harry',c:0xc68a52,cl:0xecd2ae,p:1},{n:'Mapacha',c:0x232328,cl:0xf3efe7,p:1.22,bl:1,w:.8,s:.9}];
 let dogs=[],AC=null,Z=null,TA=0;
 const R=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-function build(e){if(!window.CPAT||!CPAT.ham||ZN.pb.P)return;zona('pb',{P:CPAT.ham.P,std:e.std,OB:e.OB,hits:e.hits})}
+function build(){}   // ya no van al patio: solo viven en la azotea de atrás de la alta
+// popo chiquita: un mojón cilíndrico, segmentado y un poco doblado, café oscuro mate (nada de espiral)
+function popo(P,C){const g=new THREE.Group();g.position.set(C.x,0,C.z);g.rotation.y=.7;P.add(g);
+ const m=new THREE.MeshStandardMaterial({color:0x3b2414,roughness:.75,metalness:0});
+ [[-.075,.032,.03,1.15,.0,.25],[-.02,.036,.034,1.3,.01,-.15],[.04,.034,.032,1.2,.0,.2],[.09,.028,.022,1.1,.006,-.3]].forEach(([x,y,r,sx,z,rz])=>{
+  const s=new THREE.Mesh(new THREE.SphereGeometry(r,12,9),m);s.scale.set(sx*1.5,.85,1);s.position.set(x,y-.004,z);s.rotation.z=rz*.3;s.rotation.y=rz;g.add(s)})}
 // arma la cama de una casa; los perros se hacen la primera vez y luego solo se mudan
 function zona(n,{P,std,OB,hits}){const z=ZN[n];if(z.P)return;Object.assign(z,{n,P,hits});z.OBS.push([z.CAMA.x,z.CAMA.z,1]);
- cama(P,std,z.CAMA);OB.push({x:z.CAMA.x,z:z.CAMA.z,r:.7});
+ cama(P,std,z.CAMA);if(z.POPO)popo(P,z.POPO);OB.push({x:z.CAMA.x,z:z.CAMA.z,r:.7});
  if(!dogs.length){dogs=DEF.map((d,i)=>mk(d,i,std,P,hits));muda(z)}}
 function muda(z){if(Z===z)return;dogs.forEach(o=>{if(Z&&Z.hits){const k=Z.hits.indexOf(o.hb);if(k>=0)Z.hits.splice(k,1)}z.P.add(o.G);if(z.hits&&!z.hits.includes(o.hb))z.hits.push(o.hb)});Z=z;
  const h=dogs[0],m=dogs[1];h.st='sleep';h.t=R(15000,30000);h.lie=1;h.cama=1;h.G.position.set(z.CAMA.x+SPOT[0][0],0,z.CAMA.z+SPOT[0][1]);h.ry=.6;
