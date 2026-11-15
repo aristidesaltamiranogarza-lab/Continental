@@ -11,8 +11,8 @@ const ALT={sot:-4,pb:0,alta:9.6,ter:19.2};
 const C=h=>new THREE.Color(h);
 // dir = hacia dónde viaja la luz (del sol al suelo): tarde, el sol entra por el poniente (-X)
 const TEMAS={
- dia:{cen:C(0x3d7ccc),hor:C(0xf2dcb4),suelo:C(0xb39a78),astro:C(0xfff0d0),luz:C(0xffdcb0),luzI:3.2,dir:new THREE.Vector3(1,-.6,.35).normalize(),hemC:C(0xdbe8ff),hemS:C(0xb39a78),hemI:1.4,niebla:C(0xe8d6ba),ven:C(0x3a4a5a),venI:0},
- noche:{cen:C(0x040818),hor:C(0x1f2c52),suelo:C(0x1a1a22),astro:C(0xc8d6ff),luz:C(0x9fb6ff),luzI:.55,dir:new THREE.Vector3(.7,-.6,-.4).normalize(),hemC:C(0x1c2850),hemS:C(0x0a0a10),hemI:.45,niebla:C(0x141e3a),ven:C(0xffc870),venI:1}};
+ dia:{cen:C(0x3d7ccc),hor:C(0xf2dcb4),suelo:C(0x93a660),astro:C(0xfff0d0),luz:C(0xffdcb0),luzI:3.2,dir:new THREE.Vector3(1,-.6,.35).normalize(),hemC:C(0xdbe8ff),hemS:C(0xb39a78),hemI:1.4,niebla:C(0xe8d6ba),ven:C(0x3a4a5a),venI:0},
+ noche:{cen:C(0x040818),hor:C(0x1f2c52),suelo:C(0x18201c),astro:C(0xc8d6ff),luz:C(0x9fb6ff),luzI:.55,dir:new THREE.Vector3(.7,-.6,-.4).normalize(),hemC:C(0x1c2850),hemS:C(0x0a0a10),hemI:.45,niebla:C(0x141e3a),ven:C(0xffc870),venI:1}};
 let T=null,ver=0;const subs=[];
 const esNoche=()=>!!(window.UI&&UI.noche&&UI.noche());
 
@@ -32,7 +32,7 @@ const domo=new THREE.Mesh(new THREE.SphereGeometry(180,32,16),new THREE.ShaderMa
 domo.renderOrder=-1;ext.add(domo);
 const hemi=new THREE.HemisphereLight(0xffffff,0x888888,1),sol=new THREE.DirectionalLight(0xffffff,1);ext.add(hemi,sol,sol.target);
 
-// ---------- horizonte: casas de uno y dos pisos de colores, árboles asomando y el suelo (luego D4 pone la calle) ----------
+// ---------- horizonte (el suelo es la llanura verde; parque, hacienda y henequén en c_casa_campo.js): casas de uno y dos pisos de colores, árboles asomando y el suelo (luego D4 pone la calle) ----------
 let rs=7;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280;
 mundo.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(500,500).rotateX(-Math.PI/2).translate(0,-.4,0),new THREE.MeshLambertMaterial({color:0xb39a78})),{name:'suelo'}));
 const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c49b];
