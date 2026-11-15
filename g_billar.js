@@ -84,7 +84,7 @@ function mesa(o={}){
  function salir(id){const w=donde(id);if(!w)return;const [e,j]=w;
   if(S.fase=='arma'){if(id===S.org)return libre();S.eq[e][j]=null;return}
   if(S.fase=='fin'){S.eq[e][j]=Object.assign(nuevoBot(S.niv),{n:S.eq[e][j].n+' (bot)'});if(!humanos().length)libre();return}
-  if(S.modo==1){gana(1-e,S.eq[e][j].n+' se fue',0);S.eq[e][j]=Object.assign(nuevoBot(S.niv),{n:S.eq[e][j].n});return}
+  if(S.modo==1){gana(1-e,S.eq[e][j].n+' se fue',0);S.eq[e][j]=Object.assign(nuevoBot(S.niv),{n:S.eq[e][j].n});if(!humanos().length)libre();return}
   S.eq[e][j]=nuevoBot(S.niv);if(!humanos().length)libre()}
 
  function tick(alive){if(alive)humanos().forEach(p=>{if(!alive(p.id))salir(p.id)});
@@ -120,6 +120,21 @@ function mesa(o={}){
   return {fase:S.fase,modo:S.modo,niv:S.niv,org:S.org,inv:S.inv,left:S.plazo?Math.max(0,S.plazo-now()):0,
    eq:S.eq.map(t=>t.map(p=>p&&{id:p.id,n:p.n,bot:p.bot})),yo:w,turno:S.turno,ti:S.ti,gr:S.gr,mano:S.mano,saque:S.saque,
    E:S.E,n:S.n,ult:S.ult,gana:S.gana,por:S.por}}
- return {act,tick,view,S,legales}}
+ return {act,tick,view,S,legales,tiene:id=>!!donde(id),gente:()=>humanos().map(p=>p.id)}}
 
-module.exports=Object.assign(mesa(),{mesa,lugar,T_TIRO});
+// Varias partidas a la vez en la misma mesa física (hasta LIM): cada quien ve solo la suya; a los de las otras no los ve (ocultos).
+function sala(o={},LIM=2){const M=[mesa(o)],vacia=mesa(o);
+ const de=id=>M.find(m=>m.tiene(id)),
+  ve=id=>de(id)||M.find(m=>m.S.fase=='arma'&&m.S.inv===id)||M.find(m=>m.S.fase=='arma'&&!m.S.inv)||M.find(m=>m.S.fase=='libre')||(M.length<LIM?vacia:M[0]);
+ function act(id,name,m,alive){m=m||{};const op=m.op;let t=de(id);
+  if(op=='retar'){if(t&&t.S.fase!='libre')t.act(id,name,{op:'salir'});
+   t=M.find(x=>x.S.fase=='libre');if(!t){if(M.length>=LIM)return 'Las mesas de billar están ocupadas';M.push(t=mesa(o))}
+   return t.act(id,name,m,alive)}
+  if(op=='unir'||op=='rechazar')t=t||M.find(x=>x.S.fase=='arma'&&x.S.inv===id)||(op=='unir'&&M.find(x=>x.S.fase=='arma'&&!x.S.inv));
+  if(!t)return op=='tiro'?'No hay partida':op=='unir'?'No hay reto abierto':undefined;
+  return t.act(id,name,m,alive)}
+ function tick(alive){M.forEach(m=>m.tick(alive));for(let i=M.length-1;i>0;i--)if(M[i].S.fase=='libre')M.splice(i,1)}
+ function view(id){const t=ve(id),v=t.view(id);v.ocultos=[].concat(...M.filter(m=>m!==t).map(m=>m.gente()));return v}
+ return {act,tick,view,M}}
+
+module.exports=Object.assign(sala(),{mesa,sala,lugar,T_TIRO});

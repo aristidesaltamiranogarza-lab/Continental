@@ -343,7 +343,7 @@ function ground(x,y){const r=cv.getBoundingClientRect();P2.set((x-r.left)/r.widt
 // zoom hacia donde apuntas (rueda del ratón)
 function zoomAt(x,y,k){if(fpOn())return;const p=ground(x,y);k=Math.max(KMIN,Math.min(KMAX,k));if(!p){VT.k=k;return clampV()}const c=center(VT),f=VT.k/k;
  VT.ox+=(p.x-c.x)*(1-f);VT.oz+=(p.z-c.z)*(1-f);VT.k=k;clampV()}
-function layout(){W=innerWidth;H=innerHeight;por=W/H<.95;R.setSize(W,H,false);CA.aspect=W/H;CA.fov=fpOn()?CAV.fov(por):por?52:42;CA.updateProjectionMatrix()}
+let IW=0,IH=0;function layout(){IW=innerWidth;IH=innerHeight;const pe=R.domElement.parentNode,b=pe&&pe.getBoundingClientRect();W=Math.round(b&&b.width||IW);H=Math.round(b&&b.height||IH);por=W/H<.95;R.setSize(W,H,false);CA.aspect=W/H;CA.fov=fpOn()?CAV.fov(por):por?52:42;CA.updateProjectionMatrix()}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q.z<1]}
 
 // ---------- tocar: piso = caminar ahí, mesa o letrero = ir a esa mesa ----------
@@ -445,7 +445,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  document.documentElement.classList.toggle('h3lock',a&&document.pointerLockElement===cv);
  if(!a){keys.clear();if(document.pointerLockElement===cv)document.exitPointerLock();if(lb)return salaPaso(now,dt);if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
  if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);
- if(innerWidth!==W||innerHeight!==H){layout();camStep(dt,true)}
+ if(innerWidth!==IW||innerHeight!==IH){layout();camStep(dt,true)}
  net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);if(window.CCAM)CCAM.apply(CA,now);if(window.CHOV)CHOV.step(dt,TB,window.ETQ&&ETQ.act(),CA);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
@@ -519,7 +519,7 @@ function sitSala(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x
  setTimeout(()=>{go();const t0=performance.now(),w=()=>{if(!active())CCAM.release(CA,0);else if(msg!==m0||performance.now()-t0>2500)CCAM.release(CA,700);else setTimeout(w,80)};w()},850)}
 function salaIni(){salaT=null;salaDive=0;sOff.x=sOff.y=0;sitP=null;if(window.CCAM)CCAM.release(CA,0);const g=SALA.g();if(g&&!TB.find(x=>x.g===g&&!x.door))arranca(g)}
 function salaFin(a){CA.clearViewOffset();layout();salaT=null;salaDive=0;salaPs=null;seatSync();if(a&&window.CCAM)CCAM.blendIn(CA,CCAM.pose(CA),1100)}
-function salaPaso(now,dt){if(innerWidth!==W||innerHeight!==H)layout();if(W/H<.95&&CA.fov!==62){CA.fov=62;CA.updateProjectionMatrix()}const g=SALA.g();   // celular parado: más ángulo para que quepa la mesa
+function salaPaso(now,dt){if(innerWidth!==IW||innerHeight!==IH)layout();if(W/H<.95&&CA.fov!==62){CA.fov=62;CA.updateProjectionMatrix()}const g=SALA.g();   // celular parado: más ángulo para que quepa la mesa
  if(!salaT||salaT.g!==g){salaT=TB.find(x=>x.g===g&&!x.door)||null;salaT0=now;if(salaT)salaA=Math.atan2(CA.position.x-salaT.x,CA.position.z-salaT.z);else if(!fBusy&&now-sOff.t>2000){sOff.t=now;arranca(g)}}   // cambiaron de juego: su mesa puede estar en otro piso
  me.g.visible=false;others.forEach(o=>o.g.visible=false);
  if(salaT){const RM=window.CCAM&&CCAM.RM,aa=salaA+(RM?0:(now-salaT0)*4e-5);if(salaDive&&salaT.hit){const fa=faDe(salaT);salaA+=Math.atan2(Math.sin(fa-aa),Math.cos(fa-aa))*(1-Math.exp(-dt/220))}   // con la mesa del juego bajas a tu silla

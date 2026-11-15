@@ -100,12 +100,13 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(window.BCTL)BCTL.paso({on:quiero,camina:quiero&&!dueno,fuera:quiero&&!miTurno()&&!pend&&!(jug&&mio),tiro:dueno&&puedo()&&fase==='apunta',vista,pot,ex,ey,mano:!!(V.mano&&puedo()&&fase==='apunta'),fin:V.fase==='fin',chip:quiero?chip(seg):''});const k=[V.fase,enJuego(),cerca(),miTurno(),jug,!!pend,fase,vista,V.turno,V.inv,V.gana].join('|');if(k!==hk){hk=k;rr()}}
 
 // ---------- controles (c_billar_ctl.js) ----------
-function css(){if(document.getElementById('bijCss'))return;const s=document.createElement('style');s.id='bijCss';s.textContent='html.bijon canvas{touch-action:none}';document.head.appendChild(s)}
-function chip(seg){if(!enJuego())return '';const yo=V.yo[0],g=V.gr&&V.gr[yo],gt=g=='l'?'Lisas':g=='r'?'Rayadas':'Mesa abierta';
+function css(){if(document.getElementById('bijCss'))return;const s=document.createElement('style');s.id='bijCss';s.textContent='html.bijon canvas{touch-action:none}.bij-bo{display:inline-block;width:1em;height:1em;border-radius:50%;vertical-align:-.15em;margin-right:.4em;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}.bij-l{background:#e8b923}.bij-r{background:linear-gradient(#f5f1e6 26%,#e8b923 26% 74%,#f5f1e6 74%)}.bij-a{background:linear-gradient(90deg,#e8b923 50%,#f5f1e6 50%)}';document.head.appendChild(s)}
+function bola(g,t){return `<span class="bij-bo bij-${g||'a'}" role="img" aria-label="${t}"></span>`}
+function chip(seg){if(!enJuego())return '';const yo=V.yo[0],gr=e=>V.gr&&V.gr[e],gt=g=>g=='l'?'Lisas':g=='r'?'Rayadas':'Mesa abierta';
  if(V.fase==='fin')return `<b>${V.gana===yo?'Ganaste':'Ganó '+esc(V.eq[V.gana]?V.eq[V.gana].map(nom).join(' y '):'')}</b>${V.por?'<small>'+esc(V.por)+'</small>':''}`;
- if(miTurno()&&!jug&&!pend)return `<b>Tu tiro · ${seg} s</b><small>${fase==='coloca'?'Coloca la blanca':gt}</small>`;
- const p=V.turno>=0&&V.eq[V.turno]?V.eq[V.turno][V.ti[V.turno]]:null,m=V.ult&&(V.ult.msg||V.ult.fal);
- return `<b>${jug||pend?'Mirando el tiro':p?'Tira '+esc(nom(p)):'Billar'}</b><small>${[m?esc(m):'',gt].filter(Boolean).join(' · ')}</small>`}
+ if(miTurno()&&!jug&&!pend)return `<b>${bola(gr(yo),gt(gr(yo)))}Tu tiro · ${seg} s</b>${fase==='coloca'?'<small>Coloca la blanca</small>':''}`;
+ const m=V.ult&&(V.ult.msg||V.ult.fal),t=V.turno;
+ return `<b>${t>=0?bola(gr(t),gt(gr(t))):''}${jug||pend?'Mirando el tiro':t>=0?seg+' s':'Billar'}</b>${m?'<small>'+esc(m)+'</small>':''}`}
 addEventListener('keydown',e=>{if(!(enJuego()&&enSot())||e.repeat||e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;if(e.key.toLowerCase()==='c'){e.stopPropagation();e.preventDefault();BIJ.vista()}},true);
 
 // ---------- entrada sobre el lienzo ----------
@@ -163,6 +164,6 @@ function key(k){if(k==='escape'&&window.BIH&&BIH.cierra())return true;if(k==='e'
 
 const BIJ=window.BIJ={A,v:null,estado,paso,hud,key,act,tap,out:()=>cola.shift()||null,
  vista:()=>{if(enJuego()&&!miTurno())mira=!mira;else vista=vista==='taco'?'arriba':'taco';rr()},mover:()=>{if(puedo()&&V.mano){fase='coloca';rr()}},
- oculto:id=>!!(dueno&&id===yoId()),jugando:()=>enJuego()};
+ oculto:id=>!!(dueno&&id===yoId())||!!(V&&V.ocultos&&V.ocultos.includes(id)),jugando:()=>enJuego()};
 if(window.BCTL)BCTL.cfg({pot:v=>{if(puedo())pot=v},tira,vista:BIJ.vista,ef:(x,y)=>{ex=x;ey=y},act,mover:BIJ.mover});
 })();
