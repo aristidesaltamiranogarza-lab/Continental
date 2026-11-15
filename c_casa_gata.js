@@ -53,20 +53,19 @@ function piensa(now,dt){const p=o.G.position,feliz=now-o.pet<2400;
 
 // ---------- cargarla ----------
 function yoG(){const C=window.CASA3D;return C&&C.quien&&C.quien(C.myId())}
-// en brazos, abrazada contra el pecho: el antebrazo derecho bajo su cadera, el izquierdo cruzado sobre su pecho (gesto 'gata' en AV.GE);
-// ella erguida de espaldas a ti, mirando al frente, patas colgando. Ajustes en GATA.A.
-const A={arm:{D:[-.1,.1,-1.05,0,.9],I:[-.35,-.1,-1.25,0,-.85]},bx:-1.3,bz:0,hx:1.15,lf:1.15,lh:2.1,tl:-1.5,tc:.3,lz:-.62,fw:.3,lx:-.14,hy:1.12,cx:.25,cy:.2};
-const v1=new THREE.Vector3(),eu=new THREE.Euler();
+// en brazos: los dos antebrazos al frente a la altura de la cintura (gesto 'gata' en AV.GE) y ella acostada de lado sobre ellos
+const BRZ=['antebrazo_D','mano_D','antebrazo_I','mano_I'],v1=new THREE.Vector3();
 function lleva(now,dt){const me=yoG(),C=window.CASA3D;if(!me||!me.g){suelta();return}
  const g=me.g,yaw=me.yaw!=null?me.yaw:g.rotation.y,av=window.AV&&AV.gesto&&g.userData.av,w=new THREE.Vector3();
- if(av)AV.gesto(g,{gata:1,cx:A.cx,cy:A.cy});
- const fx=Math.sin(yaw),fz=Math.cos(yaw),gp=g.getWorldPosition(w);   // su cadera frente a tu cintura, un poco a tu izquierda
- w.x+=fx*A.fw+fz*A.lx;w.z+=fz*A.fw-fx*A.lx;w.y+=A.hy;
- o.P.updateWorldMatrix(true,false);const Lc=o.P.worldToLocal(w.clone()),F=o.P.worldToLocal(w.clone().add(v1.set(fx,0,fz)));
- o.ry=Math.atan2(F.x-Lc.x,F.z-Lc.z);o.G.position.copy(Lc).sub(v1.copy(o.B.position).applyEuler(eu.set(0,o.ry,A.lz*(o.cg||0))));   // recargada de lado: cabeza a tu hombro izquierdo
+ if(av)AV.gesto(g,{gata:1});
+ const hs=av?BRZ.map(n=>g.getObjectByName(n)).filter(Boolean):[];
+ if(hs.length===4){hs.forEach(b=>w.add(b.getWorldPosition(v1)));w.multiplyScalar(.25);w.y-=.07}   // la panza (.11 arriba de sus patas) sobre los antebrazos
+ else w.set(g.position.x+Math.sin(yaw)*.3,g.position.y+.25,g.position.z+Math.cos(yaw)*.3);
+ o.P.updateWorldMatrix(true,false);const Lc=o.P.worldToLocal(w.clone()),F=o.P.worldToLocal(w.clone().add(v1.set(Math.cos(yaw),0,-Math.sin(yaw))));
+ o.G.position.copy(Lc);o.ry=Math.atan2(F.x-Lc.x,F.z-Lc.z);
  const fuera=Lc.x<BOX[0]-.5||Lc.x>BOX[1]+.5||Lc.z<BOX[2]-.5||Lc.z>BOX[3]+.5||(C.piso&&C.piso()!=='pb');
  if(fuera||(o.carga-=dt)<=0)suelta()}
-function carga(){const me=yoG();if(!me||!me.g)return;if(window.AV&&AV.GE)AV.GE.gata=A.arm;
+function carga(){const me=yoG();if(!me||!me.g)return;if(window.AV&&AV.GE&&!AV.GE.gata)AV.GE.gata={I:[-.3,-.3,-1,0],D:[-.3,.3,-1,0]};
  o.carga=R(18000,28000);o.st='carga';o.hop=null;o.pet=performance.now();ronroneo()}
 function suelta(){const me=yoG(),p=o.G.position;o.carga=0;if(me&&me.g&&window.AV&&AV.gesto)AV.gesto(me.g,null);
  const x=cl(p.x,BOX[0]+.3,BOX[1]-.3),z=cl(p.z,BOX[2]+.3,BOX[3]-.3);brinca(p.x,p.y,p.z,x,0,z,()=>{o.st='idle';o.t=R(1500,4000)})}
@@ -81,18 +80,18 @@ function toca(){const now=performance.now();if(now-o.pet<700&&!o.carga)return;
 // ---------- postura de cada cuadro ----------
 function pose(now,dt){const {G,B,legs,H,ears,eyes,tail,body}=o,pt=now-o.pet,feliz=o.pet&&pt<2400,lleva=!!o.carga,k=Math.min(1,dt*.005);
  const sitT=lleva||o.st==='walk'||o.st==='hop'?0:o.st==='sleep'?0:1,lieT=o.st==='sleep'&&!lleva?1:0;
- o.sit+=(sitT-o.sit)*k;o.lie+=(lieT-o.lie)*k;const s=o.sit,l=o.lie,th=-.8*s;o.cg=(o.cg||0)+((lleva?1:0)-(o.cg||0))*Math.min(1,dt*.008);const c=o.cg;
+ o.sit+=(sitT-o.sit)*k;o.lie+=(lieT-o.lie)*k;const s=o.sit,l=o.lie,th=-.8*s;
  G.rotation.y=o.ry;o.ph+=dt*o.sp*.022;const w=Math.min(1,o.sp/.6),sn=Math.sin(o.ph);
- B.rotation.x=th+(A.bx-th)*c;B.rotation.z=A.bz*c;G.rotation.z=A.lz*c;B.position.y=.2-.14*s-.1*l+.012*Math.abs(sn)*w;
+ B.rotation.x=th;B.position.y=.2-.14*s-.1*l+.012*Math.abs(sn)*w;
  legs.forEach((g,i)=>{const fr=i<2,sw=(i===0||i===3?1:-1)*.5*sn*w;
-  g.rotation.x=lleva?(fr?A.lf:A.lh)+.06*Math.sin(now/500+i):fr?.8*s-1.57*l+sw:-.77*s-1.57*l+sw});
+  g.rotation.x=lleva?.25+.08*Math.sin(now/500+i):fr?.8*s-1.57*l+sw:-.77*s-1.57*l+sw});
  body.scale.y=.84*(1+.025*Math.sin(now/(l>.5?1200:650)));
  const mira=o.st==='home'||o.st==='idle'||lleva;
- H.rotation.x=.8*s+.4*l+(mira?.08*Math.sin(now/3100):0)+A.hx*c;H.rotation.y=mira?.55*Math.sin(now/4200)*Math.max(0,Math.sin(now/9000+1)):0;H.rotation.z=0;H.position.y=.13-.05*l;
+ H.rotation.x=.8*s+.4*l+(mira?.08*Math.sin(now/3100):0)-(lleva?.1:0);H.rotation.y=mira?.55*Math.sin(now/4200)*Math.max(0,Math.sin(now/9000+1)):0;H.rotation.z=0;H.position.y=.13-.05*l;
  // cola: parada en S al caminar, recostada y enroscada sentada o dormida, colgando en brazos
- tail[0].rotation.x=lleva?A.tl:-.45+(-1.4+.45)*Math.max(s,l);tail[0].rotation.z=0;
+ tail[0].rotation.x=lleva?-2.7:-.45+(-1.4+.45)*Math.max(s,l);tail[0].rotation.z=0;
  tail.forEach((t,i)=>{if(!i)return;const sw=Math.sin(now/600-i*.55);
-  t.rotation.x=lleva?(i>4?A.tc:.03):(.12-.02*i)*(1-Math.max(s,l))+(i>5?.25:0)*(1-Math.max(s,l));t.rotation.z=Math.max(s,l)*(.22+.12*sw)+(1-Math.max(s,l))*.1*sw});
+  t.rotation.x=lleva?.05:(.12-.02*i)*(1-Math.max(s,l))+(i>5?.25:0)*(1-Math.max(s,l));t.rotation.z=Math.max(s,l)*(.22+.12*sw)+(1-Math.max(s,l))*.1*sw});
  if(!o.blink&&Math.random()<dt/4000)o.blink=now;const b=o.blink&&now-o.blink<140;if(o.blink&&!b)o.blink=0;
  eyes.forEach(e=>e.scale.y=l>.5||b?.12:1);const fl=Math.sin(now/1700)>.97;ears.forEach((e,i)=>e.rotation.x=fl&&i?-.35:0);
  const q=feliz?Math.min(1,pt/250,(2400-pt)/400):0;
@@ -105,5 +104,5 @@ function ronroneo(){try{AC=AC||new (window.AudioContext||window.webkitAudioConte
  const g=a.createGain(),am=a.createGain(),lfo=a.createOscillator();lfo.frequency.value=24;lfo.connect(am.gain);am.gain.value=.5;
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.25);g.gain.setValueAtTime(.5,t+d-.5);g.gain.linearRampToValueAtTime(0,t+d);
  s.connect(f);f.connect(am);am.connect(g);g.connect(a.destination);s.start(t);lfo.start(t);s.stop(t+d);lfo.stop(t+d)}catch(_){}}
-window.GATA={build,step,A,get o(){return o}};
+window.GATA={build,step,get o(){return o}};
 })();
