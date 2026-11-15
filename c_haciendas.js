@@ -8,8 +8,8 @@ const rules=`<details><summary>Reglas</summary>Coloniza Yucatán: pon ranchos y 
 <br>Si pasan 10 rondas sin que cambien los puntos de nadie, gana quien tenga más.</details>`;
 function lobby(host){const o=V.opts||{},row=(k,n,L,f)=>`<div class="top">${n}: <b>${f(o[k])}</b></div>`+(host?L.map(v=>`<button class="b g sm2${o[k]===v?' on':''}" onclick="send({t:'opts',o:{${k}:${JSON.stringify(v)}}})">${f(v)}</button>`).join(''):'');
  return `<div class="box"><b>Reglas de esta sala</b><br>`+row('pts','Puntos para ganar',[8,10,12,14],v=>v)+row('fijo','Tablero',[false,true],v=>v?'Fijo':'Aleatorio')
-  +row('hl','Huracán: descartan con más de',[7,8,9],v=>v+' cartas')+row('vel','Velocidad de bots',[1,2,3],v=>['','Lenta','Normal','Rápida'][v])+`</div>`
-  +(host?`<button class="b" ${V.players.length<3?'disabled':''} onclick="send({t:'start'})">Empezar partida</button><div class="top">De 3 a 6 jugadores (5 o 6 usan el tablero grande).</div>`:'')}
-const body=()=>`<div class="box"><b>🌿 Haciendas de Yucatán</b><p>El tablero todavía está en construcción: por ahora solo juegan los bots en el servidor.</p></div>`;
+  +row('hl','Huracán: descartan con más de',[7,8,9],v=>v+' cartas')+row('n','Jugadores en la mesa',[3,4,5,6],v=>v)+`<div class="top">Los bots llenan los lugares vacíos.</div></div>`
+  +(host?`<button class="b" onclick="send({t:'start'})">Empezar partida</button><div class="top">5 o 6 jugadores usan el tablero grande.</div>`:'')}
+const body=()=>`<div class="box"><b>Haciendas de Yucatán</b><p>El tablero todavía está en construcción: por ahora solo juegan los bots en el servidor.</p></div>`;
 GM.haciendas={name:'Haciendas de Yucatán',emoji:'🌿',max:6,rules,lobby,body,face:()=>({h:''})};
 })();

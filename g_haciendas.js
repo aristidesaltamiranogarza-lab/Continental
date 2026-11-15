@@ -3,9 +3,9 @@
 // Estados del turno (G.st): setup (rancho + sacbé, ida y vuelta) · roll (tirar; antes puede jugar 1 carta) · main (comerciar, construir, terminar).
 // Capas que interrumpen: discard (huracán: descartan todos a la vez) · move (mover el huracán) · steal (elegir a quién robar) · road (sacbés gratis de Fajina).
 // Al acabar move/steal/road se vuelve a G.ret. Edificios: G.vo dueño de cada esquina (-1 libre), G.vl 1 rancho · 2 hacienda; G.eo dueño de cada orilla.
-const D=require('./haciendas_data.js'),{COST,RES:RN}=D,IDLE_MS=60000,OFF_MS=35000,STALL=10;
-// opciones: pts puntos para ganar · fijo tablero fijo · hl límite de cartas del huracán (descartan con más) · vel velocidad de bots (1 lenta, 3 rápida)
-const OPTS={pts:10,fijo:false,hl:7,vel:2},RNG={pts:[8,14],hl:[5,12],vel:[1,3]};
+const cr=require('crypto'),D=require('./haciendas_data.js'),{COST,RES:RN}=D,IDLE_MS=60000,OFF_MS=35000,STALL=10;
+// opciones: pts puntos para ganar · fijo tablero fijo · hl límite de cartas del huracán (descartan con más) · n lugares en la mesa (los bots llenan; los bots van siempre a velocidad normal)
+const OPTS={pts:10,fijo:false,hl:7,n:4},RNG={pts:[8,14],hl:[5,12],n:[3,6]};
 const geo=G=>D.geo(G.bn),tot=a=>a.reduce((s,x)=>s+x,0),has=(r,c)=>c.every((x,i)=>r[i]>=x);
 const sub=(r,c)=>c.forEach((x,i)=>r[i]-=x),add=(r,c)=>c.forEach((x,i)=>r[i]+=x),other=(E,v)=>E.v[0]===v?E.v[1]:E.v[0];
 const txt=a=>a.map((x,i)=>x?x+' '+RN[i]:'').filter(Boolean).join(', ')||'nada',pn=(G,k)=>G.players[k].name;
@@ -14,7 +14,10 @@ const res5=x=>Array.isArray(x)&&x.length==5&&x.every(v=>Number.isInteger(v)&&v>=
 const isR=x=>Number.isInteger(x)&&x>=0&&x<5,PNM={s:'sacbés',r:'ranchos',h:'haciendas'};
 const lg=(G,k,t)=>{(G.log=G.log||[]).push({k,t,n:G.ln=(G.ln||0)+1});if(G.log.length>40)G.log.shift()};
 function shuf(a){return D.shuf(a,Math.random)}
-function start(R){const o=Object.assign({},OPTS,R.opts),n=R.players.length,b=D.board(n>4?30:19,o.fijo),g=D.geo(b.n),t0=Math.random()*n|0,sq=[];
+function start(R){const o=Object.assign({},OPTS,R.opts,{vel:2}),want=Math.max(R.players.length,Math.min(6,Math.max(3,o.n|0)));
+ for(const nm of B.botn){if(R.players.length>=want)break;if(R.players.some(p=>p.name==nm))continue;
+  R.players.push({tok:cr.randomBytes(12).toString('hex'),id:cr.randomBytes(4).toString('hex'),name:nm,seen:Date.now(),bot:true})}
+ const n=R.players.length,b=D.board(n>4?30:19,o.fijo),g=D.geo(b.n),t0=Math.random()*n|0,sq=[];
  for(let i=0;i<n;i++)sq.push((t0+i)%n);for(let i=n-1;i>=0;i--)sq.push((t0+i)%n);
  R.G={phase:'play',round:0,tc:0,turn:t0,first:t0,players:R.players.map(p=>({id:p.id,name:p.name})),o,bn:b.n,hx:b.hx,ports:b.ports,hur:b.hur,
   vo:Array(g.V.length).fill(-1),vl:Array(g.V.length).fill(0),eo:Array(g.E.length).fill(-1),out:Array(n).fill(0),
@@ -179,4 +182,4 @@ function view(R,tok,me,now){const G=R.G,fin=G.phase!='play',v=Object.assign({},G
  if(G.sl&&me!==G.sl.a&&me!==G.sl.b){v.sl=Object.assign({},G.sl);delete v.sl.r}delete v.sq;return {G:v,claim:false,pend:false}}
 const X={D,geo,tot,has,left,okV,okE,spots,rate,vp,roadLen,needers};
 const B=require('./g_haciendas_bot.js')(X);
-module.exports={id:'haciendas',name:'Haciendas de Yucatán',min:3,max:6,opts:OPTS,rng:RNG,start,view,act,kick,tick,auto,bot:B.bot,botn:B.botn,_:X};
+module.exports={id:'haciendas',name:'Haciendas de Yucatán',min:1,max:6,opts:OPTS,rng:RNG,start,view,act,kick,tick,auto,bot:B.bot,botn:B.botn,_:X};

@@ -15,8 +15,8 @@ const fail=(gi,msg)=>{if(st.fails.length<15)st.fails.push('partida '+gi+': '+msg
 const t0=Date.now();
 for(let gi=0;gi<N;gi++){const n=3+gi%4,names=M.botn.slice().sort(()=>Math.random()-.5);
  const R={players:Array.from({length:n},(_,k)=>({tok:'t'+k,id:'p'+k,name:names[k],seen:Date.now(),bot:true})),
-  opts:Object.assign({},M.opts,{pts:8+gi%7,fijo:gi%3==0,hl:gi%5==0?9:7,vel:1+gi%3})};
- M.start(R);const G=R.G,g=D.geo(G.bn);st.games++;let acts=0,errRun=0,ok=true,plays={};
+  opts:Object.assign({},M.opts,{pts:8+gi%7,fijo:gi%3==0,hl:gi%5==0?9:7})};
+ R.opts.n=R.players.length;M.start(R);const G=R.G,g=D.geo(G.bn);st.games++;let acts=0,errRun=0,ok=true,plays={};
  while(G.phase=='play'){
   let bm=null;R.players.forEach((p,k)=>{const d=M.bot(R,k);if(d&&(!bm||d.ms<bm.ms))bm=Object.assign({k},d)});
   if(!bm){fail(gi,'trabada: nadie tiene jugada en '+G.st);st.stuck++;ok=false;break}
@@ -60,7 +60,7 @@ for(let gi=0;gi<N;gi++){const n=3+gi%4,names=M.botn.slice().sort(()=>Math.random
 // ---- reloj de 60 s y desconexión: una persona que no hace nada ----
 const clock=[];{const now0=Date.now();let fake=now0;const realNow=Date.now;Date.now=()=>fake;
  const R={players:[{tok:'h',id:'h',name:'Ana',seen:fake},{tok:'b1',id:'b1',name:M.botn[0],seen:fake,bot:true},{tok:'b2',id:'b2',name:M.botn[1],seen:fake,bot:true}],opts:Object.assign({},M.opts)};
- M.start(R);const G=R.G;while(G.turn!==0||G.st!='setup'){const d=M.bot(R,G.turn);M.act(R,R.players[G.turn].tok,d.m)}
+ R.opts.n=R.players.length;M.start(R);const G=R.G;while(G.turn!==0||G.st!='setup'){const d=M.bot(R,G.turn);M.act(R,R.players[G.turn].tok,d.m)}
  clock.push(['al empezar su colocación, sin bot',!M.auto(R,0)]);fake+=59000;R.players[0].seen=fake;clock.push(['a los 59 s, sin bot',!M.auto(R,0)]);
  fake+=2000;R.players[0].seen=fake;clock.push(['a los 61 s, el bot juega por ella',M.auto(R,0)&&!!M.bot(R,0)]);
  const d=M.bot(R,0);M.act(R,'h',d.m);clock.push(['la jugada del bot no reinicia el reloj',M.auto(R,0)]);
@@ -68,7 +68,7 @@ const clock=[];{const now0=Date.now();let fake=now0;const realNow=Date.now;Date.
  fake+=40000;clock.push(['desconectada (40 s sin verla), el bot la suple',M.auto(R,0)]);R.players[0].seen=fake;M.act(R,'h',{t:'back'});clock.push(['al regresar, se lo devuelve',!M.auto(R,0)]);
  Date.now=realNow}
 // ---- partida estancada: 10 rondas sin que cambien los puntos ----
-{const R={players:[0,1,2].map(k=>({tok:'s'+k,id:'s'+k,name:M.botn[k],seen:Date.now(),bot:true})),opts:Object.assign({},M.opts)};M.start(R);const G=R.G;
+{const R={players:[0,1,2].map(k=>({tok:'s'+k,id:'s'+k,name:M.botn[k],seen:Date.now(),bot:true})),opts:Object.assign({},M.opts)};R.opts.n=R.players.length;M.start(R);const G=R.G;
  while(G.st=='setup'){const d=M.bot(R,G.turn);M.act(R,'s'+G.turn,d.m)}M.act(R,'s'+G.turn,{t:'roll'});const r0=G.phase;G.round+=10;
  let guard=0;while(G.phase=='play'&&guard++<50){let bm=null;R.players.forEach((p,k)=>{const d=M.bot(R,k);if(d&&(!bm||d.ms<bm.ms))bm=Object.assign({k},d)});M.act(R,'s'+bm.k,bm.m)}
  const sc=G.players.map((_,j)=>pts(G,j));clock.push(['estancada 10 rondas: gana el de más puntos',r0=='play'&&G.stall===1&&sc[G.win]===Math.max(...sc)])}
