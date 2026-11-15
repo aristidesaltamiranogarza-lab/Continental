@@ -71,10 +71,12 @@ function build(e){if(E)return;E=e;const {THREE,SC,OB,hits,std,box,cyl,ctex,TB,HX
   const hb=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));hb.position.set(0,.32,0);hb.userData.hit={t:'fn',f:acaricia};G.add(hb);if(hits)hits.push(hb);
   const hs=[];for(let i=0;i<3;i++){const h=new THREE.Sprite(new THREE.SpriteMaterial({map:corazon(THREE),transparent:true,depthWrite:false,opacity:0}));h.scale.setScalar(.12);h.visible=false;G.add(h);hs.push(h)}
   cat={body,head,ears,eyes,tail,hs};OB.push({x:GT.x,z:GT.z,r:.45})}
+ if(window.PERROS)PERROS.build(e);   // Harry y Mapacha en el patio (c_casa_perros.js)
 }
 function hands(){if(!clk)return;const d=new Date(),m=d.getMinutes()+d.getSeconds()/60,h=d.getHours()%12+m/60;clk.mm.rotation.z=-m/60*Math.PI*2;clk.hh.rotation.z=-h/12*Math.PI*2}
 function step(now,dt){if(!E)return;
  if(now-hT>(lo()?10000:1000)){hT=now;hands()}
+ if(window.PERROS)PERROS.step(now,dt);   // los perros se mueven también en Media (son baratos)
  if(lo())return;   // calidad Media: quieto
  fans.forEach((f,i)=>f.rotation.y+=dt*(.006+i*.0008));
  if(clk)clk.pe.rotation.z=.13*Math.sin(now/1000*Math.PI);
