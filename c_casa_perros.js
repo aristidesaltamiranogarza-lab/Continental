@@ -5,7 +5,7 @@
 if(typeof THREE==='undefined')return;
 const BOX=[-14.4,14.4,-40,-27.4],CAMA={x:-12.4,z:-27.5},SPOT=[[-.2,.02],[.22,-.04]],
  OBS=[[-8.6,-36.2,2.3],[2.5,-30.4,.8],[8.7,-30.4,.8],[13.6,-41.2,2],[4.4,-38.6,.6],[11,-38.6,.6],[-7.4,-26.1,.9],[-1.2,-26.1,.9],[CAMA.x,CAMA.z,1]],
- DEF=[{n:'Harry',c:0xc68a52,cl:0xecd2ae,p:1},{n:'Mapacha',c:0x232328,cl:0xf3efe7,p:1.22,bl:1}];
+ DEF=[{n:'Harry',c:0xc68a52,cl:0xecd2ae,p:1},{n:'Mapacha',c:0x232328,cl:0xf3efe7,p:1.22,bl:1,w:.8,s:.9}];
 let dogs=[],AC=null;
 const R=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 
@@ -23,11 +23,11 @@ function cama(P,std){const g=new THREE.Group();g.position.set(CAMA.x,0,CAMA.z);P
 function mk(d,i,std,P,hits){const G=new THREE.Group();P.add(G);
  const fur=std(d.c,.9),lt=std(d.cl,.9),blk=std(0x0e0e10,.55),pink=std(0xe6a2a0,.9),
   ball=(r,sx,sy,sz,x,y,z,p,m)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,18,14),m);o.scale.set(sx,sy,sz);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o};
- const B=new THREE.Group();G.add(B);   // todo lo que sube y baja: respira, trota, se echa
- const body=ball(.16,.95,.9,1.4,0,.27,0,B,fur);
- ball(.105,1,1,.8,0,.3,.15,B,d.bl?lt:fur);if(!d.bl)ball(.1,1,.6,1,0,.2,.04,B,lt);
- const legs=[[-.075,.13],[.075,.13],[-.075,-.13],[.075,-.13]].map(([x,z])=>{const g=new THREE.Group();g.position.set(x,.22,z);B.add(g);const m=d.bl?lt:fur;
-  const c=new THREE.Mesh(new THREE.CylinderGeometry(.034,.03,.18,10),d.bl&&z<0?fur:m);c.position.y=-.09;c.castShadow=true;g.add(c);ball(.038,1,.6,1.3,0,-.19,.012,g,m);return g});
+ const B=new THREE.Group(),W=d.w||1;G.add(B);G.scale.setScalar(d.s||1);   // todo lo que sube y baja: respira, trota, se echa
+ const body=ball(.16,.95*W,.9,1.4,0,.27,0,B,fur);
+ ball(.105,W,1,.8,0,.3,.15,B,d.bl?lt:fur);if(!d.bl)ball(.1,1,.6,1,0,.2,.04,B,lt);
+ const legs=[[-.075,.13],[.075,.13],[-.075,-.13],[.075,-.13]].map(([x,z])=>{const g=new THREE.Group();g.position.set(x*W,.22,z);B.add(g);const m=d.bl?lt:fur;
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(.034*W,.03*W,.18,10),d.bl&&z<0?fur:m);c.position.y=-.09;c.castShadow=true;g.add(c);ball(.038,W,.6,1.3,0,-.19,.012,g,m);return g});
  const H=new THREE.Group();H.position.set(0,.46,.2);B.add(H);
  ball(.15,1.08,.98,1,0,0,0,H,fur);ball(.065,1.1,.8,1.05,0,-.045,.12,H,lt);ball(.022,1.2,.9,1,0,-.02,.185,H,blk);
  if(d.bl){ball(.06,.42,1.35,.6,0,.07,.105,H,lt);ball(.017,1.4,.8,.5,0,-.008,.172,H,blk)}   // franja blanca y la mancha del hocico
