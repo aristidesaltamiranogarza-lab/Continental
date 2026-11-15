@@ -1,22 +1,28 @@
 // c_casa_perros.js — PERROS: Harry (canela) y Mapacha (negro con blanco), dos chihuahuas chibi en el patio (easter egg).
-// Hechos con primitivas mate y ojos sólidos. c_casa_amb.js llama a PERROS.build(e) y PERROS.step(now,dt) (solo planta baja, también en calidad Media).
+// Hechos con primitivas mate y ojos sólidos. c_casa_amb.js llama a PERROS.build(e) y PERROS.step(now,dt) y c_casa_balcon.js PERROS.zona("alta"); van al piso donde estás (también en calidad Media).
 // Pasean por el patio esquivando el flamboyán, los pilares y el lavadero, se echan a dormir en su cama y, al tocarlos, brincan, ladran y dicen su nombre.
 (function(){
 if(typeof THREE==='undefined')return;
-const BOX=[-14.4,14.4,-40,-27.4],CAMA={x:-12.4,z:-27.5},SPOT=[[-.2,.02],[.22,-.04]],
- OBS=[[-8.6,-36.2,2.3],[2.5,-30.4,.8],[8.7,-30.4,.8],[13.6,-41.2,2],[4.4,-38.6,.6],[11,-38.6,.6],[-7.4,-26.1,.9],[-1.2,-26.1,.9],[CAMA.x,CAMA.z,1]],
+// cada casa de los perros: el patio (planta baja) y la azotea de atrás de la planta alta (c_casa_balcon.js). Van al piso donde estás.
+// BOX: por dónde pasean; OBS: [x,z,r] a esquivar, la cama al final
+const SPOT=[[-.2,.02],[.22,-.04]],ZN={pb:{BOX:[-14.4,14.4,-40,-27.4],CAMA:{x:-12.4,z:-27.5},MA:[3,-34],
+  OBS:[[-8.6,-36.2,2.3],[2.5,-30.4,.8],[8.7,-30.4,.8],[13.6,-41.2,2],[4.4,-38.6,.6],[11,-38.6,.6],[-7.4,-26.1,.9],[-1.2,-26.1,.9]]},
+ alta:{BOX:[-15.4,15.4,-23.8,-13.4],CAMA:{x:-13.6,z:-13.8},MA:[4,-19],OBS:[[-16,-24,.7],[16,-24,.7]]}},
  DEF=[{n:'Harry',c:0xc68a52,cl:0xecd2ae,p:1},{n:'Mapacha',c:0x232328,cl:0xf3efe7,p:1.22,bl:1,w:.8,s:.9}];
-let dogs=[],AC=null;
+let dogs=[],AC=null,Z=null,TA=0;
 const R=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-function build(e){if(dogs.length||!window.CPAT||!CPAT.ham)return;const P=CPAT.ham.P,{std,OB,hits}=e;
- cama(P,std);OB.push({x:CAMA.x,z:CAMA.z,r:.7});
- dogs=DEF.map((d,i)=>mk(d,i,std,P,hits));
- const h=dogs[0],m=dogs[1];h.st='sleep';h.t=R(15000,30000);h.lie=1;h.G.position.set(CAMA.x+SPOT[0][0],0,CAMA.z+SPOT[0][1]);h.ry=.6;
- m.st='idle';m.t=2000;m.G.position.set(3,0,-34);m.ry=-.8;
+function build(e){if(!window.CPAT||!CPAT.ham||ZN.pb.P)return;zona('pb',{P:CPAT.ham.P,std:e.std,OB:e.OB,hits:e.hits})}
+// arma la cama de una casa; los perros se hacen la primera vez y luego solo se mudan
+function zona(n,{P,std,OB,hits}){const z=ZN[n];if(z.P)return;Object.assign(z,{n,P,hits});z.OBS.push([z.CAMA.x,z.CAMA.z,1]);
+ cama(P,std,z.CAMA);OB.push({x:z.CAMA.x,z:z.CAMA.z,r:.7});
+ if(!dogs.length){dogs=DEF.map((d,i)=>mk(d,i,std,P,hits));muda(z)}}
+function muda(z){if(Z===z)return;dogs.forEach(o=>{if(Z&&Z.hits){const k=Z.hits.indexOf(o.hb);if(k>=0)Z.hits.splice(k,1)}z.P.add(o.G);if(z.hits&&!z.hits.includes(o.hb))z.hits.push(o.hb)});Z=z;
+ const h=dogs[0],m=dogs[1];h.st='sleep';h.t=R(15000,30000);h.lie=1;h.cama=1;h.G.position.set(z.CAMA.x+SPOT[0][0],0,z.CAMA.z+SPOT[0][1]);h.ry=.6;
+ m.st='idle';m.t=2000;m.lie=0;m.cama=0;m.tx=null;m.G.position.set(z.MA[0],0,z.MA[1]);m.ry=-.8;
  dogs.forEach(o=>pose(o,performance.now(),0))}
 
-function cama(P,std){const g=new THREE.Group();g.position.set(CAMA.x,0,CAMA.z);P.add(g);
+function cama(P,std,C){const g=new THREE.Group();g.position.set(C.x,0,C.z);P.add(g);
  const base=new THREE.Mesh(new THREE.CylinderGeometry(.62,.64,.06,28),std(0xf1e8dc,.95));base.position.y=.03;base.receiveShadow=true;g.add(base);
  const rim=new THREE.Mesh(new THREE.TorusGeometry(.6,.11,12,32),std(0xe7b3c1,.95));rim.rotation.x=Math.PI/2;rim.position.y=.1;rim.castShadow=rim.receiveShadow=true;g.add(rim)}
 
@@ -39,18 +45,20 @@ function mk(d,i,std,P,hits){const G=new THREE.Group();P.add(G);
  const o={i,d,G,B,body,legs,H,eyes,ears,tail,st:'idle',t:0,ry:0,lie:0,ph:0,sp:0,joy:0,blink:0,paseos:R(3,6)|0,tag:etiqueta(d.n),hs:[]};
  o.tag.position.y=.92;G.add(o.tag);
  for(let k=0;k<2;k++){const h=new THREE.Sprite(new THREE.SpriteMaterial({map:corazon(),transparent:true,depthWrite:false,opacity:0}));h.visible=false;G.add(h);o.hs.push(h)}
- const hb=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));hb.position.y=.32;hb.userData.hit={t:'fn',f:()=>toca(o)};G.add(hb);if(hits)hits.push(hb);
+ const hb=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));hb.position.y=.32;hb.userData.hit={t:'fn',f:()=>toca(o)};G.add(hb);o.hb=hb;
  return o}
 
 // ---------- a dónde ir ----------
-const libre=(x0,z0,x1,z1,cama)=>OBS.every(([x,z,r],k)=>{if(cama&&k===OBS.length-1||Math.hypot(x0-x,z0-z)<r+.3)return true;const dx=x1-x0,dz=z1-z0,L=dx*dx+dz*dz||1,u=cl(((x-x0)*dx+(z-z0)*dz)/L,0,1),ex=x0+u*dx-x,ez=z0+u*dz-z;return ex*ex+ez*ez>(r+.25)*(r+.25)});
+const libre=(x0,z0,x1,z1,cama)=>Z.OBS.every(([x,z,r],k)=>{if(cama&&k===Z.OBS.length-1||Math.hypot(x0-x,z0-z)<r+.3)return true;const dx=x1-x0,dz=z1-z0,L=dx*dx+dz*dz||1,u=cl(((x-x0)*dx+(z-z0)*dz)/L,0,1),ex=x0+u*dx-x,ez=z0+u*dz-z;return ex*ex+ez*ez>(r+.25)*(r+.25)});
 function meta(o){const p=o.G.position;
- if(o.paseos<=0){const x=CAMA.x+SPOT[o.i][0],z=CAMA.z+SPOT[o.i][1];if(libre(p.x,p.z,x,z,1)){o.tx=x;o.tz=z;o.cama=1;o.st='walk';return}o.paseos=1}
- for(let k=0;k<30;k++){const x=R(BOX[0],BOX[1]),z=R(BOX[2],BOX[3]),ot=dogs[1-o.i];
+ if(o.paseos<=0){const x=Z.CAMA.x+SPOT[o.i][0],z=Z.CAMA.z+SPOT[o.i][1];if(libre(p.x,p.z,x,z,1)){o.tx=x;o.tz=z;o.cama=1;o.st='walk';return}o.paseos=1}
+ for(let k=0;k<30;k++){const B=Z.BOX,x=R(B[0],B[1]),z=R(B[2],B[3]),ot=dogs[1-o.i];
   if(Math.hypot(x-p.x,z-p.z)<2||(ot&&ot.tx!=null&&Math.hypot(x-ot.tx,z-ot.tz)<1.2)||!libre(p.x,p.z,x,z))continue;o.tx=x;o.tz=z;o.cama=0;o.st='walk';return}
  o.st='idle';o.t=1500}
 
-function step(now,dt){if(!dogs.length)return;dt=Math.min(dt,50);dogs.forEach(o=>{piensa(o,now,dt);pose(o,now,dt)})}
+// la planta baja (c_casa_amb.js) y la alta (c_casa_alta.js) lo llaman; solo cuenta el del piso donde estás
+function step(now,dt,n){n=n||'pb';const p=window.CASA3D&&CASA3D.piso&&CASA3D.piso();if(!dogs.length||(p&&p!==n)||!ZN[n].P)return;muda(ZN[n]);
+ if(!dt)dt=TA?now-TA:16;TA=now;dt=Math.min(dt,50);dogs.forEach(o=>{piensa(o,now,dt);pose(o,now,dt)})}
 function piensa(o,now,dt){const p=o.G.position,feliz=now-o.joy<2200;o.sp=0;if(feliz)return;
  if(o.st==='walk'){const dx=o.tx-p.x,dz=o.tz-p.z,L=Math.hypot(dx,dz);
   if(L<.05){if(o.cama){o.st='sleep';o.t=R(25000,45000);o.ryT=o.i?-2.4:.6}else{o.st='idle';o.t=R(2000,5500);o.huele=Math.random()<.55;o.paseos--}return}
@@ -92,5 +100,5 @@ function yip(p){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)(
  [0,.17].forEach(dl=>{const t=t0+dl,o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();o.type='sawtooth';f.type='bandpass';f.frequency.value=1500*p;f.Q.value=2.2;
   o.frequency.setValueAtTime(720*p,t);o.frequency.exponentialRampToValueAtTime(1300*p,t+.03);o.frequency.exponentialRampToValueAtTime(620*p,t+.11);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.012);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.13)})}catch(_){}}
-window.PERROS={build,step,get dogs(){return dogs}};
+window.PERROS={build,zona,step,get dogs(){return dogs}};
 })();

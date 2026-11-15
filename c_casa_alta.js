@@ -17,7 +17,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
 
  // ---------- escaleras: la que baja (hueco en el corredor, de frente) y la que sube a la terraza (contra la pared del fondo) ----------
  const dn=ESC.down({S,hits,OB,x:9.2,z:5.8,dir:[1,0],to:'pb',n:8});
- const up=ESC.up({S,hits,OB,x:11.2,z:-3.6,dir:[0,-1],to:'ter',key:'alta-ter',sign:['⬆ Terraza · Rummy','#3a2412','#e07a10','#ffe2b0',0xffb35a],n:10,land:2.2,rail:[-1,1]});
+ const up=ESC.up({S,hits,OB,x:11.2,z:-3.6,dir:[0,-1],to:'ter',key:'alta-ter',sign:['Terraza · Rummy','#3a2412','#e07a10','#ffe2b0',0xffb35a],n:10,land:2.2,rail:[-1,1]});
  ESC.plano({S,hits,OB,x:8.2,z:3,ry:.5,here:'alta'});ESC.plano({S,hits,OB,x:9,z:-2.6,ry:.25,here:'alta'});
 
  // ---------- piso de mosaico de pasta (flor de cuatro pétalos), con el hueco de la escalera ----------
@@ -130,14 +130,14 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
 
  // ---------- el piso para c_casa3d.js ----------
  let q=null;const qual=()=>{const l=lo();if(l===q)return;q=l;hl.intensity=l?2.1:1.5;Ld.castShadow=!l};
- const step=now=>{qual();const cm=CASA3D.cam();top.visible=!!cm&&cm.position.y<CEIL-.25;
+ const step=now=>{qual();if(window.PERROS)PERROS.step(now,0,'alta');const cm=CASA3D.cam();top.visible=!!cm&&cm.position.y<CEIL-.25;
   // con la cámara del lado de la calle el muro de enfrente no se ve (una cara): sus ventanas tampoco
   MOD.forEach(([g,c])=>{const v=!g.children.length;c.forEach(o=>{if(o.visible!==v)o.visible=v})});
   if(cm){const iz=cm.position.z<ZF-.05;VF.forEach(g=>{if(g.visible!==iz)g.visible=iz});if(KM)CPB.corte(KM,cm.position,CASA3D.yo&&CASA3D.yo())}
  const d=new Date(),m=d.getMinutes()+d.getSeconds()/60;ck.m.rotation.z=-m/60*Math.PI*2;ck.h.rotation.z=-((d.getHours()%12)+m/60)/12*Math.PI*2;
   if(!lo()){ck.pe.rotation.z=Math.sin(now/1000*Math.PI)*.16;if(top.visible)fan.rotation.y+=.025}
   const on=typeof musName=='function'&&musName()!='apagada';dial.emissive.setHex(on?0xffb04a:0);dial.emissiveIntensity=on?.9:0};
- if(window.BALC&&KM)BALC.pon({S,F:null,H,OB,VF,fr,box,cyl});
+ if(window.BALC&&KM)BALC.pon({S,F:null,H,OB,hits,VF,fr,box,cyl});
  F={id:'alta',SC:S,TB,OB,hits,links:[dn.lk,up],bx:[-XW+1,XW-1,ZB+1.2,ZF-1],cb:[-XW,XW,ZB,ZF],WL:KM?KM.WL:null,k:1,ext:true,
   spawn:from=>from==='ter'?{x:11.2,z:-1.2,yaw:0}:{x:7.6,z:6.6,yaw:-Math.PI/2},enter:fp=>{top.visible=!!fp;q=null;qual()},step};
  if(window.BALC&&KM)BALC.limites(F);

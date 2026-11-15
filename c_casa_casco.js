@@ -31,7 +31,7 @@ const P=(l,u,k)=>l==='fr'?[u,ZF+T+k]:l==='at'?[u,ZB-T-k]:l==='izq'?[-X-T-k,u]:[X
 let HECHO=false;
 // tu Mii está afuera de la planta baja (banqueta o patio)
 // tu Mii está en el balcón (planta alta, del lado de la calle)
-const balc=()=>{const y=window.CASA3D&&CASA3D.piso&&CASA3D.piso()==='alta'&&CASA3D.yo&&CASA3D.yo();return !!y&&(y.z>ZF+.1||Math.abs(y.x)>X+.1)};
+const balc=()=>{const y=window.CASA3D&&CASA3D.piso&&CASA3D.piso()==='alta'&&CASA3D.yo&&CASA3D.yo();return !!y&&(y.z>ZF+.1||y.z<ZB-.1||Math.abs(y.x)>X+.1)};
 const fuera=()=>{const y=window.CASA3D&&CASA3D.piso&&CASA3D.piso()==='pb'&&CASA3D.yo&&CASA3D.yo();return !!y&&(y.z>PF||y.z<PZ||Math.abs(y.x)>PX)};
 
 function build(k){if(HECHO||!window.LOTE||!window.CIELO||!CIELO.pisos||!window.CCALLE)return;HECHO=true;
@@ -53,8 +53,8 @@ function build(k){if(HECHO||!window.LOTE||!window.CIELO||!CIELO.pisos||!window.C
 // ---------- la planta baja vista desde arriba ----------
 function bajo(){const L=LOTE(),V=LOTE(),Z=LOTE();
  // azotea alrededor de la alta (debajo de la alta no: ahí está su piso y el hueco de la escalera)
- const yA=A-.16;Z.box(2*PX,.3,PF-.3-ZF,AZ,0,yA,(ZF+PF-.3)/2);Z.box(2*PX,.3,ZB-PZ-.3,AZ,0,yA,(ZB+PZ+.3)/2);
- [-1,1].forEach(s=>Z.box(PX-X,.3,ZF-ZB,AZ,s*(PX+X)/2,yA,(ZF+ZB)/2));
+ const yA=A-.16,W=PX-T;Z.box(2*W,.3,PF-.3-ZF,AZ,0,yA,(ZF+PF-.3)/2);Z.box(2*W,.3,ZB-PZ-.3,AZ,0,yA,(ZB+PZ+.3)/2);   // sin llegar al paño de los costados (parpadeaba)
+ [-1,1].forEach(s=>Z.box(W-X,.3,ZF-ZB,AZ,s*(W+X)/2,yA,(ZF+ZB)/2));
  // juntas de la impermeabilización y un par de bajadas de agua
  for(let z=PZ+2.5;z<PF-1;z+=3.2)if(z<ZB-.5||z>ZF+.5)Z.box(2*PX-.6,.02,.05,dk(AZ,.8),0,A,z);
  [[-16.6,-24.6],[16.6,-24.6],[-16.6,18.6],[16.6,18.6]].forEach(([x,z])=>Z.cyl(.12,.12,.06,0x2a2420,x,A,z,8));
