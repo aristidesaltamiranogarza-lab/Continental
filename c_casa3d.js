@@ -75,7 +75,8 @@ function init(){if(ready)return;ready=true;
  const hl=new THREE.HemisphereLight(0xfff4e6,0x3a2a1e,1.5);SC.add(hl);
  const Ld=new THREE.DirectionalLight(0xfff0d8,2.2);Ld.position.set(-8,22,10);Ld.castShadow=true;Ld.shadow.mapSize.set(2048,2048);Ld.shadow.bias=-.0005;
  Object.assign(Ld.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:70});SC.add(Ld);QL={hl,Ld};
- root=document.createElement('div');root.id='h3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
+ root=document.createElement('div');root.id='h3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);if(window.ResizeObserver)new ResizeObserver(()=>{IW=-1}).observe(root);   // al girar el celular el tamaño llega tarde: se vuelve a medir cuando cambia de verdad
+addEventListener('orientationchange',()=>[250,700].forEach(t=>setTimeout(()=>{IW=-1;dispatchEvent(new Event('resize'))},t)));
  lay=document.createElement('div');lay.id='h3lay';document.body.appendChild(lay);   // nombres, globitos y avisos (fuera de #app: no se borran al redibujar)
  // llegada por el zaguán: la cámara entra desde afuera y tu Mii camina hasta su lugar (c_casa_cam.js)
  const zg=window.CCAM&&!CCAM.RM;

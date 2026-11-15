@@ -54,7 +54,7 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
   </div>
   <footer class="sl-ft" id="slFt"></footer>
  </section><div class="sl-modal" id="slModal" hidden onclick="if(event.target===this)SALA.cierra()"></div>`;
- document.body.appendChild(el);arrastra()}
+ document.body.appendChild(el);if(window.MORPH)['slReglas','slJuego','slAvs','slRes','slLista','slFt'].forEach(i=>MORPH.auto($(i)));arrastra()}
 // en celular, arrastrar el tirador o la cabecera abre o cierra la hoja siguiendo el dedo; un toque sigue siendo mas()
 function arrastra(){const sh=$('slSh');let p=null,movio=false,pend=null;
  const alto=()=>{sh.style.height='auto';return sh.offsetHeight};

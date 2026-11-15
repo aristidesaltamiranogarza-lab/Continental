@@ -8,7 +8,12 @@ const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function sfx(k){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();
  if(cardSfx(k))return;const f={bad:[[170,.18,'sawtooth']],tick:[[660,.08]],go:[[880,.25]],card:[[420,.06,'triangle']],win:[[523,.12],[659,.12],[784,.12],[1047,.35]]}[k];let t=AC.currentTime;
  f.forEach(([hz,d,ty])=>{const o=AC.createOscillator(),g=AC.createGain();o.type=ty||'sine';o.frequency.value=hz;g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);t+=d})}catch(e){}}
-document.addEventListener('pointerdown',()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}});
+// el audio se apaga solo cuando el sistema lo suspende (llamada, otra app, pantalla apagada, audífonos) y no siempre lo regresa:
+// se reanuda con cualquier toque (en iPhone cuenta touchend/click, no pointerdown), al volver a la pestaña y cada 2 s
+const acUp=()=>{try{if(AC&&AC.state!=='running'&&!document.hidden){const p=AC.resume();if(p&&p.catch)p.catch(()=>{})}}catch(e){}};
+['pointerdown','touchend','click','keydown'].forEach(k=>document.addEventListener(k,()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)()}catch(e){}acUp()},{capture:true,passive:true}));
+['focus','pageshow'].forEach(k=>addEventListener(k,acUp));document.addEventListener('visibilitychange',acUp);
+setInterval(()=>{if(document.hidden)return;acUp();if(typeof musSync=='function')try{musSync()}catch(e){}},2000);
 function confetti(n){if(RM)return;for(let k=0;k<n;k++){const e=document.createElement('i');e.style.cssText=`left:${Math.random()*100}%;background:hsl(${Math.random()*360},90%,60%);animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*.8}s`;FX.appendChild(e);setTimeout(()=>e.remove(),5000)}}
 function banner(t){const e=document.createElement('div');e.className='ban';e.textContent=t;FX.appendChild(e);setTimeout(()=>e.remove(),2800)}
 function cdStart(ms,rc){const t0=Date.now();rlEnd=t0+(rc||0);sfx('shuf');cdEnd=t0+ms;cdN=0;clearInterval(cdT);cdT=setInterval(()=>{const now=Date.now(),n=Math.ceil((cdEnd-now)/1000);if(now>=rlEnd&&n!==cdN){cdN=n;sfx(n>0?'tick':'go')}if(n<=0)clearInterval(cdT);render()},100)}

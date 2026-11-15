@@ -69,7 +69,7 @@ function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=bot
 // ---------- nombres, última jugada, resultados y botes sobre la mesa ----------
 const ACC={ciega:'Ciega',pasar:'Pasa',igualar:'Iguala',subir:'Sube a',apostar:'Apuesta',todo:'Todo',retirar:'Se retira'};
 function etiqueta(k){let e=L.get(k);if(!e){e=document.createElement('div');L.set(k,e)}if(!e.isConnected)(document.getElementById('app')||document.body).appendChild(e);e.vivo=1;return e}
-function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==h){e._h=h;e.innerHTML=h}
+function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==h){e._h=h;if(window.MORPH)MORPH.set(e,h);else e.innerHTML=h}
  if(!p)return e.style.display='none';p.project(cam);const vis=p.z<1&&Math.abs(p.x)<1.05&&Math.abs(p.y)<1.05;e.style.display=vis?'':'none';
  if(vis)e.style.transform=`translate(${Math.round((p.x+1)/2*W)}px,${Math.round((1-p.y)/2*Hh)}px) translate(-50%,-100%)`}
 function paso(v,s,now){tP=now;const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.R()&&H.R().domElement;if(!v||!cam||!cv)return;

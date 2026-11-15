@@ -57,7 +57,7 @@ function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=bot
 
 // ---------- nombres y globitos sobre la mesa ----------
 function etiqueta(k){let e=L.get(k);if(!e){e=document.createElement('div');L.set(k,e)}if(!e.isConnected)(document.getElementById('app')||document.body).appendChild(e);e.vivo=1;return e}   // render() rehace #app: se vuelve a poner
-function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==h){e._h=h;e.innerHTML=h}
+function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==h){e._h=h;if(window.MORPH)MORPH.set(e,h);else e.innerHTML=h}
  if(!p)return e.style.display='none';p.project(cam);const vis=p.z<1&&Math.abs(p.x)<1.05&&Math.abs(p.y)<1.05;e.style.display=vis?'':'none';
  let an='-50%,-100%';if(vis&&p.c){p.c.project(cam);an=p.c.x>p.x?'-100%,-50%':'0,-50%'}   // a un lado de la carta, creciendo hacia afuera
  if(vis)e.style.transform=`translate(${Math.round((p.x+1)/2*W)}px,${Math.round((1-p.y)/2*Hh)}px) translate(${an})`}
