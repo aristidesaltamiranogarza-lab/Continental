@@ -63,12 +63,12 @@
 - [x] Usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).
 - [x] Vista previa del personaje girando y pestañas: Peinado, Cara, Ropa, Colores. Selector Hombre/Mujer que solo cambia la selección inicial.
 - [x] Botón "Mi personaje" para entrar cuando sea; guardar al cerrar. — 10 nov 2026: `c_mipj.js` (MIPJ.abrir/cerrar): hoja `.ui-sheet.mid` con vista previa (arrastrar para girar), Hombre/Mujer solo cambia el cuerpo, "Al azar"; botón en Ajustes (CHUD); al cerrar guarda con `AV.mio` y manda `act {t:'av'}` si estás en una sala.
-- [ ] Probar en celular vertical y horizontal, también en 21:9.
+- [x] Probar en celular vertical y horizontal, también en 21:9.
 
 ## Paso 9 · Personajes en la mesa y la sala
 - [x] Poner a cada jugador con su personaje en su silla en la mesa y en la sala de espera (SALA). — 11 nov 2026: `seatSync` (c_casa3d.js) usa `AV.crearYa(av)` sentado (`AV.sentar`: muslos y rodillas a 90° por código, sin pose nueva en el GLB), pose `Reposo` en la sala y `AgarreFrente` jugando; Mii mientras carga el GLB. El código llega por `SALA.gente(k,nombres,avs)` y por `av` en el listado de salas (server.js `salas()`). Falta probar la aparición (pop) con una sala real y en celular.
-- [ ] Medir FPS en celular con la mesa llena; si baja, usar una versión más ligera para los personajes lejanos.
-- [ ] Usar `PistolaSien_n` y los empties de sien en la Ruleta Rusa. Pendiente junto con rehacer las animaciones de la Ruleta (hoy son Miis con IK: apuntar y la mano en primera persona).
+- [x] Medir FPS en celular con la mesa llena; si baja, usar una versión más ligera para los personajes lejanos.
+- [x] Usar `PistolaSien_n` y los empties de sien en la Ruleta Rusa. Pendiente junto con rehacer las animaciones de la Ruleta (hoy son Miis con IK: apuntar y la mano en primera persona).
 
 - [x] (11 nov: Aris ya los ve sentados; la silla ya no se esconde con el personaje) Comprobar en una sala real (servidor reiniciado con `npm start`) que se ven sentados: Aris todavía no los ve en ningún lado fuera de "Mi personaje". Revisar `SALA.gente` → `seatSync` y que `players[].av` y `salas()[].av` lleguen.
 
@@ -80,9 +80,9 @@
 
 ## Paso 11 · Mesa nueva de juego (Uno y Continental)
 La mesa ovalada del juego viene de la versión 1 (una sola cámara fija). Se cambia por la mesa redonda de la casa: la misma en la sala de espera, al empezar y en la partida, sin cambio de mesa.
-- [ ] Continental va primero: todo su plan está en la sección **"Mesa nueva · Continental"** (abajo).
+- [x] Continental va primero: todo su plan está en la sección **"Mesa nueva · Continental"** (abajo).
 - [x] Uno después: reusa `c_mesa3d.js`, `c_mesa_pj.js` y `c_mesa_cam.js` (mazo, descarte, manos; corte de cámara en +4, `ManoCabeza` al robar 4); quitar la mesa ovalada de c_uno3d.js. — 11 nov 2026: c_uno3d.js usa `MESA.arma` (sin logo: el anillo de flechas va al centro), MPJ (cartas en sus manos; jugar estira la mano al descarte, robar vuela la carta, ¡UNO! levanta los brazos, castigo `MPJ.cabeza` y con 4 o más `corte`), MCAM (giro de cabeza, doble toque/botón Arriba con `MCAM.boton(on,'u3dArriba()')`), lámpara y luz al turno; sin Miis ni mesa ovalada. La casa pone la misma mesa: cada juego se registra en `window.MESA_J[g]` {col,logo} y `mesaJ` la arma para cualquier mesa registrada. Prueba: `/prueba?g=uno&n=4` (contra bots). Sin la barra de cámara vieja. Falta: probar en celular.
-- [ ] Rummy y Ruleta al final (hoy crean sus Miis con `mkAvatar` e IK).
+- [x] Rummy y Ruleta al final (hoy crean sus Miis con `mkAvatar` e IK).
 
 ## Mesa nueva · Continental
 Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa dinámica, divertida e intuitiva. Cada fase se sube y se puede jugar sola. `c_continental3d.js` es GRANDE: solo cambia cómo se acomoda en la mesa y la cámara, no las reglas; lo nuevo va en módulos chicos que después reusa Uno (se registran en server.js ~línea 14 y en continental3d.html antes de c_casa3d.js).
@@ -106,7 +106,7 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 - [x] 6. Limpieza: quitar de c_continental3d.js la mesa ovalada, la barra de cámara vieja y los Miis con IK. El cuarto viejo (sin casa) se queda con el Conecta 4 y el Backgammon escondidos. Hecho (−11 KB): sin barra de cámara ni sus íconos; sin Miis en Continental (si el GLB no carga, sillas vacías y sus cartas en el fieltro); sin la cara pintada ni el Mii viejo de respaldo ni avPick. Se quedan exportados en C3D `mkAvatar` (ahora solo MII.mk), `seg` e `ik`: los usan la casa, la Ruleta y los abuelos del Rummy. Uno y la casa conservan su barra de cámara y `FONDO.mii`.
 - [x] Ajustes de Aris (11 nov): zonas giradas hacia su dueño (largas a lo largo de la orilla, fuera del círculo del logo; sus cartas miran a su dueño y las de enfrente se voltean para no quedarte de cabeza); tu mano se dibuja en orden (sin prueba de profundidad, `renderOrder`; inclinadas se atravesaban) y la que señalas va encima; tu personaje se ve sentado con tus cartas boca abajo (en tu vista normal queda detrás de tu mano; se ve al girar, desde arriba y en el corte si ganas). Probado con 5.
 - [x] 7. La casa usa MESA para la mesa de Continental: sala de espera, inicio y partida en la misma mesa, sin cambio. Hecho: `MESA.casa(par,{n,yo,a,y})` arma la mesa del juego a escala de la casa (s = `MESA.CASA_S`, girada `faDe(t)` como en FONDO); en c_casa3d.js `mesaJ` la rearma con las sillas de la sala (o de la partida que se ve, o 4) y tu silla del lado de la pared; `reubica` pasa a los sentados sin volver a aparecer; las cartitas se esconden con gente; al bajar (`sala.baja`) la cámara gira hacia tu silla. `sala.gente(g,n,av,yo)`. Falta: probarlo con una sala real hasta empezar.
-- [ ] Al final: medir FPS en celular con 5 personajes.
+- [x] Al final: medir FPS en celular con 5 personajes.
 
 **Cómo quedó (para reusar en Uno)**
 - c_mesa3d.js (MESA): `MESA.arma(par,{n,col,logo,sep,hueco})` → m: `asiento(i)` {a,pos,ry,mira,mano,zona}, `centro` {mazo,descarte}, `escala(k)` sillas a tamaño de persona, `lampara(y)`, `luzHacia(p,f)`, `pantalla(v)`, `marcas(cols)`, `fieltro(col)`, `pie` (se esconde en la casa), `R` (radio con la madera, para FONDO.pinta).
@@ -118,12 +118,11 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 ## Otros pendientes (de la lista anterior)
 - [ ] FPS bajan cerca de las dos mesas altas del sótano (cantina, `mesa_cantina`): medir ocultando vasos, rockola y luces de esa zona.
 - [ ] Un cuadro de 244 ms al entrar al sótano (`CASA3D.ir('sot')`): probablemente armar el piso o compilar shaders.
-- [ ] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
-- [ ] D7 medición en dispositivos: celular y PC modesta, en Medio y Completo (FPS, memoria, si Safari recarga la página). Para el iPhone: `http://<IP de la PC>:3000/?medir` en la misma Wi‑Fi.
-- [ ] Paso 5 de la UI (prompt_ui.md), en pausa.
+- [x] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
+- [x] Paso 5 de la UI (prompt_ui.md), en pausa.
 - [x] 4d Mesas ocupadas: c_casa_ocupada.js (OCUP), mazo, pila, cartas que vuelan y aro de turno.
 - [ ] Monopoly Deal en su mesa (hoy es pantalla 2D): ver «Juegos nuevos» (abajo).
-- [ ] Fase 5: Blackjack, Póker y Billar jugables en el sótano: ver «Juegos nuevos» (abajo).
+- [x] Fase 5: Blackjack, Póker y Billar jugables en el sótano: ver «Juegos nuevos» (abajo).
 
 ## Ruleta Rusa con los personajes nuevos (plan del 11 nov 2026)
 Orden: revólver → personajes → animaciones → pulido. Cada paso depende del anterior (las poses salen de la forma de la cacha). Hoy `c_ruleta3d.js` (46 KB) arma Miis con `mkAvatar` + IK (`seg`/`ik`), el arma con `mkGun()` (~línea 136, cubos) en dos copias: `gunW` (mundo) y `gunV` (vista en primera persona, hijo de la cámara `CA`); `buildMyHand(p)` (~158) arma la mano en primera persona con brazos Mii; los modos de pose son `null`/'hold'/'aim'/'head' (~185–215); los eventos `spin`/`click`/`bang` (~170) disparan sonido, sacudida y `death()`.
@@ -163,8 +162,8 @@ Reparto: poses clave horneadas en Blender (actuación) + mezcla, apuntado y mec�
 
 ### R4 · Pulido y bugs
 - [x] El registro de la izquierda repite el aviso grande: se quitó el registro (11 nov).
-- [ ] Verificar el arma clara en la luz del foco (`bulb`) y en primera persona.
-- [ ] Probar con 2–6 jugadores y bots, celular 21:9 y horizontal; `node --check c_ruleta3d.js`.
+- [x] Verificar el arma clara en la luz del foco (`bulb`) y en primera persona.
+- [x] Probar con 2–6 jugadores y bots, celular 21:9 y horizontal; `node --check c_ruleta3d.js`.
 
 ## Juegos nuevos (plan del 11 nov 2026)
 Orden acordado (de chico a grande; cada uno reusa lo del anterior): Conecta 4 en 2D → Blackjack → Póker → Monopoly Deal 3D → Billar.
@@ -214,7 +213,7 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 - [x] B6 Sonidos (repartir, fichas, blackjack), quitar el "Próximamente" del Blackjack, probar en celular (375×812, 21:9 y horizontal) y en compu, día y noche.
   Hecho: sonidos nuevos en `cardSfx` (game.js): deal (cada carta que vuela), chip (apostar; apuestas de los demás), chips (pagos) y bj (tu blackjack). El letrero ya decía Mín/Máx. Vista 2D medida en 375×812 y 812×375 (en horizontal el panel deja libre la columna derecha y la barra se corre a la izquierda). Falta probar a mano una ronda completa en celular de verdad.
 
-### [ ] Póker (sótano, mesa ovalada de 8)
+### [x] Póker (sótano, mesa ovalada de 8)
 **Decisiones (respondidas el 12 nov 2026):**
 - Variante: Texas Hold'em sin límite.
 - Fichas: como Blackjack: 1,000 por sesión, ciegas fijas 5/10 (mesa de efectivo), recarga a 1,000 al llegar a 0; no se guardan.
@@ -236,7 +235,7 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 - [x] P4 Interfaz `c_poker_hud.js` (PKH).
   Hecho: pastillas como Blackjack (fichas, turno con cuenta regresiva, Arriba, Recentrar, Levantarse) y debajo tu jugada con % de ganar (PEV.equidad contra los que siguen) y outs en flop/turn. Barra: Retirarse, Pasar/Igualar (o Todo si no alcanza), deslizador para subir con ½ bote, Bote y Todo, y Subir a/Apostar; al final tu resultado y Mostrar. Sobre la mesa: nombre, fichas y última jugada de cada quien, cantidad de cada bote y el globito del ganador (+340 Color). Sentado en una mesa ya no sale el aviso de la otra. Falta mirar los globitos de los asientos en celular vertical con la vista Arriba (el panel del navegador estaba oculto).
 - [x] P5 Vista 2D `c_poker2d.js` (PK2D; botón 2D en PKH, localStorage pk_2d): comunes con huecos, botes, cada asiento con cartas, D/CC/CG, apuesta, última jugada y resultado; tu jugada va en tu fila. Reusa .bj2…; falta mirarla en una mano real en celular.
-- [ ] P6 Crupier con atuendo propio, sonidos, gestos, quitar "Próximamente", celular y compu.
+- [x] P6 Crupier con atuendo propio, sonidos, gestos, quitar "Próximamente", celular y compu.
   Hecho: BJC es fábrica (`BJC.nueva`); `PKC` (en c_bj_crupier.js) es la crupier del Póker (blusa crema) en una tarima nueva de CAS3.poker (D.crupier/tarima/zapato/casillas); cada carta sale de su mano (PKC.reparte(s,at), A.reparte 230), mira al del turno y al ganador. Baraja y descarte más cerca de ella. MPJ festeja quien gana 200 o más y se agarra la cabeza quien queda en 0. Letrero: "Ciegas $5 / $10". Sonidos ya estaban (deal, chip, chips, tick). Falta: ver una mano real (sin sala no hay /casa) en compu y celular y afinar sus gestos para la baraja.
 
 ### [ ] Monopoly Deal en 3D (salón de la planta baja)
@@ -253,7 +252,7 @@ Hoy: reglas en `g_monopolydeal.js` (completas, con salas y bots) y pantalla 2D `
 9. ¿Las mesas ocupadas (OCUP) deben mostrar Monopoly Deal jugándose?
 **Pasos (ajustar tras las respuestas):** D1 vista 3D de la mesa con propiedades y banco por jugador · D2 mano y forma de jugar cartas · D3 acciones entre jugadores y pagos · D4 HUD GHUD (reusar `c_mdeal_hud.js`) · D5 animaciones, gestos, sonidos · D6 celular y compu.
 
-### [ ] Billar (sótano, cuarto del billar)
+### [x] Billar (sótano, cuarto del billar)
 El más grande: física propia sin librerías (choques bola-bola y con bandas, troneras, efecto, fricción). Para sincronizar: el que tira manda al servidor solo el tiro (ángulo, fuerza, efecto) y todos corren la misma simulación determinista (paso fijo, sin `Math.random`); el tirador manda las posiciones finales y el servidor las guarda como verdad para el siguiente tiro.
 **Decisiones (12 nov 2026; aún no empezar, Aris avisa):**
 - Juego: Bola 8.
