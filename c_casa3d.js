@@ -26,11 +26,13 @@ let OB=[];                               // obstáculos redondos (sillas, mueble
 const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:f=>f==='alta'||f==='ter'?{x:HX-11.4,z:2.8,yaw:-Math.PI/2}:{x:HX-2.6,z:-8,yaw:-Math.PI/2}};let FL=PB,LK=[],fBusy=false;
 const FM={sot:'SOT',alta:'ALTA',ter:'TERR'},fmod=id=>window[FM[id]],FLS={pb:PB};   // módulo de cada piso y los que ya se armaron
 const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&CAV.on());
+// sube a la GPU las texturas del piso mientras la pantalla está en negro (si no, se suben al primer cuadro y se traba)
+function subeTex(s){const v=new Set();s.traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture&&!v.has(t)){v.add(t);R.initTexture(t)}}})})}
 function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
  const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];if(window.CGLB)CGLB.piso(nf.id);
   [me.g,mark,...[...others.values()].map(a=>a.g)].forEach(o=>SC.add(o));const s=nf.spawn(from);me.pos.set(s.x,0,s.z);solve(me.pos);me.yaw=me.g.rotation.y=s.yaw;me.g.position.set(me.pos.x,GY(me.g),me.pos.z);
-  Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
+  Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA);subeTex(SC)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
  CCAM.fade(1,380).then(()=>{sw();return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo

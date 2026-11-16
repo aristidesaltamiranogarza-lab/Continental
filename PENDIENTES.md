@@ -284,7 +284,7 @@ El más grande: física propia sin librerías (choques bola-bola y con bandas, t
 ## Rendimiento (plan del 16 nov 2026)
 Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas juntadas (`c_merge.js`, `?nomerge`), sótano con modelos en Medio, vidrio sin transmisión (dibujaba la escena dos veces), sin luces chicas del crupier ni de la brasa, sombra de la Ruleta 1 de cada 3 cuadros. Medir GPU con `EXT_disjoint_timer_query_webgl2` en la consola (en PC los FPS topan en la frecuencia del monitor).
 - [ ] P1 probar en celular con `?fps`: FPS y Dibujos en planta baja, alta y sótano, en completo y medio. Decide si hace falta lo demás.
-- [ ] P2 modo celular (pantalla táctil): densidad máx. 1.25, sin antialiasing, tope de 30 FPS siempre (`c_fps.js`).
-- [ ] P3 que no se trabe al entrar a un piso: precompilar shaders y subir texturas del piso antes de llegar (o al cargar la página).
+- [x] P2 modo celular (pantalla táctil): densidad máx. 1.25, sin antialiasing (`c_movil.js`, MOVIL; `?nomovil` lo quita), tope de 30 FPS siempre (`c_fps.js`).
+- [ ] P3 que no se trabe al entrar a un piso: precompilar shaders y subir texturas del piso antes de llegar (o al cargar la página). Hecho: al cambiar de piso se suben sus texturas en negro (`subeTex` en c_casa3d.js) junto al R.compile. Falta: armar el piso antes de llegar.
 - [ ] P4 planta alta como el sótano: la maceta de 59k triángulos en HD y otros modelos pesados; medir con el temporizador de GPU.
 - [ ] P5 menos materiales distintos (unos 235 en el sótano): compartir los iguales para bajar Dibujos y cambios de shader.
