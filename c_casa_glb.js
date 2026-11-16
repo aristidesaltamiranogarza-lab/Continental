@@ -118,8 +118,8 @@ async function llena(L){CN++;try{await llena0(L)}finally{if(!--CN&&mide){tL=perf
 async function llena0(L){const q=cal();if(q==='ligero'||L.piso!==piso)return vacia(L);
  const t=++L.t;await catalogo();if(t!==L.t)return;const m=CAT.modelos[L.n];if(!m){if(!L.av){L.av=1;console.warn('[CGLB] no está en el catálogo:',L.n)}return}
  // Completo: HD directo (mientras baja se ve el mueble de código); si HD falla, Medio. El primero que se pone termina.
- // el sótano siempre en Medio (mitad de polígonos, texturas de 512): en HD sus modelos eran 7 de 10 ms de GPU por cuadro
- const hdOk=q==='completo'&&!SIN&&L.piso!=='sot'&&L.o.hd!==false,pasos=hdOk&&L.v==='hd'?[]:(hdOk?['hd','medio']:['medio']).filter(v=>m[v]&&v!==L.v);
+ // el sótano siempre en Medio, y la planta alta igual (16 nov 2026) (mitad de polígonos, texturas de 512): en HD sus modelos eran 7 de 10 ms de GPU por cuadro
+ const hdOk=q==='completo'&&!SIN&&L.piso!=='sot'&&L.piso!=='alta'&&L.o.hd!==false,pasos=hdOk&&L.v==='hd'?[]:(hdOk?['hd','medio']:['medio']).filter(v=>m[v]&&v!==L.v);
  for(const v of pasos){const k=toma(m[v]),hd=v==='hd';let gl;if(hd)hdVa(1);
   try{gl=await k.p}catch(e){if(hd&&(e instanceof RangeError||/memory|alloc/i.test(e&&e.message)))bajaHD('un modelo HD no cupo');console.warn('[CGLB] no se pudo cargar',L.n,v,e);suelta(k.u);continue}finally{if(hd)hdVa(-1)}
   if(t!==L.t){suelta(k.u);return}if(hd&&SIN){suelta(k.u);continue}   // cambió el piso o la calidad mientras bajaba, o se acabó la memoria

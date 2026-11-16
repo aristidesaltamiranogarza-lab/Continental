@@ -99,8 +99,6 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
  const as=ctex('cuadro-as',256,360,(g,w,h)=>{g.fillStyle='#f4efe2';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=6;g.strokeRect(14,14,w-28,h-28);g.fillStyle='#1a1a1a';
   g.font='bold 54px Georgia,serif';g.textAlign='center';g.fillText('A',44,70);g.save();g.translate(w-44,h-70);g.rotate(PI);g.fillText('A',0,0);g.restore();g.font='190px Georgia,serif';g.textBaseline='middle';g.fillText('♠',w/2,h/2+10)});
  box(1.1,1.5,.06,std(0x8a6a2a,.35,{metalness:.6}),-21.5,2.45,-W+.08,S);const pic=new THREE.Mesh(new THREE.PlaneGeometry(.94,1.34),std(0xffffff,.7,{map:as}));pic.position.set(-21.5,2.45,-W+.115);S.add(pic);
- // plantas (modelo de Poly Haven, el mismo de la planta alta)
- if(window.CGLB)[[-25.35,-4.55],[-14.65,-4.55],[-25.35,4.55]].forEach(([x,z],i)=>{S.add(CGLB.pon('sot','planta',{pos:[x,0,z],rot:i*1.3,esc:3,sombra:true}));OB.push({x,z,r:.45})});
 
  // ---------- billar ----------
  if(window.BIL){const b=BIL.build({S,hits,std,ctex,x:-30.5,z:-.3,ry:0,top:HT,hit:hit('billar')});M.billar=b;OB.push(...b.OB);P.billar={x:-30.5,y:TH+1.7,z:-.3};

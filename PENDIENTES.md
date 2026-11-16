@@ -286,5 +286,5 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 - [x] P1 iPhone 16 nov (densidad 1.25, 30 FPS): JS 5.6–6.9 ms; Dibujos PB 436, alta 497 (759k triángulos), sótano 329, terraza 117; Shaders 129–183. Sin calentarse.
 - [x] P2 modo celular: densidad máx. 1.5 (`c_movil.js`, MOVIL; `?nomovil` lo quita), antialiasing siempre (sin él se ve dentado), 30 FPS parejos (`c_fps.js` cuenta refrescos de pantalla en lugar de tiempo; con tiempo salían cuadros de 17 y 50 ms y se veía a saltos).
 - [ ] P3 que no se trabe al entrar a un piso: precompilar shaders y subir texturas del piso antes de llegar (o al cargar la página). Hecho: al cambiar de piso se suben sus texturas en negro (`subeTex` en c_casa3d.js) junto al R.compile. Falta: armar el piso antes de llegar.
-- [ ] P4 planta alta como el sótano: la maceta de 59k triángulos en HD y otros modelos pesados; medir con el temporizador de GPU.
+- [x] P4 planta alta en Medio como el sótano (c_casa_glb.js); se quitó la maceta de 59k triángulos (alta: queda la de código; salón del sótano: las 3). Si se ve mal algún modelo en Medio, quitarlo en lugar de regresar a HD.
 - [ ] P5 menos materiales distintos (unos 235 en el sótano): compartir los iguales para bajar Dibujos y cambios de shader.
