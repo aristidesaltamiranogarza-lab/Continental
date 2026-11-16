@@ -94,8 +94,8 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   cyl(.2,.24,.22,std(0x3a2212,.5),0,0,0,fan,20);for(let i=0;i<5;i++){const arm=new THREE.Group();arm.rotation.y=i/5*Math.PI*2;fan.add(arm);box(.32,.03,.06,brass,.3,-.02,0,arm);const bl=box(1.35,.025,.3,wd2,1.1,-.02,0,arm);bl.rotation.x=.12;bl.castShadow=false}}
 
  // ---------- rincón de lectura: sillón, lámpara de pie y globo terráqueo ----------
- const SIL=new THREE.Group();{const G=SIL;G.position.set(-12.4,0,5.2);G.rotation.y=Math.PI*.75;S.add(G);const tp=std(0x7a2a2a,.85),wd=std(0x3a2212,.5);
-  box(2,.7,1.9,tp,0,.65,0,G);box(2,1.6,.45,tp,0,1.5,-.75,G);[-1,1].forEach(s=>box(.4,1.1,1.9,tp,s*.95,1,0,G));[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([a,b])=>cyl(.06,.05,.3,wd,a,.15,b,G,8));OB.push({x:-12.4,z:5.2,r:1.4})}
+ const SIL=new THREE.Group();{const G=SIL;G.position.set(-12.4,0,5.2);G.rotation.y=Math.PI*.75;S.add(G);const tp=std(0x8e3b2e,.85),tc=std(0xa3493a,.9),wd=std(0x5a3418,.5);
+  box(1.9,.5,1.8,tp,0,.55,0,G);box(1.3,.22,1.4,tc,0,.91,.12,G);box(1.9,1.5,.42,tp,0,1.45,-.72,G);const rr=new THREE.Mesh(new THREE.CylinderGeometry(.21,.21,1.9,16),tp);rr.rotation.z=Math.PI/2;rr.position.set(0,2.2,-.72);G.add(rr);[-1,1].forEach(s=>{box(.36,.75,1.8,tp,s*.88,.85,0,G);const a=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,1.8,14),tp);a.rotation.x=Math.PI/2;a.position.set(s*.88,1.22,0);G.add(a)});[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([a,b])=>cyl(.06,.05,.3,wd,a,.15,b,G,8));OB.push({x:-12.4,z:5.2,r:1.4})}
  {const x=-14,z=3.2;cyl(.3,.34,.06,brass,x,.03,z,S,20);cyl(.03,.03,4,brass,x,2,z,S,8);const sh=new THREE.Mesh(new THREE.CylinderGeometry(.3,.5,.55,24,1,true),std(0xe9d9b0,.8,{side:THREE.DoubleSide}));sh.position.set(x,4.1,z);S.add(sh);
   const L=new THREE.PointLight(0xffd9a0,5,7,1.6);L.position.set(x,3.8,z);S.add(L);OB.push({x,z,r:.5})}
  {const x=-10,z=7.3,gt=ctex('globo',256,128,(g,w,h)=>{g.fillStyle='#3a78b0';g.fillRect(0,0,w,h);g.fillStyle='#7aa860';[[40,40,26,30],[70,85,14,26],[140,38,32,20],[150,78,18,22],[205,40,26,18],[215,95,16,12]].forEach(([a,b,c,d])=>{g.beginPath();g.ellipse(a,b,c,d,0,0,7);g.fill()})});
@@ -105,9 +105,11 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
  // ---------- muebles con modelos (c_casa_glb.js, Poly Haven CC0, a 2.2 veces su tamaño como toda la casa) ----------
  // mientras bajan, o si no se pueden bajar, se ven los de código (MOD: [lugar, piezas de código]); en Ligero no hay casa 3D
  const MOD=[],mod=(n,o,cod,P)=>{if(!window.CGLB)return null;const g=CGLB.pon('alta',n,Object.assign({sombra:true},o));(P||S).add(g);if(cod)MOD.push([g,[].concat(cod)]);return g};
- mod('sillon',{pos:[-12.4,0,5.2],rot:Math.PI*.75,esc:2.3},SIL);
- mod('mesita',{pos:[-14.1,0,7.6],rot:Math.PI*.75,esc:2.2});mod('jarron',{pos:[-14.1,.548*2.2,7.6],rot:.4,esc:2.2});OB.push({x:-14.1,z:7.6,r:.8});
- mod('vitrina',{pos:[-14.35,0,-.2],rot:Math.PI/2,esc:2.2});OB.push({x:-14.1,z:-1.4,r:1.05},{x:-14.1,z:1,r:1.05});
+  mod('mesita',{pos:[-14.1,0,7.6],rot:Math.PI*.75,esc:2.2});mod('jarron',{pos:[-14.1,.548*2.2,7.6],rot:.4,esc:2.2});OB.push({x:-14.1,z:7.6,r:.8});
+ {const G=new THREE.Group();G.position.set(-14.35,0,-.2);G.rotation.y=Math.PI/2;S.add(G);const wd=std(0x8a5530,.6),dk=std(0x6a3e22,.6),vd=std(0xcfe0d8,.15,{transparent:true,opacity:.35});
+  box(3.4,1.8,.95,wd,0,1,0,G);box(3.6,.14,1.1,dk,0,1.97,.03,G);[-1.15,0,1.15].forEach(x=>{box(1,1.2,.04,dk,x,1,.49,G);box(.16,.06,.06,brass,x,1.25,.53,G)});box(3.4,.2,.9,dk,0,.1,.02,G);
+  box(3.1,2.1,.5,wd,0,3.1,-.2,G);box(3.4,.16,.66,dk,0,4.22,-.15,G);[-1,0,1].forEach(x=>{box(.92,1.8,.03,vd,x,3.1,.06,G);box(.92,.06,.05,dk,x,4,.07,G);box(.92,.06,.05,dk,x,2.2,.07,G)});[-1.5,-.5,.5,1.5].forEach(x=>box(.08,1.86,.06,dk,x,3.1,.07,G));box(3,.04,.4,dk,0,3.1,-.22,G);
+  [[-1.1,0xe9dcc0],[-.85,0xd8c39a],[.9,0xe9dcc0]].forEach(([x,c])=>cyl(.12,.12,.04,std(c,.4),x,3.25,-.25,G,16))}OB.push({x:-14.1,z:-1.4,r:1.05},{x:-14.1,z:1,r:1.05});
  mod('ventilador',{pos:[0,CEIL-8,0],esc:2.2,sombra:false,inst:false},fan.children.slice(),fan);
  // ---------- reloj de péndulo en el fondo del corredor (marca la hora de verdad) ----------
  const ck={};{const x=13.75,z=ZB+.2,wd=std(0x4a2814,.45);box(1,2.6,.36,wd,x,4,z);box(1.15,.18,.42,wd,x,5.38,z);box(1.15,.14,.42,wd,x,2.66,z);
