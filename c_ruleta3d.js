@@ -224,7 +224,9 @@ function labels(){const G=G0;P.forEach((p,k)=>{const t=p.tag;if(!p.pv.visible)re
  const turn=G.phase=='play'&&G.sh===k&&!p.dead,txt=es(G.players[k].name)+(k===me?' (tú)':'');if(t._t!==txt){t._t=txt;t.innerHTML=txt}
  t.classList.toggle('turn',turn);t.classList.toggle('dead',!!p.dead);t.style.transform=`translate(${((w.x+1)/2*Wd).toFixed(1)}px,${((1-w.y)/2*Hd).toFixed(1)}px) translate(-50%,-100%)`})}
 let humT=0;
-function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
+function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);
+ // la casa (c_casa3d.js back()) puede llevarse el lienzo compartido a su raíz (p. ej. la sala de espera un instante): sin esto quedaba todo negro
+ if(shR&&cv.parentNode!==root){root.prepend(cv);rstate();Wd=0}const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  const b=root.getBoundingClientRect();if(b.width!==Wd||b.height!==Hd){Wd=b.width;Hd=b.height;R.setSize(Wd,Hd,false);CA.aspect=Wd/Math.max(1,Hd);CA.fov=Wd<Hd?84:70;CA.updateProjectionMatrix()}
  try{if(G0&&stg){stepRoom(now,dt);camStep(now,dt);stepPlayers(now,dt);RRG.step(dt);labels()}R.render(SC,CA)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false);if(typeof render=='function')render()}
  if(now-humT>1000){humT=now;RRS.hum(shown)}}
@@ -270,7 +272,7 @@ function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=
  if(fin)card=`<div class="rr-big">${G.win==null?'Nadie quedó vivo':G.win===m?'¡Sobreviviste! Ganaste':nm(G.win)+' es el último en pie'}</div><div class="rr-acts">${V.host?`<button class="ui-btn" onclick="send({t:'reset'})">${UI.ico('nuevo')}Otra partida</button>`:''}<button class="ui-btn sec" onclick="leave()">${UI.ico('salir')}Salir</button></div>`;
  else if(my&&G.st=='spin')card=`<div class="rr-q">¿Giras el tambor?</div><div class="rr-acts"><button class="ui-btn" onclick="RRU.spin(1)">Girar</button><button class="ui-btn sec" onclick="RRU.spin(0)">No girar</button></div>`;
  else if(my&&G.st=='aim')card=`<div class="rr-q">¿A quién le disparas?</div><div class="rr-acts"><button class="ui-btn rr-dan" onclick="RRU.shoot(${m})">A mí</button>${al.filter(k=>k!==m).map(k=>`<button class="ui-btn sec" onclick="RRU.shoot(${k})">${nm(k)}</button>`).join('')}</div>`;
- else card=`<div class="rr-q">${stTxt(G,m)}</div>${dead?'<div class="rr-s">Estás muerto: te quedas mirando hasta que acabe.</div>':V.watch?'<div class="rr-s">Estás mirando.</div>':''}`;
+ // sin texto de estado abajo (distraía): la tarjeta solo sale cuando hay que decidir o al final
  if(my&&G.el>25000)card+=`<div class="rr-s rr-w">Si no decides pronto, un bot juega por ti.</div>`;
  const list=G.players.map((p,k)=>`<div class="${G.dead[k]?'d':''}">${nm(k)}${k===m?' (tú)':''}${G.kills[k]?' · '+G.kills[k]+(G.kills[k]>1?' bajas':' baja'):''}</div>`).join('');
  const ic=n=>UI.ico(n);let h=`<div class="rr-hud">`+GHUD.top({st:`<b>Ruleta Rusa</b> <span class="rr-n" title="Vivos">${ic('gente')}${al.length}/${G.players.length}</span>`,turn:`<span class="rr-cyl" title="Recámaras: las apagadas ya hicieron clic">${ch}</span><span title="Si no se gira el tambor">1 en ${left}</span>`,me:my,open:menu,menu:'RRU.menu()'});
@@ -278,7 +280,7 @@ function hud(){const G=V.G,m=V.me,fin=G.phase!='play',dead=m>=0&&!!G.dead[m],my=
   const aj=GHUD.ajustes('',(seatd?`<p class="ui-sub rr-s">${casa?'Si te levantas, un bot juega por ti y tienes 2 minutos para volver a tu lugar. ':''}Si abandonas, un bot se queda con tu asiento.</p>`:'')
    +(seatd&&casa?`<button class="ui-btn sec full" onclick="RRU.stand()">${ic('persona')}Levantarme</button>`:`<button class="ui-btn sec full" onclick="leave()">${ic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`)+(seatd?`<button class="ui-btn sec full rr-dan" onclick="RRU.quit()">Abandonar</button>`:''));
   h+=GHUD.sheet('Ruleta Rusa',[['aj','Ajustes',aj],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'RRU.menu()')}
- return h+`<div class="ui rr-list">${list}</div><div class="ui ui-card rr-card">${card}</div></div>`}
+ return h+`<div class="ui rr-list">${list}</div>${card?`<div class="ui ui-card rr-card">${card}</div>`:''}</div>`}
 const tick=()=>{if(typeof sfx=='function')sfx('tick')};
 const seatLS=v=>{try{v?localStorage.setItem('casa_seat',JSON.stringify(v)):localStorage.removeItem('casa_seat')}catch(e){}};
 window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'shoot',to:k})},menu:()=>{menu=!menu;tick();render()},
