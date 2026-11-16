@@ -1,5 +1,5 @@
 // FPS: limita los cuadros por segundo para ahorrar batería y mide el costo de dibujar.
-// Envuelve requestAnimationFrame: con actividad del jugador sin tope en PC; sin tocar nada por 4 s baja a 30. En pantalla táctil siempre 30.
+// Envuelve requestAnimationFrame: con actividad del jugador va a 60 (sin tope en PC); sin tocar nada por 4 s baja a 30.
 // FPS.modo('auto'|'max') (se guarda). Medidor: F4, ?fps en la dirección o FPS.ver(true).
 (function(){
 const nRAF=window.requestAnimationFrame.bind(window),nCAF=window.cancelAnimationFrame.bind(window);
@@ -8,7 +8,7 @@ let modo='auto';try{modo=localStorage.getItem('fps_modo')||'auto'}catch(e){}
 let cola=new Map(),sig=1,pend=0,ult=0,ultIn=performance.now();
 const toque=()=>{ultIn=performance.now()};
 ['pointerdown','pointermove','keydown','wheel','touchstart'].forEach(e=>addEventListener(e,toque,{passive:true,capture:true}));
-function tope(t){if(modo==='max')return 0;const act=t-ultIn<IDLE||!!document.pointerLockElement;if(mob)return 1000/30;return act?0:1000/30}
+function tope(t){if(modo==='max')return 0;const act=t-ultIn<IDLE||!!document.pointerLockElement;return act?(mob?1000/60:0):1000/30}
 // medidor
 let ver=false,box=null,nCu=0,tCpu=0,t1=0,luces=0,tLuz=0,ren=null;
 function tick(t){pend=0;const iv=tope(t);
