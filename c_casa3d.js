@@ -451,7 +451,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
+ try{ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
