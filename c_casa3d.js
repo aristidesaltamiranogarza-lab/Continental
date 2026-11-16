@@ -445,6 +445,8 @@ function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(cent
 function active(){return on&&!S}
 let shN=0,shFL=null;   // sombras de la casa: 1 de cada 2 cuadros solo arriba de ~80 FPS (a 30 o 60 se veían a saltos); al cambiar de piso o de modo, en ese cuadro
 function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready&&!!window.SALA&&SALA.on(),m=a?1:lb?2:0,dt=Math.min(100,now-(lastNow||now));lastNow=now;
+ // un juego (Continental, Uno, Ruleta…) pudo quedarse con el lienzo compartido: la casa o la sala lo recuperan (si no, pantalla negra)
+ if(m&&m===lpM&&cv.parentNode!==root)back();
  if(root.style.display!==(m?'block':'none')||m!==lpM){const m0=lpM;lpM=m;shFL=null;root.style.display=m?'block':'none';lay.style.display=a?'block':'none';if(m)back();if(m0===2&&m!==2)salaFin(a);   // lb: sala de espera (c_sala.js) con la casa detrás
   if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni()}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
  // en una partida del sótano la escena es la misma: los Miis que caminan se esconden (la Ruleta pone a los suyos en las sillas)

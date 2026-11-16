@@ -226,7 +226,7 @@ function labels(){const G=G0;P.forEach((p,k)=>{const t=p.tag;if(!p.pv.visible)re
 let humT=0;
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);
  // la casa (c_casa3d.js back()) puede llevarse el lienzo compartido a su raíz (p. ej. la sala de espera un instante): sin esto quedaba todo negro
- if(shR&&cv.parentNode!==root){root.prepend(cv);rstate();Wd=0}const dt=Math.min(100,now-(tPrev||now));tPrev=now;
+ if(shR&&cv.parentNode!==root&&!(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))){root.prepend(cv);rstate();Wd=0}const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  const b=root.getBoundingClientRect();if(b.width!==Wd||b.height!==Hd){Wd=b.width;Hd=b.height;R.setSize(Wd,Hd,false);CA.aspect=Wd/Math.max(1,Hd);CA.fov=Wd<Hd?84:70;CA.updateProjectionMatrix()}
  try{if(G0&&stg){stepRoom(now,dt);camStep(now,dt);stepPlayers(now,dt);RRG.step(dt);labels()}R.render(SC,CA)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false);if(typeof render=='function')render()}
  if(now-humT>1000){humT=now;RRS.hum(shown)}}

@@ -199,7 +199,7 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;
  // la cámara se desliza hacia donde va
  const f=1-Math.exp(-dt/(moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
- if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
+ if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize();
  try{step(now,dt);applyCam();
   // con la casa de fondo (c_casa_fondo.js) va primero la casa y el tablero queda encima, en la mesa de la casa y sin su cuarto

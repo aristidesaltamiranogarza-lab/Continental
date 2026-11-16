@@ -797,7 +797,7 @@ function active(){if(!(on&&!!S&&!!V&&V.game==='continental'&&!!V.G))return false
  return G.phase==='play'||(G.phase==='end'&&performance.now()<finT)}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){if(finT){finT=0;if(window.MPJ)MPJ.fin(-1);render()}first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
- if(shR&&cv.parentNode!==root){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
+ if(shR&&cv.parentNode!==root&&!(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H||tkey()!==tableKey){layout();sync()}
  viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
