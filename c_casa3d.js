@@ -291,7 +291,7 @@ function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;
 // llega por el hueco entre dos sillas que le quede más cerca (las sillas están a 45°, los huecos a 0°, 90°, 180° y 270°)
 function goTable(g){const t=TB.find(x=>x.g===g);if(!t)return;const p=me.pos,a=Math.round(Math.atan2(p.z-t.z,p.x-t.x)/(Math.PI/2))*(Math.PI/2);
  tgt=t.door?v3(t.x-2.3,0,t.z):v3(t.x+Math.cos(a)*(t.r+1.5),0,t.z+Math.sin(a)*(t.r+1.5));solve(tgt);tgtG=g;picked=g;tgtL=null;closed=null;stuck=0;showMark(tgt);sfx('card')}
-function showMark(p){mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mark.scale.setScalar(1)}
+function showMark(p){mark.visible=true;mark.position.set(p.x,.03,p.z);mark.material.opacity=.9;mark.scale.setScalar(1)}
 
 // ---------- en vivo: mando mi posición y recibo a los demás + las salas (cada ~0.3 s) ----------
 function inputBusy(){const a=document.activeElement;return !!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.closest&&a.closest('#app'))}
@@ -430,8 +430,10 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  return o}
 // letreros: siguen a su mesa en la pantalla
 function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0,afuera=FL===PB&&!!window.CASCO&&CASCO.fuera();   // afuera la casa tiene techo: sin letreros de mesas
- const L=[];document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),hw=el.offsetWidth/2+4;
-  el.style.display=vis&&!afuera?'':'none';if(vis&&!afuera)L.push({el,x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(y0+el.offsetHeight,y),hw,h:el.offsetHeight+4})});   // nunca debajo de la barra de arriba
+ const L=[],E=[];document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),ok=vis&&!afuera;
+  if(el.style.display!=='none'){el._w=el.offsetWidth;el._h=el.offsetHeight}const hw=(el._w||0)/2+4,h=el._h||0;E.push([el,ok]);   // medidas: solo lecturas aquí
+  if(ok)L.push({el,x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(y0+h,y),hw,h:h+4})});
+ for(const [el,ok] of E){const d=ok?'':'none';if(el.style.display!==d)el.style.display=d}   // nunca debajo de la barra de arriba
  // si dos letreros se enciman (Billar y Blackjack en el sótano), el de más lejos (más arriba en pantalla) se sube; si no cabe arriba, se baja
  L.sort((a,b)=>b.y-a.y);const P=[];for(const l of L){for(let n=0;n<4;n++){const c=P.find(p=>Math.abs(p.x-l.x)<p.hw+l.hw&&Math.abs(p.y-l.y)<Math.max(p.h,l.h));if(!c)break;l.y=c.y-c.h>=y0+l.h?c.y-c.h:c.y+l.h}P.push(l);
   l.el.style.transform=`translate(${l.x}px,${l.y}px) translate(-50%,-100%)`}}
@@ -449,7 +451,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(!a){keys.clear();if(document.pointerLockElement===cv)document.exitPointerLock();if(lb)return salaPaso(now,dt);if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
  if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);
  if(innerWidth!==IW||innerHeight!==IH){layout();camStep(dt,true)}
- net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);if(window.CCAM)CCAM.apply(CA,now);if(window.CHOV)CHOV.step(dt,TB,window.ETQ&&ETQ.act(),CA);viewBtn();mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);
+ net(now);walk(dt,now);walkOthers(dt,now);camStep(dt,false);if(window.CCAM)CCAM.apply(CA,now);if(window.CHOV)CHOV.step(dt,TB,window.ETQ&&ETQ.act(),CA);viewBtn();if(mark.visible){mark.material.opacity*=.96;mark.scale.multiplyScalar(1.01);if(mark.material.opacity<.01)mark.visible=false}
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}

@@ -14,12 +14,13 @@ function clave(m,sinColor){let k=m.type;for(const p of PROPS)if(m[p]&&m[p].isCol
  for(const p of MAPS)if(m[p])k+='|'+m[p].uuid+(m[p].version||0);return k}
 function firma(g){return Object.keys(g.attributes).sort().map(n=>n+g.attributes[n].itemSize).join(',')}
 function sombra(o){return ''+o.castShadow+o.receiveShadow+o.renderOrder+o.frustumCulled+o.layers.mask}
+const FN=new WeakMap(),fl=f=>{let n=FN.get(f);if(n===undefined)FN.set(f,n=f.toString().length);return n};   // largo del código de una función (se calcula una vez)
 function apto(o){if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||NO.has(o))return false;
  const ud=Object.keys(o.userData);if(ud.length&&!(ud.length===1&&ud[0]==='hit'))return false;   // con userData: algo la usa (cartas); 'hit' de la casa solo se usa con rayos
  if(o.children.length||!o.visible||Array.isArray(o.material)||!o.material||o.morphTargetInfluences)return false;
- const m=o.material;if(m.isShaderMaterial||m.onBeforeCompile&&m.onBeforeCompile.toString().length>20||m.transparent)return false;
+ const m=o.material;if(m.isShaderMaterial||m.onBeforeCompile&&fl(m.onBeforeCompile)>20||m.transparent)return false;
  const g=o.geometry;if(!g||!g.attributes.position||!g.attributes.normal||Object.keys(g.morphAttributes).length)return false;
- return o.onBeforeRender.toString().length<30}
+ return fl(o.onBeforeRender)<30}
 const llano=x=>x&&!x.isScene&&!x.isBone&&!x.isMesh&&(x.type==='Group'||x.type==='Object3D')&&!Object.keys(x.userData).length&&x.name!=='Personaje'&&!DIN.has(x);
 function enHueso(o){for(let p=o.parent;p;p=p.parent){if(p.isBone||p.name==='Personaje'||p.isSkinnedMesh)return true}return false}
 function destino(o){let T=o.parent;const anc=[];   // sube mientras el grupo actual pueda quedar en medio
@@ -35,10 +36,10 @@ function junta(lista,T,hornea){   // geometría en las coordenadas de T; hornea:
  const idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let v0=0,i0=0;const nm=new THREE.Matrix3(),t=new THREE.Vector3();
  Mi.copy(T.matrixWorld).invert();
  for(const o of lista){const g=o.geometry,M=Mr.multiplyMatrices(Mi,o.matrixWorld),c=g.attributes.position.count,neg=M.determinant()<0;nm.getNormalMatrix(M);
-  for(const n of names){const d=buf[n];if(n==='color'&&hornea){const k=o.material.color;for(let i=0;i<c;i++)d.set([k.r,k.g,k.b],(v0+i)*3);continue}
+  for(const n of names){const d=buf[n];if(n==='color'&&hornea){const k=o.material.color;for(let i=0,j=v0*3;i<c;i++,j+=3){d[j]=k.r;d[j+1]=k.g;d[j+2]=k.b}continue}
    const a=g.attributes[n],s=a.itemSize;
-   for(let i=0;i<c;i++){if(n==='position'){t.fromBufferAttribute(a,i).applyMatrix4(M);d.set([t.x,t.y,t.z],(v0+i)*3)}
-    else if(n==='normal'){t.fromBufferAttribute(a,i).applyMatrix3(nm).normalize();d.set([t.x,t.y,t.z],(v0+i)*3)}
+   for(let i=0;i<c;i++){if(n==='position'){t.fromBufferAttribute(a,i).applyMatrix4(M);const j=(v0+i)*3;d[j]=t.x;d[j+1]=t.y;d[j+2]=t.z}
+    else if(n==='normal'){t.fromBufferAttribute(a,i).applyMatrix3(nm).normalize();const j=(v0+i)*3;d[j]=t.x;d[j+1]=t.y;d[j+2]=t.z}
     else for(let k=0;k<s;k++)d[(v0+i)*s+k]=a.getComponent(i,k)}}
   const n=g.index?g.index.count:c;for(let i=0;i<n;i+=3){const a=g.index?g.index.getX(i):i,b=g.index?g.index.getX(i+1):i+1,e=g.index?g.index.getX(i+2):i+2;
    idx[i0+i]=v0+a;idx[i0+i+1]=v0+(neg?e:b);idx[i0+i+2]=v0+(neg?b:e)}
