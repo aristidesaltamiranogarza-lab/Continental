@@ -1,9 +1,9 @@
 // c_casa_luces.js — LUZ: tope de luces puntuales en Completo (D7). La tarjeta calcula cada luz puntual en cada pixel; con 16 o más por piso
 // una laptop no llega a 60. Se dejan prendidas solo las K más cercanas a lo que ves (un punto 4 m delante de la cámara), siempre K
 // para que los shaders no se recompilen; al cambiar una, la que sale se apaga suave y la que entra se prende suave.
-// No se tocan las que dan sombra ni las userData.keep. En Medio no hace nada (applyQ ya apaga las puntuales). LUZ.k(n) cambia el tope.
+// No se tocan las que dan sombra ni las userData.keep. En Medio no hace nada (applyQ ya apaga las puntuales). LUZ.k(n) cambia el tope. En celular 4 (cada luz se calcula en cada pixel: calienta).
 (function(){
-let K=8,sc=null,P=[],q0,tSel=0,sw=null,lista=false,V,D;
+let K=matchMedia('(pointer:coarse)').matches?4:8,sc=null,P=[],q0,tSel=0,sw=null,lista=false,V,D;
 const FD=.35,casa=()=>window.CASA3D&&CASA3D.sc&&CASA3D.R&&CASA3D.R()&&CASA3D;
 function punto(){if(!V){V=new THREE.Vector3();D=new THREE.Vector3()}const C=CASA3D.cam();C.getWorldPosition(V);C.getWorldDirection(D);D.y=0;D.normalize();return V.addScaledVector(D,4)}
 function elige(){const p=punto();P.forEach(e=>{e.l.getWorldPosition(D);e.d=D.distanceTo(p)});return P.slice().sort((a,b)=>a.d-b.d).slice(0,K)}
