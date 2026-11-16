@@ -116,8 +116,8 @@ function buildProps(){const y=TH;
  const pap=std(0xe8e2d4,.8),fil=std(0xc98a3a,.8),butt=(x,z,ry,rz)=>{const b=new THREE.Group();b.position.set(.55+x,y+.025,-.35+z);b.rotation.set(0,ry,rz);SC.add(b);cyl(.011,.011,.045,pap,0,0,.02,b,6).rotation.x=Math.PI/2;cyl(.0115,.0115,.03,fil,0,0,-.017,b,6).rotation.x=Math.PI/2};
  for(let i=0;i<11;i++){const a=Math.random()*7,d=Math.random()*.1;butt(Math.cos(a)*d,Math.sin(a)*d,Math.random()*7,rnd(-.3,.3))}
  const cg=new THREE.Group();cg.position.set(.55,y+.04,-.35);cg.rotation.y=.6;SC.add(cg);cyl(.012,.012,.16,pap,0,0,.12,cg,8).rotation.x=Math.PI/2;cyl(.0125,.0125,.03,fil,0,0,.21,cg,8).rotation.x=Math.PI/2;cyl(.0122,.0122,.025,std(0x777370,1),0,0,.03,cg,8).rotation.x=Math.PI/2;
- const em=new THREE.Mesh(new THREE.SphereGeometry(.013,8,6),new THREE.MeshBasicMaterial({color:0xff5a10}));em.position.z=.015;cg.add(em);const el=new THREE.PointLight(0xff6a20,.5,1.4,2);el.position.set(0,.03,0);cg.add(el);
- ember={m:em,l:el,p:new THREE.Vector3()};cg.updateMatrixWorld(true);em.getWorldPosition(ember.p);
+ const em=new THREE.Mesh(new THREE.SphereGeometry(.013,8,6),new THREE.MeshBasicMaterial({color:0xff5a10}));em.position.z=.015;cg.add(em);   // sin luz puntual (la brasa ya brilla; una luz de 1.4 m se cobraba en todo el sótano)
+ ember={m:em,p:new THREE.Vector3()};cg.updateMatrixWorld(true);em.getWorldPosition(ember.p);
  const sm=new THREE.SpriteMaterial({map:T.smoke,transparent:true,depthWrite:false,opacity:0});for(let i=0;i<16;i++){const s=new THREE.Sprite(sm.clone());SC.add(s);smoke.push({s,t:Math.random()*5,life:4+Math.random()*2})}
  const bot=new THREE.Group();bot.position.set(-.5,y,.2);SC.add(bot);
  const bp=[[0,0],[.09,0],[.095,.02],[.095,.3],[.08,.34],[.032,.4],[.028,.5],[.032,.51],[0,.51]].map(p=>new THREE.Vector2(p[0],p[1]));
@@ -213,8 +213,8 @@ function camStep(now,dt){const s=stg,alive=me>=0&&P[me]&&!P[me].dead;let eye,at;
 function stepRoom(now,dt){const s=dt/1000,b=bulb;
  b.vx+=(-11*b.x-.25*b.vx)*s;b.vz+=(-11*b.z-.25*b.vz)*s;b.x+=b.vx*s;b.z+=b.vz*s;b.pv.rotation.set(b.x+.012*Math.sin(now/1700),0,b.z+.01*Math.sin(now/2300));
  if(now>b.next){b.fl=now;b.next=now+rnd(5000,14000);RRS.snd('chispa');RRS.flick()}
- const k=now-b.fl<420?(Math.random()<.45?.06:.8+Math.random()*.2):.96+.04*Math.sin(now/53)*Math.sin(now/131);b.lt.intensity=34*k;const cv=shown?CA.position:window.CASA3D&&CASA3D.yo();if(cv)b.lt.shadow.autoUpdate=Math.abs(cv.x)<W+.3&&Math.abs(cv.z)<W+.3;b.gm.emissiveIntensity=2.2*k;
- ember.m.material.color.setHSL(.05,1,.45+.1*Math.sin(now/180)+.05*Math.random());ember.l.intensity=.4+.25*Math.sin(now/170)+.1*Math.random();
+ const k=now-b.fl<420?(Math.random()<.45?.06:.8+Math.random()*.2):.96+.04*Math.sin(now/53)*Math.sin(now/131);b.lt.intensity=34*k;const cv=shown?CA.position:window.CASA3D&&CASA3D.yo();if(cv){b.lt.shadow.autoUpdate=false;if(Math.abs(cv.x)<W+.3&&Math.abs(cv.z)<W+.3&&(b.sf=(b.sf||0)+1)%3===0)b.lt.shadow.needsUpdate=true}   // sombra de cubo (6 pasadas): 1 de cada 3 cuadrosb.gm.emissiveIntensity=2.2*k;
+ ember.m.material.color.setHSL(.05,1,.45+.1*Math.sin(now/180)+.05*Math.random());
  smoke.forEach(q=>{q.t+=s;if(q.t>q.life){q.t=0;q.life=4+Math.random()*2.5;q.ox=rnd(-.02,.02)}const f=q.t/q.life;
   q.s.position.set(ember.p.x+(q.ox||0)+Math.sin(q.t*1.3+q.life)*.15*f,ember.p.y+f*1.1,ember.p.z+Math.cos(q.t*.9)*.12*f);q.s.scale.setScalar(.04+f*.45);q.s.material.opacity=.22*Math.sin(Math.PI*Math.min(1,f*1.2))*(1-f*.3)})}
 // nombres sobre cada quien

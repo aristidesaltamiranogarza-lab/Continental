@@ -16,7 +16,8 @@ let mesa=null,p=null,LZ=[],POS=[0,-.3],ZAP=[.76,.2],cola=[],act=null,mir=null,pr
 const ang=t=>Math.atan2(t[0]-POS[0],t[1]-POS[1]);   // + hacia su izquierda (+x)
 const dest=i=>i<0||!mesa?LUGAR:mesa.D.casillas[i];
 // luz propia: una cálida de frente y arriba (que se le vea la cara y la ropa) y otra detrás que lo despega del papel tapiz; sin sombras
-function luces(G,D){const y=D.tarima||0;[[0xffe6c4,3,2.6,[0,y+2.2,POS[1]+1.1]],[0xffd9a8,2.2,1.6,[0,y+1.9,POS[1]-.65]]].forEach(([c,i,d,q])=>{const l=new THREE.PointLight(c,i,d,1.5);l.position.set(...q);G.add(l);LZ.push(l)})}
+// sin luces propias: cada luz extra se cobra en todos los materiales del sótano; la lámpara de la mesa ya alumbra al crupier
+function luces(G,D){return;const y=D.tarima||0;[[0xffe6c4,3,2.6,[0,y+2.2,POS[1]+1.1]],[0xffd9a8,2.2,1.6,[0,y+1.9,POS[1]-.65]]].forEach(([c,i,d,q])=>{const l=new THREE.PointLight(c,i,d,1.5);l.position.set(...q);G.add(l);LZ.push(l)})}
 function pon(m){quita();mesa=m;if(!window.AV||!m)return;const D=m.D;POS=D.crupier||POS;ZAP=D.zapato||ZAP;luces(m.G,D);
  AV.crear(COD).then(q=>{if(!q||mesa!==m)return q&&AV.quita(q);p=q;for(const k in GES)AV.GE[k]=GES[k];
   q.position.set(POS[0],D.tarima||0,POS[1]);q.traverse(o=>{if(o.isMesh)o.castShadow=true});m.G.add(q);AV.pose(q,'AgarreFrente',0);AV.agarre(q,'I',.25);AV.agarre(q,'D',.25)}).catch(()=>{})}

@@ -93,7 +93,7 @@ function falsa(o,L){if(L.o.sombra===false||L.o.falsa===false)return;const g=L.g,
  const S=mancha(),m=new THREE.Mesh(S.g,S.m);T.b.getSize(T.v);m.scale.set(T.v.x*1.3,1,T.v.z*1.3);
  m.position.set((T.b.min.x+T.b.max.x)/2,y+.012/sy,(T.b.min.z+T.b.max.z)/2);m.name='sombra';m.renderOrder=-1;o.add(m)}
 // copias del mismo modelo (y todas las manchas) del piso en una sola llamada; las piezas originales se esconden pero se quedan en su lugar
-const INS=[],OCU=[];let jT=0,jN=0;
+const INS=[],OCU=[],VID=new WeakMap();let jT=0,jN=0;
 function deshaz(){jN++;clearTimeout(jT);INS.forEach(m=>{if(m.parent)m.parent.remove(m);m.dispose()});OCU.forEach(x=>x.visible=true);INS.length=OCU.length=0}
 function pideJunta(){clearTimeout(jT);jT=setTimeout(junta,300)}
 const vis=(x,h)=>{for(;x&&x!==h;x=x.parent)if(!x.visible)return false;return true};
@@ -118,12 +118,15 @@ async function llena(L){CN++;try{await llena0(L)}finally{if(!--CN&&mide){tL=perf
 async function llena0(L){const q=cal();if(q==='ligero'||L.piso!==piso)return vacia(L);
  const t=++L.t;await catalogo();if(t!==L.t)return;const m=CAT.modelos[L.n];if(!m){if(!L.av){L.av=1;console.warn('[CGLB] no está en el catálogo:',L.n)}return}
  // Completo: HD directo (mientras baja se ve el mueble de código); si HD falla, Medio. El primero que se pone termina.
- const hdOk=q==='completo'&&!SIN,pasos=hdOk&&L.v==='hd'?[]:(hdOk?['hd','medio']:['medio']).filter(v=>m[v]&&v!==L.v);
+ // el sótano siempre en Medio (mitad de polígonos, texturas de 512): en HD sus modelos eran 7 de 10 ms de GPU por cuadro
+ const hdOk=q==='completo'&&!SIN&&L.piso!=='sot'&&L.o.hd!==false,pasos=hdOk&&L.v==='hd'?[]:(hdOk?['hd','medio']:['medio']).filter(v=>m[v]&&v!==L.v);
  for(const v of pasos){const k=toma(m[v]),hd=v==='hd';let gl;if(hd)hdVa(1);
   try{gl=await k.p}catch(e){if(hd&&(e instanceof RangeError||/memory|alloc/i.test(e&&e.message)))bajaHD('un modelo HD no cupo');console.warn('[CGLB] no se pudo cargar',L.n,v,e);suelta(k.u);continue}finally{if(hd)hdVa(-1)}
   if(t!==L.t){suelta(k.u);return}if(hd&&SIN){suelta(k.u);continue}   // cambió el piso o la calidad mientras bajaba, o se acabó la memoria
   const o=gl.scene.clone(true),sb=L.o.sombra!==false&&q==='completo';
-  o.traverse(x=>{if(x.isMesh){x.castShadow=sb;x.receiveShadow=q==='completo'}});
+  o.traverse(x=>{if(x.isMesh){x.castShadow=sb;x.receiveShadow=q==='completo';
+   // vidrio con transmisión: obliga a dibujar toda la escena otra vez cada cuadro; se cambia por transparencia simple
+   x.material=[].concat(x.material).map(m=>{if(!(m.transmission>0))return m;let v=VID.get(m);if(!v){v=m.clone();v.transmission=0;v.transparent=true;v.opacity=Math.min(v.opacity,.3);v.depthWrite=false;VID.set(m,v)}return v});if(x.material.length===1)x.material=x.material[0];x.castShadow=x.castShadow&&!x.material.transparent}});
   if(q==='medio')falsa(o,L);
   await precompila(o,L.g);if(t!==L.t){suelta(k.u);return}if(hd&&SIN){suelta(k.u);continue}
   deshaz();if(L.obj)L.g.remove(L.obj);if(L.u)suelta(L.u);L.obj=o;L.u=k.u;L.v=v;L.g.add(o);
