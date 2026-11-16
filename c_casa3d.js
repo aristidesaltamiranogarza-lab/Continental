@@ -443,8 +443,9 @@ function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(cent
 
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}
+let shN=0,shFL=null;   // sombras de la casa: 1 de cada 2 cuadros (las luces no se mueven); al cambiar de piso o de modo, en ese cuadro
 function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready&&!!window.SALA&&SALA.on(),m=a?1:lb?2:0,dt=Math.min(100,now-(lastNow||now));lastNow=now;
- if(root.style.display!==(m?'block':'none')||m!==lpM){const m0=lpM;lpM=m;root.style.display=m?'block':'none';lay.style.display=a?'block':'none';if(m)back();if(m0===2&&m!==2)salaFin(a);   // lb: sala de espera (c_sala.js) con la casa detrás
+ if(root.style.display!==(m?'block':'none')||m!==lpM){const m0=lpM;lpM=m;shFL=null;root.style.display=m?'block':'none';lay.style.display=a?'block':'none';if(m)back();if(m0===2&&m!==2)salaFin(a);   // lb: sala de espera (c_sala.js) con la casa detrás
   if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni()}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
  // en una partida del sótano la escena es la misma: los Miis que caminan se esconden (la Ruleta pone a los suyos en las sillas)
  document.documentElement.classList.toggle('h3lock',a&&document.pointerLockElement===cv);
@@ -455,7 +456,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- try{ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
+ try{ if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||FL!==shFL;shFL=FL;R.render(SC,CA);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
@@ -533,7 +534,7 @@ function salaPaso(now,dt){if(innerWidth!==IW||innerHeight!==IH)layout();if(W/H<.
  if(Math.abs(sOff.x)+Math.abs(sOff.y)>.5)CA.setViewOffset(W,H,sOff.x,sOff.y,W,H);else CA.clearViewOffset();CA.updateMatrixWorld();
  seated.forEach(s=>{if(!s.av)poseSeated(s,now);if(s.p0){const q=Math.min(1,(now-s.p0)/650),e=q-1;s.g.scale.setScalar(s.k0*Math.max(.001,1+2.7*e*e*e+1.7*e*e));if(q>=1)s.p0=0}});if(window.OCUP)OCUP.paso(now);
  if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.VENT)VENT.paso(FL.id,R,CA);
- const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);R.render(SC,CA);if(exD)R.autoClear=true}
+ const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||FL!==shFL;shFL=FL;R.render(SC,CA);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;(window.SALA?sitSala:sit)(()=>mk(mode))};
 window.casaJoin=c=>{code=c;(window.SALA?sitSala:sit)(()=>joinR())};
 window.casaWatch=c=>sit(()=>watchR(c));
