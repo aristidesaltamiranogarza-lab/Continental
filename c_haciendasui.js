@@ -3,15 +3,16 @@
 // Envuelve GM.haciendas.body/after; NO cambia reglas ni servidor. El tablero lo dibuja c_haciendas2d.js (H2); lo válido se ilumina con HACD.spots.
 (function(){
 const D=window.HACD;if(typeof GM==='undefined'||!GM.haciendas||!D||!window.H2||!window.MRU){console.warn('Haciendas UI: falta c_haciendas.js, c_haciendas2d.js o c_meridaui.js');return}
-const origBody=GM.haciendas.body,TK=['🐆','🦩','🦜','🐢','🦎','🦌'],IDLE=60000,WARN=15000;
+const origBody=GM.haciendas.body,IDLE=60000,WARN=15000;
 const lsg=(k,d)=>{try{const x=localStorage.getItem(k);return x==null?d:x}catch(e){return d}},lss=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
 // vista: 2D en celular y 3D en compu, salvo que la persona elija otra
 let mode=lsg('hz_view',matchMedia('(pointer:coarse)').matches||Math.min(innerWidth,innerHeight)<600?'2d':'3d'),theme=lsg('hz_theme','claro')=='oscuro'?'oscuro':'claro',tab=null,menu=false,bm=null,pick=null,prev=null,keep={},on=false,ok=true,msgSeen='',msgT=0,ins={t:0,r:0,b:0,l:0},bMax=0,since=0,needK='',clkT=0;
 const land=()=>innerWidth>innerHeight,wide=()=>innerWidth>=900&&innerHeight>=520||land()&&innerWidth>=600;
 const active=()=>!!S&&!!V&&V.game==='haciendas'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final');
 const me=()=>V.me,nm=k=>k>=0&&V.G.players[k]?esc(V.G.players[k].name):'',pc=k=>D.PCOL[k%D.PCOL.length];
-const tok=(k,c='')=>`<span class="mu-tok ${c}" style="--pc:${pc(k)}">${TK[k%6]}</span>`;
-const rc=(i,n,c='')=>`<span class="hz-rc r${i} ${c}" title="${D.RES[i]}">${D.ICO[i]}${n!=null?`<b>${n}</b>`:''}</span>`;
+const ini=k=>{const n=((V.G&&V.G.players[k])||{}).name||'';return esc((n.replace(/[^\p{L}\p{N}]/gu,'')[0]||'?').toUpperCase())};
+const tok=(k,c='')=>`<span class="mu-tok ${c}" style="--pc:${pc(k)}">${ini(k)}</span>`;
+const rc=(i,n,c='')=>`<span class="hz-rc r${i} ${c}" title="${D.RES[i]}">${HZI.h(D.ICO[i])}${n!=null?`<b>${n}</b>`:''}</span>`;
 const chips=a=>a.map((x,i)=>x?rc(i,x):'').join('')||'<span class="mu-s">nada</span>';
 const mine=()=>{const G=V.G,m=me();return m>=0&&G.res[m]?G.res[m]:null},has=c=>{const r=mine();return !!r&&c.every((x,i)=>r[i]>=x)};
 const myTurn=()=>{const G=V.G;return G.phase=='play'&&me()>=0&&G.turn===me()&&!G.out[me()]};
@@ -39,39 +40,39 @@ function hl(){const G=V.G,m=me(),g=D.geo(G.bn);if(!myTurn())return {};
 function topBar(){const G=V.G,m=me();
  return `<div class="mu-top"><div class="mu-tr1"><div class="mu-pls" id="mupls">${G.players.map((p,k)=>{const t=k===G.turn&&G.phase=='play';
   return `<button class="mu-pl${t?' on':''}${k===m?' me':''}${G.out[k]?' x':''}" data-seat="${k}" style="--pc:${pc(k)}" onclick="HZU.tab('jug')" aria-label="${esc(p.name)}: ${G.vp[k]} puntos">
-   ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.auto&&G.auto[k]?' (AI)':''}</span><b>★ ${G.vp[k]} · 🂠 ${G.nres[k]}${G.lr===k?' 🛤️':''}${G.ga===k?' 🛡️':''}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div></div>
+   ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.auto&&G.auto[k]?' (AI)':''}</span><b>★ ${G.vp[k]} · ${HZI.h('cartas')} ${G.nres[k]}${G.lr===k?' '+HZI.h('sacbe'):''}${G.ga===k?' '+HZI.h('escudo'):''}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div></div>
   <div class="mu-cam"><button class="mu-cb mu-ib" onclick="HZU.menu(1)" aria-label="Opciones">${SV.menu}</button><span class="mu-sp"></span>
   <button class="mu-cb" onclick="HZU.mode()" aria-label="Cambiar a vista ${is3()?'2D':'3D'}"><b>${is3()?'2D':'3D'}</b></button><button class="mu-cb" onclick="HZU.cam('home')" aria-label="Recentrar">${SV.home}</button><button class="mu-cb" onclick="HZU.cam('zi')" aria-label="Acercar">${SV.zi}</button><button class="mu-cb" onclick="HZU.cam('zo')" aria-label="Alejar">${SV.zo}</button>${is3()?`<button class="mu-cb" onclick="HZU.cam('rr')" aria-label="Girar">${SV.rot}</button>`:''}</div></div>`}
 // ---- tarjeta de acciones ----
 const ST={setup:G=>G.sv<0?'pone su rancho':'pone su sacbé',roll:()=>'va a tirar los dados',main:()=>'comercia y construye',discard:G=>'huracán: esperando que descarten ('+Object.keys(G.dis||{}).length+')',
- move:()=>'mueve el huracán 🌀',steal:()=>'elige a quién robarle',road:()=>'pone sacbés gratis'};
+ move:()=>'mueve el huracán',steal:()=>'elige a quién robarle',road:()=>'pone sacbés gratis'};
 function dock(){const G=V.G,m=me();
- if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">🏆</span><div class="mu-f1"><b class="mu-h">${nm(G.win)} gana</b><div class="mu-s">${G.stall?'Nadie sumó puntos en 10 rondas: ganó quien tenía más.':'Llegó a '+G.vp[G.win]+' puntos en su turno.'}</div>
-  <div class="mu-s">${G.players.map((_,k)=>tok(k,'xs')+' '+G.vp[k]).join(' · ')}</div></div></div><div class="mu-acts"><button class="mu-b" onclick="HZX.sum(1)">📊 Ver resumen</button></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
+ if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">${HZI.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${nm(G.win)} gana</b><div class="mu-s">${G.stall?'Nadie sumó puntos en 10 rondas: ganó quien tenía más.':'Llegó a '+G.vp[G.win]+' puntos en su turno.'}</div>
+  <div class="mu-s">${G.players.map((_,k)=>tok(k,'xs')+' '+G.vp[k]).join(' · ')}</div></div></div><div class="mu-acts"><button class="mu-b" onclick="HZX.sum(1)">${HZI.h('grafica')} Ver resumen</button></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
  const au=m>=0&&G.auto&&G.auto[m]?`<div class="mu-note">Un bot está jugando por ti. <button class="mu-lk" onclick="HZU.a({t:'back'})">Volver a jugar</button></div>`:'';
  if(G.st=='discard'&&G.dis&&G.dis[m]!=null)return au+discardDock();
  const o=offersToMe()[0];if(o)return au+offerDock(o);
  if(!myTurn())return `<div class="mu-dk">${au}<div class="mu-row">${tok(G.turn,'lg')}<div class="mu-f1"><div class="mu-s">Turno de</div><b class="mu-h">${nm(G.turn)}</b><div class="mu-s">${(ST[G.st]||(()=>''))(G)}</div></div>${dice()}</div>${clock()}</div>`;
  return `<div class="mu-dk hi">${au}${myDock()}${clock()}</div>`}
-const row=(big,h,s)=>`<div class="mu-row"><span class="mu-big">${big}</span><div class="mu-f1"><b class="mu-h">${h}</b>${s?`<div class="mu-s">${s}</div>`:''}</div>${dice()}</div>`;
+const row=(big,h,s)=>`<div class="mu-row"><span class="mu-big">${HZI.h(big)}</span><div class="mu-f1"><b class="mu-h">${h}</b>${s?`<div class="mu-s">${s}</div>`:''}</div>${dice()}</div>`;
 function myDock(){const G=V.G,m=me(),r=mine();
- if(G.st=='setup')return G.sv<0?row('🏠','Pon tu rancho',G.si>=G.players.length?'Este segundo rancho te da un recurso por cada terreno vecino.':'Toca una esquina iluminada: mira los números con más puntitos.')
-  :row('🛤️','Pon tu sacbé','Toca una orilla iluminada junto a tu rancho nuevo.');
- if(G.st=='roll')return row('🎲','¡Tu turno!',playable().length?'Puedes jugar una carta antes de tirar.':'')+`<button class="mu-b pri big" onclick="HZU.a({t:'roll'})">🎲 Tirar dados</button>`
-  +(playable().length?`<div class="mu-acts"><button class="mu-b" onclick="HZU.tab('cartas')">🃏 Jugar una carta</button></div>`:'');
- if(G.st=='move')return row('🌀','Manda el huracán','Toca un terreno iluminado: ahí no se producirá y le robas una carta a alguien de ahí.');
- if(G.st=='steal')return row('🌀','¿A quién le robas?','Se lleva una carta al azar.')+`<div class="mu-acts">${G.cand.map(k=>`<button class="mu-b big2" onclick="HZU.a({t:'steal',v:${k}})">${tok(k,'xs')} ${nm(k)} (${G.nres[k]})</button>`).join('')}</div>`;
- if(G.st=='road')return row('⛏️','Fajina: pon '+G.free+' sacbé'+(G.free>1?'s':'')+' gratis','Toca una orilla iluminada.')+`<div class="mu-acts"><button class="mu-b" onclick="HZU.a({t:'skip'})">Ya no</button></div>`;
+ if(G.st=='setup')return G.sv<0?row('rancho','Pon tu rancho',G.si>=G.players.length?'Este segundo rancho te da un recurso por cada terreno vecino.':'Toca una esquina iluminada: mira los números con más puntitos.')
+  :row('sacbe','Pon tu sacbé','Toca una orilla iluminada junto a tu rancho nuevo.');
+ if(G.st=='roll')return row('dado','¡Tu turno!',playable().length?'Puedes jugar una carta antes de tirar.':'')+`<button class="mu-b pri big" onclick="HZU.a({t:'roll'})">${HZI.h('dado')} Tirar dados</button>`
+  +(playable().length?`<div class="mu-acts"><button class="mu-b" onclick="HZU.tab('cartas')">${HZI.h('carta')} Jugar una carta</button></div>`:'');
+ if(G.st=='move')return row('huracan','Manda el huracán','Toca un terreno iluminado: ahí no se producirá y le robas una carta a alguien de ahí.');
+ if(G.st=='steal')return row('huracan','¿A quién le robas?','Se lleva una carta al azar.')+`<div class="mu-acts">${G.cand.map(k=>`<button class="mu-b big2" onclick="HZU.a({t:'steal',v:${k}})">${tok(k,'xs')} ${nm(k)} (${G.nres[k]})</button>`).join('')}</div>`;
+ if(G.st=='road')return row('pico','Fajina: pon '+G.free+' sacbé'+(G.free>1?'s':'')+' gratis','Toca una orilla iluminada.')+`<div class="mu-acts"><button class="mu-b" onclick="HZU.a({t:'skip'})">Ya no</button></div>`;
  // main: construir y terminar
- const B=[['s','🛤️','Sacbé'],['r','🏠','Rancho'],['h','🏛️','Hacienda'],['c','🃏','Carta']].map(([w,i,n])=>{const okk=has(D.COST[w])&&(w=='c'?G.deck>0:D.spots(G,m,w).length>0);
-  return `<button class="hz-bb${bm===w?' on':''}" onclick="HZU.bm('${w}')"${okk||bm===w?'':' disabled'}><span>${i} ${n}</span><span class="hz-cost">${chips(D.COST[w])}</span></button>`}).join('');
- return row('🌿','Tu turno',`<span class="hz-mine">${r.map((x,i)=>rc(i,x,x?'':'z')).join('')}</span>`)+`<div class="hz-bg">${B}</div>`
+ const B=[['s','sacbe','Sacbé'],['r','rancho','Rancho'],['h','hacienda','Hacienda'],['c','carta','Carta']].map(([w,i,n])=>{const okk=has(D.COST[w])&&(w=='c'?G.deck>0:D.spots(G,m,w).length>0);
+  return `<button class="hz-bb${bm===w?' on':''}" onclick="HZU.bm('${w}')"${okk||bm===w?'':' disabled'}><span>${HZI.h(i)} ${n}</span><span class="hz-cost">${chips(D.COST[w])}</span></button>`}).join('');
+ return row('hoja','Tu turno',`<span class="hz-mine">${r.map((x,i)=>rc(i,x,x?'':'z')).join('')}</span>`)+`<div class="hz-bg">${B}</div>`
   +(bm&&bm!='c'?`<div class="mu-note">Toca un lugar iluminado en el tablero. <button class="mu-lk" onclick="HZU.bm(null)">Cancelar</button></div>`:'')
-  +`<div class="mu-acts"><button class="mu-b" onclick="HZU.tab('com')">🤝 Comerciar</button>${playable().length?`<button class="mu-b" onclick="HZU.tab('cartas')">🃏 Cartas</button>`:''}</div>
+  +`<div class="mu-acts"><button class="mu-b" onclick="HZU.tab('com')">${HZI.h('trato')} Comerciar</button>${playable().length?`<button class="mu-b" onclick="HZU.tab('cartas')">${HZI.h('carta')} Cartas</button>`:''}</div>
   <button class="mu-b pri big" onclick="HZU.a({t:'end'})">Terminar turno ➜</button>`}
 // descarte por huracán: contadores +/-
 function discardDock(){const G=V.G,m=me(),n=G.dis[m],r=mine();keep.dis=keep.dis&&keep.dis.length==5?keep.dis:[0,0,0,0,0];const d=keep.dis,s=d.reduce((a,b)=>a+b,0);
- return `<div class="mu-dk hi">${row('🌀','Huracán: descarta '+n,'Tienes '+G.nres[m]+' cartas. Elige cuáles sueltas.')}
+ return `<div class="mu-dk hi">${row('huracan','Huracán: descarta '+n,'Tienes '+G.nres[m]+' cartas. Elige cuáles sueltas.')}
   <div class="hz-cnt">${r.map((x,i)=>`<div>${rc(i,x)}<button class="mu-b" onclick="HZU.dis(${i},-1)"${d[i]?'':' disabled'}>−</button><b>${d[i]}</b><button class="mu-b" onclick="HZU.dis(${i},1)"${d[i]<x&&s<n?'':' disabled'}>+</button></div>`).join('')}</div>
   <button class="mu-b pri big" onclick="HZU.a({t:'discard',r:[${d}]})"${s===n?'':' disabled'}>Descartar ${s} de ${n}</button>${clock()}</div>`}
 function offerDock(o){const G=V.G,ok2=has(o.want);
@@ -80,20 +81,20 @@ function offerDock(o){const G=V.G,ok2=has(o.want);
   <button class="mu-b" onclick="HZU.counter(${o.id})">Contraoferta</button></div>${ok2?'':'<div class="mu-s">No tienes lo que te pide.</div>'}</div>`}
 // reloj: en los últimos 15 s avisa que un bot va a jugar por ti
 function clock(){const G=V.G,m=me();if(m<0||G.phase!='play'||!needers(G).includes(m)||(G.auto&&G.auto[m]))return '';const left=IDLE-(Date.now()-since);
- return left<=WARN?`<div class="mu-note hz-clk">⏳ ${Math.max(0,Math.ceil(left/1000))} s: si no juegas, un bot jugará por ti.</div>`:''}
+ return left<=WARN?`<div class="mu-note hz-clk">${HZI.h('reloj')} ${Math.max(0,Math.ceil(left/1000))} s: si no juegas, un bot jugará por ti.</div>`:''}
 // ---- cartas que piden elegir algo (modal) ----
 function pickBox(){const p=pick,G=V.G,res=(f,L)=>`<div class="hz-pk">${[0,1,2,3,4].map(i=>`<button class="mu-b${L&&L.includes(i)?' on':''}" onclick="${f}(${i})">${rc(i)} ${D.RES[i]}</button>`).join('')}</div>`;let h='';
- if(p.c=='g')h=`<div class="mu-acts"><button class="mu-b pri big" onclick="HZU.a({t:'dev',c:'g'})">🌀 Mover el huracán y robar</button><button class="mu-b big2" onclick="HZU.prot()">🛡️ Proteger uno de mis terrenos</button></div>`;
- if(p.c=='f')h=`<button class="mu-b pri big" onclick="HZU.a({t:'dev',c:'f'})">🛤️🛤️ Dos sacbés gratis</button><div class="mu-s">O un sacbé gratis y un recurso:</div>`+res('HZU.pf');
+ if(p.c=='g')h=`<div class="mu-acts"><button class="mu-b pri big" onclick="HZU.a({t:'dev',c:'g'})">${HZI.h('huracan')} Mover el huracán y robar</button><button class="mu-b big2" onclick="HZU.prot()">${HZI.h('escudo')} Proteger uno de mis terrenos</button></div>`;
+ if(p.c=='f')h=`<button class="mu-b pri big" onclick="HZU.a({t:'dev',c:'f'})">${HZI.h('sacbe')} Dos sacbés gratis</button><div class="mu-s">O un sacbé gratis y un recurso:</div>`+res('HZU.pf');
  if(p.c=='c')h=`<div class="mu-s">Elige dos recursos (${p.r.length}/2; puedes repetir):</div>`+res('HZU.pco',p.r)+`<div class="hz-tr">${p.r.map(i=>rc(i)).join('')}</div>`
   +`<button class="mu-b pri big" onclick="HZU.a({t:'dev',c:'c',r:[${p.r}]})"${p.r.length==2?'':' disabled'}>Tomar</button>`;
  if(p.c=='m')h=`<div class="mu-s">Cada rival te da hasta 2 del recurso que elijas:</div>`+res('HZU.pm');
  const c=D.DEV[p.c];return `<div class="mu-card"><header><b class="mu-h">${c.ico} ${c.nm}</b><button class="mu-x" onclick="HZU.pick(null)" aria-label="Cerrar">${SV.x}</button></header><div class="mu-s">${c.tx}</div>${h}</div>`}
 function menuBox(){const seg=L=>`<div class="mu-seg">${L.map(([o,c,t])=>`<button class="${o?'on':''}" onclick="${c}">${t}</button>`).join('')}</div>`;
  return `<div class="mu-card mu-menu"><header><b class="mu-h">Opciones</b><button class="mu-x" onclick="HZU.menu(0)" aria-label="Cerrar">${SV.x}</button></header>
-  <div class="mu-opt"><span>Vista</span>${seg([[is3(),"HZU.mode('3d')",'🎲 3D'],[!is3(),"HZU.mode('2d')",'🗺️ 2D']])}</div>
+  <div class="mu-opt"><span>Vista</span>${seg([[is3(),"HZU.mode('3d')",HZI.h('dado')+' 3D'],[!is3(),"HZU.mode('2d')",HZI.h('mapa')+' 2D']])}</div>
   <div class="mu-opt"><span>Tema</span>${seg([[window.UI.tema()=='auto',"GHUD.tema('auto')",'Automático'],[window.UI.tema()=='dia',"GHUD.tema('dia')",'Día'],[window.UI.tema()=='noche',"GHUD.tema('noche')",'Noche']])}</div>
-  <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
+  <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()',HZI.h('sonido')+' Sí'],[mute,'mute=true;render()',HZI.h('mudo')+' No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
   ${window.GHUD?GHUD.jug():''}<div class="mu-acts"><button class="mu-b" onclick="HZU.menu(0);HZX.guide(1)">Cómo se juega</button><button class="mu-b" onclick="leave()">${V.watch?'Dejar de mirar':'Salir de la sala'}</button></div></div>`}
 // ---- pestañas (contenido en c_haciendastabs.js) ----
@@ -106,7 +107,7 @@ function sheet(){const t=curTab(),P=HZU.P||{},T={jug:'Jugadores',cartas:'Mis car
 const modal=(h,close)=>`<div class="mu-modal" onclick="if(event.target===this)${close}"><div class="mu-mw">${h}</div></div>`;
 function hud(){const w=wide();syncClock();if(msg!==msgSeen){msgSeen=msg;msgT=Date.now();if(msg)setTimeout(()=>{if(active())render()},4700)}
  const toast=msg&&Date.now()-msgT<4500?`<div class="mu-toast" onclick="msg='';render()">${esc(String(msg).replace(/^✋ No puedes hacer eso\. /,''))}</div>`:'';
- return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">⚠ Reconectando… tu lugar se conserva</div>'}${topBar()}
+ return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">'+HZI.h('aviso')+' Reconectando… tu lugar se conserva</div>'}${topBar()}
   <div class="mu-bot">${w?'':sheet()}<div class="mu-dockw" id="mudock">${dock()}${w?'':tabs()}</div>${w?tabs()+sheet():''}</div>${toast}
   ${pick&&myTurn()?modal(pickBox(),'HZU.pick(null)'):''}${menu?modal(menuBox(),'HZU.menu(0)'):''}${window.HZX?HZX.hud():''}</div>`}
 // ---- espacio que le queda al tablero ----
@@ -125,7 +126,7 @@ function effects(){const G=V.G,m=me(),c={prn:G.prod?G.prod.rn:-1,sln:G.sl?G.sl.n
  if(c.prn!==p.prn&&G.prod)G.prod.got.forEach((a,k)=>{if(a.some(x=>x))setTimeout(()=>float(k,a.map((x,i)=>x?'+'+x+D.ICO[i]:'').join(' ')),300)});
  if(c.sln!==p.sln&&G.sl&&G.sl.r!=null){const t=D.ICO[G.sl.r];float(G.sl.a,'+1'+t);float(G.sl.b,'−1'+t,1)}
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc)&&G.st!='setup'){bm=null;setTimeout(yourTurn,250)}
- if(p.ph=='play'&&G.phase=='final'){if(typeof sfx=='function')sfx('win');if(typeof banner=='function')banner('🏆 '+(G.win===m?'¡Ganaste!':V.G.players[G.win].name+' ganó'));if(typeof confetti=='function')confetti(G.win===m?90:35)}}
+ if(p.ph=='play'&&G.phase=='final'){if(typeof sfx=='function')sfx('win');if(typeof banner=='function')banner((G.win===m?'¡Ganaste!':V.G.players[G.win].name+' ganó'));if(typeof confetti=='function')confetti(G.win===m?90:35)}}
 // el reloj se cuenta desde que te toca actuar o desde tu última jugada (como en el servidor)
 function syncClock(){const G=V.G,k=G.tc+':'+G.st+':'+needers(G).includes(me());if(k!==needK){needK=k;since=Date.now()}}
 function tickClock(){const G=V.G,m=me();clearTimeout(clkT);if(m<0||G.phase!='play'||!needers(G).includes(m))return;const left=IDLE-(Date.now()-since);if(left<-2000)return;

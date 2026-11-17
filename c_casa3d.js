@@ -165,7 +165,7 @@ function buildHouse(){
  // mesas de juego
  TB.forEach(t=>buildTable(t));   // el Cubilete está en el sótano (c_sotano.js); Conecta 4 y Backgammon arriba (c_casa_terraza.js, c_casa_alta.js)
  // escalera a la planta alta contra la pared derecha y un plano junto a cada escalera (c_casa_esc.js)
- if(window.ESC){PB.links=[ESC.up({S:SC,hits,OB,x:HX-8.4,z:2.8,dir:[1,0],to:'alta',key:'pb-alta',sign:['⬆ Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070],n:10,land:2.2,rail:[-1,1]})];LK=PB.links;
+ if(window.ESC){PB.links=[ESC.up({S:SC,hits,OB,x:HX-8.4,z:2.8,dir:[1,0],to:'alta',key:'pb-alta',sign:['Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070],n:10,land:2.2,rail:[-1,1]})];LK=PB.links;
   ESC.plano({S:SC,hits,OB,x:HX-9.2,z:.6,ry:.3,here:'pb'});ESC.plano({S:SC,hits,OB,x:HX-1.2,z:-5.6,ry:-.6,here:'pb'})}
  if(window.CAMB)CAMB.build({THREE,SC,OB,hits,std,box,cyl,ctex,TB,TH,HX,ZB,ZF});   // lámparas, ventiladores, reloj, hamaca y gato (c_casa_amb.js)
  // marca donde tocaste el piso
@@ -176,7 +176,7 @@ function buildDoor(t){const G=new THREE.Group();G.position.set(HX,0,t.z);G.rotat
  box(.22,3.9,.3,fr,-1.06,1.95,.12,G);box(.22,3.9,.3,fr,1.06,1.95,.12,G);box(2.34,.25,.34,fr,0,3.92,.14,G);
  const kb=new THREE.Mesh(new THREE.SphereGeometry(.09,12,8),std(0xc9a24a,.3,{metalness:.8}));kb.position.set(.7,1.6,.22);G.add(kb);
  // letrero sobre la puerta (sign: texto, fondo, borde, letra y color de la luz; si no, el del sótano)
- const S=t.sign||['⬇ Sótano · Ruleta','#1a0c0a','#a3302a','#e9c9a0',0xff4a2a];
+ const S=t.sign||['Sótano · Ruleta','#1a0c0a','#a3302a','#e9c9a0',0xff4a2a];
  const sg=ctex('sign-'+t.g,512,128,(g,w,h)=>{g.fillStyle=S[1];rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle=S[2];g.lineWidth=6;rr(g,10,10,w-20,h-20,14);g.stroke();
   g.font='bold '+(S[0].length>16?42:50)+'px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=S[3];g.fillText(S[0],w/2,h/2+3)});
  const s=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.65),std(0xffffff,.6,{map:sg}));s.position.set(0,4.55,.1);G.add(s);

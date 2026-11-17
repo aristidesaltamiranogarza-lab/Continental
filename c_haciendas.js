@@ -11,5 +11,5 @@ function lobby(host){const o=V.opts||{},row=(k,n,L,f)=>`<div class="top">${n}: <
   +row('hl','Huracán: descartan con más de',[7,8,9],v=>v+' cartas')+row('n','Jugadores en la mesa',[3,4,5,6],v=>v)+`<div class="top">Los bots llenan los lugares vacíos.</div></div>`
   +(host?`<button class="b" onclick="send({t:'start'})">Empezar partida</button><div class="top">5 o 6 jugadores usan el tablero grande.</div>`:'')}
 const body=()=>`<div class="box"><b>Haciendas de Yucatán</b><p>El tablero todavía está en construcción: por ahora solo juegan los bots en el servidor.</p></div>`;
-GM.haciendas={name:'Haciendas de Yucatán',emoji:'🌿',max:6,rules,lobby,body,face:()=>({h:''})};
+GM.haciendas={name:'Haciendas de Yucatán',emoji:'',max:6,rules,lobby,body,face:()=>({h:''})};
 })();

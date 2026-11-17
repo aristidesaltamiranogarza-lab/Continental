@@ -27,7 +27,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
 
  // ---------- el cubo de la escalera: su puerta baja a la planta alta ----------
  const CX=9.6,CZ=-8.7;box(4.4,4.6,4.2,cal,CX,2.3,CZ);box(4.7,.2,4.5,cap,CX,4.7,CZ);
- const dn=ESC.exit({S,hits,x:CX,z:CZ+2.12,ry:0,to:'alta',key:'ter-alta',sign:['⬇ Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070]});
+ const dn=ESC.exit({S,hits,x:CX,z:CZ+2.12,ry:0,to:'alta',key:'ter-alta',sign:['Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070]});
  OB.push({x:CX,z:CZ,r:2},{x:CX-1.7,z:CZ+1.6,r:.6},{x:CX+1.7,z:CZ+1.6,r:.6});
  ESC.plano({S,hits,OB,x:CX-3.4,z:CZ+2.6,ry:.3,here:'ter'});
 

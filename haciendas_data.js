@@ -2,16 +2,16 @@
 // Hexágonos de punta arriba en coordenadas axiales (q,r), pantalla con y hacia abajo. Orilla k: normal a 60·k° (0 este, 1 sureste... 5 noreste).
 // Esquina c a 60·c−30°; la orilla k une las esquinas k y k+1. Terrenos t: 0 henequén · 1 maíz · 2 piedra · 3 miel · 4 sal · 5 cenote (no produce).
 (function(root,f){const D=f();if(typeof module!=='undefined'&&module.exports)module.exports=D;else root.HACD=D})(this,function(){
-const RES=['henequén','maíz','piedra','miel','sal'],TER=[...RES,'cenote'],ICO=['🌿','🌽','🪨','🍯','🧂','💧'];
+const RES=['henequén','maíz','piedra','miel','sal'],TER=[...RES,'cenote'],ICO=['hoja','maiz','piedra','miel','sal','gota'];
 const DIR=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]],SQ3=Math.sqrt(3);
 // costos [henequén, maíz, piedra, miel, sal]: s sacbé · r rancho · h hacienda · c carta de desarrollo
 const COST={s:[1,0,1,0,0],r:[1,1,0,1,1],h:[0,2,3,0,0],c:[0,1,0,1,1]},PIECES={s:15,r:5,h:4};
 // cartas: g Guardia maya · f Fajina · c Cosecha · m Mercado de Mérida · p0..p4 punto oculto
-const DEV={g:{n:14,nm:'Guardia maya',ico:'🛡️',tx:'Mueve el huracán y roba una carta, o protege uno de tus hexágonos una ronda.'},
- f:{n:2,nm:'Fajina',ico:'⛏️',tx:'Dos sacbés gratis, o un sacbé gratis y un recurso del banco.'},
- c:{n:2,nm:'Cosecha',ico:'🧺',tx:'Toma dos recursos del banco.'},
- m:{n:2,nm:'Mercado de Mérida',ico:'🛒',tx:'Elige un recurso: cada rival te da hasta dos.'},
- p:{n:5,nm:'Punto oculto',ico:'⛪',tx:'Vale un punto. Se mantiene oculta hasta ganar.'}};
+const DEV={g:{n:14,nm:'Guardia maya',ico:'escudo',tx:'Mueve el huracán y roba una carta, o protege uno de tus hexágonos una ronda.'},
+ f:{n:2,nm:'Fajina',ico:'pico',tx:'Dos sacbés gratis, o un sacbé gratis y un recurso del banco.'},
+ c:{n:2,nm:'Cosecha',ico:'canasta',tx:'Toma dos recursos del banco.'},
+ m:{n:2,nm:'Mercado de Mérida',ico:'carrito',tx:'Elige un recurso: cada rival te da hasta dos.'},
+ p:{n:5,nm:'Punto oculto',ico:'iglesia',tx:'Vale un punto. Se mantiene oculta hasta ganar.'}};
 const PTS=['Izamal','Valladolid','Motul','Ticul','Tekax'];
 const deck=()=>{const d=[];for(const c of 'gfcm')for(let i=0;i<DEV[c].n;i++)d.push(c);PTS.forEach((_,i)=>d.push('p'+i));return d};
 // puertos en orden por la costa, del poniente pasando por el norte (los dos últimos solo en el tablero grande)

@@ -26,10 +26,10 @@ function statics(G,g){let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;g.V.forEach(v=>{mnx=
  let h='';sea.forEach(([x,y])=>{h+=`<polygon class="sea" points="${[0,1,2,3,4,5].map(c=>{const a=(60*c-30)*Math.PI/180;return P(x+Math.cos(a)*1.01,y+Math.sin(a)*1.01)}).join(' ')}"/>`});
  G.ports.forEach(p=>{const E=g.E[p.e],H=g.H[p.h],a=60*p.k*Math.PI/180,px=E.x+Math.cos(a)*.62,py=E.y+Math.sin(a)*.62;
   E.v.forEach(v=>{h+=`<line class="dock" x1="${(g.V[v].x*U).toFixed(1)}" y1="${(g.V[v].y*U).toFixed(1)}" x2="${(px*U).toFixed(1)}" y2="${(py*U).toFixed(1)}"/>`});
-  h+=`<g transform="translate(${P(px,py)})"><circle class="port" r="${.3*U}"/>${p.r<0?`<text class="pt" y="${.1*U}">3:1</text>`:`<text class="pi" y="${-.02*U}">${D.ICO[p.r]}</text><text class="pt s" y="${.2*U}">2:1</text>`}
+  h+=`<g transform="translate(${P(px,py)})"><circle class="port" r="${.3*U}"/>${p.r<0?`<text class="pt" y="${.1*U}">3:1</text>`:`${HZI.svg(D.ICO[p.r],0,-.02*U-7,22,'pi')}<text class="pt s" y="${.2*U}">2:1</text>`}
    <text class="pn" y="${.47*U}">${p.nm}</text></g>`});
  G.hx.forEach((x,i)=>{const H=g.H[i];h+=`<g id="h2h${i}" class="hx t${x.t}"><polygon points="${poly(g,i,.97)}" fill="${TC[x.t]}" stroke="${TS[x.t]}" stroke-width="${.05*U}"/><polygon points="${poly(g,i,.97)}" fill="url(#h2sh)"/>
-  <text class="ti" x="${(H.x*U).toFixed(1)}" y="${((H.y-.42)*U).toFixed(1)}">${D.ICO[x.t]}</text>`;
+  ${HZI.svg(D.ICO[x.t],H.x*U,(H.y-.42)*U-11,32,'ti')}`;
   if(x.n){const red=x.n==6||x.n==8,pp=D.PIP(x.n),cx0=H.x*U,cy0=(H.y+.12)*U;h+=`<circle class="tk" cx="${cx0}" cy="${cy0}" r="${.31*U}"/><text class="tn${red?' red':''}" x="${cx0}" y="${cy0+.06*U}">${x.n}</text>`;
    for(let j=0;j<pp;j++)h+=`<circle class="pp${red?' red':''}" cx="${(cx0+(j-(pp-1)/2)*.075*U).toFixed(1)}" cy="${(cy0+.19*U).toFixed(1)}" r="${.026*U}"/>`}
   h+='</g>'});
@@ -40,8 +40,8 @@ const shp=(d,x,y,c)=>`<path class="pc" d="${d.replace(/-?\d*\.?\d+/g,n=>(+n*U).t
 function dyn(G,g,hl){let h='';const seg=(e,sh)=>{const [a,b]=g.E[e].v.map(v=>g.V[v]),s=sh||.16;return {x1:(a.x+(b.x-a.x)*s)*U,y1:(a.y+(b.y-a.y)*s)*U,x2:(b.x+(a.x-b.x)*s)*U,y2:(b.y+(a.y-b.y)*s)*U}};
  const L=o=>`x1="${o.x1.toFixed(1)}" y1="${o.y1.toFixed(1)}" x2="${o.x2.toFixed(1)}" y2="${o.y2.toFixed(1)}"`;
  G.eo.forEach((o,e)=>{if(o<0)return;const s=L(seg(e));h+=`<line class="rd0" ${s}/><line class="rd" ${s} stroke="${pc(o)}"/>`});
- const H=g.H[G.hur];h+=`<g transform="translate(${P(H.x,H.y+.12)})"><circle class="hd" r="${.4*U}"/><text class="hur" y="${.2*U}">🌀</text></g>`;
- (G.prot||[]).forEach(p=>{const X=g.H[p.h];h+=`<text class="pr" x="${((X.x+.42)*U).toFixed(1)}" y="${((X.y-.2)*U).toFixed(1)}">🛡️</text>`});
+ const H=g.H[G.hur];h+=`<g transform="translate(${P(H.x,H.y+.12)})"><circle class="hd" r="${.4*U}"/>${HZI.svg('huracan',0,0,54,'hur')}</g>`;
+ (G.prot||[]).forEach(p=>{const X=g.H[p.h];h+=`${HZI.svg('escudo',(X.x+.42)*U,(X.y-.2)*U-9,26,'pr')}`});
  (hl.h||[]).forEach(i=>{h+=`<polygon class="hl" data-h="${i}" points="${poly(g,i,.9)}"/>`});
  G.vo.forEach((o,v)=>{if(o<0)return;const V=g.V[v];h+=shp(G.vl[v]==2?HAC:HOUSE,V.x,V.y,pc(o))});
  (hl.e||[]).forEach(e=>{const s=L(seg(e,.2));h+=`<line class="he" ${s}/><line class="hit" data-e="${e}" ${s}/>`});
@@ -88,7 +88,7 @@ const css=document.createElement('style');css.textContent=`
 #h2root .rd0{stroke:#1b1b1b;stroke-width:21;stroke-linecap:round}#h2root .rd{stroke-width:13;stroke-linecap:round}
 #h2root .pc{stroke:#1b1b1b;stroke-width:4;stroke-linejoin:round}
 #h2root .hd{fill:rgba(40,60,80,.35)}#h2root .hur{font-size:62px;transform-box:fill-box;transform-origin:center;animation:h2spin 2.4s linear infinite}@keyframes h2spin{to{transform:rotate(-360deg)}}
-#h2root .pr{font-size:26px}
+#h2root .pr{font-size:26px}#h2root .hz-g{color:#4a3018}#h2root .ti .hz-g{color:rgba(30,20,8,.7)}#h2root .hur .hz-g{color:#fff}#h2root .pr .hz-g{color:#1d3f8a;stroke-width:2.6}
 #h2root .hl{fill:rgba(255,193,7,.22);stroke:#ffb300;stroke-width:8;animation:h2pl 1s ease-in-out infinite alternate;cursor:pointer}
 #h2root .he{stroke:#ffb300;stroke-width:15;stroke-linecap:round;opacity:.9;animation:h2pl 1s ease-in-out infinite alternate}#h2root .hit{stroke:transparent;stroke-width:38;stroke-linecap:round;cursor:pointer}
 #h2root .hv{fill:rgba(255,255,255,.92);stroke:#ffb300;stroke-width:6;animation:h2pl 1s ease-in-out infinite alternate;cursor:pointer}

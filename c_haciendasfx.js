@@ -23,7 +23,7 @@ function snd(k){if(typeof mute!='undefined'&&mute)return;try{AC=AC||new(window.A
   carta:()=>{noise(t0,.18,.12,1200,3800,.7);tone(t0+.12,700,0,.12,.06,'triangle')}})[k]()}catch(e){}}
 // ---- cartas que se voltean ----
 function flip(id,who){const c=D.DEV[id[0]],e=document.createElement('div');e.className='hz-flip';
- e.innerHTML=`<div class="hz-fc"><div class="hz-fb">🌿<b>Haciendas</b></div><div class="hz-ff"><span>${c.ico}</span><b>${id[0]=='p'?D.PTS[+id[1]]:c.nm}</b><small>${id[0]=='p'?'Punto oculto':c.tx}</small><em>${who}</em></div></div>`;
+ e.innerHTML=`<div class="hz-fc"><div class="hz-fb">${HZI.h('hoja')}<b>Haciendas</b></div><div class="hz-ff"><span>${HZI.h(c.ico)}</span><b>${id[0]=='p'?D.PTS[+id[1]]:c.nm}</b><small>${id[0]=='p'?'Punto oculto':c.tx}</small><em>${who}</em></div></div>`;
  document.body.appendChild(e);snd('carta');setTimeout(()=>e.classList.add('out'),2300);setTimeout(()=>e.remove(),2700)}
 const DEVBYNAME=Object.keys(D.DEV).reduce((o,k)=>(o[D.DEV[k].nm]=k,o),{});
 // ---- cada vez que se dibuja: comparar con lo anterior y sonar / voltear / abrir el resumen ----
@@ -45,12 +45,12 @@ function sumBox(){const G=V.G,P=G.players.map((_,k)=>k),st=G.stats||{prod:[],tr:
  const dmax=Math.max(1,...(st.dice||[]).slice(2));
  const bars=[2,3,4,5,6,7,8,9,10,11,12].map(n=>{const v=(st.dice||[])[n]||0;return `<div><i style="height:${Math.round(v/dmax*56)}px"${n==7?' class="h"':n==6||n==8?' class="r"':''}></i><span>${v}</span><b>${n}</b></div>`}).join('');
  const ocultos=P.filter(k=>hid(k).length).map(k=>`${tok(k,'xs')} ${nm(k)}: ${hid(k).join(', ')}`).join(' · ');
- return `<div class="mu-card hz-sum"><header><b class="mu-h">🏆 ${nm(G.win)} gana</b><button class="mu-x" onclick="HZX.sum(0)" aria-label="Cerrar">✕</button></header>
+ return `<div class="mu-card hz-sum"><header><b class="mu-h">${HZI.h('trofeo')} ${nm(G.win)} gana</b><button class="mu-x" onclick="HZX.sum(0)" aria-label="Cerrar">✕</button></header>
   <div class="mu-s">${G.stall?'Nadie sumó puntos en 10 rondas: ganó quien tenía más.':'Llegó a '+G.vp[G.win]+' puntos en su turno, en la ronda '+G.round+'.'}</div>
-  <table class="hz-tb"><tr><th></th><th title="Ranchos">🏠</th><th title="Haciendas">🏛️</th><th title="Sacbé real">🛤️</th><th title="Guardia mayor">🛡️</th><th title="Puntos ocultos">⛪</th><th>★</th></tr>${rows}</table>
+  <table class="hz-tb"><tr><th></th><th title="Ranchos">${HZI.h('rancho')}</th><th title="Haciendas">${HZI.h('hacienda')}</th><th title="Sacbé real">${HZI.h('sacbe')}</th><th title="Guardia mayor">${HZI.h('escudo')}</th><th title="Puntos ocultos">${HZI.h('iglesia')}</th><th>★</th></tr>${rows}</table>
   ${ocultos?`<div class="mu-s">Puntos ocultos: ${ocultos}</div>`:''}
-  <h4 class="hz-h">Cómo jugó cada quien</h4><table class="hz-tb"><tr><th></th><th title="Recursos producidos">🌾</th><th title="Tratos con jugadores">🤝</th><th title="Cambios con banco o puerto">🏦</th><th title="Robó / le robaron">🌀</th><th title="Guardias jugadas">🛡️</th><th title="Camino más largo">🛤️</th></tr>${stat}</table>
-  <div class="mu-s">🌾 producidos · 🤝 tratos · 🏦 banco/puerto · 🌀 robó/le robaron · 🛡️ guardias · 🛤️ camino</div>
+  <h4 class="hz-h">Cómo jugó cada quien</h4><table class="hz-tb"><tr><th></th><th title="Recursos producidos">${HZI.h('espiga')}</th><th title="Tratos con jugadores">${HZI.h('trato')}</th><th title="Cambios con banco o puerto">${HZI.h('banco')}</th><th title="Robó / le robaron">${HZI.h('huracan')}</th><th title="Guardias jugadas">${HZI.h('escudo')}</th><th title="Camino más largo">${HZI.h('sacbe')}</th></tr>${stat}</table>
+  <div class="mu-s">${HZI.h('espiga')} producidos · ${HZI.h('trato')} tratos · ${HZI.h('banco')} banco/puerto · ${HZI.h('huracan')} robó/le robaron · ${HZI.h('escudo')} guardias · ${HZI.h('sacbe')} camino</div>
   <h4 class="hz-h">Dados (${st.h||0} huracanes)</h4><div class="hz-dh">${bars}</div>
   <div class="mu-acts">${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}<button class="mu-b" onclick="HZX.sum(0)">Cerrar</button></div></div>`}
 // ---- guía con dibujos ----
@@ -63,17 +63,17 @@ function drawing(){const A=HEX(70,60,42),B=HEX(70+42*Math.sqrt(3),60,42),pt=p=>p
   ${house(A[0][0],A[0][1],'#d63a3a')}<text x="${A[5][0]}" y="${A[5][1]+6}" text-anchor="middle" font-size="18" fill="#c62828" font-weight="900">✕</text>
   <text x="${A[2][0]}" y="${A[2][1]+20}" text-anchor="middle" font-size="11">rancho en una esquina</text></svg>
   <div class="mu-s">El rancho va en una <b>esquina</b> y cobra de los terrenos que toca. El sacbé va en una <b>orilla</b>. Junto a un rancho (✕) no cabe otro: debe haber al menos una orilla entre ranchos.</div>`}
-function guideBox(){const cost=(w,n)=>`<div class="hz-cr"><span>${n}</span><span>${chips(D.COST[w])}</span></div>`,dv=Object.keys(D.DEV).map(k=>`<div class="hz-gd"><span>${D.DEV[k].ico}</span><div><b>${D.DEV[k].nm}</b> (${D.DEV[k].n})<div class="mu-s">${D.DEV[k].tx}</div></div></div>`).join('');
- return `<div class="mu-card hz-guide"><header><b class="mu-h">📖 Reglas</b><button class="mu-x" onclick="HZX.guide(0)" aria-label="Cerrar">✕</button></header>
+function guideBox(){const cost=(w,n)=>`<div class="hz-cr"><span>${n}</span><span>${chips(D.COST[w])}</span></div>`,dv=Object.keys(D.DEV).map(k=>`<div class="hz-gd"><span>${HZI.h(D.DEV[k].ico)}</span><div><b>${D.DEV[k].nm}</b> (${D.DEV[k].n})<div class="mu-s">${D.DEV[k].tx}</div></div></div>`).join('');
+ return `<div class="mu-card hz-guide"><header><b class="mu-h">${HZI.h('libro')} Reglas</b><button class="mu-x" onclick="HZX.guide(0)" aria-label="Cerrar">✕</button></header>
   <div class="mu-s">Coloniza Yucatán: gana quien llegue primero a <b>${V.G.o.pts} puntos</b> en su turno.</div>
   <h4 class="hz-h">1. Al empezar</h4><div class="mu-s">Cada quien pone un rancho y un sacbé, de ida y de vuelta. El segundo rancho te da un recurso de cada terreno que toca.</div>${drawing()}
-  <h4 class="hz-h">2. Tu turno</h4><div class="hz-steps"><div>🃏<span>Si quieres, juega una carta</span></div><div>🎲<span>Tira: los terrenos con ese número producen</span></div><div>🤝<span>Comercia y construye</span></div><div>➜<span>Termina</span></div></div>
-  <div class="mu-s">Cada rancho que toca el terreno recibe 1 recurso; una hacienda recibe 2. ${D.ICO.slice(0,5).map((x,i)=>x+' '+D.RES[i]).join(' · ')}. El 💧 cenote no produce.</div>
-  <h4 class="hz-h">3. Construir</h4>${cost('s','🛤️ Sacbé')}${cost('r','🏠 Rancho: 1 punto')}${cost('h','🏛️ Hacienda: 2 puntos (sobre tu rancho)')}${cost('c','🃏 Carta de desarrollo')}
+  <h4 class="hz-h">2. Tu turno</h4><div class="hz-steps"><div>${HZI.h('carta')}<span>Si quieres, juega una carta</span></div><div>${HZI.h('dado')}<span>Tira: los terrenos con ese número producen</span></div><div>${HZI.h('trato')}<span>Comercia y construye</span></div><div>➜<span>Termina</span></div></div>
+  <div class="mu-s">Cada rancho que toca el terreno recibe 1 recurso; una hacienda recibe 2. ${D.ICO.slice(0,5).map((x,i)=>HZI.h(x)+' '+D.RES[i]).join(' · ')}. El ${HZI.h('gota')} cenote no produce.</div>
+  <h4 class="hz-h">3. Construir</h4>${cost('s',HZI.h('sacbe')+' Sacbé')}${cost('r',HZI.h('rancho')+' Rancho: 1 punto')}${cost('h',HZI.h('hacienda')+' Hacienda: 2 puntos (sobre tu rancho)')}${cost('c',HZI.h('carta')+' Carta de desarrollo')}
   <h4 class="hz-h">4. Comercio</h4><div class="mu-s">En tu turno ofreces cambios a todos o a uno; ellos aceptan, rechazan o contraofertan. Con el banco cambias 4 por 1; en un puerto 3:1 cambias 3 por 1 y en uno 2:1 cambias 2 del recurso que indica. Los puertos se usan con un rancho o hacienda en su muelle.</div>
-  <h4 class="hz-h">5. 🌀 Huracán (sale el 7)</h4><div class="mu-s">Quien tenga más de ${V.G.o.hl} cartas descarta la mitad. Quien tiró manda el huracán a otro terreno (ahí no se produce) y le roba una carta a alguien que construyó ahí.</div>
+  <h4 class="hz-h">5. ${HZI.h('huracan')} Huracán (sale el 7)</h4><div class="mu-s">Quien tenga más de ${V.G.o.hl} cartas descarta la mitad. Quien tiró manda el huracán a otro terreno (ahí no se produce) y le roba una carta a alguien que construyó ahí.</div>
   <h4 class="hz-h">6. Cartas de desarrollo</h4>${dv}<div class="mu-s">Una por turno, y nunca la que compraste en ese turno.</div>
-  <h4 class="hz-h">7. Bonos</h4><div class="mu-s">🛤️ <b>Sacbé real</b>: camino continuo más largo, de 5 tramos o más (2 puntos). 🛡️ <b>Guardia mayor</b>: 3 guardias jugadas o más (2 puntos). Si te igualan, lo conservas. Un rancho rival corta tu camino.</div>
+  <h4 class="hz-h">7. Bonos</h4><div class="mu-s">${HZI.h('sacbe')} <b>Sacbé real</b>: camino continuo más largo, de 5 tramos o más (2 puntos). ${HZI.h('escudo')} <b>Guardia mayor</b>: 3 guardias jugadas o más (2 puntos). Si te igualan, lo conservas. Un rancho rival corta tu camino.</div>
   <div class="mu-s">Si pasan 10 rondas sin que cambien los puntos de nadie, gana quien tenga más. Si alguien no juega en 60 s, un bot juega por él.</div>
   <div class="mu-acts"><button class="mu-b" onclick="HZX.tips(1)">Volver a ver los consejos</button><button class="mu-b pri" onclick="HZX.guide(0)">Entendido</button></div></div>`}
 // ---- consejos: la primera vez que te toca cada cosa ----
@@ -88,7 +88,7 @@ function tipKey(){const G=V.G,m=U.me;if(m<0||G.phase!='play')return null;const L
  if(G.st=='discard'&&G.dis&&G.dis[m]!=null)L.push('discard');if(U.offersToMe().length)L.push('offer');
  if(G.turn===m){if(G.st=='setup')L.push('setup');if(G.st=='roll')L.push('roll');if(G.st=='main')L.push('main');if(G.st=='move')L.push('move')}
  if((G.dev[m]||[]).some(c=>c.id[0]!='p'))L.push('card');return L.find(k=>!tipsSeen.has(k))||null}
-function hud(){const k=tipKey(),tip=k&&!guide&&!showSum?`<div class="hz-tip"><span>💡</span><div>${TIPS[k]}</div><button class="mu-lk" onclick="HZX.seen('${k}')">Entendido</button></div>`:'';
+function hud(){const k=tipKey(),tip=k&&!guide&&!showSum?`<div class="hz-tip"><span>${HZI.h('idea')}</span><div>${TIPS[k]}</div><button class="mu-lk" onclick="HZX.seen('${k}')">Entendido</button></div>`:'';
  return tip+(showSum&&V.G.phase=='final'?`<div class="mu-modal" onclick="if(event.target===this)HZX.sum(0)"><div class="mu-mw">${sumBox()}</div></div>`:'')
   +(guide?`<div class="mu-modal" onclick="if(event.target===this)HZX.guide(0)"><div class="mu-mw">${guideBox()}</div></div>`:'')}
 window.HZX={after,hud,snd,flip,open:()=>guide||showSum&&V.G.phase=='final',

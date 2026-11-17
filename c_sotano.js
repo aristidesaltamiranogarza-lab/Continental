@@ -75,7 +75,7 @@ function piso(){if(F)return F;const r=ok()&&RRU.piso();if(!r){bad=true;return nu
  const lk={x:W-.2,z:-2.4,r:1.5,ax:W-1.4,az:-2.4,to:'pb'},hb=new THREE.Mesh(new THREE.BoxGeometry(.3,3.3,1.7),new THREE.MeshBasicMaterial({visible:false}));
  hb.position.set(W-.1,1.65,-2.4);hb.userData.hit={t:'link',l:lk};S.add(hb);hits.push(hb);
  const H=window.CASA3D,up=H.ctex('sign-subir',512,128,(g,w,h)=>{g.fillStyle='#1a0c0a';H.rr(g,4,4,w-8,h-8,18);g.fill();g.strokeStyle='#c98a3a';g.lineWidth=6;H.rr(g,10,10,w-20,h-20,14);g.stroke();
-  g.font='bold 46px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f3dcb0';g.fillText('⬆ Subir a la casa',w/2,h/2+3)});
+  g.font='bold 46px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f3dcb0';g.fillText('Subir a la casa',w/2,h/2+3)});
  const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:up,toneMapped:false}));sg.position.set(W-.07,3.64,-2.4);sg.rotation.y=-Math.PI/2;S.add(sg);
  // el salón de atrás (c_sotano_salon.js): casino, billar, rockola; trae sus muros (WL), obstáculos y su paso por cuadro
  let sal=null;if(window.SAL)try{sal=SAL.build({S,hits,HT:r.HT,W,XL:r.XL,TH:r.TH});if(sal)obs.push(...sal.OB)}catch(er){console.error('[SAL]',er);sal=null}
