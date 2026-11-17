@@ -48,10 +48,10 @@ function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=tr
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
 // full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
 function rstate(full){R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;if(full!==false)applyQ(window.CALIDAD);else{R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true}if(FL.enter)FL.enter(fpOn())}
-function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv.style.filter='';fondoFin();R.autoClear=true;R.shadowMap.autoUpdate=true;W=0;IW=-1;rstate(window.CALIDAD==='medio');me.g.visible=!fpOn()}
+function back(){if(cv.parentNode!==root)root.insertBefore(cv,root.firstChild);cv.style.filter='';fondoFin();R.autoClear=true;R.shadowMap.autoUpdate=true;W=0;IW=-1;rstate(window.CALIDAD==='medio');me.g.visible=true}
 // primera persona (c_casa_avatar.js): tecla V o el botón del ojo
 function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.pose(CA),f=!CAV.on();CAV.set(f);if(!f&&document.pointerLockElement)document.exitPointerLock();
- Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=!f;if(FL.enter)FL.enter(f);
+ Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=true;if(FL.enter)FL.enter(f);
  if(P)CCAM.blendIn(CA,P,600);sfx('tick');render()}
 const EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DANCE=['💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
@@ -468,7 +468,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;R.render(SC,CA);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
+ try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
@@ -546,7 +546,7 @@ function salaPaso(now,dt){if(innerWidth!==IW||innerHeight!==IH)layout();if(W/H<.
  if(Math.abs(sOff.x)+Math.abs(sOff.y)>.5)CA.setViewOffset(W,H,sOff.x,sOff.y,W,H);else CA.clearViewOffset();CA.updateMatrixWorld();
  seated.forEach(s=>{if(!s.av)poseSeated(s,now);if(s.p0){const q=Math.min(1,(now-s.p0)/650),e=q-1;s.g.scale.setScalar(s.k0*Math.max(.001,1+2.7*e*e*e+1.7*e*e));if(q>=1)s.p0=0}});if(window.OCUP)OCUP.paso(now);
  if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.VENT)VENT.paso(FL.id,R,CA);
- const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;R.render(SC,CA);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
+ const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;(window.SALA?sitSala:sit)(()=>mk(mode))};
 window.casaJoin=c=>{code=c;(window.SALA?sitSala:sit)(()=>joinR())};
 window.casaWatch=c=>sit(()=>watchR(c));

@@ -9,5 +9,8 @@ function clamp(V){V.t=Math.max(PMIN,Math.min(PMAX,V.t));V.ox=V.oz=0}
 // mira al centro cuando el ratón está atrapado (pointer lock): el clic actúa ahí
 const st=document.createElement('style');st.textContent='#h3x{position:fixed;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.45);z-index:5;pointer-events:none;display:none}html.h3lock #h3x{display:block}';document.head.appendChild(st);
 const x=document.createElement('div');x.id='h3x';(document.body?document.body.appendChild(x):addEventListener('DOMContentLoaded',()=>document.body.appendChild(x)));
-window.CAV={on:()=>fp,set:v=>{fp=!!v},apply,clamp,EYE,fov:por=>por?78:66};
+// en primera persona tu personaje sigue en la escena (sombra, otras cámaras): solo la cámara propia no lo ve.
+// Sus mallas pasan a la capa 1 durante ese dibujo; las cámaras de sombra ven la capa 1 (se revisan cada ~1 s).
+let shT=0;function cuerpo(g,sc,on){if(!g)return;if(on){const t=performance.now();if(t-shT>1000){shT=t;sc.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.camera.layers.enable(1)})}}g.traverse(o=>on?o.layers.set(1):o.layers.set(0))}
+window.CAV={on:()=>fp,set:v=>{fp=!!v},apply,clamp,EYE,cuerpo,fov:por=>por?78:66};
 })();
