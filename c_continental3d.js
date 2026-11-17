@@ -486,8 +486,8 @@ function ens(key,id,from){let m=meshes.get(key);
  setFace(m,id);selGlow(m,false);return m}
 // las cartas nuevas vuelan más lento; al repartir salen una por una (después de la ruleta)
 function go(m,par,pos,q,s,o){o=o||{};if(m.userData.nw){m.userData.nw=0;o.ms=Math.max(o.ms||0,520);if(dealing){o.delay=Math.max(0,rlEnd-Date.now())+dl*55;dl++}}target(m,par,pos,q,s,o)}
-// brillo azul (selección estilo Windows 7) pegado detrás de la carta
-function selGlow(m,onn){let g=m.userData.sg;if(!g&&!onn)return;
+// sin brillo: la carta elegida solo se levanta
+function selGlow(m,onn){let g=m.userData.sg;if(g)g.visible=false;return;
  if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(CW*1.22/GI,CH*1.16/GI),new THREE.MeshBasicMaterial({map:glowTex(),color:0x4fb8ff,opacity:.6,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.position.y=-CT;m.add(g);g.layers.set(m.userData.ly||0);m.userData.sg=g}
  g.visible=!!onn}
 // ---------- tu contrato: siluetas, auto-armado ----------
@@ -694,6 +694,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer</button>`;
    b+=`<button class="ui-btn${sel.size==1&&!rd?' go':' sec'}" onclick="discard()">Descartar</button>`}
   if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar</button>`;
+  if(sel.size)b+=`<button class="ui-btn sec" onclick="c3dDesel()">${ic('x')}Desmarcar</button>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;}
  h+=GHUD.bar(b);
  if(ap)h+=apUI();
@@ -740,6 +741,7 @@ function c4check(){const g=c4g();if(!g){c4snap='';return}const mi=g.p.indexOf(V.
 const c4send=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'c4'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
 const c4a=op=>{const g=c4g();if(op=='acc')c4discover();if(g)c4send({op,id:g.id})};
 window.c4a=c4a;window.c4o=o=>{c4open=!!o;menu=false;if(!o&&VT.c4)home();sfx('tick');render()};
+window.c3dDesel=()=>{sel.clear();sfx('card');render()};
 window.c4go=()=>{c4open=true;menu=false;c4look();render()};
 window.c4inv=k=>{c4send({op:'inv',k});sfx('card')};   // el servidor borra la partida terminada al crear la nueva
 window.c4drop=c=>{const g=c4g();if(g)c4send({op:'drop',id:g.id,c})};
