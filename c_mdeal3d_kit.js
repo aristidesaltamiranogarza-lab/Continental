@@ -72,7 +72,7 @@ async function arte(){const cod=(()=>{try{return localStorage.cont_av}catch(e){}
  if(cod!==artCod)return;TODAS.forEach(([c,n,f])=>pinta(c,n,f));for(const u in U){const id=+String(u).replace('f','');if(mdCAT[id]&&mdCAT[id].t=='a')delete U[u]}dispatchEvent(new Event('md3k-arte'))}
 function ilustra(cn,k,full){TODAS.push([cn,k,!!full]);if(pinta(cn,k,full))return;if(!artIni&&window.CARTA2D&&window.AV2D&&window.AV)arte()}
 addEventListener('av-mio',()=>{if(artIni)arte()});
-window.MD3K={TW,TH,ACOL,cara,billete,dorso,url:id=>U[id]||(U[id]=cara(id).toDataURL()),
+window.MD3K={TW,TH,ACOL,BILL,cara,billete,dorso,url:id=>U[id]||(U[id]=cara(id).toDataURL()),
  desc:id=>{const c=mdCAT[id];return c.t=='a'?ADES[c.k]||'':''},
  grande:id=>U['f'+id]||(U['f'+id]=cara(id,true).toDataURL())};   // grande: la cara completa (con descripción) para verla de cerca
 })();

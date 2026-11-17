@@ -221,8 +221,8 @@ function sync(){if(!ready||!L||!mesa||!active())return;
   glow('z'+k,v3(Z.c.x,.002,Z.c.z),2*Z.w*1.04,2*Z.h*1.06,0xffffff,lvl,{t:'zone',k},Z.yaw);
   if(out)continue;const Ly=lay(k);
   Ly.out.forEach(c=>{const key='c'+c.id,m=ens(key,c.face,from[c.id]===k&&k!==me?seatW(k):null),h=c.hit,e=elig(h),sel=(pay&&mdPay.has(c.id))||(stl&&stl.take===c.id)||(mine&&mdSel===c.id&&mdFrom!=='h');
-   live.add(key);m.castShadow=true;m.userData.hit=h;hits.push(m);m.renderOrder=0;tint(m,sel?.95:(pay||stl)&&!e?.45:.82);m.userData.bob=sel?hh(c.id)%7:null;
-   const p=sel?c.pos.clone().setY(c.pos.y+.3):c.pos;go(m,SC,p,c.q,c.s,{ms:sel?220:undefined});
+   live.add(key);m.castShadow=true;m.userData.hit=h;hits.push(m);m.renderOrder=0;tint(m,sel?1:(pay||stl)&&!e?.45:.8);m.userData.bob=sel?hh(c.id)%7:null;
+   const p=sel?c.pos.clone().addScaledVector(Z.ex,c.s*.42).setY(c.pos.y+.3):c.pos;go(m,SC,p,sel?c.q.clone().multiply(Qe(0,-.14,0)):c.q,sel?c.s*1.12:c.s,{ms:sel?220:undefined});
    selGlow(m,false)});
   
   // manos de los rivales (con personaje la cantidad va en sus manos; sin personaje, boca abajo frente a su silla)

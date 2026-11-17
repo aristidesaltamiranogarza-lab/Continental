@@ -124,11 +124,16 @@ function payErr(G,k,ids,amt){const A=assets(G,k),own=new Set(A.map(a=>a.id));
  if(redundant(G,k,ids,amt))return 'Estás entregando de más: quita cartas que no hacen falta (no hay cambio).';
  return ''}
 // pago automático: lo más barato primero; banco antes que propiedades; comodines al final; sets completos al final
+// del banco, lo más justo posible (menos sobrante, luego menos cartas): debe 2 y tiene 1,1,2 → da el 2
+function bankFit(bank,amt,v){const T=bank.reduce((a,x)=>a+v(x),0);if(T<amt)return null;const dp=[[]];
+ for(const x of bank)for(let t=T;t>=v(x);t--){const p=dp[t-v(x)];if(p&&(!dp[t]||dp[t].length>p.length+1))dp[t]=p.concat(x)}
+ for(let t=amt;t<=T;t++)if(dp[t])return dp[t];return null}
 function autoIds(G,k,amt){const A=assets(G,k);if(sumV(A.map(a=>a.id))<=amt)return A.map(a=>a.id);
  const v=x=>CAT[x].v,asc=(a,b)=>v(a)-v(b)||a-b,isW=x=>CAT[x].t=='w'?1:0,bank=G.bank[k].slice().sort(asc),loose=G.hl[k].slice().sort(asc),inc=[],comp=[];
  for(const c in G.tb[k]){const g=G.tb[k][c],s=G.hs[k][c]||{},o=g.slice().sort((a,b)=>isW(a)-isW(b)||asc(a,b));
   if(cmp(g,c))comp.push({s:sumV(g),ids:[s.hh,s.h].filter(x=>x!=null).concat(o)});else inc.push(...o)}
  inc.sort((a,b)=>isW(a)-isW(b)||asc(a,b));comp.sort((a,b)=>a.s-b.s);
+ const ex=bankFit(bank,amt,v);if(ex)return ex;
  let ids=[],s=0;for(const x of [...bank,...loose,...inc,...comp.flatMap(x=>x.ids)]){if(s>=amt)break;ids.push(x);s+=v(x)}
  for(let n=0;n<12;n++){const bad=houseBad(G,k,ids);if(!bad.length)break;for(const c of bad){const h=G.hs[k][c]||{};[h.hh,h.h].forEach(x=>{if(x!=null&&!ids.includes(x))ids.push(x)})}}
  for(let ch=1;ch;){ch=0;for(const x of ids.slice().reverse()){const t=ids.filter(y=>y!=x);if(sumV(t)>=amt&&!houseBad(G,k,t).length){ids=t;ch=1}}}

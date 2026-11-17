@@ -11,14 +11,20 @@ const N=x=>`<span class="ui-sub md3n">${x}</span>`;
 const tm=()=>V.G.pa&&V.G.pa.rem!=null?' · <b class="mdpat"></b>':'';
 function caja(t,txt,btns,o){o=o||{};const img=o.id!=null?`<img class="md3ci" src="${MD3K.url(o.id)}" alt="">`:'';
  return `<div id="md3box" class="ui ui-card md3box" role="dialog" aria-label="${t.replace(/<[^>]+>/g,'').replace(/"/g,'')}"><div class="md3bh">${img}<h2 class="ui-h">${t}</h2>${o.x?`<button class="ui-x" onclick="${o.x}" aria-label="Cancelar">${ic('x')}</button>`:''}</div>${txt?`<p class="ui-sub md3bt">${txt}</p>`:''}<div class="md3bb">${btns}</div></div>`}
+// lo que vas a pagar: una ficha del color de cada carta (tocarla la quita) y una barra que se llena hasta lo que debes
+function fichas(amt,sm,tot){const G=V.G,me=V.me,BL=MD3K.BILL||{};
+ const col=id=>{if(G.bank[me].includes(id))return BL[mdCAT[id].v]||['#eee','#333'];const c=Object.keys(G.tb[me]).find(k=>G.tb[me][k].includes(id));return c!=null?[mdCC[c],'#fff']:['#d9d2c3','#333']};
+ const ch=[...mdPay].map(id=>{const [bg,fg]=col(id);return `<button class="md3f" style="--c:${bg};--t:${fg}" onclick="mdPay.delete(${id});render()" aria-label="Quitar">${mdCAT[id].v}M</button>`}).join('');
+ const meta=Math.min(amt,tot)||1,ok=sm>=meta,pc=Math.min(100,sm/meta*100);
+ return `<span class="md3pg${ok?' ok':''}"><span class="md3fs">${ch}</span><span class="md3bar"><i style="width:${pc}%"></i></span><b>${sm}M <small>/ ${amt}M</small></b></span>`}
 // responder a una acción en tu contra (o al «Di que no» que te dijeron)
 function responde(){const G=V.G,pa=G.pa,i=V.me;if(!pa||i<0)return '';
  const x=pa.tg.find(y=>y.k==i),dn=G.hands[i].find(id=>mdCAT[id].k=='dino'),db=dn!=null?B(`send({t:'dino',id:${dn}})`,'Di que no','sec'):'';
  if(x&&x.st=='wait'&&mdSK(pa.k)){const d=pa.k=='deal'?'tu set '+mdCN[pa.col]+' completo':pa.k=='sly'?'tu '+esc(mdName(pa.take)):'tu '+esc(mdName(pa.take))+' a cambio de su '+esc(mdName(pa.give));
   return caja(`${nm(pa.by)} quiere ${d}`,'Nadie sabe si tienes «Di que no»'+tm(),B("send({t:'allow'})",'Permitir')+db)}
  if(x&&x.st=='wait'){const tot=mdAssets(i).reduce((a,id)=>a+mdCAT[id].v,0),sm=[...mdPay].reduce((a,id)=>a+mdCAT[id].v,0);
-  return caja(`Pagas $${pa.amt}M a ${nm(pa.by)}`,`Toca cartas de tu banco o de tu mesa (se levantan). No hay cambio. ${tot<=pa.amt?'<b>No te alcanza: entrega todo.</b> ':''}Elegido: <b>$${sm}M</b> de $${pa.amt}M${tm()}`,
-   B('mdPaySend()',ic('ok')+'Pagar',sm>=pa.amt||sm>=tot?'go':'')+B('mdPay=new Set(V.sug||[]);render()','Usar sugerido','sec')+db)}
+  return caja(`Pagas $${pa.amt}M a ${nm(pa.by)}`,fichas(pa.amt,sm,tot)+tm(),
+   B('mdPaySend()',ic('ok')+'Pagar',sm>=pa.amt||sm>=tot?'go':'')+(mdPay.size?B('mdPay=new Set();render()','Quitar todo','sec'):B('mdPay=new Set(V.sug||[]);render()','Sugerido','sec'))+db)}
  if(i==pa.by){const s=pa.tg.find(y=>y.st=='say');if(s)return caja(`${nm(s.k)} dijo «Di que no»`,'',(dn!=null?B(`send({t:'dino',id:${dn},k:${s.k}})`,'Responder con Di que no'):'')+B(`send({t:'accept',k:${s.k}})`,'Aceptar','sec'))}
  if(x&&x.st=='say')return caja('Dijiste «Di que no»','Esperando a '+nm(pa.by)+'…','');
  return ''}

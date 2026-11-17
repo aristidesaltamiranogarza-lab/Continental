@@ -46,3 +46,14 @@ html.md3on #app{pointer-events:none}
 .md3pips b{margin-left:3px;font-variant-numeric:tabular-nums;color:var(--ui-text)}
 @keyframes md3pip{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 4px var(--ui-chip)}}
 @media (prefers-reduced-motion:reduce){.md3pips i.on{animation:none}}
+/* pago: fichas del color de cada carta elegida + barra */
+.md3pg{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.md3fs{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 100%;min-height:0}
+.md3fs:empty{display:none}
+.md3f{border:0;border-radius:8px;padding:5px 10px;font:700 15px var(--ui-font);background:var(--c);color:var(--t);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 2px 0 rgba(0,0,0,.18);cursor:pointer;animation:md3pop .2s ease-out}
+@keyframes md3pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.md3bar{flex:1;height:10px;border-radius:6px;background:var(--ui-chip);overflow:hidden}
+.md3bar i{display:block;height:100%;background:var(--ui-accent);transition:width .2s}
+.md3pg b{font-size:17px;color:var(--ui-text)}.md3pg small{font-size:13px;color:var(--ui-sub);font-weight:600}
+.md3pg.ok .md3bar i{background:#3f8f5a}
+@media (prefers-reduced-motion:reduce){.md3f{animation:none}}
