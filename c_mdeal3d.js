@@ -22,6 +22,7 @@ const FELT=['#3d84cc','#123a68'];
 
 // ---------- texturas y cartas ----------
 function tx(c){const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R?Math.min(16,R.capabilities.getMaxAnisotropy()):4;return t}
+addEventListener('md3k-arte',()=>{for(const f in texC)texC[f].needsUpdate=true});   // ya están las caras ilustradas
 const faceT=f=>texC[f]||(texC[f]=tx(f[0]=='b'?MD3K.billete(+f.slice(1)):MD3K.cara(+f.slice(1))));   // f: 'c'+id (su cara) o 'b'+valor (billete)
 const backT=()=>texC.d||(texC.d=tx(MD3K.dorso()));
 function glowTex(){if(texC.glow)return texC.glow;const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';g.beginPath();g.roundRect?g.roundRect(52,52,152,152,16):g.rect(52,52,152,152);g.fill();g.fill();return texC.glow=tx(c)}
