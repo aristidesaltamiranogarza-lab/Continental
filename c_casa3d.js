@@ -207,10 +207,13 @@ function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G
 function lookOf(n){n=(n||'').trim()||'Tú';return [K.hsh(n)%10,K.hsh(n+'·')%K.AVP.length]}
 function disposeG(g){if(g.parent)g.parent.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
 function mkG(name,seat){const [k,pi]=lookOf(name),g=K.mkAvatar(k,pi,seat?{}:{stand:true});g.traverse(o=>{if(o.isMesh)o.castShadow=true});SC.add(g);g.userData.key=k+':'+pi;return g}
-// con su personaje (c_avatar.js, código av) si ya cargó el GLB; si no, el Mii de su nombre, y se cambia al cargar
+// siempre con personaje (c_avatar.js): el suyo, o uno que sale de su nombre si no trae código; mientras carga el GLB no se dibuja nada
+const AVM={s:2,p:7,c:3,b:3,n:3,a:3,d:3};
+function avDe(n,av){if(av||!window.AV||!AV.codificar)return av||'';n=(n||'').trim()||'Tú';const o={col:['pelo','piel','ropa','ropa'].map((p,i)=>K.hsh(n+'#'+i)%AV.PAL[p].length)};
+ Object.keys(AVM).forEach(k=>o[k]=1+K.hsh(n+k)%AVM[k]);return AV.codificar(o)}
 function GY(g){return g.userData.av?0:1.57}   // altura del origen: el personaje lo tiene en los pies, el Mii en la cadera
-function mkPj(name,av){if(av&&avYa()){const g=AV.crearYa(av);if(g){SC.add(g);g.userData.key='av:'+av;return g}}if(av)pideAv();return mkG(name)}
-const pjKey=a=>a.av&&avYa()?'av:'+a.av:lookOf(a.name).join(':');
+function mkPj(name,av){av=avDe(name,av);if(av&&avYa()){const g=AV.crearYa(av);if(g){SC.add(g);g.userData.key='av:'+av;return g}}pideAv();const g=new THREE.Group();g.userData.vacio=1;g.userData.key='wait';SC.add(g);return g}
+const pjKey=a=>avYa()?'av:'+avDe(a.name,a.av):'wait';
 function newAv(name,pos,yaw,av){const g=mkPj(name,av);const a={g,name,av:av||'',pos:pos.clone(),to:pos.clone(),yaw,tyaw:yaw,w:0,ph:0,waveT:-1e9,dance:null,danceT:-1e9,tag:null,bub:null,bubT:0};g.position.set(pos.x,GY(g),pos.z);g.rotation.y=yaw;return a}
 function refresh(a){const o=a.g;if(pjKey(a)===o.userData.key)return;const g=mkPj(a.name,a.av);if(o.parent&&o.parent!==g.parent)o.parent.add(g);
  g.position.set(o.position.x,GY(g),o.position.z);g.rotation.y=o.rotation.y;g.visible=o.visible;dropG(o);a.g=g}
@@ -227,7 +230,7 @@ const dancing=(a,now)=>{const t=now-a.danceT,D=dms();return a.dance&&t>=0&&t<D&&
 function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,bt=now/1000*Math.PI*2*1.1,clip=AV.dur(DCLIP[a.dance])?DCLIP[a.dance]:null;
  AV.emote(a.g,clip&&dancing(a,now+300)>0?clip:null);const dn=clip?0:dancing(a,now);   // el clip se va con un fundido de .3 s que acaba justo al terminar el baile
  AV.mueve(a.g,{w,ph:a.ph,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y=-Math.abs(Math.sin(a.ph))*.1*w+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
-function pose(a,now,lookDown){if(a.g.userData.av)return posePj(a,now);const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
+function pose(a,now,lookDown){if(a.g.userData.vacio)return;if(a.g.userData.av)return posePj(a,now);const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
  u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650)+Math.abs(Math.sin(bt))*.12*dn;u.body.rotation.x=.06*w;
  u.body.rotation.z=Math.sin(bt)*(disco?.06:.14)*dn;u.body.rotation.y=Math.sin(bt/2)*(disco?.5:.3)*dn;u.head.rotation.z=-Math.sin(bt)*.18*dn;
  (u.legs||[]).forEach(L=>{let q=L.s*Math.sin(ph)*.55*w,b=q*.6-Math.max(0,L.s*Math.cos(ph))*.35*w;
@@ -252,12 +255,12 @@ function pideAv(){if(pideAv.v||!window.AV||avYa())return;pideAv.v=1;AV.listo().t
 function ocup(){if(!window.OCUP)return;const B=[];Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs||!t.G||t.door||t===fzT)return;const n=rooms.filter(r=>r.g==t.g&&r.st=='play').reduce((a,r)=>a+r.ps.length,0);if(n)B.push({t,n,y:TH+.07,dirs:t.chairs.map(c=>{const o=cp(c);return Math.atan2(o.z,o.x)})})}));OCUP.sync(B)}
 function seatSync(){ocup();const want=new Map();
  TB.forEach(t=>{if(!t.hit)return;const sa=salaPs&&salaPs.g===t.g,rm=!sa&&rooms.find(r=>r.g==t.g&&r.st=='play');if(mesaJ(t,sa?salaPs.n.length:rm?rm.ps.length:4,sa?salaPs.me||0:0))reubica(t);if(fzT!==t)t.deco.forEach(o=>o.visible=!sa&&!rm)});
-Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps.map((n,i)=>[n,(r.av||[])[i]||''])).slice(0,t.chairs.length).forEach(([n,av],j)=>want.set(t.g+':'+j+':'+n+':'+av,{t,j,n,av}))}));
- if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>{const av=(salaPs.av||[])[j]||'';want.set('sala:'+j+':'+n+':'+av,{t,j,n,av,pop:1})})}}
+Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps.map((n,i)=>[n,avDe(n,(r.av||[])[i])])).slice(0,t.chairs.length).forEach(([n,av],j)=>want.set(t.g+':'+j+':'+n+':'+av,{t,j,n,av}))}));
+ if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>{const av=avDe(n,(salaPs.av||[])[j]);want.set('sala:'+j+':'+n+':'+av,{t,j,n,av,pop:1})})}}
  const conAv=w=>w.av&&avYa();
- if([...want.values()].some(w=>w.av))pideAv();
+ if(want.size)pideAv();
  seated.forEach((s,k)=>{const w=want.get(k);if(!w||(!s.av&&conAv(w))){if(s.av){AV.quita(s.g);if(s.ch&&s.ch.parent)s.ch.parent.remove(s.ch)}else disposeG(s.g);s.t.chairs[s.j].visible=true;seated.delete(k)}});
- want.forEach((w,k)=>{if(seated.has(k))return;const c=w.t.chairs[w.j],fs=w.t.fl===FL?SC:w.t.fl.SC,ya=conAv(w),g=ya?AV.crearYa(w.av):mkG(w.n,1);c.visible=false;const co=cp(c);   // el Mii trae su silla; el personaje va en una silla como las de la mesa del juego (c_mesa3d.js), donde sus piernas cuelgan
+ want.forEach((w,k)=>{if(seated.has(k)||!conAv(w))return;const c=w.t.chairs[w.j],fs=w.t.fl===FL?SC:w.t.fl.SC,ya=conAv(w),g=ya?AV.crearYa(w.av):mkG(w.n,1);c.visible=false;const co=cp(c);   // el Mii trae su silla; el personaje va en una silla como las de la mesa del juego (c_mesa3d.js), donde sus piernas cuelgan
   const ry=Math.atan2(-co.x,-co.z);let ch=null;
   if(ya&&window.MESA&&MESA.sillaSola){AV.sentar(g,true);AV.pose(g,w.pop?'Reposo':'AgarreFrente',0);ch=MESA.sillaSola();ch.add(g);g.position.set(0,-1.27,-.25);ch.rotation.y=ry;ch.position.set(w.t.x+co.x,1.55,w.t.z+co.z);if(fs)fs.add(ch)}
   else{if(fs)fs.add(g);g.rotation.y=ry;if(ya){AV.sentar(g,true);AV.pose(g,w.pop?'Reposo':'AgarreFrente',0);g.position.set(w.t.x+co.x-.2*Math.sin(ry),.24,w.t.z+co.z-.2*Math.cos(ry))}
