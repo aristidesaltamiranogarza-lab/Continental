@@ -9,7 +9,7 @@ function ventana(R,fps){const pr=R.getPixelRatio();
  if(++malas<2)return;malas=0;const nv=Math.max(1,Math.round((pr-.25)*4)/4);prueba={de:pr,fps};tope=TO[p0]=nv;R.setPixelRatio(nv);
  console.info('[RES]',Math.round(fps),'fps: densidad',pr,'→',nv)}
 function tick(now){requestAnimationFrame(tick);const R=window.CASA3D&&CASA3D.R&&CASA3D.R();
- if(!R||!R.info||document.hidden){t0=0;return}
+ if(!R||!R.info||document.hidden||(window.FONDO&&now-(FONDO.t||-1e9)<600)){t0=0;return}   // un juego pinta encima (FONDO.pinta pone su densidad)
  if(window.CALIDAD!==q0){q0=window.CALIDAD;tope=0;TO={};muerto=false;prueba=null;malas=0}
  // cada piso se prueba aparte y guarda su resolución; los primeros 5 s y mientras bajan modelos no se mide (son tirones de carga)
  const pi=CASA3D.piso&&CASA3D.piso();if(pi!==p0){p0=pi;tope=TO[pi]||0;tp=now;muerto=false;prueba=null;malas=0;t0=0;return}
