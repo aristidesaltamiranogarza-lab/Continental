@@ -3,10 +3,11 @@
 (function(){
 const I=n=>window.UI?UI.ico(n):'',es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const COL={continental:'#1F6B4A',uno:'#B23A2E',monopolydeal:'#2D5D8A',merida:'#3F7D4F',haciendas:'#8A6A2A',rummy:'#24527A',ruleta:'#6A2436',bj:'#1E5A3C',pk:'#2E3F6E',billar:'#2F6B3A'};
-// mesas del sótano (no son salas): Blackjack y Póker abren C2D; el Billar aún no se juega
+// mesas del sótano (no son salas): Blackjack y Póker abren C2D; el Billar, B2D (c_billar2d.js)
 const CAS={bj:{n:'Blackjack',ic:'blackjack'},pk:{n:'Póker',ic:'poker'},billar:{n:'Billar',ic:'billar'}};
 let cas='';
 const c2d=()=>!!(window.C2D&&C2D.ok&&C2D.ok());
+const b2d=()=>!!(window.B2D&&B2D.ok&&B2D.ok());
 const ORD=['continental','uno','monopolydeal','merida','haciendas','rummy','ruleta'];
 const nom=k=>CAS[k]?CAS[k].n:window.lobbyName?lobbyName(k):(GM[k]||{}).name||k;
 const ico=k=>CAS[k]?`<img src="iconos/${CAS[k].ic}.png" alt="">`:window.SALA&&SALA.ico?SALA.ico(k):`<span class="lb-emo">${(GM[k]||{}).emoji||''}</span>`;
@@ -38,9 +39,9 @@ function home(){on();if(cas&&!c2d())cas='';const k=cas||(GM[pgame]?pgame:'contin
  return `<div class="ui lb" style="--lb-c:${COL[k]||'#C2512A'}">${top()}
  <section class="ui-card lb-card"><label class="ui-lbl" for="lbNom">Tu nombre</label><input id="lbNom" class="ui-in" placeholder="¿Cómo te llamas?" maxlength="14" value="${es(pname)}" oninput="pname=this.value" autocomplete="nickname"></section>
  <section class="ui-card lb-card"><h2>${I('nuevo')}Crear una sala</h2>${cajas(sel,'LOBBY.elige',1)}
-  ${cas?cab(k,cas==='billar'?'Aún no está lista':'Mesa del sótano'):cab(k,'Hasta '+(g.max||6)+' jugadores')}
-  <div class="lb-dos">${cas==='billar'?'<button class="ui-btn" disabled>Muy pronto</button>':cas?`<button class="ui-btn" onclick="C2D.abre('${cas}')">${I('jugar')}Ir a la mesa</button>`:`<button class="ui-btn" onclick="mk('listo')">${I('jugar')}Crear y jugar</button>`}</div>
-  ${cas&&cas!=='billar'?'<p class="ui-sub lb-nota">Juegas con quien esté en la casa.</p>':''}</section>
+  ${cas?cab(k,'Mesa del sótano'):cab(k,'Hasta '+(g.max||6)+' jugadores')}
+  <div class="lb-dos">${cas==='billar'?(b2d()?`<button class="ui-btn" onclick="B2D.abre()">${I('jugar')}Ir a la mesa</button>`:'<button class="ui-btn" disabled>No disponible</button>'):cas?`<button class="ui-btn" onclick="C2D.abre('${cas}')">${I('jugar')}Ir a la mesa</button>`:`<button class="ui-btn" onclick="mk('listo')">${I('jugar')}Crear y jugar</button>`}</div>
+  ${cas?'<p class="ui-sub lb-nota">Juegas con quien esté en la casa.</p>':''}</section>
  <section class="ui-card lb-card"><h2>${I('gente')}Unirme a una sala</h2><div class="lb-join"><input class="ui-in lb-code" placeholder="CÓDIGO" maxlength="5" value="${es(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala" autocomplete="off" autocapitalize="characters"><button class="ui-btn" onclick="joinR()">Unirme</button></div>${err()}</section>
  ${ajustes()}${cas?'':reglas(g)}</div>`}
 

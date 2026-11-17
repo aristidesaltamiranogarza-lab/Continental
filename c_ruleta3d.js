@@ -293,8 +293,10 @@ window.RRU={spin:s=>{tick();send({t:'spin',s:!!s})},shoot:k=>{tick();send({t:'sh
 // ---- enganche con game.js ----
 GM.ruleta.body=function(){if(!active())return body0();GHUD.save();try{return hud()}catch(e){console.warn('Ruleta:',e);return body0()}};
 GM.ruleta.after=function(){if(!active()){off();return}on=true;GHUD.restore();const r=document.documentElement;r.classList.add('rrui');
- if(OK3&&RRG&&!failed){try{show(true);sync(V.G)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false)}}r.classList.toggle('rr2d',!OK3||!RRG||failed)};
-function off(){if(!on)return;on=false;menu=false;document.documentElement.classList.remove('rrui','rr2d');if(ready){show(false);clearPlayers();RRG.reset();sig='';G0=null;stg=null}}
+ let d2=!OK3||!RRG||failed||!!(window.RR2D&&RR2D.usa());   // modo Ligero (o sin 3D): la mesa en 2D de c_rr2d.js
+ if(!d2){try{show(true);sync(V.G)}catch(e){console.warn('Ruleta 3D:',e);failed=true;show(false);d2=true}}else if(ready&&shown)show(false);
+ r.classList.toggle('rr2d',d2);if(window.RR2D)RR2D.pinta(d2?V:null)};
+function off(){if(!on)return;on=false;menu=false;if(window.RR2D)RR2D.pinta(null);document.documentElement.classList.remove('rrui','rr2d');if(ready){show(false);clearPlayers();RRG.reset();sig='';G0=null;stg=null}}
 setInterval(()=>{if(on&&!active())off()},400);
 const css2=document.createElement('style');css2.textContent=`html.rrui,html.rrui body{overflow:hidden;height:100%;overscroll-behavior:none}html.rrui body{background:#030202}
 html.rrui #app{pointer-events:none;max-width:none;margin:0;padding:0}html.rrui #app>:not(.rr-hud){display:none!important}
