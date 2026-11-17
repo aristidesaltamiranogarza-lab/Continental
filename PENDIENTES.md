@@ -121,7 +121,7 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 - [x] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
 - [x] Paso 5 de la UI (prompt_ui.md), en pausa.
 - [x] 4d Mesas ocupadas: c_casa_ocupada.js (OCUP), mazo, pila, cartas que vuelan y aro de turno.
-- [ ] Monopoly Deal en su mesa (hoy es pantalla 2D): ver «Juegos nuevos» (abajo).
+- [x] Monopoly Deal en su mesa: ver «Juegos nuevos» (abajo).
 - [x] Fase 5: Blackjack, Póker y Billar jugables en el sótano: ver «Juegos nuevos» (abajo).
 
 ## Ruleta Rusa con los personajes nuevos (plan del 11 nov 2026)
@@ -238,7 +238,8 @@ Hecho: `c_c4_2d.js` (C42D) dibuja el tablero plano dentro de la ventanita del Co
 - [x] P6 Crupier con atuendo propio, sonidos, gestos, quitar "Próximamente", celular y compu.
   Hecho: BJC es fábrica (`BJC.nueva`); `PKC` (en c_bj_crupier.js) es la crupier del Póker (blusa crema) en una tarima nueva de CAS3.poker (D.crupier/tarima/zapato/casillas); cada carta sale de su mano (PKC.reparte(s,at), A.reparte 230), mira al del turno y al ganador. Baraja y descarte más cerca de ella. MPJ festeja quien gana 200 o más y se agarra la cabeza quien queda en 0. Letrero: "Ciegas $5 / $10". Sonidos ya estaban (deal, chip, chips, tick). Falta: ver una mano real (sin sala no hay /casa) en compu y celular y afinar sus gestos para la baraja.
 
-### [ ] Monopoly Deal en 3D (salón de la planta baja)
+### [x] Monopoly Deal en 3D (salón de la planta baja)
+Hecho (respuestas: las recomendadas): mesa redonda (MESA, fieltro azul; la casa pone la misma con MESA_J), mano en abanico frente a la cámara, cada zona del fieltro con el banco en billetes a la izquierda y las propiedades en columnas por color (casa y hotel encima; sets completos con brillo), tocar y elegir en una tarjeta (MD3U), pagar y robar tocando cartas en la mesa (brillan las que se pueden elegir), tocar un nombre = ver su zona desde su lado, cámara de Uno (MCAM, Arriba), personajes con gestos (robar, jugar, pagar, Di que no, set completo, ganar), "Vista clásica 2D" en el ☰ (localStorage md_3d). Archivos: c_mdeal3d.js (MD3), c_mdeal3d_kit.js (MD3K: caras sin emojis), c_mdeal3d_ui.js (MD3U), ui_mdeal3d.css. Pendiente: OCUP no muestra Monopoly Deal; el servidor no tiene bots de Monopoly Deal (g_monopolydeal.js sin M.bot).
 Hoy: reglas en `g_monopolydeal.js` (completas, con salas y bots) y pantalla 2D `c_monopolydeal.js` (GRANDE, la comparte el 2D Ligero: no tocarla) envuelta por `c_mdeal_hud.js`. Es solo presentación nueva sobre la mesa nueva (MESA/MPJ/MCAM), en módulos chicos nuevos.
 **Preguntas (hacerlas todas antes de empezar):**
 1. Mesa: ¿la misma mesa redonda nueva (`c_mesa3d.js`) de Continental y Uno, o una propia?
