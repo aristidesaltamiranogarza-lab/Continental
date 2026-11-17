@@ -198,7 +198,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
  for(let i=0;i<nv;i++){const key='dk'+i,m=ens(key,null);live.add(key);m.userData.nw=0;m.userData.hit={t:'deck'};hits.push(m);target(m,SC,v3(L.deck.x+(i%2)*.006,.012+i*CT*L.ps*1.5,L.deck.z),Qe(0,(i%3-1)*.012,Math.PI),L.ps,{ms:250})}
  // descarte: las últimas que cayeron, un poco desordenadas
  const dsc=(G.disc||[]).slice(-6);
- dsc.forEach((id,i)=>{const key='c'+id,h=hh(id),fk=from[id],m=ens(key,'c'+id,fk!=null&&fk!==me?seatW(fk):null);live.add(key);m.userData.hit={t:'disc'};hits.push(m);
+ dsc.forEach((id,i)=>{const key='c'+id,h=hh(id),fk=from[id],m=ens(key,'c'+id,fk!=null&&fk!==me?seatW(fk):null);live.add(key);m.userData.hit={t:'disc',id};hits.push(m);
   go(m,SC,v3(L.disc.x+((h%13)-6)*.02,.012+i*CT*L.ps*1.6,L.disc.z+(((h>>5)%11)-5)*.02),Qe(0,((h>>9)%41-20)*.02,0),L.ps,{spin:fk!=null&&!first?Math.PI*2:0})});
  avSync();
  // qué brilla: lo que puedes pagar, robar o mover
@@ -232,7 +232,12 @@ function sync(){if(!ready||!L||!mesa||!active())return;
 
 // ---------- tocar ----------
 function pick(e){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
- const h=ray.intersectObjects(hits,false).filter(x=>x.object.userData.hit&&(!window.FONDO||FONDO.seen(x.object)));return h.length?h[0].object.userData.hit:null}
+ const h=ray.intersectObjects(hits,false).filter(x=>x.object.userData.hit&&(!window.FONDO||FONDO.seen(x.object)));if(h.length)pick.o=h[0].object;return h.length?h[0].object.userData.hit:null}
+// mantener presionada una carta: verla en grande (MD3Z)
+function lpRect(o){const b=new THREE.Box3().setFromObject(o),r=cv.getBoundingClientRect();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(let i=0;i<8;i++){const q=v3(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).project(CA),x=r.left+(q.x+1)/2*r.width,y=r.top+(1-q.y)/2*r.height;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
+ const h=y1-y0,w=Math.min(x1-x0,h/1.5);return {x:(x0+x1)/2-w/2,y:y0,w,h:w*1.5}}
+function lpArm(){const s=st;if(!s||!s.hit||s.hit.id==null||!window.MD3Z)return;const o=pick.o,id=s.hit.id;s.lp=setTimeout(()=>{if(st!==s||s.g)return;s.lpd=true;try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}MD3Z.abre(id,lpRect(o))},420)}
 function pDown(e){if(!active())return;if(mc)mc.toca();if(menu){menu=false;render();return}
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(tch.size==2){st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);VT.who=-1;
@@ -240,7 +245,7 @@ function pDown(e){if(!active())return;if(mc)mc.toca();if(menu){menu=false;render
   if(tch.size>2)return}
  if(e.button==1)e.preventDefault();
  const rot=e.button==1||(e.button==2&&e.shiftKey),pan=e.button==2&&!rot;if(pan||rot)cv.style.cursor=rot?'move':'grabbing';
- st={x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.a,t0:VW.t,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
+ st={x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.a,t0:VW.t,g:null};lpArm();try{cv.setPointerCapture(e.pointerId)}catch(_){}}
 function pMove(e){if(!active())return;
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
@@ -256,7 +261,8 @@ function pMove(e){if(!active())return;
  if(st.g||Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){if(!st.g){st.g=ground(st.x,st.y);VT.who=-1;if(!st.pan)cv.style.cursor='grabbing'}
   const p=ground(e.clientX,e.clientY);if(st.g&&p){VT.x=VW.x+st.g.x-p.x;VT.z=VW.z+st.g.z-p.z;VT.k=VW.k;snap()}}}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}
- if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
+ if(!st||e.pointerId!==st.pid)return;const s=st;st=null;clearTimeout(s.lp);try{cv.releasePointerCapture(e.pointerId)}catch(_){}
+ if(s.lpd)return;
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}
  if(mc&&(!s.hit||s.hit.t=='zone'||s.hit.t=='seat')&&!mdTg&&mc.dobleToque(s.x,s.y))return;
  tap(s.hit)}
