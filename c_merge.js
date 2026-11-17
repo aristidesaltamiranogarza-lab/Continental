@@ -53,10 +53,14 @@ function junta(lista,T,hornea){   // geometría en las coordenadas de T; hornea:
   v0+=c;i0+=n}
  for(const n of names){const a=lista[0].geometry.attributes[n];out.setAttribute(n,new THREE.BufferAttribute(buf[n],isz(n),!!(a&&a.normalized&&!(n==='color'&&hornea))))}
  out.setIndex(new THREE.BufferAttribute(idx,1));out.computeBoundingSphere();out.computeBoundingBox();return out}
+// material de las mallas juntas: una copia por clave, compartida entre grupos (menos cambios de material); si cambia el original, vigila deshace el grupo
+const MATS=new Map();
+function matDe(src,h){const k=(h?'c#':'')+clave(src,h);let e=MATS.get(k);if(!e){const m=src.clone();if(h){m.color.set(0xffffff);m.vertexColors=true}MATS.set(k,e={m,n:0,k})}e.n++;return e}
+function suelta(e){if(--e.n<=0){MATS.delete(e.k);e.m.dispose()}}
 function oculta(o,G){const d=Object.getOwnPropertyDescriptor(o,'visible'),acc=d&&d.get;let vv=acc?vis(o):true;OC.add(o);   // acc: ya trae un visible con get/set (CUA)
  Object.defineProperty(o,'visible',{configurable:true,get:()=>G.vivo?false:acc?d.get.call(o):vv,set:v=>{if(acc)d.set.call(o,v);if(G.vivo&&v!==vv){vv=v;NO.add(o);deshaz(G)}else vv=v}});
  return()=>{OC.delete(o);if(acc)Object.defineProperty(o,'visible',d);else{delete o.visible;o.visible=vv}}}
-function deshaz(G){if(!G.vivo)return;G.vivo=false;G.malla.parent&&G.malla.parent.remove(G.malla);G.malla.geometry.dispose();if(G.mat)G.mat.dispose();
+function deshaz(G){if(!G.vivo)return;G.vivo=false;G.malla.parent&&G.malla.parent.remove(G.malla);G.malla.geometry.dispose();if(G.me)suelta(G.me);
  G.items.forEach(it=>it.res());const i=grupos.indexOf(G);if(i>=0)grupos.splice(i,1)}
 // 0: nada; si una pieza cambió se marca NO; si un grupo intermedio cambió se marca DIN
 function revisa(G){if(!G.malla.parent)return true;
@@ -75,7 +79,7 @@ function pasada(){if(off||!window.CASA3D||!CASA3D.sc)return;const sc=CASA3D.sc()
   solas.forEach((l,k)=>{if(l.length>1)cub.set('c#'+k,l)});
   const anc=[...e.anc].map(a=>({o:a,v:vis(a),pa:a.parent,p:pose(a)}));
   cub.forEach((l,k)=>{if(l.length<2)return;const G={vivo:true,items:[],anc:anc.filter(a=>l.some(o=>{for(let p=o.parent;p&&p!==T;p=p.parent)if(p===a.o)return true;return false}))},h=k.startsWith('c#');
-   let mat=l[0].material;if(h){mat=mat.clone();mat.color.set(0xffffff);mat.vertexColors=true;G.mat=mat}
+   G.me=matDe(l[0].material,h);const mat=G.me.m;
    const m=new THREE.Mesh(junta(l,T,h),mat);m.castShadow=l[0].castShadow;m.receiveShadow=l[0].receiveShadow;m.renderOrder=l[0].renderOrder;m.frustumCulled=l[0].frustumCulled;m.layers.mask=l[0].layers.mask;
    m.userData._mrg=true;m.raycast=()=>{};m.name='mrg';G.malla=m;
    m.onBeforeRender=()=>{if(G.vivo&&revisa(G))queueMicrotask(()=>deshaz(G))};   // cada cuadro que se dibuja
@@ -88,5 +92,5 @@ function vigila(){if(!grupos.length)return;const n=Math.max(1,Math.ceil(grupos.l
   if(roto)deshaz(G)}}
 setInterval(pasada,2000);setInterval(vigila,120);
 window.MRG={off(v){off=!!v;try{v?localStorage.setItem('mrg_off','1'):localStorage.removeItem('mrg_off')}catch(e){}if(v)grupos.slice().forEach(deshaz)},
- info:()=>({mallas:grupos.length,piezas:grupos.reduce((s,G)=>s+G.items.length,0)}),pasada};
+ info:()=>({mallas:grupos.length,materiales:MATS.size,piezas:grupos.reduce((s,G)=>s+G.items.length,0)}),pasada};
 })();

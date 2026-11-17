@@ -30,14 +30,22 @@ const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&C
 function subeTex(s){const v=new Set();s.traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture&&!v.has(t)){v.add(t);R.initTexture(t)}}})})}
 // P3: al acercarte a una escalera o puerta de un piso que no se ha armado, se arma en un rato libre, se compilan sus shaders
 // en segundo plano y se suben sus texturas de una por cuadro; al llegar, goFloor ya lo encuentra listo y no se traba.
-let preT=0,preN=null;window.PREARMA=()=>({preN,listos:Object.keys(FLS),cerca:[...TB.filter(x=>x.to),...LK].map(l=>[l.to,+Math.hypot(me.pos.x-l.x,me.pos.z-l.z).toFixed(1),l.ax==null?null:+Math.hypot(me.pos.x-l.ax,me.pos.z-l.az).toFixed(1)])});   // consola: estado del armado previo
-function prearma(now){if(fBusy||preN||now-preT<500||!me)return;preT=now;const p=me.pos;
- const d=[...TB.filter(x=>x.to),...LK].find(l=>l.to&&l.to!=='pb'&&!FLS[l.to]&&canGo(l.to)&&Math.min(Math.hypot(p.x-l.x,p.z-l.z),l.ax==null?1e9:Math.hypot(p.x-l.ax,p.z-l.az))<(l.r||1)+(window.MOVIL?3:8));if(!d)return;preN=d.to;   // celular: solo ya junto a la escalera (al cargar estás a ~7 m y la planta alta pesa)
+let preT=0,preN=null;window.PREARMA=id=>(id&&prearma(performance.now(),id),{geo:geoQ?geoQ.l.length:0,geoMx:+geoMx.toFixed(1),preN,listos:Object.keys(FLS),cerca:[...TB.filter(x=>x.to),...LK].map(l=>[l.to,+Math.hypot(me.pos.x-l.x,me.pos.z-l.z).toFixed(1),l.ax==null?null:+Math.hypot(me.pos.x-l.ax,me.pos.z-l.az).toFixed(1)])});   // consola: estado del armado previo
+function prearma(now,forz){if(fBusy||preN||(!forz&&now-preT<500)||!me)return;preT=now;const p=me.pos;
+ const d=forz&&!FLS[forz]?{to:forz}:forz?null:[...TB.filter(x=>x.to),...LK].find(l=>l.to&&l.to!=='pb'&&!FLS[l.to]&&canGo(l.to)&&Math.min(Math.hypot(p.x-l.x,p.z-l.z),l.ax==null?1e9:Math.hypot(p.x-l.ax,p.z-l.az))<(l.r||1)+(window.MOVIL?3:8));if(!d)return;preN=d.to;   // celular: solo ya junto a la escalera (al cargar estás a ~7 m y la planta alta pesa)
  const ric=window.requestIdleCallback||(f=>setTimeout(f,60));
  ric(()=>{let nf=null;try{nf=FLS[preN]||fmod(preN).piso()}catch(e){console.warn('[prearma]',e)}if(!nf){preN=null;return}FLS[nf.id]=nf;
   const ts=[];nf.SC.traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture&&!ts.includes(t))ts.push(t)}})});
-  const sube=()=>{if(!ts.length){preN=null;return}try{R.initTexture(ts.shift())}catch(e){}requestAnimationFrame(sube)};
+  const sube=()=>{if(!ts.length){geoIni(nf.SC);return}try{R.initTexture(ts.shift())}catch(e){}requestAnimationFrame(sube)};
   const pr=R.compileAsync?R.compileAsync(nf.SC,CA).catch(()=>{}):null;if(pr)pr.then(sube);else sube()},{timeout:1500})}
+// geometría del piso prearmado: se sube por partes antes de llegar (un dibujo de 1 px con una cámara que solo ve la capa 31, antes del cuadro normal)
+let geoQ=null,geoMx=0;const geoCam=new THREE.PerspectiveCamera();geoCam.layers.set(31);
+function geoIni(sc){const l=[],gs=new Set(),def=THREE.Object3D.prototype.onBeforeRender;sc.traverse(o=>{if(o.isLight)o.layers.enable(31);else if(o.geometry&&o.material&&!gs.has(o.geometry)&&o.onBeforeRender===def){gs.add(o.geometry);l.push(o)}});geoQ=l.length?{sc,l}:null;if(!geoQ)preN=null}
+function subeGeo(){if(!geoQ)return;if(geoQ.sc===SC||!geoQ.l.length){geoQ=null;preN=null;return}
+ const ch=[],tope=window.MOVIL?25e3:6e4;let v=0;while(geoQ.l.length&&ch.length<40&&v<tope){const o=geoQ.l.shift();const p=o.geometry.attributes&&o.geometry.attributes.position;v+=p?p.count:0;ch.push(o)}
+const t0=performance.now(); const fc=ch.map(o=>{o.layers.enable(31);const f=o.frustumCulled;o.frustumCulled=false;return f});const st=R.getScissorTest(),ac=R.autoClear,au=R.shadowMap.autoUpdate;
+ try{R.setScissorTest(true);R.setScissor(0,0,1,1);R.autoClear=true;R.shadowMap.autoUpdate=false;R.render(geoQ.sc,geoCam)}catch(e){console.warn('[subeGeo]',e)}
+ R.setScissorTest(st);R.autoClear=ac;R.shadowMap.autoUpdate=au;ch.forEach((o,i)=>{o.layers.disable(31);o.frustumCulled=fc[i]});geoMx=Math.max(geoMx,performance.now()-t0)}
 function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
  const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];if(window.CGLB)CGLB.piso(nf.id);
@@ -471,7 +479,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
+ try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();subeGeo()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
