@@ -18,7 +18,7 @@ function crea(o){const VT=o.vt;let toque=-1e9,cut=null,hd=0,tl=0,tap=null;
   dobleToque(x,y){const t=performance.now(),d=!!tap&&t-tap.t<330&&Math.hypot(x-tap.x,y-tap.y)<40;tap=d?null:{t,x,y};if(d)c.arriba(!VT.top);return d},
   paso(now,s){const dt=Math.min(100,now-(tl||now));tl=now;
    if(cut&&now>cut.hasta){cut=null;o.home();o.snap()}
-   if(!cut&&!VT.top&&!s.quieto&&o.viewed()&&now-toque>ESPERA)o.home();
+   if(!cut&&!VT.top&&!(VT.who>=0)&&!s.quieto&&o.viewed()&&now-toque>ESPERA)o.home();
    // voltear hacia el que tiene el turno: una fracción del ángulo, sin pasar de ~7°
    let g=0;const m=s.cam,p=s.turno;
    if(p&&m&&!cut&&!o.viewed()&&!RMo()){const th=wrap(Math.atan2(m.px-p.x,m.pz-p.z)-Math.atan2(m.px-m.lx,m.pz-m.lz));g=Math.max(-.12,Math.min(.12,.35*th))}

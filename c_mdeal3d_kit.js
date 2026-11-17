@@ -3,12 +3,12 @@
 // MD3K.url(id) → imagen para la interfaz; MD3K.ACOL[k] color de cada acción; MD3K.TW/TH tamaño de la textura.
 (function(){
 if(typeof mdCAT=='undefined')return;
-const TW=256,TH=384,C={},F='"Nunito","Segoe UI",Arial,sans-serif';
+const TW=256,TH=384,S=matchMedia('(pointer:coarse)').matches?2:3,C={},F='"Nunito","Segoe UI",Arial,sans-serif';
 const ACOL={tratosucio:'#7a3fa0',dino:'#c0392b',ladron:'#2d6a8a',forzoso:'#c47a12',cobro:'#2e7d4f',cumple:'#d0507a',salida:'#1f8a8a',casa:'#3f8f3a',hotel:'#b8312f',doble:'#c9971a'};
 const ADES={tratosucio:'Roba un set completo a un rival.',dino:'Anula una acción en tu contra.',ladron:'Roba una propiedad de un set sin completar.',forzoso:'Cambia una propiedad tuya por una de un rival.',
  cobro:'Un rival te paga $5M.',cumple:'Cada rival te paga $2M.',salida:'Roba 2 cartas.',casa:'Súmale $3M de renta a un set completo.',hotel:'Súmale $4M de renta a un set con casa.',doble:'Juégala con una renta: cobra el doble.'};
 const BILL={1:['#efe6c8','#7a6526'],2:['#f4cdd6','#9c3550'],3:['#d3e8c3','#3c6e2c'],4:['#c3dcf0','#265d8a'],5:['#dccdee','#5b3a8a'],10:['#f7d6a0','#9a5a0c']};
-function cnv(){const c=document.createElement('canvas');c.width=TW;c.height=TH;return c}
+function cnv(){const c=document.createElement('canvas');c.width=TW*S;c.height=TH*S;c.getContext('2d').scale(S,S);return c}
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
 // texto que cabe en w (baja el tamaño)
 function fit(g,t,x,y,w,px,wt,col,al){let s=px;g.font=`${wt||800} ${s}px ${F}`;while(s>10&&g.measureText(t).width>w){s--;g.font=`${wt||800} ${s}px ${F}`}g.fillStyle=col;g.textAlign=al||'center';g.textBaseline='middle';g.fillText(t,x,y)}

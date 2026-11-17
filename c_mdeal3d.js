@@ -21,7 +21,7 @@ const FELT=['#3d84cc','#123a68'];
 (window.MESA_J=window.MESA_J||{}).monopolydeal={col:()=>FELT,logo:null};   // la casa pone esta misma mesa (c_mesa3d.js)
 
 // ---------- texturas y cartas ----------
-function tx(c){const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R?Math.min(8,R.capabilities.getMaxAnisotropy()):4;return t}
+function tx(c){const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R?Math.min(16,R.capabilities.getMaxAnisotropy()):4;return t}
 const faceT=f=>texC[f]||(texC[f]=tx(f[0]=='b'?MD3K.billete(+f.slice(1)):MD3K.cara(+f.slice(1))));   // f: 'c'+id (su cara) o 'b'+valor (billete)
 const backT=()=>texC.d||(texC.d=tx(MD3K.dorso()));
 function glowTex(){if(texC.glow)return texC.glow;const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';g.beginPath();g.roundRect?g.roundRect(52,52,152,152,16):g.rect(52,52,152,152);g.fill();g.fill();return texC.glow=tx(c)}
@@ -108,10 +108,14 @@ function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));co
  VT.t=Math.max(.25-L.el,Math.min(1.5-L.el,VT.t));if(L.d)VT.k=Math.min(VT.k,Math.max(1,Math.sin(L.el+VT.t)*L.d/3.6))}
 const VK=['x','z','k','a','t'];
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);cam()}
-function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;VK.forEach(q=>{const d=VT[q]-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=VT[q];ch=1}});if(ch)cam()}
+// barrido al mirar a alguien: la cámara sube y se aleja a medio camino; ya ahí, se mece despacio
+let sw=0;const SWD=1000;
+function viewStep(dt){const now=performance.now(),sp=sw&&!RM?Math.min(1,(now-sw)/SWD):1;if(sp>=1)sw=0;const arc=sp<1?Math.sin(Math.PI*sp):0;
+ const sway=!RM&&!sw&&VT.who>=0?{a:.06*Math.sin(now/2600),t:.025*Math.sin(now/3700)}:null;
+ const f=RM?1:1-Math.exp(-dt/(sw?210:110));let ch=0;VK.forEach(q=>{const tg=VT[q]+(q=='t'?.3*arc:q=='k'?-.35*arc*VT.k/2:0)+(sway&&sway[q]||0),d=tg-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=tg;ch=1}});if(ch)cam()}
 const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
-function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,top:false})}
+function home(){if(VT.who>=0)sw=performance.now();VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,top:false})}
 function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:[0,-1],dn:[0,1],lf:[-1,0],rt:[1,0]}[c];
  if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;
  else if(mv){VT.x+=(mv[0]*ca+mv[1]*sa)*f;VT.z+=(-mv[0]*sa+mv[1]*ca)*f}else return;VT.who=-1;clampV()}
@@ -119,7 +123,7 @@ function ground(cx,cy){const r=cv.getBoundingClientRect();P2.set((cx-r.left)/r.w
 function zoomAt(cx,cy,k){const p=ground(cx,cy);k=Math.max(1,Math.min(KMAX,k));if(!p)return;const f=VT.k/k;VT.x=p.x-(p.x-VT.x)*f;VT.z=p.z-(p.z-VT.z)*f;VT.k=k;VT.who=-1;clampV()}
 // mirar la zona de un jugador desde su lado (sus cartas se leen derechas). Otra vez = regresar
 function look(k){if(!L||!mesa)return;if(mc)mc.toca();if(VT.who===k)return home();const z=zona(k);
- let a=Math.atan2(z.ez.x,z.ez.z);a=VW.a+wrap(a-VW.a);Object.assign(VT,{x:z.c.x,z:z.c.z,a,t:.12,k:k===V.me?1.9:2.1,who:k});clampV();sfx('card')}
+ let a=Math.atan2(z.ez.x,z.ez.z);a=VW.a+wrap(a-VW.a);Object.assign(VT,{x:z.c.x,z:z.c.z,a,t:.12,k:k===V.me?1.9:2.1,who:k});clampV();sw=performance.now();sfx('card')}
 function loc(px,py,d){const v=v3(px/W*2-1,1-py/H*2,.5).applyMatrix4(CA.projectionMatrixInverse);return v.multiplyScalar(-d/v.z)}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 
@@ -199,7 +203,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
  avSync();
  // qué brilla: lo que puedes pagar, robar o mover
  const pay=me>=0&&!fin&&mdPaying(),stl=!fin&&mine&&mdSt?mdSt.m:null,canMv=mine&&G.step=='play'&&!G.pa&&G.plays<3;
- const elig=h=>{if(pay)return h.k===me;if(stl){if(h.k===stl.tgt&&h.t=='tb'){if(stl.t=='deal')return h.full;if(stl.take==null||stl.t=='sly')return !h.full&&mdCAT[h.id].t!='a'}
+ const elig=h=>{if(pay)return h.k===me;if(stl){if(h.k===stl.tgt&&h.t=='tb'){if(stl.t=='deal')return h.full;return !h.full&&mdCAT[h.id].t!='a'}
    if(stl.t=='forced'&&stl.take!=null&&h.k===me&&h.t=='tb')return !h.full&&mdCAT[h.id].t!='a';return false}
   if(canMv&&h.k===me)return (h.t=='tb'&&mdCAT[h.id].t=='w')||h.t=='hl';return false};
  // zonas de cada jugador
@@ -266,7 +270,7 @@ function tap(h){const G=V.G,me=V.me,fin=G.phase=='final';
  if(mdTg&&k!=null&&k!==me)return mdTap(k);
  if(me>=0&&mdPaying()&&k===me&&h.id!=null)return mdPayTog(h.id);
  if(mdSt&&h.id!=null){const m=mdSt.m;
-  if(k===m.tgt&&h.t=='tb'){if(m.t=='deal'){if(h.full)return mdStGrp(h.col);return bad('Toca un set completo.')}if(m.take==null||m.t=='sly'){if(!h.full&&mdCAT[h.id].t!='a')return mdStTake(h.id);return bad('Solo propiedades de sets sin completar.')}}
+  if(k===m.tgt&&h.t=='tb'){if(m.t=='deal'){if(h.full)return mdStGrp(h.col);return bad('Toca un set completo.')}{if(!h.full&&mdCAT[h.id].t!='a')return mdStTake(h.id);return bad('Solo propiedades de sets sin completar.')}}
   if(m.t=='forced'&&m.take!=null&&k===me&&h.t=='tb'){if(!h.full&&mdCAT[h.id].t!='a')return mdStGive(h.id);return bad('Solo propiedades de sets sin completar.')}}
  if(k===me&&G.turn==me&&h.id!=null){if(h.t=='tb'&&mdCAT[h.id].t=='w')return mdPickT(h.id);if(h.t=='hl')return mdPickL(h.id)}
  if(k!=null)look(k)}
