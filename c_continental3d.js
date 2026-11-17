@@ -339,7 +339,7 @@ function bgTap(p){const g=bgmine();if(!g){if(!bgg()){bgopen=true;render()}return
 function bgLook(){if(!BGB||!L)return;const wc=BGB.g.localToWorld(v3(.2,.15,0)),me=bgg(),a=me&&me.p.indexOf(V.me)==1?Math.PI:0,e=1.3,t=wc.y/Math.sin(e);
  const k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/4.2*(L.por?.85:.62);
  Object.assign(VT,{x:wc.x-Math.sin(a)*Math.cos(e)*t,z:wc.z-Math.cos(a)*Math.cos(e)*t,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:false,bg:true,top:false});clampV();sfx('card')}
-function bgdiscover(){if(bgfound)return;bgfound=true;try{localStorage.setItem('cont_bgf','1')}catch(e){}sfx('win');confetti(30);banner('🎲 ¡Encontraste un juego secreto: Backgammon!')}
+function bgdiscover(){if(bgfound)return;bgfound=true;try{localStorage.setItem('cont_bgf','1')}catch(e){}sfx('win');confetti(30);banner('Juego secreto: Backgammon')}
 const BGIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" fill="#5a3418"/><rect x="3.5" y="5.5" width="17" height="13" fill="#1f5b3a"/><path d="M4 5.5l1.5 6 1.5-6zM7.5 5.5l1.5 6 1.5-6zM13.5 18.5l1.5-6 1.5 6zM17 18.5l1.5-6 1.5 6z" fill="#e8dcc0"/><path d="M5.8 18.5l1.5-6 1.5 6zM15.3 5.5l1.5 6 1.5-6z" fill="#9e2a2a"/><rect x="11.4" y="5.5" width="1.2" height="13" fill="#5a3418"/></svg>';
 const bgdisc=k=>`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
 function bgUI(top){const G=V.G,me=V.me;if(me<0)return '';const g=bgg(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
@@ -348,20 +348,19 @@ function bgUI(top){const G=V.G,me=V.me;if(me<0)return '';const g=bgg(),mi=g?g.p.
  if(inv&&!bgopen)h+=`<div id="t3bgi" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Backgammon</b><span><button class="ui-btn sec" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></span></div>`;
  if(!bgopen)return h;let b='';
  if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.bgs||[]).some(x=>x.st!='end'&&x.p.includes(k));
-  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="bginv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
-   <div class="c4n">Saca tus 15 fichas antes que tu rival. Los dados se tiran solos al empezar cada turno.</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="gj-btns"><button class="ui-btn sec" onclick="bga('end')">Cancelar</button></div>`
+  b=`<div class="c4t">Rival</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="bginv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>Sin rivales</span>'}</div>`}
+ else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a <b>${nm(op)}</b>…</div><div class="gj-btns"><button class="ui-btn sec" onclick="bga('end')">Cancelar</button></div>`
   :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Backgammon</div><div class="gj-btns"><button class="ui-btn" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></div>`;
- else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]} (dobles)`:g.dice.join(' y ');
-  const st=g.st=='play'?(myT?(g.mv.length?`${bgdisc(mi)} <b>¡Tu turno!</b> Dados: ${dc}. Toca una ficha y luego a dónde moverla`:`${bgdisc(mi)} Dados: ${dc}. No tienes jugadas`):`${bgdisc(1-mi)} Turno de ${nm(op)}… (dados: ${dc})`)
-   :g.w==mi?(g.why?`🏆 ${nm(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
-  b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${bgdisc(0)} ${nm(g.p[0])} (${g.off[0]}/15) &nbsp;vs&nbsp; ${bgdisc(1)} ${nm(g.p[1])} (${g.off[1]}/15)</div>
-   <div class="gj-btns">${VT.bg?'<button class="ui-btn sec" onclick="bgo(0)">Volver a la mesa</button>':'<button class="ui-btn" onclick="bggo()">Ver tablero</button>'}${myT&&!g.mv.length?'<button class="ui-btn" onclick="bga(\'pass\')">Pasar turno</button>':''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Backgammon?'))bga('end')">Rendirse</button>`:`<button class="ui-btn" onclick="bginv(${op})">Revancha</button><button class="ui-btn sec" onclick="bga('end')">Nueva partida</button>`}</div>`}
+ else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]}`:g.dice.join(' y ');
+  const st=g.st=='play'?(myT?(g.mv.length?`${bgdisc(mi)} <b>¡Tu turno!</b> ${dc}`:`${bgdisc(mi)} ${dc} · sin jugadas`):`${bgdisc(1-mi)} ${nm(op)} · ${dc}`)
+   :g.w==mi?(g.why?`${nm(op)} se rindió`:'<b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
+  b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${bgdisc(0)} ${nm(g.p[0])} ${g.off[0]}/15 &nbsp;vs&nbsp; ${bgdisc(1)} ${nm(g.p[1])} ${g.off[1]}/15</div>
+   <div class="gj-btns">${VT.bg?'<button class="ui-btn sec" onclick="bgo(0)">Volver</button>':'<button class="ui-btn" onclick="bggo()">Ver tablero</button>'}${myT&&!g.mv.length?'<button class="ui-btn" onclick="bga(\'pass\')">Pasar</button>':''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Backgammon?'))bga('end')">Rendirse</button>`:`<button class="ui-btn" onclick="bginv(${op})">Revancha</button><button class="ui-btn sec" onclick="bga('end')">Nueva partida</button>`}</div>`}
  return h+`<div id="t3bg" class="ui ui-card t3gp" role="dialog" aria-label="Backgammon"><div class="ui-hd"><h2 class="ui-h">Backgammon</h2><button class="ui-x" onclick="bgo(0)" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="ui-bd">${b}</div></div>`}
 function bgcheck(){const g=bgg();if(!g){bgsnap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,JSON.stringify(g.last),g.turn,g.rn,g.w].join('|');if(k===bgsnap)return;
  const o=bgsnap.split('|');bgsnap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
  if(o[2]!==JSON.stringify(g.last))sfx('place');if(o[4]!==String(g.rn))sfx('shuf');
- if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('🏆 ¡Ganaste Backgammon!')}else sfx('tick')}
+ if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('¡Ganaste Backgammon!')}else sfx('tick')}
  else if(g.st=='play'&&g.turn==mi&&(o[1]!='play'||+o[3]!==g.turn))setTimeout(()=>sfx('go'),400)}
 const bgSend=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'bg'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
 window.bga=op=>{const g=bgg();if(op=='acc')bgdiscover();if(g)bgSend({op,id:g.id})};
@@ -508,27 +507,27 @@ function part(ts,ids){const key=ts.join('')+':'+ids.slice().sort((a,b)=>a-b).joi
 function pool(){return staged.flatMap(g=>g.ids).concat([...sel])}
 function listo(){return staged.length&&((!sel.size&&staged.every(okSlot))||!!part(types(),pool()))}
 function addTo(k,ids){const g=staged[k];if(!g)return;const nx=g.ids.concat(ids.filter(x=>!g.ids.includes(x)));
- if(!canBe(g.type,nx.map(C))){const m=slots.get(k);if(m)m.userData.badT=Date.now();return bad(g.type=='T'?'Un trío lleva cartas del mismo número.':'Una corrida lleva cartas del mismo palo, sin repetir número.')}
+ if(!canBe(g.type,nx.map(C))){const m=slots.get(k);if(m)m.userData.badT=Date.now();return bad(g.type=='T'?'Trío: mismo número':'Corrida: mismo palo, sin repetir')}
  g.ids=ordered(g.type,nx);ids.forEach(x=>sel.delete(x));sfx(okSlot(g)?'tick':'place');render()}
 function backFrom(k){const g=staged[k];if(!g||!g.ids.length)return;g.ids=[];sfx('place');render()}
 // Bajarme: si ya está todo en sus siluetas se baja; si no, intenta armarlo solo con lo seleccionado
 function bajar3d(){if(bajando)return;const ts=types();
  if(!sel.size&&staged.every(okSlot))return bajar();
  const p=part(ts,pool());
- if(!p)return bad(sel.size||staged.some(g=>g.ids.length)?'Con esas cartas no se arma '+conTxt(V.G.round)+'. Revisa que no sobre ni falte ninguna.':'Selecciona las cartas de tu contrato ('+conTxt(V.G.round)+').');
+ if(!p)return bad(sel.size||staged.some(g=>g.ids.length)?'Aún no es '+conTxt(V.G.round):'Falta: '+conTxt(V.G.round));
  staged=p;sel=new Set();sfx('place');render();bajando=1;setTimeout(()=>{bajando=0;bajar()},RM?0:700)}
 // texto de ayuda arriba de tu mano según lo que seleccionaste
 function selTxt(){const G=V.G,me=V.me;if(me<0||G.turn!=me||G.step!='play')return '';const dn=G.down[me],cs=[...sel].map(C);
- if(dn)return sel.size==1?'Tócala en una combinación para pegarla, o en el descarte':sel.size?'Para pegar o descartar, selecciona una sola carta':'';
- if(!sel.size)return staged.some(g=>g.ids.length)?(staged.every(okSlot)?'✓ ¡Contrato listo! Toca Bajarme':''):'';
- if(part(types(),pool()))return '✓ ¡Contrato completo! Toca <b>Bajarme</b>';
+ if(dn)return sel.size>1?'Solo una carta':'';
+ if(!sel.size)return '';
+ if(part(types(),pool()))return '✓ Contrato completo';
  const n=cs.filter(c=>!c.j),r=n[0];
- if(cs.length>=3&&trio(cs))return '✓ Trío de '+RN[r.r-1]+' · tócalo en tu contrato';
- if(runArr(cs))return '✓ Corrida de '+SU[r.s]+' · tócala en tu contrato';
- if(sel.size==1)return 'Toca más cartas, o toca una silueta para ponerla ahí';
+ if(cs.length>=3&&trio(cs))return '✓ Trío de '+RN[r.r-1];
+ if(runArr(cs))return '✓ Corrida de '+SU[r.s];
+ if(sel.size==1)return '';
  if(canBe('T',cs)&&r)return 'Trío de '+RN[r.r-1]+' · falta'+(3-n.length>1?'n '+(3-n.length):' 1');
- if(canBe('C',cs)&&r)return 'Corrida de '+SU[r.s]+' · '+(cs.length<4?'falta'+(4-cs.length>1?'n '+(4-cs.length):' 1'):'faltan cartas en medio');
- return '✗ Estas cartas no combinan'}
+ if(canBe('C',cs)&&r)return 'Corrida de '+SU[r.s]+' · '+(cs.length<4?'falta'+(4-cs.length>1?'n '+(4-cs.length):' 1'):'con huecos');
+ return '✗ No combinan'}
 function slotLay(gs,b){const n=gs.length,bw=b.x1-b.x0,bh=b.z1-b.z0;
  for(let s=.8;;s-=.03){const cw=s*CW,ch=s*CH,ov=cw*.36,pad=.22,gap=.3,ws=gs.map(g=>cw+(Math.max(g.ids.length,g.type=='T'?3:4)-1)*ov+pad*2),tot=ws.reduce((a,x)=>a+x,0)+gap*(n-1);
   if((tot<=bw&&ch+pad*2<=bh)||s<=.3){let x=b.x0+(bw-tot)/2;return {s,cw,ch,ov,pad,pos:ws.map(w=>{const p={x,w,z:(b.z0+b.z1)/2};x+=w+gap;return p})}}}}
@@ -677,28 +676,25 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
 
 // ---------- capa de controles (HTML encima del 3D) ----------
 function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&&G.step=='play',drw=mine&&G.step=='draw';
- const hint=i<0?mirTxt():mine?(drw?'Toca el mazo o el descarte para robar':dn?'Pega cartas en la mesa o descarta':'Selecciona cartas y tócalas en tu contrato'):'Esperando a '+nm(t)+'…';
  // arriba: ronda y contrato, turno, cámara y ☰; abajo de ellas la ayuda o la última jugada
  const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let h=GHUD.top({st:`${G.round+1}/7 · <b>${conTxt(G.round)}</b>`,turn:mine?'¡Tu turno!':'Turno de '+nm(t),me:mine,open:menu,menu:'c3dMenu()',right:(window.MCAM?MCAM.boton(VT.top):'')+GHUD.view('c3dHome()')});
- if(!mini)h+=GHUD.hint(mine||!lgT?hint:lgT);
+ if(!mini&&lgT)h+=GHUD.hint(lgT);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
  if(mt&&age<4500)h+=GHUD.toast(msg?esc(msg):'<b>'+esc(G.note)+'</b>',age,mini);
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const o=V.players[k],on=G.turn==k;
   const nj=G.melds.filter(m=>m.owner==k).length;
-  h+=`<div class="ui gj-seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${o.on?' on':''}"></i><small>${o.out?'expulsado':(hc(k)+' cartas'+(nj?' · ✓ '+nj+(nj>1?' juegos':' juego'):'')+(on?(G.step=='draw'?' · robando…':' · jugando…'):''))}</small></div>`});
+  h+=`<div class="ui gj-seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${o.on?' on':''}"></i><small>${o.out?'fuera':(hc(k)+' cartas'+(nj?' · ✓'+nj:''))}</small></div>`});
  h+=`<div class="ui gj-pl" id="t3pdk" title="Mazo">M ${G.deck}</div><div class="ui gj-pl" id="t3pds" title="Descarte">D</div>`;
  // botones de abajo
  let b='';const ic=n=>UI.ico(n);
- if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Dejar de mirar</button>`:''}`;
- else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer cambio</button>`;
+ if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Salir</button>`:''}`;
+ else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer</button>`;
    b+=`<button class="ui-btn${sel.size==1&&!rd?' go':' sec'}" onclick="discard()">Descartar</button>`}
-  else if(drw&&mini)b+=`<span class="gj-note">Toca el mazo o el descarte</span>`;   // sin modo compacto ya lo dice el aviso de arriba
-  if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<span class="gj-note">Pediste comprar…</span><button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar (+1)</button>`;
-  b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;
-  if(dn)b=`<span class="gj-note">✓ Bajaste</span>`+b}
+  if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar</button>`;
+  b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${ic('ordenar')}${manual?'Mi orden':sortS?'Por palo':'Por número'}</button>`;}
  h+=GHUD.bar(b);
  if(ap)h+=apUI();
  // ayuda sobre lo seleccionado y nombres de las siluetas
@@ -708,13 +704,13 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  h+=c4UI();h+=bgUI(V.me>=0&&(c4found||c4g())?126:72);
  // menú ☰: un solo panel con pestañas (ajustes, jugadores, historial y reglas)
  if(menu){const rg=String(GM.continental.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
-  const aj=GHUD.ajustes(GHUD.row('','Ayuda arriba',GHUD.sw(!mini,'c3dMini()','Ayuda arriba')),
-   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Cambiar apariencia…</button>${V.me>=0&&(c4found||c4g())?`<button class="ui-btn sec full" onclick="c4go()">${C4IC}Conecta 4</button>`:''}${V.me>=0&&(bgfound||bgg())?`<button class="ui-btn sec full" onclick="bggo()">${BGIC}Backgammon</button>`:''}<button class="ui-btn sec full" onclick="c3dToggle()">${ic('pantalla')}Vista clásica 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
+  const aj=GHUD.ajustes(GHUD.row('','Última jugada',GHUD.sw(!mini,'c3dMini()','Última jugada')),
+   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Apariencia</button>${V.me>=0&&(c4found||c4g())?`<button class="ui-btn sec full" onclick="c4go()">${C4IC}Conecta 4</button>`:''}${V.me>=0&&(bgfound||bgg())?`<button class="ui-btn sec full" onclick="bggo()">${BGIC}Backgammon</button>`:''}<button class="ui-btn sec full" onclick="c3dToggle()">${ic('pantalla')}Vista 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
   h+=GHUD.sheet('Continental',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'c3dMenu()')}
  return h}
 // ---------- Conecta 4 entre dos jugadores (se juega durante la partida; las reglas están en el servidor) ----------
 const C4IC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" fill="#2a63c6"/><circle cx="7" cy="9" r="2.6" fill="#0d2a5c"/><circle cx="12" cy="9" r="2.6" fill="#0d2a5c"/><circle cx="17" cy="9" r="2.6" fill="#f9c623"/><circle cx="7" cy="15" r="2.6" fill="#e53935"/><circle cx="12" cy="15" r="2.6" fill="#f9c623"/><circle cx="17" cy="15" r="2.6" fill="#e53935"/></svg>';
-function c4discover(){if(c4found)return;c4found=true;try{localStorage.setItem('cont_c4f','1')}catch(e){}sfx('win');confetti(30);banner('🎲 ¡Encontraste un juego secreto: Conecta 4!')}
+function c4discover(){if(c4found)return;c4found=true;try{localStorage.setItem('cont_c4f','1')}catch(e){}sfx('win');confetti(30);banner('Juego secreto: Conecta 4')}
 const c4g=()=>{const L=V.G.c4s||[];return L.find(x=>x.p.includes(V.me))};
 const c4disc=k=>`<i class="c4m ${k?'y':'r'}"></i>`;
 function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
@@ -726,20 +722,19 @@ function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.ind
  if(!c4open)return h;
  let b='';
  if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.c4s||[]).some(x=>x.st!='end'&&x.p.includes(k));
-  b=`<div class="c4t">¿Contra quién quieres jugar?</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="c4inv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>No hay otros jugadores en la sala.</span>'}</div>
-   <div class="c4n">Junta 4 fichas de tu color en línea: horizontal, vertical o diagonal.</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a que <b>${nm(op)}</b> acepte…</div><div class="gj-btns"><button class="ui-btn sec" onclick="c4a('end')">Cancelar</button></div>`
+  b=`<div class="c4t">Rival</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="c4inv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>Sin rivales</span>'}</div>`}
+ else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a <b>${nm(op)}</b>…</div><div class="gj-btns"><button class="ui-btn sec" onclick="c4a('end')">Cancelar</button></div>`
   :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Conecta 4</div><div class="gj-btns"><button class="ui-btn" onclick="c4a('acc')">Jugar</button><button class="ui-btn sec" onclick="c4a('end')">Ahora no</button></div>`;
- else{const st=g.st=='play'?(myT?`${c4disc(mi)} <b>¡Tu turno!</b> Toca una columna del tablero`:`${c4disc(1-mi)} Turno de ${nm(op)}…`)
-   :g.w==2?'Empate: el tablero se llenó':g.w==mi?(g.why?`🏆 ${nm(op)} se rindió: ¡ganaste!`:'🏆 <b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
+ else{const st=g.st=='play'?(myT?`${c4disc(mi)} <b>¡Tu turno!</b>`:`${c4disc(1-mi)} ${nm(op)}…`)
+   :g.w==2?'Empate':g.w==mi?(g.why?`${nm(op)} se rindió`:'<b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
   b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${c4disc(0)} ${nm(g.p[0])} &nbsp;vs&nbsp; ${c4disc(1)} ${nm(g.p[1])}</div>
-   <div class="gj-btns">${VT.c4?'<button class="ui-btn sec" onclick="c4o(0)">Volver a la mesa</button>':'<button class="ui-btn" onclick="c4go()">Ver tablero</button>'}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Conecta 4?'))c4a('end')">Rendirse</button>`:`<button class="ui-btn" onclick="c4inv(${op})">Revancha</button><button class="ui-btn sec" onclick="c4a('end')">Nueva partida</button>`}</div>`}
+   <div class="gj-btns">${VT.c4?'<button class="ui-btn sec" onclick="c4o(0)">Volver</button>':'<button class="ui-btn" onclick="c4go()">Ver tablero</button>'}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Conecta 4?'))c4a('end')">Rendirse</button>`:`<button class="ui-btn" onclick="c4inv(${op})">Revancha</button><button class="ui-btn sec" onclick="c4a('end')">Nueva partida</button>`}</div>`}
  return h+`<div id="t3c4" class="ui ui-card t3gp" role="dialog" aria-label="Conecta 4"><div class="ui-hd"><h2 class="ui-h">Conecta 4</h2><button class="ui-x" onclick="c4o(0)" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="ui-bd">${b}</div></div>`}
 // sonidos y avisos cuando cambia la partida (la jugada del otro, tu turno, el final)
 function c4check(){const g=c4g();if(!g){c4snap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,g.last,g.turn,g.w].join(':');if(k===c4snap)return;
  const o=c4snap.split(':');c4snap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
  if(+o[2]!==g.last)sfx('place');
- if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('🏆 ¡Ganaste Conecta 4!')}else sfx('tick')}
+ if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('¡Ganaste Conecta 4!')}else sfx('tick')}
  else if(g.st=='play'&&g.turn==mi&&(o[1]!='play'||+o[3]!==g.turn))setTimeout(()=>sfx('go'),350)}
 // se manda directo (no con send) para no borrar las cartas que tengas seleccionadas en el Continental
 const c4send=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'c4'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
@@ -774,8 +769,7 @@ const apCur=k=>k=='ui'?(dark?'dark':'light'):k=='bg'?sbg:k=='cards'?scards:sback
 function apUI(){const T=APT[ap.tab];
  return `<div class="ui-scrim ligero" onclick="c3dApClose(0)"></div><div id="t3ap" class="ui ui-sheet mid" role="dialog" aria-modal="true" aria-labelledby="t3apt"><div class="ui-hd"><h2 class="ui-h" id="t3apt">Cambiar apariencia</h2><button class="ui-x" onclick="c3dApClose(0)" aria-label="Cerrar">${UI.ico('x')}</button></div>
  <div class="ui-seg full gj-tabs" role="tablist">${Object.keys(APT).map(k=>`<button type="button" role="tab" aria-selected="${ap.tab==k}" class="${ap.tab==k?'on':''}" onclick="c3dApTab('${k}')">${APT[k].n}</button>`).join('')}</div>
- <div class="ui-bd" role="tabpanel"><span class="ui-lbl">${T.h}</span><div class="t3apg">${T.o.map(([v,n])=>`<button class="t3apo${apCur(ap.tab)==v?' on':''}" onclick="c3dApSet('${ap.tab}','${v}')" aria-pressed="${apCur(ap.tab)==v}"><img src="${thumb(ap.tab,v)}" alt=""><span>${n}</span></button>`).join('')}</div>
- <p class="ui-sub t3apn">Los cambios se ven en la mesa al instante.</p></div>
+ <div class="ui-bd" role="tabpanel"><div class="t3apg">${T.o.map(([v,n])=>`<button class="t3apo${apCur(ap.tab)==v?' on':''}" onclick="c3dApSet('${ap.tab}','${v}')" aria-pressed="${apCur(ap.tab)==v}"><img src="${thumb(ap.tab,v)}" alt=""><span>${n}</span></button>`).join('')}</div></div>
  <div class="gj-btns t3apf"><button class="ui-btn sec" onclick="c3dApClose(0)">Cancelar</button><button class="ui-btn" onclick="c3dApClose(1)">Aceptar</button></div></div>`}
 function apOpen(){menu=false;ap={tab:'bg',prev:[sbg,scards,sback,dark]};render()}
 function apSet(k,v){if(k=='ui')setDark(v=='dark');else if(k=='bg')sbg=v;else if(k=='cards')scards=v;else sback=v;applyStyle();sfx('card');render()}
@@ -811,11 +805,11 @@ function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz
 let topWas=false;
 function viewBtn(){if(!!VT.top!==topWas){topWas=!!VT.top;document.documentElement.classList.toggle('c3top',topWas);if(V&&V.G)sync()}const ab=document.querySelector('.gj-arr'),mv=viewed()&&!VT.top;   // uno a la vez: Arriba (en tu vista o en la de arriba) o Recentrar (cámara movida)
  if(ab){if(ab.classList.contains('on')!==!!VT.top){ab.classList.toggle('on',!!VT.top);ab.setAttribute('aria-pressed',!!VT.top)}const dsp=mv?'none':'';if(ab.style.display!==dsp)ab.style.display=dsp}if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&!VT.top?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa (Esc)':p?'Viendo a '+p.name+' · Recentrar (Esc)':'Recentrar (Esc)';
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa · Esc':p?'Viendo a '+p.name+' · Recentrar · Esc':'Recentrar · Esc';
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
- if(!active()){const G=V&&V.G;return (G&&G.phase=='play'?`<button class="b g sm2" onclick="c3dToggle()">${UI.ico('ojo')}${on?'Vista clásica 2D':'Vista 3D'}</button>`:'')+orig()}
+ if(!active()){const G=V&&V.G;return (G&&G.phase=='play'?`<button class="b g sm2" onclick="c3dToggle()">${UI.ico('ojo')}${on?'Vista 2D':'Vista 3D'}</button>`:'')+orig()}
  // guardo lo abierto y el scroll para que no se pierda al redibujar
  GHUD.save();
  try{init();return hud()}catch(e){console.warn('Continental 3D:',e);on=false;return orig()}};

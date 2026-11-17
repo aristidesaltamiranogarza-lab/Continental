@@ -28,7 +28,7 @@ function deal(R){const G=R.G,r=G.round,n=G.players.length,d=shuf([...Array(53*(M
  G.disc=[d.splice(q,1)[0]];G.deck=d;G.melds=[];G.down=Array(n).fill(false);
  G.turn=t;G.tc++;G.note='';G.step='draw';G.phase='play';G.dn=(G.dn||0)+1;G.log=[];G.tdc=0;
  G.rl={n:G.dn,hit:jk!==null,who:t,sl:jk!==null?0:1+Math.floor(Math.random()*51)};
- if(jk!==null)lg(G,t,'se quedó un comodín (ruleta)');
+ if(jk!==null)lg(G,t,'se quedó un comodín');
  G.rlUntil=Date.now()+RMS;G.cdUntil=G.rlUntil+3000;R.pb=null;R.cl={}}
 function endRound(R,w){const G=R.G;G.out=w;G.scores.push(G.hands.map((h,k)=>k==w||R.players[k].out?0:h.reduce((a,x)=>a+pts(C(x)),0)));G.phase='end';G.rd=G.players.map(()=>false)}
 const RN=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],SU=['♠','♥','♦','♣'];
@@ -48,7 +48,7 @@ function kick(R,k){const p=R.players[k],G=R.G;if(G.c4s)G.c4s=G.c4s.filter(x=>!x.
 function resolveBuy(R,i){const G=R.G,n=G.players.length;if(G.tdc||!G.disc.length)return '';
  const b=R.players.map((p,k)=>k).filter(k=>k!=i&&!R.players[k].out&&R.cl[R.players[k].id]==G.tc).sort((p,q)=>(p-i+n)%n-(q-i+n)%n)[0];if(b===undefined)return '';
  const dc=G.disc.pop();G.hands[b].push(dc);const y=pull(G);if(y!==undefined)G.hands[b].push(y);
- lg(G,b,'compró el descarte (+1 de castigo)',dc);return G.players[b].name+' compró el descarte (+1 carta de castigo).'}
+ lg(G,b,'compró el descarte +1',dc);return G.players[b].name+' compró el descarte (+1 carta de castigo).'}
 // ---- Conecta 4: partidas de 2 jugadores aparte, se pueden jugar durante el Continental ----
 // G.c4s = [{id,p:[a,b],b:[42] (fila 0 = abajo; 0 vacío, 1/2 = ficha de p[0]/p[1]),turn:0|1,st:'inv'|'play'|'end',w:-1|0|1|2(empate),line,last,why}]
 function c4win(b,x){const r=Math.floor(x/7),c=x%7,v=b[x];
@@ -107,10 +107,10 @@ function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),H=R.host=
  if(t=='c4')return c4(R,i,m);
  if(t=='bg')return bg(R,i,m);
  if(t=='ready'||t=='next'){if(G.phase!='end')return;if(t=='next'){if(!H)return 'Solo el host puede forzar la siguiente ronda.'}else if(i<0)return;else G.rd[i]=true;chkReady(R,t=='next');return}
- if(t=='buy'){if(G.phase!='play'||G.tdc||i<0||i==G.turn||!G.disc.length)return 'No puedes comprar ahora (quien tiene el turno ya tomó el descarte).';if(R.cl[R.players[i].id]==G.tc)return;R.cl[R.players[i].id]=G.tc;lg(G,i,'quiere comprar el descarte');return}
+ if(t=='buy'){if(G.phase!='play'||G.tdc||i<0||i==G.turn||!G.disc.length)return 'Ya no se puede comprar.';if(R.cl[R.players[i].id]==G.tc)return;R.cl[R.players[i].id]=G.tc;lg(G,i,'quiere comprar el descarte');return}
  if(t=='unbuy'){if(i<0||R.cl[R.players[i].id]!=G.tc)return 'Ya no tienes una compra que cancelar.';delete R.cl[R.players[i].id];lg(G,i,'canceló su compra');return}
  if(!own)return 'No es tu turno.';
- if(Date.now()<G.cdUntil)return 'Espera a que termine la cuenta regresiva.';
+ if(Date.now()<G.cdUntil)return 'Espera un momento.';
  const h=G.hands[i],has=x=>h.includes(x);
  if(t=='draw'){if(G.step!='draw')return 'Ya robaste.';G.note='';
   if(m.src=='deck'){const x=pull(G);if(x===undefined)return 'No quedan cartas.';h.push(x);lg(G,i,'robó del mazo');
@@ -129,9 +129,9 @@ function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),H=R.host=
   if(swapJ(R,mm,c,i)){lg(G,i,'cambió un comodín por '+cn(m.id),m.id);return}
   return G.down[i]?'Esa carta no cabe ahí.':'Sin bajarte solo puedes cambiar un comodín (y usarlo para bajarte en este turno).'}
  if(t=='undoswap'){if(!R.pb)return;const b=JSON.parse(R.pb);G.melds=b.melds;G.hands[b.i]=b.hand;R.pb=null;return}
- if(t=='discard'){if(R.pb)return 'Debes bajarte este turno con el comodín que cambiaste, o deshacer el cambio.';if(!has(m.id))return 'Jugada inválida.';
-  if(C(m.id).j)return 'Los comodines nunca se descartan: quédatelo hasta bajarte o pégalo en una combinación.'
-  else if(fits(G,m.id)&&!h.filter(x=>!C(x).j).every(x=>fits(G,x)))return 'Esa carta cabe en una combinación de la mesa, no puedes descartarla.';
+ if(t=='discard'){if(R.pb)return 'Bájate con el comodín o deshaz el cambio.';if(!has(m.id))return 'Jugada inválida.';
+  if(C(m.id).j)return 'El comodín no se descarta.'
+  else if(fits(G,m.id)&&!h.filter(x=>!C(x).j).every(x=>fits(G,x)))return 'Esa carta se puede pegar.';
   G.hands[i]=h.filter(x=>x!=m.id);lg(G,i,'descartó '+cn(m.id),m.id);if(!G.hands[i].length){G.disc.push(m.id);endRound(R,i)}else{const bn=resolveBuy(R,i);G.disc.push(m.id);nextTurn(R);if(bn)G.note=bn}return}
  return 'Acción desconocida.'}
 
