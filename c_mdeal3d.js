@@ -204,14 +204,15 @@ function sync(){if(!ready||!L||!mesa||!active())return;
   if(canMv&&h.k===me)return (h.t=='tb'&&mdCAT[h.id].t=='w')||h.t=='hl';return false};
  // zonas de cada jugador
  for(let k=0;k<n;k++){const out=P[k]&&P[k].out,Z=zona(k);
-  const tg=!out&&k!==me&&mdTg&&mine,lvl=tg?.85:fin?(G.win==k?.6:0):G.turn==k?.18:0;
-  glow('z'+k,v3(Z.c.x,.002,Z.c.z),2*Z.w*1.04,2*Z.h*1.06,tg?0xffd54a:fin?0xffd54a:0x7fd0ff,lvl,{t:'zone',k},Z.yaw);
+  const lvl=0;   // sin brillo: el plano solo sirve para tocar la zona
+
+  glow('z'+k,v3(Z.c.x,.002,Z.c.z),2*Z.w*1.04,2*Z.h*1.06,0xffffff,lvl,{t:'zone',k},Z.yaw);
   if(out)continue;const Ly=lay(k);
   Ly.out.forEach(c=>{const key='c'+c.id,m=ens(key,c.face,from[c.id]===k&&k!==me?seatW(k):null),h=c.hit,e=elig(h),sel=(pay&&mdPay.has(c.id))||(stl&&stl.take===c.id)||(mine&&mdSel===c.id&&mdFrom!=='h');
-   live.add(key);m.castShadow=true;m.userData.hit=h;hits.push(m);m.renderOrder=0;tint(m,1);
+   live.add(key);m.castShadow=true;m.userData.hit=h;hits.push(m);m.renderOrder=0;tint(m,(pay||stl)&&!e&&!sel?.45:.82);
    const p=sel?c.pos.clone().setY(c.pos.y+.16):c.pos;go(m,SC,p,c.q,c.s,{ms:sel?180:undefined});
-   selGlow(m,sel||e,sel?0xffd54a:stl?0xff8a5a:pay?0x9be37a:0x7fd8ff)});
-  Ly.sets.forEach(s=>glow('s'+k+'_'+s.col,v3(s.p.x,.003,s.p.z),s.w,s.h,0xffd54a,.35,null,Ly.z.yaw))
+   selGlow(m,false)});
+  
   // manos de los rivales (con personaje la cantidad va en sus manos; sin personaje, boca abajo frente a su silla)
   if(k===me)continue;const cnt=Math.min(hc(k)||0,12),pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj){MPJ.cartas(rel(k),hc(k)||0);continue}
   const a=mesa.asiento(rel(k)).a,c0=seatP(k,.9),tv=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
@@ -220,7 +221,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
  // tu mano en abanico
  if(me>=0&&Array.isArray(G.hands[me])){const sel=mine&&mdFrom==='h'?mdSel:null,F=fan(mdDisp(G.hands[me]),sel);L.hand=F;const dim=mine&&!(G.step=='play'&&!G.pa&&G.plays<3)&&G.step!='disc';
   F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,'c'+f.id);live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
-   m.renderOrder=10+i;tint(m,dim?.42:.66);selGlow(m,f.id===sel,0xffd54a);if(m.userData.sg)m.userData.sg.renderOrder=5;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
+   m.renderOrder=10+i;tint(m,dim?.42:.66);if(m.userData.sg)m.userData.sg.renderOrder=5;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
  meshes.forEach((m,key)=>{if(!live.has(key))drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
  first=false}

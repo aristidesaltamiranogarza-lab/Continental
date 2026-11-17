@@ -47,9 +47,9 @@ function menu(){const G=V.G;if(mdSel==null)return '';const id=mdSel,c=mdCAT[id],
   if(mdFrom!='l')b+=D({t:'bank',id},'Al banco $'+c.v+'M','sec')}
  return caja(esc(mdName(id)),'',b,{id,x:'mdSel=null;render()'})}
 function caja0(){const G=V.G;if(G.phase!='play')return '';const r=responde();if(r)return r;
- if(mdTg)return caja('Elige un rival','Toca su nombre o su lugar en la mesa (brilla).',B('mdTg=null;render()','Cancelar','sec'),{x:'mdTg=null;render()'});
+ if(mdTg)return caja('Elige un rival','Toca su nombre o su lugar en la mesa.',B('mdTg=null;render()','Cancelar','sec'),{x:'mdTg=null;render()'});
  if(mdSt){const m=mdSt.m,nx=nm(m.tgt),t=m.t=='deal'?`Toca el set completo de ${nx} que quieres robar.`:m.t=='sly'?`Toca la propiedad de ${nx} que quieres robar.`:m.take==null?`Toca la propiedad de ${nx} que quieres.`:`Ahora toca la tuya que le darás a ${nx}.`;
-  return caja(mdAN[mdCAT[m.id].k],t+' Las que puedes elegir brillan.',B('mdSt=null;render()','Cancelar','sec'),{id:m.id,x:'mdSt=null;render()'})}
+  return caja(mdAN[mdCAT[m.id].k],t+' Las demás se oscurecen.',B('mdSt=null;render()','Cancelar','sec'),{id:m.id,x:'mdSt=null;render()'})}
  return menu()}
 // aviso de la acción pendiente (quién cobra o roba, y cómo va cada quien)
 function pa(){const G=V.G,p=G.pa;if(!p||G.phase!='play')return '';const sk=mdSK(p.k),W={wait:sk?'debe responder':'debe pagar',say:'dijo «Di que no»',paid:sk?'listo':'pagó',no:'anulado'};
