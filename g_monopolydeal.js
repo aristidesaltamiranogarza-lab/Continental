@@ -192,4 +192,7 @@ function chk(R){const G=R.G;if(!G||G.phase!='play'||G.pa||G.step!='play'||G.ae==
  setTimeout(()=>{const g=R.G;if(!g||g.phase!='play'||g.tc!==tc||g.pa||g.step!='play'||!noMoves(g,g.turn))return;lg(g,g.turn,'terminó su turno (sin movimientos)');endTurn(R);if(R.poke)R.poke()},2000)}
 function act(R,tok,m){const e=act0(R,tok,m);if(!e)chk(R);return e}
 const tick=R=>{const G=R.G;if(G&&G.phase=='play'&&G.pa&&G.pa.dl&&Date.now()>=G.pa.dl+500){autoAll(R);chk(R);if(R.poke)R.poke()}};
-module.exports={id:'monopolydeal',name:'Monopoly Deal',min:2,max:5,opts:{sets:3,autopay:false},rng:{sets:[2,4]},start,view,act,kick,tick,CAT,NEED,RENT};
+// bot (g_monopolydeal_bot.js): prueba cada jugada en una copia del estado antes de mandarla
+const bot=require('./g_monopolydeal_bot.js')({CAT,NEED,cmp,hasBase,rentAmt,autoIds,assets,others,SK,
+ ok:(R,k,m)=>{const R2=Object.assign({},R,{G:JSON.parse(JSON.stringify(R.G)),poke:null});return !act0(R2,R.players[k].tok,m)}});
+module.exports={id:'monopolydeal',name:'Monopoly Deal',min:2,max:5,opts:{sets:3,autopay:false},rng:{sets:[2,4]},start,view,act,kick,tick,bot,CAT,NEED,RENT};
