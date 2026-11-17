@@ -32,15 +32,17 @@ const D={
  mudo:'M4 9.5h3.5L12 6v12l-4.5-3.5H4zM16 10l4 4M20 10l-4 4',
  aviso:'M12 4l9 16H3zM12 10v4M12 17h.01',
  reloj:'M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9'};
+// Color fijo de cada recurso: se distinguen de un vistazo (en tratos, costos y puertos).
+const COL={hoja:'#3f9a3a',maiz:'#e0a800',piedra:'#7d8590',miel:'#d9711c',sal:'#e0559c',gota:'#2b8fd8'};
 const ST='fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
 // HTML: mismo marcado que UI.ico, tamaño 1.15em para ir junto al texto.
-const h=(n,c)=>`<svg class="ui-ico hz-i${c?' '+c:''}" viewBox="0 0 24 24" aria-hidden="true"><path d="${D[n]||''}"/></svg>`;
+const h=(n,c)=>`<svg class="ui-ico hz-i${c?' '+c:''}"${COL[n]?` style="color:${COL[n]}"`:''} viewBox="0 0 24 24" aria-hidden="true"><path d="${D[n]||''}"/></svg>`;
 // Dentro de otro SVG: centrado en (x,y), de lado s.
-const svg=(n,x,y,s,c)=>`<g${c?` class="${c}"`:''}><path class="hz-g" ${ST} transform="translate(${(x-s/2).toFixed(1)} ${(y-s/2).toFixed(1)}) scale(${(s/24).toFixed(3)})" d="${D[n]||''}"/></g>`;
+const svg=(n,x,y,s,c)=>`<g${c?` class="${c}"`:''}><path class="hz-g" ${ST}${COL[n]&&c!='ti'?` style="color:${COL[n]}"`:''} transform="translate(${(x-s/2).toFixed(1)} ${(y-s/2).toFixed(1)}) scale(${(s/24).toFixed(3)})" d="${D[n]||''}"/></g>`;
 // Canvas: centrado en (x,y), de lado s, con el color de trazo dado.
 const P2={};
 function draw(g,n,x,y,s,col){if(!D[n])return;const p=P2[n]||(P2[n]=new Path2D(D[n]));g.save();g.translate(x-s/2,y-s/2);g.scale(s/24,s/24);
  g.strokeStyle=col||g.fillStyle;g.lineWidth=2.2;g.lineCap='round';g.lineJoin='round';g.stroke(p);g.restore()}
-const css=document.createElement('style');css.textContent='.hz-i{width:1.15em;height:1.15em;vertical-align:-.2em}';document.head.appendChild(css);
-window.HZI={D,h,svg,draw};
+const css=document.createElement('style');css.textContent='.hz-i{width:1.15em;height:1.15em;vertical-align:-.2em}.hz-i[style]{stroke-width:2.4}'+['hoja','maiz','piedra','miel','sal'].map((n,i)=>`.hz-rc.r${i}{background:color-mix(in srgb,${COL[n]} 20%,var(--mu-soft,#f3eee4))}`).join('');document.head.appendChild(css);
+window.HZI={D,COL,h,svg,draw};
 })();
