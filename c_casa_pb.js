@@ -231,7 +231,7 @@ function step(now){const H3=window.CASA3D,cam=H3&&H3.cam();if(!cam)return;const 
  VIG.visible=cp.y<H-.25;espejo(av);
  if(PTA){const a=PTA.ab?1.45:0,d=a-PTA.D.rotation.y;if(Math.abs(d)>.002)PTA.D.rotation.y+=d*.14}
  if(CAD){const k=(performance.now()-cadT)/450;CAD.position.y=4.12-(k>=0&&k<1?Math.sin(k*Math.PI)*.18:0)}
- corte(KP,cp,av)}
+ corte(KP,cp,av);if(window.CUA)CUA.paso(cam,av)}
 // corte tipo Sims: se esconde la cara de muro que queda entre la cámara y tu Mii (y el marco de sus vanos)
 function corte(K,cp,av){if(!K||!av)return;const H=K.H;tv.set(av.x,1,av.z);
  for(const w of K.CORTE){let hid=false;const sc=dv.copy(cp).sub(w.p).dot(w.n),sa=q.copy(tv).sub(w.p).dot(w.n);
