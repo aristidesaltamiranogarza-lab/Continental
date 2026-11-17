@@ -41,7 +41,7 @@ function target(m,par,pos,q,s,o={}){const T=m.userData.T;
  const ms=RM||(first&&!dealing)?0:(o.ms==null?480:o.ms);
  if(!ms){m.position.copy(pos);m.quaternion.copy(q);m.scale.setScalar(s);m.userData.tw=null;return}
  m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.6:.12):o.arc,spin:o.spin||0,pv:o.pv}}
-function step(now){meshes.forEach(m=>{const w=m.userData.tw,T=m.userData.T;if(!w)return;let k=(now-w.t0)/w.ms;if(k<0)return;if(k>1)k=1;
+function step(now){meshes.forEach(m=>{const w=m.userData.tw,T=m.userData.T,b=m.userData.bob;if(!w){if(b!=null&&T&&!RM)m.position.y=T.pos.y+.035*Math.sin(now/340+b);return}let k=(now-w.t0)/w.ms;if(k<0)return;if(k>1)k=1;
  const e=1-Math.pow(1-k,3),a=Math.sin(Math.PI*k)*w.arc;m.position.lerpVectors(w.p0,T.pos,e);if(T.par===SC)m.position.y+=a;else m.position.z+=a;
  m.quaternion.slerpQuaternions(w.q0,T.q,e);if(w.spin)m.rotateY(w.spin*(1-e));m.scale.setScalar(w.s0+(T.s-w.s0)*e);
  if(k===1){m.userData.tw=null;if(w.pv&&window.MFX&&T.par===SC)MFX.polvo(SC,T.pos,T.s)}})}
@@ -110,10 +110,17 @@ function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));co
 const VK=['x','z','k','a','t'];
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);cam()}
 // barrido al mirar a alguien: la cámara sube y se aleja a medio camino; ya ahí, se mece despacio
-let sw=0;const SWD=1000;
+let sw=0,drg=null;
+function dropAt(x,y){const p=ground(x,y),me=V.me;if(!p||!mesa||me<0)return null;const Z=zona(me),d=p.clone().sub(Z.c),u=d.dot(Z.ex),v=d.dot(Z.ez),U=c=>c.pos.clone().sub(Z.c).dot(Z.ex);
+ if(Math.abs(u)<Z.w*1.15&&Math.abs(v)<Z.h*1.35){const out=lay(me).out;let b=null,bd=1e9;out.forEach(c=>{const du=Math.abs(U(c)-u);if(du<bd){bd=du;b=c}});
+  if(b&&bd<b.s*CW*.75)return {z:b.hit.t=='bank'?'bank':'prop',col:b.hit.col};const bk=out.some(c=>c.hit.t=='bank'),u0=out.length?Math.min(...out.map(U)):0;return {z:!bk&&u<u0?'bank':'prop'}}
+ return Math.hypot(p.x,p.z)<Math.min(L.rx,L.rz)*.5?{z:'centro'}:null}
+function dragPos(){const m=meshes.get('c'+drg.id),f=L.hand&&L.hand.find(h=>h.id===drg.id);if(!m||!f)return;const p=ground(drg.x,drg.y);
+ if(p&&(p.x*p.x)/(L.rx*L.rx)+(p.z*p.z)/(L.rz*L.rz)<1.1){p.y=.35;target(m,SC,p,Qe(0,zona(V.me).yaw,0),L.ps*1.15,{ms:90,arc:0})}
+ else target(m,CA,loc(drg.x,drg.y,D-.05),f.q,f.s*1.08,{ms:60,arc:0})}const SWD=1000;
 function viewStep(dt){const now=performance.now(),sp=sw&&!RM?Math.min(1,(now-sw)/SWD):1;if(sp>=1)sw=0;const arc=sp<1?Math.sin(Math.PI*sp):0;
  const sway=!RM&&!sw&&VT.who>=0?{a:.06*Math.sin(now/2600),t:.025*Math.sin(now/3700)}:null;
- const f=RM?1:1-Math.exp(-dt/(sw?210:110));let ch=0;VK.forEach(q=>{const tg=VT[q]+(q=='t'?.3*arc:q=='k'?-.35*arc*VT.k/2:0)+(sway&&sway[q]||0),d=tg-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=tg;ch=1}});if(ch)cam()}
+ const f=RM?1:1-Math.exp(-dt/(sw?210:110));let ch=0;VK.forEach(q=>{let tg=VT[q]+(q=='t'?.3*arc:q=='k'?-.35*arc*VT.k/2:0)+(sway&&sway[q]||0);if(q=='t')tg=Math.min(tg,1.5-L.el);const d=tg-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=tg;ch=1}});if(ch)cam()}
 const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 function home(){if(VT.who>=0)sw=performance.now();VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,top:false})}
@@ -147,7 +154,7 @@ function lay(k){const z=zona(k),it=items(k),n=Math.max(1,it.length),Wd=2*z.w*.96
  it.forEach((x,j)=>{const ri=Math.floor(j/per),jj=j%per,rn=Math.min(per,it.length-ri*per),u=(jj-(rn-1)/2)*pitch,v0=-z.h*.92+ri*(Dp/r)+ch/2,nn=x.ids.length;
   const off=x.t=='bank'&&nn>3&&!bx?ch*OF*2/(nn-1):ch*OF;
   x.ids.forEach((id,i)=>{const v=v0+i*off,p=z.c.clone().addScaledVector(z.ex,u).addScaledVector(z.ez,v);p.y=.008+i*.0045;
-   out.push({id,face:x.t=='bank'?'b'+mdCAT[id].v:'c'+id,pos:p,q,s:cw,hit:{t:x.t,k,id,col:x.col,full:x.full}})});
+   const cc=mdCAT[id],up=x.t=='tb'&&cc.t=='w'&&Array.isArray(cc.cs)&&cc.cs[1]===x.col;out.push({id,face:x.t=='bank'?'b'+mdCAT[id].v:'c'+id,pos:p,q:up?Qe(0,z.yaw+Math.PI,0):q,s:cw,hit:{t:x.t,k,id,col:x.col,full:x.full}})});
   if(x.full){const vm=v0+(nn-1)*off/2,p=z.c.clone().addScaledVector(z.ex,u).addScaledVector(z.ez,vm);sets.push({col:x.col,p,w:cw*1.25,h:ch+(nn-1)*off+cw*.2})}});
  return {out,sets,z}}
 // abanico de tu mano (hija de la cámara): la elegida se asoma
@@ -214,8 +221,8 @@ function sync(){if(!ready||!L||!mesa||!active())return;
   glow('z'+k,v3(Z.c.x,.002,Z.c.z),2*Z.w*1.04,2*Z.h*1.06,0xffffff,lvl,{t:'zone',k},Z.yaw);
   if(out)continue;const Ly=lay(k);
   Ly.out.forEach(c=>{const key='c'+c.id,m=ens(key,c.face,from[c.id]===k&&k!==me?seatW(k):null),h=c.hit,e=elig(h),sel=(pay&&mdPay.has(c.id))||(stl&&stl.take===c.id)||(mine&&mdSel===c.id&&mdFrom!=='h');
-   live.add(key);m.castShadow=true;m.userData.hit=h;hits.push(m);m.renderOrder=0;tint(m,(pay||stl)&&!e&&!sel?.45:.82);
-   const p=sel?c.pos.clone().setY(c.pos.y+.16):c.pos;go(m,SC,p,c.q,c.s,{ms:sel?180:undefined});
+   live.add(key);m.castShadow=true;m.userData.hit=h;hits.push(m);m.renderOrder=0;tint(m,sel?.95:(pay||stl)&&!e?.45:.82);m.userData.bob=sel?hh(c.id)%7:null;
+   const p=sel?c.pos.clone().setY(c.pos.y+.3):c.pos;go(m,SC,p,c.q,c.s,{ms:sel?220:undefined});
    selGlow(m,false)});
   
   // manos de los rivales (con personaje la cantidad va en sus manos; sin personaje, boca abajo frente a su silla)
@@ -226,7 +233,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
  // tu mano en abanico
  if(me>=0&&Array.isArray(G.hands[me])){const sel=mine&&mdFrom==='h'?mdSel:null,F=fan(mdDisp(G.hands[me]),sel);L.hand=F;const dim=mine&&!(G.step=='play'&&!G.pa&&G.plays<3)&&G.step!='disc';
   F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,'c'+f.id);live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
-   m.renderOrder=10+i;tint(m,dim?.42:.66);if(m.userData.sg)m.userData.sg.renderOrder=5;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
+   m.renderOrder=10+i;tint(m,dim?.42:.66);if(m.userData.sg)m.userData.sg.renderOrder=5;if(drg&&drg.id===f.id)return;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
  meshes.forEach((m,key)=>{if(!live.has(key))drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
  first=false}
@@ -258,18 +265,20 @@ function pMove(e){if(!active())return;
    const p=ground(mx,my);if(p&&pin.g){VT.x+=pin.g.x-p.x;VT.z+=pin.g.z-p.z;snap()}return}}
  if(!st){if(e.pointerType==='mouse'){const h=pick(e),id=h&&h.t=='hand'?h.id:null;cv.style.cursor=h&&h.t!='zone'?'pointer':h?'pointer':'default';if(id!==hov){hov=id;sync()}}return}
  if(e.pointerId!==st.pid)return;
+ if(st.hit&&st.hit.t=='hand'&&!st.pan&&!st.rot&&window.MD3A&&(drg||(Math.hypot(e.clientX-st.x,e.clientY-st.y)>10&&MD3A.puede(st.hit.id)))){if(!drg){drg={id:st.hit.id};clearTimeout(st.lp);cv.style.cursor='grabbing';if(mdSel!=null){mdSel=null;render()}}drg.x=e.clientX;drg.y=e.clientY;dragPos();return}
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;VT.who=-1;snap();return}
  if(st.g||Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){if(!st.g){st.g=ground(st.x,st.y);VT.who=-1;if(!st.pan)cv.style.cursor='grabbing'}
   const p=ground(e.clientX,e.clientY);if(st.g&&p){VT.x=VW.x+st.g.x-p.x;VT.z=VW.z+st.g.z-p.z;VT.k=VW.k;snap()}}}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}
  if(!st||e.pointerId!==st.pid)return;const s=st;st=null;clearTimeout(s.lp);try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  if(s.lpd)return;
+ if(drg){const d=drg,t=dropAt(d.x,d.y);drg=null;cv.style.cursor='default';eat=performance.now();if(!(t&&MD3A.suelta(d.id,t.z,t.col)))sfx('card');sync();return}
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}
  if(mc&&(!s.hit||s.hit.t=='zone'||s.hit.t=='seat')&&!mdTg&&mc.dobleToque(s.x,s.y))return;
  eat=performance.now();tap(s.hit)}
 // el click que el navegador manda después de soltar no debe caer en la tarjeta que acaba de salir bajo el dedo (p. ej. «Al banco»)
 let eat=0;addEventListener('click',e=>{if(performance.now()-eat<450&&e.target.closest&&e.target.closest('#md3box')){e.stopPropagation();e.preventDefault()}},true);
-function pCancel(e){if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;st=null;sync()}
+function pCancel(e){drg=null;if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;st=null;sync()}
 function tap(h){const G=V.G,me=V.me,fin=G.phase=='final';
  if(!h){if(mdSel!=null&&!mdSt&&!mdTg){mdSel=null;render();return}if(VT.who>=0)home();return}
  if(fin){if(h.k!=null)look(h.k);return}
@@ -289,12 +298,12 @@ const uic=n=>UI.ico(n);
 function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fin&&i==t,h=i>=0&&Array.isArray(G.hands[i])?G.hands[i]:[],P=V.players;
  if(!fin)winHide=false;
  const pl=mine&&G.step=='play'&&!G.pa,dis=mine&&G.step=='disc',left=3-G.plays;
- const hint=fin?(w>=0&&w==i?'¡Juntaste '+G.opts.sets+' sets completos!':'Juntó '+G.opts.sets+' sets completos. ¿Otra partida?'):G.pa?'Hay una acción pendiente.':i<0?mirTxt():dis?`Descarta ${h.length-7} carta${h.length-7>1?'s':''}: toca una de tu mano.`:mine?(mdSel!=null||mdTg||mdSt?'Elige en la tarjeta qué hacer.':`Te ${left==1?'queda':'quedan'} <b>${left}</b> jugada${left==1?'':'s'}. Toca una carta de tu mano.`):'Esperando a '+nm(t)+'…';
+ const hint=fin?(w>=0&&w==i?'¡Juntaste '+G.opts.sets+' sets completos!':'Juntó '+G.opts.sets+' sets completos. ¿Otra partida?'):G.pa?'Hay una acción pendiente.':i<0?mirTxt():dis?`Descarta ${h.length-7}`:mine?(mdSel!=null||mdTg||mdSt?'':window.MD3A?MD3A.pips():left+'/3'):'Esperando a '+nm(t)+'…';
  const inf=i>=0?`Sets <b>${mdSets(i)}/${G.opts.sets}</b> · Banco <b>$${mdBank(i)}M</b>`:`Gana con <b>${G.opts.sets}</b> sets`;
- const trn=fin?'Fin de la partida':mine?`¡Tu turno! · ${G.plays}/3`:'Turno de '+nm(t);
+ const trn=fin?'Fin de la partida':mine?'¡Tu turno!':'Turno de '+nm(t);
  const lg=(G.log||[]).slice(-1)[0],lgT=lg&&lg.k>=0&&G.players[lg.k]?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'md3Menu()',right:(window.MCAM?MCAM.boton(VT.top,'md3Arriba()'):'')+GHUD.view('md3Home()')});
- o+=GHUD.hint(mine||fin||!lgT?hint:lgT);
+ {const ht=mine||fin||!lgT?hint:lgT;if(ht)o+=GHUD.hint(ht)}
  const mm=(msg||'').replace(/^\W+\s*/,''),mk=mm+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=mm||G.note;
  if(mt&&age<4500)o+=GHUD.toast(mm?esc(mm):'<b>'+esc(G.note)+'</b>',age);
  o+=MD3U.pa();
