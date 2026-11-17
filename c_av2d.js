@@ -2,14 +2,14 @@
 //   AV2D.retrato('s1p3c1b2n1a2d3-2051',{tam:256,plano:'busto',giro:.3,pose:'Reposo',fondo:'#d9a441'}).then(cv=>...)
 //   plano: 'cara' | 'busto' | 'cuerpo'.  pose: una pose o un emote del GLB (emote en el segundo t).  AV2D.galeria() o ?av2d
 (function(){
-const S=3,TINTA='#3A2416';   // S: sobremuestreo (se dibuja grande y se reduce, eso da el suavizado)
+const S=4,TINTA='#3A2416';   // S: sobremuestreo (se dibuja grande y se reduce, eso da el suavizado)
 let R=null;
 function motor(){if(R)return R;const T=THREE,cv=document.createElement('canvas');
  const ren=new T.WebGLRenderer({canvas:cv,antialias:false,alpha:true,preserveDrawingBuffer:true});
  if('outputColorSpace' in ren)ren.outputColorSpace=T.SRGBColorSpace;ren.setClearColor(0,0);
  const esc=new T.Scene(),cam=new T.OrthographicCamera(-1,1,1,-1,.01,50);
  const luz=new T.DirectionalLight(0xffffff,1.5);luz.position.set(-1.2,2.2,4);esc.add(new T.AmbientLight(0xffffff,1.25),luz);
- const g=new T.DataTexture(new Uint8Array([165,165,165,255,255,255,255,255]),2,1,T.RGBAFormat);
+ const g=new T.DataTexture(new Uint8Array([196,196,196,255,232,232,232,255,255,255,255,255]),3,1,T.RGBAFormat);
  g.minFilter=g.magFilter=T.NearestFilter;g.needsUpdate=true;
  return R={ren,esc,cam,g}}
 
@@ -23,8 +23,10 @@ function materiales(p){const T=THREE,R=motor(),toon=new Map(),ids=new Map();let 
    const c=new T.Color();c.setRGB(((i*97)%251)/255,((i*53+40)%251)/255,((i*29+90)%251)/255,T.LinearSRGBColorSpace);
    ids.set(m,new T.MeshBasicMaterial({color:c,side:m.side,alphaTest:m.alphaTest}))}
   lista.push([o,o.material])});
- const usa=mp=>{for(const [o,m] of lista)o.material=Array.isArray(m)?m.map(x=>mp.get(x)):mp.get(m)};
- return {toon:()=>usa(toon),id:()=>usa(ids),fin:()=>{for(const [o,m] of lista)o.material=m;for(const m of toon.values())m.dispose();for(const m of ids.values())m.dispose()}}}
+ // rasgos de la cara (ojos, cejas, boca, nariz) cuentan como piel: sin líneas alrededor, que se vean limpios
+ const piel=[...ids.keys()].find(m=>m.name==='av_piel'),rasgo=(o,x)=>piel&&(/^(Cejas|Nariz|Boca)/.test(o.name)||/^av_(ojo|boca)$/.test(x.name));
+ const usa=(mp,cara)=>{for(const [o,m] of lista){const f=x=>mp.get(cara&&rasgo(o,x)?piel:x);o.material=Array.isArray(m)?m.map(f):f(m)}};
+ return {toon:()=>usa(toon),id:()=>usa(ids,1),fin:()=>{for(const [o,m] of lista)o.material=m;for(const m of toon.values())m.dispose();for(const m of ids.values())m.dispose()}}}
 const PLANO={cara:.43,busto:.6,cuerpo:1};
 async function retrato(cod,o={}){const T=THREE;o={tam:256,plano:'busto',giro:.3,pose:'Reposo',t:0,fondo:null,borde:.022,linea:.006,...o};
  const p=await AV.crear(cod);const u=p.userData.av,R=motor();
@@ -48,8 +50,8 @@ async function retrato(cod,o={}){const T=THREE;o={tam:256,plano:'busto',giro:.3,
  // silueta para el contorno de afuera
  const sil=lienzo(),sx=sil.getContext('2d');sx.drawImage(col,0,0);sx.globalCompositeOperation='source-in';sx.fillStyle=TINTA;sx.fillRect(0,0,big,big);
  const fin=lienzo(),fx=fin.getContext('2d'),rb=o.borde*big;
- for(let a=0;a<24;a++){const g=a/24*Math.PI*2;fx.drawImage(sil,Math.cos(g)*rb,Math.sin(g)*rb)}
- fx.drawImage(col,0,0);const ln=lienzo();ln.getContext('2d').putImageData(lin,0,0);fx.drawImage(ln,0,0);
+ fx.filter=`blur(${S*.3}px)`;for(let a=0;a<36;a++){const g=a/36*Math.PI*2;fx.drawImage(sil,Math.cos(g)*rb,Math.sin(g)*rb)}
+ fx.filter='none';fx.drawImage(col,0,0);fx.filter=`blur(${S*.25}px)`;const ln=lienzo();ln.getContext('2d').putImageData(lin,0,0);fx.drawImage(ln,0,0);fx.filter="none";
  const out=document.createElement('canvas');out.width=out.height=o.tam;const ox=out.getContext('2d');ox.imageSmoothingEnabled=true;ox.imageSmoothingQuality='high';
  if(o.fondo){ox.fillStyle=o.fondo;ox.beginPath();ox.arc(o.tam/2,o.tam/2,o.tam/2,0,Math.PI*2);ox.fill()}
  ox.drawImage(fin,0,0,o.tam,o.tam);return out}
