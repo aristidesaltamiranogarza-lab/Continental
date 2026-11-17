@@ -1,7 +1,7 @@
 // c_billar2d.js — B2D: Bola 8 en 2D para el modo Ligero (sin casa 3D). El inicio (c_lobby.js) lo abre con B2D.abre().
 // Habla con POST /casa como c_casino2d.js (piso '2d', b.bi; reglas en g_billar.js) y simula cada tiro con BFIS (billar_fis.js), igual que el
 // servidor: el tiro propio se ve al soltar y los de los demás al llegar ult. La mesa va vista desde arriba en un lienzo (en celular parado, a lo largo).
-// Apuntar: tocar o arrastrar sobre la mesa (el taco apunta hacia el dedo); afinar con las flechas o A/D. Fuerza: jalar hacia abajo la barra de la
+// Apuntar: tocar la mesa (el taco apunta hacia el dedo) y arrastrar para afinar (gira 1/4 de lo que el dedo rodea a la blanca); también flechas o A/D. Fuerza: jalar hacia abajo la barra de la
 // derecha y soltar (o mantener Espacio). Efecto: tocar la bola chica. Bola en mano: arrastrar la blanca. Hoyo de la 8: tocar la tronera.
 // Envuelve home() mientras está abierto. Estilos aquí mismo (b2-…), con los tokens de ui.css.
 (function(){
@@ -77,7 +77,6 @@ function finRep(){const u=rep.u;rep=null;hv=null;if(u)aviso(u);pinta()}
 function init(){root=document.createElement('div');root.id='b2root';root.className='b2';root.innerHTML=
  `<canvas></canvas><div class="ui b2-hud"></div><div class="ui b2-ctl">
   <div class="b2-ef" role="slider" aria-label="Efecto en la blanca" tabindex="0"><span class="b2-efb"><i></i></span><small>Efecto</small></div>
-  <div class="b2-fino"><button class="ui-rb" data-d="-1" aria-label="Girar a la izquierda">${CHEV(-1)}</button><button class="ui-rb" data-d="1" aria-label="Girar a la derecha">${CHEV(1)}</button></div>
   <div class="b2-pow" aria-label="Fuerza: jala hacia abajo y suelta"><div class="b2-pw"><b></b><i></i></div><small>Jala</small></div></div>
   <div class="ui b2-toast" role="status" aria-live="polite"></div>`;
  document.body.appendChild(root);cv=root.querySelector('canvas');cx=cv.getContext('2d');hud=root.querySelector('.b2-hud');ctl=root.querySelector('.b2-ctl');tst=root.querySelector('.b2-toast');
@@ -149,9 +148,9 @@ function htmlHud(){const v=vista();if(!v)return `<div class="ui-card b2-card"><p
   const top=`<div class="b2-top"><div class="b2-r1"><button class="ui-rb" onclick="B2D.menu()" aria-label="Menú">${I('menu')}</button>
    <span class="ui-pill b2-turn${tu?' tu':''}">${rep?'Ruedan las bolas':t}${!rep&&!bot?` <small id="b2left"></small>`:''}</span></div>
    <div class="b2-r2">${equipo(v,0)}${equipo(v,1)}</div></div>`;
-  let h='';if(tu){h=v.canta&&hoyo<0?'Toca el hoyo donde va a entrar la 8':v.mano?'Arrastra la blanca para acomodarla; toca la mesa para apuntar':v.saque?'Saque: apunta al triángulo y jala fuerte la barra':'Toca la mesa para apuntar y jala la barra para tirar'}
+  let h='';if(tu){h=v.canta&&hoyo<0?'Toca el hoyo donde va a entrar la 8':v.mano?'Arrastra la blanca para acomodarla; toca la mesa para apuntar':v.saque?'Saque: apunta al triángulo y jala fuerte la barra':'Toca la mesa para apuntar, arrastra para afinar y jala la barra para tirar'}
   else if(!v.yo&&!rep)h='Estás mirando esta partida';
-  const mn=menu?`<div class="ui ui-card b2-menu">${v.yo?B(I('salir')+'Abandonar la partida','B2D.sale()','sec full'):B(I('salir')+'Volver al inicio','B2D.cierra()','sec full')}${B('Seguir jugando','B2D.menu()','ghost full')}</div>`:'';
+  const mn=menu?`<div class="ui ui-card b2-menu">${v.yo?B(I('salir')+'Abandonar la partida','B2D.sale()','sec full'):B(I('salir')+'Volver al inicio','B2D.cierra()','sec full')}${window.BIEN?B(I('pantalla')+'Volver al 3D','BIEN.a3();B2D.cierra()','sec full'):''}${B('Seguir jugando','B2D.menu()','ghost full')}</div>`:'';
   return top+(h?`<div class="b2-hint">${h}</div>`:'')+e+mn}
  if(v.fase==='fin')return fin(v)+e;
  if(v.fase==='arma')return arma(v)+e;
@@ -294,10 +293,13 @@ function pd(e){menu&&(menu=false,pinta());if(!miTurno())return;const [x,z]=mundo
  if(v.canta){let b=-1,bd=1e9;FM.P.forEach((p,i)=>{const d=Math.hypot(p.x-x,p.z-z);if(d<Math.max(p.r*2.2,30/T.s)&&d<bd){bd=d;b=i}});if(b>=0){hoyo=b;son('tick');pinta();return}}
  cv.setPointerCapture(e.pointerId);
  if(v.mano&&es0[0]&&Math.hypot(es0[0][0]-x,es0[0][1]-z)<Math.max(R*2.5,26/T.s)){drag={t:'bola'};return}
- drag={t:'apunta'};apunta(x,z,es0)}
+ apunta(x,z,es0);drag={t:'apunta',sx:e.clientX,sy:e.clientY,fa:rodea(x,z,es0),fino:false}}
 function pm(e){if(!drag||!miTurno())return;const [x,z]=mundo(e);
  if(drag.t==='bola'){const es0=V.E.map(b=>b&&b.slice());const coc=V.mano==='cocina';const xx=cl(x,-FL/2+R,coc?-FL/4:FL/2-R),zz=cl(z,-AN/2+R,AN/2-R);if(BFIS.libre(es0,xx,zz,coc)){bx=xx;bz=zz}return}
- apunta(x,z,E())}
+ // tocar apunta hacia el dedo; si después arrastra, afina: el taco gira a 1/4 de lo que el dedo rodea a la blanca (como en 3D)
+ const es0=E();if(!drag.fino&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>8)drag.fino=true;if(!drag.fino)return;
+ const fa=rodea(x,z,es0);if(fa==null||drag.fa==null){drag.fa=fa;return}let d=fa-drag.fa;d=Math.atan2(Math.sin(d),Math.cos(d));drag.fa=fa;ang+=d*.25}
+function rodea(x,z,es0){const b=es0&&es0[0];if(!b||Math.hypot(x-b[0],z-b[1])<R*1.5)return null;return Math.atan2(z-b[1],x-b[0])}
 function pu(){drag=null}
 function apunta(x,z,es0){const b=es0&&es0[0];if(!b)return;const dx=x-b[0],dz=z-b[1];if(Math.hypot(dx,dz)<R*1.2)return;ang=Math.atan2(dz,dx)}
 function kd(e){if(!g||/input|textarea|select/i.test((e.target&&e.target.tagName)||''))return;if(!miTurno())return;

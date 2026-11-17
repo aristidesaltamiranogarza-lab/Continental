@@ -37,13 +37,21 @@ function piso(x,fy,col){x.fillStyle=col;x.fillRect(PAN.x,fy,PAN.w,PAN.y+PAN.h-fy
 }
 function meta(x,cx,y,w,s){const n=16,m=2,cw=w/n,ch=10*s;x.save();x.beginPath();x.rect(cx-w/2,y-ch*m/2,w,ch*m);x.fillStyle='#FFFDF8';x.fill();x.clip();x.fillStyle=TINTA;
  for(let i=0;i<n;i++)for(let j=0;j<m;j++)if((i+j)%2)x.fillRect(cx-w/2+i*cw,y-ch*m/2+j*ch,cw+.5,ch+.5);x.restore();x.beginPath();x.rect(cx-w/2,y-ch*m/2,w,ch*m);trazo(x)}
-function marco(x,o){x.fillStyle=TINTA;rr(x,0,0,W,H,46);x.fill();x.fillStyle=COL.papel;rr(x,7,7,W-14,H-14,40);x.fill();
+function marco(x,o,fa){x.fillStyle=TINTA;rr(x,0,0,W,H,46);x.fill();x.fillStyle=COL.papel;rr(x,7,7,W-14,H-14,40);x.fill();
  x.strokeStyle=COL.filo;x.lineWidth=2.5;rr(x,28,28,W-56,H-56,26);x.stroke();
- x.beginPath();x.arc(92,90,40,0,Math.PI*2);x.fillStyle=COL.filo;x.fill();x.lineWidth=5;x.strokeStyle=TINTA;x.stroke();
- x.fillStyle='#FFF';x.font=`800 30px ${FUENTE}`;x.textAlign='center';x.textBaseline='middle';x.fillText(o.valor,92,92);
- x.fillStyle=COL.sub;x.font=`800 26px ${FUENTE}`;x.fillText(o.tipo,W/2,90);
- x.fillStyle=TINTA;x.font=`800 54px ${FUENTE}`;x.fillText(o.titulo,W/2,880);
- x.fillStyle=COL.sub;x.font=`700 29px ${FUENTE}`;o.texto.forEach((t,i)=>x.fillText(t,W/2,954+i*40))}
+ x.beginPath();x.arc(96,94,50,0,Math.PI*2);x.fillStyle=COL.filo;x.fill();x.lineWidth=5;x.strokeStyle=TINTA;x.stroke();
+ x.fillStyle='#FFF';x.font=`900 38px ${FUENTE}`;x.textAlign='center';x.textBaseline='middle';x.fillText(o.valor,96,96);
+ x.fillStyle=COL.filo;x.font=`900 46px ${FUENTE}`;x.fillText(o.tipo.toUpperCase(),W/2+30,96)}
+// parte un texto en renglones que quepan en w con la letra de tamaño t
+function renglones(x,txt,t,w){x.font=`900 ${t}px ${FUENTE}`;const r=[];let l='';for(const p of txt.split(' ')){const n=l?l+' '+p:p;if(l&&x.measureText(n).width>w){r.push(l);l=p}else l=n}r.push(l);return r}
+// título grande enmarcado abajo (como el de la renta multicolor); con full también la descripción (solo al verla en grande)
+const CAJA={x:64,y:760,w:622,h:300};
+function titulo(x,o,fa,full){rr(x,CAJA.x,CAJA.y,CAJA.w,CAJA.h,26);x.fillStyle='#FFFDF8';x.fill();x.strokeStyle=TINTA;x.lineWidth=6;x.stroke();
+ rr(x,CAJA.x+12,CAJA.y+12,CAJA.w-24,CAJA.h-24,18);x.strokeStyle=fa.piso;x.lineWidth=5;x.stroke();
+ const mw=CAJA.w-70;let t=full?76:112,r;for(;t>40;t-=4){r=renglones(x,o.titulo,t,mw);if(r.length<=2&&r.every(l=>x.measureText(l).width<=mw))break}
+ const lh=t*1.02,dl=full?o.texto.length:0,dh=42,hh=r.length*lh+(dl?18+dl*dh:0);let y=CAJA.y+CAJA.h/2-hh/2+lh/2;
+ x.fillStyle=TINTA;x.textAlign='center';x.textBaseline='middle';x.font=`900 ${t}px ${FUENTE}`;r.forEach(l=>{x.fillText(l,W/2,y);y+=lh});
+ if(dl){y+=18-lh/2+dh/2;x.fillStyle=COL.sub;x.font=`800 36px ${FUENTE}`;o.texto.forEach(l=>{x.fillText(l,W/2,y);y+=dh})}}
 // familias: color del panel y del piso (cobro ámbar, robar/mover verde, defensa azul)
 const FAM={cobro:{panel:'#F6E3BC',piso:'#EBCD96'},mueve:{panel:'#E1ECD4',piso:'#C6DBB1'},defensa:{panel:'#DCE7EF',piso:'#BCD1E1'}};
 // personaje de cuerpo entero, misma escala en todas (marco fijo en metros) y pies en FY; P(hueso) da su punto en la carta
@@ -142,14 +150,17 @@ const CARTAS={
 function codPj(){try{return localStorage.cont_av}catch(e){}}
 async function dibuja(nom,o={}){const k=CARTAS[nom],fa=FAM[k.fam];o={cod:codPj()||'s1p1c2b1n2a1d1-0368',...o};
  await document.fonts.load(`800 54px ${FUENTE}`);const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
- marco(x,k);if(k.solo){await k.arte(x,o);return cv}
+ marco(x,k,fa);titulo(x,k,fa,o.full);
+ // el panel con el dibujo va 15% más chico, arriba, para dejarle lugar al título
+ const ES=.85,TOP=150;x.save();x.translate(W/2,TOP);x.scale(ES,ES);x.translate(-W/2,-PAN.y);
+ if(k.solo){await k.arte(x,o);x.restore();return cv}
  rr(x,PAN.x,PAN.y,PAN.w,PAN.h,PAN.r);x.fillStyle=fa.panel;x.fill();x.save();rr(x,PAN.x,PAN.y,PAN.w,PAN.h,PAN.r);x.clip();piso(x,FY,fa.piso);await k.arte(x,o);x.restore();
- rr(x,PAN.x,PAN.y,PAN.w,PAN.h,PAN.r);x.strokeStyle=TINTA;x.lineWidth=5;x.stroke();return cv}
+ rr(x,PAN.x,PAN.y,PAN.w,PAN.h,PAN.r);x.strokeStyle=TINTA;x.lineWidth=5;x.stroke();x.restore();return cv}
 function capa(){let d=document.getElementById('carta2d');if(d)d.remove();d=document.createElement('div');d.id='carta2d';
  d.style.cssText='position:fixed;inset:0;z-index:9999;background:var(--ui-scrim,#0008);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;overflow:auto;padding:12px';
  d.onclick=()=>d.remove();document.body.appendChild(d);return d}
 async function ver(nom='cumple',o){if(nom==='todas')return galeria(o);const cv=await dibuja(nom,o),d=capa();cv.style.cssText='max-height:92vh;max-width:92vw';d.appendChild(cv);return cv}
-async function galeria(o){const d=capa();for(const n in CARTAS){const cv=await dibuja(n,o);cv.title=n;cv.style.cssText='height:44vh';d.appendChild(cv)}}
+async function galeria(o){const d=capa();for(const n in CARTAS)for(const full of [false,true]){const cv=await dibuja(n,{...o,full});cv.title=n;cv.style.cssText='height:44vh';d.appendChild(cv)}}
 window.CARTA2D={dibuja,ver,galeria,CARTAS,POSES,FAM};
 const q=new URLSearchParams(location.search).get('carta');if(q)(async()=>{while(!window.AV||!window.AV2D)await new Promise(r=>setTimeout(r,200));await AV.listo();ver(q)})();
 })();

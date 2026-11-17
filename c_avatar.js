@@ -174,6 +174,6 @@ function encoge(p,k){if(!p||k===1)return;p.updateMatrixWorld(true);const a=p.get
 window.AV={encoge,K:.8,PAL,RP,GE,gesto,mezcla,amartilla,post,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},get alto(){return alto},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
- mio(nuevo){let c=null;try{if(nuevo)localStorage.setItem('cont_av',codificar(leer(nuevo)));c=localStorage.getItem('cont_av')}catch(e){}
+ mio(nuevo){let c=null;try{if(nuevo){const v=codificar(leer(nuevo)),cambia=localStorage.getItem('cont_av')!==v;localStorage.setItem('cont_av',v);if(cambia)setTimeout(()=>dispatchEvent(new Event('av-mio')))}c=localStorage.getItem('cont_av')}catch(e){}
   if(!c){c=azar();try{localStorage.setItem('cont_av',c)}catch(e){}}return codificar(leer(c))}};
 })();

@@ -266,7 +266,9 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
  if(s.lpd)return;
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}
  if(mc&&(!s.hit||s.hit.t=='zone'||s.hit.t=='seat')&&!mdTg&&mc.dobleToque(s.x,s.y))return;
- tap(s.hit)}
+ eat=performance.now();tap(s.hit)}
+// el click que el navegador manda después de soltar no debe caer en la tarjeta que acaba de salir bajo el dedo (p. ej. «Al banco»)
+let eat=0;addEventListener('click',e=>{if(performance.now()-eat<450&&e.target.closest&&e.target.closest('#md3box')){e.stopPropagation();e.preventDefault()}},true);
 function pCancel(e){if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;st=null;sync()}
 function tap(h){const G=V.G,me=V.me,fin=G.phase=='final';
  if(!h){if(mdSel!=null&&!mdSt&&!mdTg){mdSel=null;render();return}if(VT.who>=0)home();return}

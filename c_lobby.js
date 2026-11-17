@@ -31,7 +31,7 @@ function est(g){
  if(g=='uno')return `<div class="ui-row lb-fila"><span>Letra del color en cada carta<small class="ui-sub">Ayuda si confundes colores</small></span><label class="ui-sw"><input type="checkbox"${cbl?' checked':''} onchange="setCb(this.checked)"><i></i></label></div>`;
  const sw=(O,cur,f)=>`<div class="lb-sws">${Object.keys(O).map(k=>`<button class="lb-sw${cur==k?' on':''}" style="background:${O[k]}" onclick="${f}('${k}')" aria-label="${k}" aria-pressed="${cur==k}"></button>`).join('')}</div>`;
  return `<span class="ui-lbl">Fondo de la mesa</span>${sw(BGS,sbg,'setBg')}<span class="ui-lbl">Cartas</span><div class="ui-seg lb-seg">${[['classic','Clásicas'],['big','Grandes'],['black','Negras'],['retro','Retro'],['contrast','Contraste']].map(([k,n])=>`<button class="${scards==k?'on':''}" onclick="setCards('${k}')">${n}</button>`).join('')}</div><span class="ui-lbl">Reverso</span>${sw(BKS,sback,'setBack')}`}
-const ajustes=()=>`<section class="ui-card lb-card"><h2>${I('ajustes')}Ajustes</h2><span class="ui-lbl">Música</span>${window.musSlider?musSlider():''}${mesa()}</section>`;
+const ajustes=()=>`<section class="ui-card lb-card"><h2>${I('ajustes')}Ajustes</h2>${window.BIEN?`<span class="ui-lbl">Calidad</span>${BIEN.sel()}`:''}<span class="ui-lbl">Música</span>${window.musSlider?musSlider():''}${mesa()}</section>`;
 const reglas=g=>g&&g.rules?`<section class="ui-card lb-card lb-reglas">${g.rules.replace('<summary>Reglas</summary>',`<summary>${I('ayuda')}Cómo se juega ${es(nom(typeof gnow=='function'?gnow():pgame))}</summary>`)}</section>`:'';
 const err=()=>msg?`<p class="lb-err" role="alert">${es(msg)}</p>`:'';
 

@@ -53,7 +53,7 @@ function cara(id,full){const k='c'+id+(full?'f':'');if(C[k])return C[k];const c=
   else{wild2(g,c);val(g,c.v)}}
  else if(c.t=='a'){action(g,c,full);val(g,c.v)}
  else{rent(g,c,full);val(g,c.v)}
- if(c.t=='a')ilustra(cn,c.k);return C[k]=cn}
+ if(c.t=='a')ilustra(cn,c.k,full);return C[k]=cn}
 function billete(v){const k='b'+v;if(C[k])return C[k];const cn=cnv();bill(cn.getContext('2d'),v);return C[k]=cn}
 function dorso(){if(C.d)return C.d;const cn=cnv(),g=cn.getContext('2d');base(g);g.save();rr(g,12,12,TW-24,TH-24,14);g.clip();
  const gr=g.createRadialGradient(TW/2,TH/2,20,TW/2,TH/2,TH*.7);gr.addColorStop(0,'#2f63a8');gr.addColorStop(1,'#122c55');g.fillStyle=gr;g.fillRect(0,0,TW,TH);
@@ -63,11 +63,15 @@ function dorso(){if(C.d)return C.d;const cn=cnv(),g=cn.getContext('2d');base(g);
  g.restore();return C.d=cn}
 const U={};
 // caras ilustradas (CARTA2D, mismo 2:3): se dibujan aparte una vez y reemplazan la cara de cada acción en su mismo lienzo; avisa con el evento md3k-arte
-const ART={},PEND=[];let artIni=false;
-function pinta(cn,k){const a=ART[k];if(!a)return false;const g=cn.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cn.width,cn.height);g.drawImage(a,0,0,cn.width,cn.height);g.restore();return true}
-function ilustra(cn,k){if(pinta(cn,k))return;PEND.push([cn,k]);if(artIni||!window.CARTA2D||!window.AV2D||!window.AV)return;artIni=true;
- (async()=>{try{await AV.listo();for(const n in CARTA2D.CARTAS)ART[n]=await CARTA2D.dibuja(n)}catch(e){console.warn('[MD3K] cartas ilustradas',e);return}
-  PEND.splice(0).forEach(([c,n])=>pinta(c,n));for(const u in U){const id=+String(u).replace('f','');if(mdCAT[id]&&mdCAT[id].t=='a')delete U[u]}dispatchEvent(new Event('md3k-arte'))})()}
+const ART={},TODAS=[];let artIni=false,artCod=null;
+const ak=(k,full)=>k+(full?'f':'');
+function pinta(cn,k,full){const a=ART[ak(k,full)];if(!a)return false;const g=cn.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cn.width,cn.height);g.drawImage(a,0,0,cn.width,cn.height);g.restore();return true}
+// dibuja todas las ilustradas con el personaje del jugador; al cambiarlo (evento av-mio) se vuelven a dibujar
+async function arte(){const cod=(()=>{try{return localStorage.cont_av}catch(e){}})();if(artIni&&cod===artCod)return;artIni=true;artCod=cod;
+ try{await AV.listo();for(const n in CARTA2D.CARTAS)for(const full of [false,true])ART[ak(n,full)]=await CARTA2D.dibuja(n,{full})}catch(e){console.warn('[MD3K] cartas ilustradas',e);return}
+ if(cod!==artCod)return;TODAS.forEach(([c,n,f])=>pinta(c,n,f));for(const u in U){const id=+String(u).replace('f','');if(mdCAT[id]&&mdCAT[id].t=='a')delete U[u]}dispatchEvent(new Event('md3k-arte'))}
+function ilustra(cn,k,full){TODAS.push([cn,k,!!full]);if(pinta(cn,k,full))return;if(!artIni&&window.CARTA2D&&window.AV2D&&window.AV)arte()}
+addEventListener('av-mio',()=>{if(artIni)arte()});
 window.MD3K={TW,TH,ACOL,cara,billete,dorso,url:id=>U[id]||(U[id]=cara(id).toDataURL()),
  desc:id=>{const c=mdCAT[id];return c.t=='a'?ADES[c.k]||'':''},
  grande:id=>U['f'+id]||(U['f'+id]=cara(id,true).toDataURL())};   // grande: la cara completa (con descripción) para verla de cerca
