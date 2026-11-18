@@ -35,83 +35,73 @@ const ico=k=>IC[k]||`<span class="sl-emo">${(GM[k]||{}).emoji||''}</span>`;
 const aiStr=s=>String(s||'').replace(/Velocidad de (los )?bots/gi,'Velocidad de la AI').replace(/Los bots llenan/gi,'La AI llena').replace(/\bbots\b/gi,'AI').replace(/\bbot\b/gi,'AI');
 function aiTxt(d){const w=document.createTreeWalker(d,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))t.nodeValue=aiStr(t.nodeValue)}
 
-let el=null,shown=false,sale=0,abierta=false,sig={},prev=null,hola={},tagEls=[],ai=false,qrPide=false,cur=null;
+let el=null,shown=false,sale=0,sub=null,sig={},prev=null,hola={},tagEls=[],ai=false,qrPide=false,cur=null;
+// el "boleto": cabecera (juego y código), asientos, una fila de accesos y Empezar. Reglas, juego y música se abren de lado dentro de la hoja (ver)
 function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.className='ui sl';
  el.innerHTML=`<div class="sl-vig"></div><div class="sl-tags" id="slTags"></div><div class="sl-sello" id="slSello" aria-hidden="true">¡A jugar!</div>
  <section class="sl-sh" id="slSh" role="dialog" aria-label="Sala de espera">
-  <button class="sl-handle" onclick="SALA.mas()" aria-label="Mostrar u ocultar opciones"><i></i></button>
   <header class="sl-hd"><div class="sl-ic" id="slIc"></div>
-   <div class="sl-t"><button class="sl-code" onclick="SALA.copia()" aria-label="Copiar el código de la sala">Sala <b id="slCode"></b>${I('copiar')}</button><h2 id="slName"></h2></div>
-   <button class="ui-btn sl-inv" onclick="SALA.invita()">${I('compartir')}Invitar</button></header>
+   <button class="sl-t" onclick="SALA.ver('juego')" aria-label="Cambiar de juego"><h2 id="slName"></h2>${I('abajo')}</button>
+   <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala"><b id="slCode"></b>${I('compartir')}</button></header>
   <div class="sl-bd" id="slBd">
-   <div class="sl-gente"><div class="sl-avs" id="slAvs"></div><div class="sl-res" id="slRes"></div></div>
-   <button class="sl-mas" onclick="SALA.mas()"><span>Juego, reglas y música</span>${I('abajo')}</button>
-   <div class="sl-x" id="slJuego"></div>
-   <div class="sl-x sl-reglas" id="slReglas"></div>
-   <div class="sl-x"><span class="ui-lbl">En la mesa</span><div id="slLista"></div></div>
-   <div class="sl-x sl-aj"><span class="ui-lbl">Música</span><div id="slMus"></div>
-    <button class="sl-row" onclick="SALA.reglas()"><span>Cómo se juega</span>${I('ayuda')}</button><button class="sl-row sl-peligro" id="slSalir" onclick="SALA.salir()"></button></div>
+   <div class="sl-v1" id="slV1"><div class="sl-mesa" id="slMesa"></div><p class="ui-sub sl-mira" id="slMira"></p>
+    <nav class="sl-acc"><button class="sl-p" id="slRegB" onclick="SALA.ver('reglas')">${I('ajustes')}Reglas</button><button class="sl-p" onclick="SALA.reglas()">${I('ayuda')}Cómo jugar</button>
+     <button class="sl-p sl-i" onclick="SALA.ver('mus')" aria-label="Música">${I('musica')}</button><button class="sl-p sl-i sl-peligro" id="slSalir" onclick="SALA.salir()">${I('salir')}</button></nav></div>
+   <div class="sl-v2" id="slV2" hidden><button class="sl-back" onclick="SALA.ver(null)">${I('atras')}<b id="slSubT"></b></button><div id="slSubB"></div></div>
   </div>
   <footer class="sl-ft" id="slFt"></footer>
  </section><div class="sl-modal" id="slModal" hidden onclick="if(event.target===this)SALA.cierra()"></div>`;
- document.body.appendChild(el);if(window.MORPH)['slReglas','slJuego','slAvs','slRes','slLista','slFt'].forEach(i=>MORPH.auto($(i)));arrastra()}
-// en celular, arrastrar el tirador o la cabecera abre o cierra la hoja siguiendo el dedo; un toque sigue siendo mas()
-function arrastra(){const sh=$('slSh');let p=null,movio=false,pend=null;
- const alto=()=>{sh.style.height='auto';return sh.offsetHeight};
- sh.addEventListener('pointerdown',e=>{movio=false;if(innerWidth>=768||!e.isPrimary||p||!e.target.closest('.sl-handle,.sl-hd'))return;p={id:e.pointerId,y:e.clientY,h:sh.offsetHeight,v:0,ly:e.clientY,lt:e.timeStamp,va:false}});
- sh.addEventListener('pointermove',e=>{if(!p||e.pointerId!==p.id)return;const dy=e.clientY-p.y;
-  if(!p.va){if(Math.abs(dy)<7)return;p.va=true;movio=true;if(pend)pend();try{sh.setPointerCapture(e.pointerId)}catch(_){}el.classList.add('arr');
-   el.classList.toggle('open',!abierta);const h1=alto();el.classList.toggle('open',abierta);const h2=alto();
-   p.hc=abierta?h1:h2;p.ha=abierta?h2:h1;el.classList.add('open');sh.style.transition='none';sh.style.height=p.h+'px'}
-  let h=p.h-dy;if(h>p.ha)h=p.ha+(h-p.ha)/3;if(h<p.hc)h=p.hc-(p.hc-h)/3;sh.style.height=h+'px';
-  const dt=e.timeStamp-p.lt;if(dt>0){p.v=(e.clientY-p.ly)/dt;p.ly=e.clientY;p.lt=e.timeStamp}});
- const suelta=e=>{if(!p||e.pointerId!==p.id)return;const q=p;p=null;if(!q.va)return;
-  const h=sh.offsetHeight,abre=q.v<-.35?true:q.v>.35?false:h>(q.hc+q.ha)/2,fin=abre?q.ha:q.hc;
-  if(abre!==abierta)snd('tick');abierta=abre;sh.style.transition='';el.classList.remove('arr');
-  let tm=0;const listo=()=>{pend=null;clearTimeout(tm);sh.removeEventListener('transitionend',te);sh.style.height='';el.classList.toggle('open',abierta);if(!abierta)$('slBd').scrollTop=0};
-  const te=ev=>{if(ev.propertyName==='height')listo()};
-  void sh.offsetHeight;if(Math.abs(h-fin)<1)return listo();pend=listo;tm=setTimeout(listo,600);sh.addEventListener('transitionend',te);sh.style.height=fin+'px'};
- sh.addEventListener('pointerup',suelta);sh.addEventListener('pointercancel',suelta);
- sh.addEventListener('click',e=>{if(movio){movio=false;e.stopPropagation();e.preventDefault()}},true)}
+ document.body.appendChild(el);if(window.MORPH)['slMesa','slFt'].forEach(i=>MORPH.auto($(i)))}
+function vista(){const a=$('slV1'),b=$('slV2');if(!a)return;a.hidden=!!sub;b.hidden=!sub;el.classList.toggle('sub',!!sub)}
+function ver(n){if(!el||!shown)return;const v=vv();if(n==='juego'&&!(v&&v.host))return;if(n===sub)n=null;sub=n;snd('tick');vista();$('slBd').scrollTop=0;
+ if(sub){$('slSubT').textContent={reglas:'Reglas',juego:'Juego',mus:'Música'}[sub]||'';subPinta(true)}
+ const a=sub?$('slV2'):$('slV1');a.classList.remove('ent');void a.offsetWidth;a.classList.add('ent')}
+function subPinta(f){if(!sub)return;const k=sub+'|'+(sub==='reglas'?sig.raw:sub==='juego'?sig.k:'');if(!f&&k===sig.sb)return;sig.sb=k;const b=$('slSubB');
+ if(sub==='reglas')b.innerHTML=`<div class="sl-reglas">${sig.reglas||''}</div>`;
+ else if(sub==='juego'){const L=ORD.filter(x=>GM[x]).concat(Object.keys(GM).filter(x=>!ORD.includes(x)));
+  b.innerHTML=`<div class="sl-cajas">${L.map(x=>`<button class="sl-caja${x===sig.k?' on':''}" style="--f:${COL[x]||'#C2512A'}" onclick="SALA.juego('${x}')" aria-pressed="${x===sig.k}"><span class="ic">${ico(x)}</span><b>${es(nom(x))}</b></button>`).join('')}</div>`}
+ else b.innerHTML=window.musSlider?musSlider():''}
 
 // sync(g): game.js en cada render() de la sala de espera. false = no hay casa (sala de siempre)
 function sync(g){const H=H3(),v=vv();if(!g||!H||!v||v.G)return false;arma();cur=g;
- if(!shown){shown=true;abierta=false;sig={};prev=null;hola={};if(H.arranca)H.arranca(v.game);el.classList.remove('sale','open','in');void el.offsetWidth;el.classList.add('in');requestAnimationFrame(paso)}
+ if(!shown){shown=true;sub=null;vista();sig={};prev=null;hola={};if(H.arranca)H.arranca(v.game);el.classList.remove('sale','open','in');void el.offsetWidth;el.classList.add('in');requestAnimationFrame(paso)}
  pinta(g,v);return true}
-function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('--sl-c',COL[k]||'#C2512A');
+function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('--sl-c',COL[k]||'#C2512A');el.classList.toggle('host',host);
  if(sig.k!==k){sig.k=k;const ic=$('slIc');ic.innerHTML=ico(k);ic.classList.remove('pop');void ic.offsetWidth;ic.classList.add('pop');$('slName').textContent=nom(k)}
- $('slCode').textContent=v.code||'';
- // reglas del juego (su lobby de siempre) sin el botón de empezar, que va abajo
+ $('slCode').textContent=v.code||'';if(!host&&sub==='juego')ver(null);
+ // reglas del juego (su lobby de siempre): Empezar va abajo, "Agregar bot" es un asiento con +, los Sí/No son interruptores
  let raw='';try{raw=g.lobby(host?1:0)||''}catch(e){}
- if(raw!==sig.raw){sig.raw=raw;const d=document.createElement('div');d.innerHTML=raw;ai=/\bbots?\b/i.test(d.textContent);
-  const b=[...d.querySelectorAll('button')].find(x=>/'start'/.test(x.getAttribute('onclick')||''));sig.go=null;
-  if(b){const nx=b.nextElementSibling,h=nx&&nx.classList.contains('top')?nx.textContent:'';sig.go={on:b.getAttribute('onclick'),dis:b.disabled,hint:aiStr(h)};if(h)nx.remove();b.remove()}
+ if(raw!==sig.raw){sig.raw=raw;const d=document.createElement('div');d.innerHTML=raw;const bt=r=>[...d.querySelectorAll('button')].find(x=>r.test(x.getAttribute('onclick')||''));
+  const b=bt(/'start'/);sig.go=null;
+  if(b){const nx=b.nextElementSibling;if(nx&&nx.classList.contains('top'))nx.remove();sig.go={on:b.getAttribute('onclick'),dis:b.disabled};b.remove()}
+  const ab=bt(/addbot/);sig.add=null;
+  if(ab){sig.add={on:ab.getAttribute('onclick'),dis:ab.disabled};const bx=ab.closest('.box'),nx=ab.nextElementSibling;if(nx&&nx.classList.contains('top'))nx.remove();ab.remove();
+   if(bx){const c=bx.cloneNode(true);c.querySelectorAll('b,strong,br').forEach(x=>x.remove());if(!c.textContent.trim()&&!c.querySelector('button,select,input'))bx.remove()}}
+  ai=!sig.add&&/\bbots?\b/i.test(d.textContent);
   d.querySelectorAll('b,strong').forEach(x=>{if(/^reglas de esta sala$/i.test(x.textContent.trim()))x.remove()});
-  aiTxt(d);$('slReglas').innerHTML=d.textContent.trim()||d.querySelector('select,input')?`<span class="ui-lbl">Reglas de esta sala</span>`+d.innerHTML:''}
- // ¿a qué juegan? (solo quien creó la sala)
- const jk=host+'|'+k;if(sig.j!==jk){sig.j=jk;const L=ORD.filter(x=>GM[x]).concat(Object.keys(GM).filter(x=>!ORD.includes(x)));
-  $('slJuego').innerHTML=host?`<span class="ui-lbl">¿A qué juegan?</span><div class="sl-cajas" id="slCajas">${L.map(x=>`<button class="sl-caja${x===k?' on':''}" style="--f:${COL[x]||'#C2512A'}" onclick="SALA.juego('${x}')" aria-pressed="${x===k}"><span class="ic">${ico(x)}</span><b>${es(nom(x))}</b></button>`).join('')}</div><p class="ui-sub sl-nota">Al terminar una partida pueden cambiar de juego sin salir de la sala.</p>`
-   :`<p class="ui-sub sl-nota">El juego lo elige quien creó la sala.</p>`;
-  const cs=$('slCajas'),on=cs&&cs.querySelector('.on');if(on)requestAnimationFrame(()=>{cs.scrollLeft=on.offsetLeft-(cs.clientWidth-on.offsetWidth)/2})}
+  d.querySelectorAll('button').forEach(x=>{const m=/^(.+?):\s*(Sí|No)$/.exec(x.textContent.trim());if(!m)return;const l=document.createElement('label');l.className='sl-tg';
+   l.innerHTML=`<span>${es(m[1])}</span><span class="ui-sw"><input type="checkbox"${m[2]==='Sí'?' checked':''}${x.disabled?' disabled':''}><i></i></span>`;
+   l.querySelector('input').setAttribute('onchange',x.getAttribute('onclick')||'');x.replaceWith(l)});
+  aiTxt(d);sig.reglas=d.textContent.trim()||d.querySelector('select,input')?d.innerHTML:'';$('slRegB').hidden=!sig.reglas;if(!sig.reglas&&sub==='reglas')ver(null)}
+ subPinta();
  // gente: los de la sala se sientan en la mesa de la casa; la AI ocupa el resto
  const ps=v.players.map((p,i)=>Object.assign({i},p)).filter(p=>!p.out),n=ps.length,max=Math.max(n,(v.opts&&+v.opts.n)||g.max||6),libres=ai?Math.min(max,6)-n:0;
  const names=ps.map(p=>p.name),avs=ps.map(p=>p.av||''),nk=k+'#'+v.me+'#'+names.join('|')+'#'+avs.join('|');
  if(nk!==sig.n){sig.n=nk;const H=H3();if(H)H.sala.gente(k,names,avs,ps.findIndex(p=>p.i===v.me));
-  if(prev){const nuevos=names.filter(x=>!prev.includes(x));nuevos.forEach(x=>{hola[x]=performance.now()});if(nuevos.length)snd('tick')}prev=names;
-  $('slAvs').innerHTML=ps.slice(0,6).map(p=>`<i class="sl-av${performance.now()-(hola[p.name]||-1e9)<2500?' nuevo':''}" style="--c:${colOf(p.name)}" title="${es(p.name)}">${ini(p.name)}</i>`).join('')+'<i class="sl-av ai">AI</i>'.repeat(Math.max(0,libres))}
- $('slRes').innerHTML=`<b>${n} de ${max}</b> en la mesa<br>${ai&&n<max?'La AI juega '+(max-n)+(max-n>1?' lugares':' lugar'):n<2&&!ai?'Falta gente para empezar':'¡Mesa completa!'}`;
- const lk=JSON.stringify([ps.map(p=>[p.name,p.on,p.id,p.i]),me,host,v.spec,v.watch,libres]);
- if(lk!==sig.l){sig.l=lk;$('slLista').innerHTML=ps.map(p=>`<div class="sl-pl"><i class="sl-av" style="--c:${colOf(p.name)}">${ini(p.name)}</i><span><b>${es(p.name)}</b>${p.i===me?' <em>(tú)</em>':''}</span>`+
-   (host&&p.i!==me?`<button class="ui-btn ghost sl-kick" onclick="kick('${es(p.id)}')">Sacar</button>`:'')+`<i class="sl-dot${p.on?' on':''}" title="${p.on?'Conectado':'Desconectado'}"></i></div>`).join('')+
-   `<div class="sl-pl ai"><i class="sl-av ai">AI</i><span class="ui-sub">Lugar libre</span><b class="sl-chip">AI</b></div>`.repeat(Math.max(0,libres))+
-   (host&&me<0?'<p class="ui-sub">Eres el anfitrión: administras, no juegas.</p>':'')+(v.spec&&v.spec.length?`<p class="ui-sub">Mirando: ${v.spec.map(es).join(', ')}</p>`:'')}
- if(!sig.m){sig.m=1;$('slMus').innerHTML=window.musSlider?musSlider():''}
- $('slSalir').textContent=host?'Cerrar sala':v.watch?'Dejar de mirar':'Salir de la sala';
+  if(prev){const nuevos=names.filter(x=>!prev.includes(x));nuevos.forEach(x=>{hola[x]=performance.now()});if(nuevos.length)snd('tick')}prev=names}
+ const add=host&&sig.add&&!sig.add.dis&&n<max,lk=JSON.stringify([ps.map(p=>[p.name,p.on,p.id,p.i,p.bot]),me,host,libres,add]);
+ if(lk!==sig.l){sig.l=lk;const t=performance.now();
+  $('slMesa').innerHTML=ps.map(p=>`<div class="sl-seat${t-(hola[p.name]||-1e9)<2500?' nuevo':''}"><i class="sl-av" style="--c:${colOf(p.name)}">${ini(p.name)}${p.bot?'':`<span class="sl-dot${p.on?' on':''}"></span>`}</i><span>${p.i===me?'Tú':es(p.name)}</span>`+
+   (host&&p.i!==me?`<button class="sl-kick" onclick="kick('${es(p.id)}')" aria-label="Sacar a ${es(p.name)}">${I('x')}</button>`:'')+'</div>').join('')+
+   (add?`<button class="sl-seat sl-add" onclick="${es(sig.add.on)}" aria-label="Agregar AI"><i class="sl-av ai">${I('mas')}</i><span>AI</span></button>`:'')+
+   '<div class="sl-seat"><i class="sl-av ai">AI</i><span>AI</span></div>'.repeat(Math.max(0,libres))}
+ $('slMira').textContent=v.spec&&v.spec.length?'Mirando: '+v.spec.join(', '):'';
+ const sa=host?'Cerrar sala':v.watch?'Dejar de mirar':'Salir de la sala',se=$('slSalir');if(se.title!==sa){se.title=sa;se.setAttribute('aria-label',sa)}
  // abajo: empezar (quien creó la sala), unirse (mirando) o esperando
  const m=typeof msg!='undefined'?msg:'',go=sig.go||{on:"send({t:'start'})"};let ft;
- if(host)ft=`<button class="ui-btn full sl-go" ${go.dis?'disabled':''} onclick="${es(go.on)}">${I('jugar')}Empezar partida</button><p class="ui-sub sl-hint">${es(go.hint||(ai&&n<max?'La AI llena los lugares vacíos':''))}</p>`;
- else if(v.watch)ft=`<button class="ui-btn full sl-go" onclick="joinSpec()">${I('jugar')}Unirme a jugar</button><p class="ui-sub sl-hint">La partida terminó: puedes unirte a la siguiente.</p>`;
- else ft=`<div class="sl-espera" role="status"><i></i><i></i><i></i><span>Esperando a que empiece la partida</span></div>`;
+ if(host)ft=go.dis?'<button class="ui-btn full sl-go" disabled>Esperando jugadores</button>':`<button class="ui-btn full sl-go" onclick="${es(go.on)}">${I('jugar')}Empezar</button>`;
+ else if(v.watch)ft=`<button class="ui-btn full sl-go" onclick="joinSpec()">${I('jugar')}Unirme a jugar</button>`;
+ else ft='<div class="sl-espera" role="status"><i></i><i></i><i></i><span>Esperando al anfitrión</span></div>';
  if(m)ft+=`<p class="sl-err" role="alert">${es(m)}</p>`;
  if(ft!==sig.ft){sig.ft=ft;$('slFt').innerHTML=ft}}
 
@@ -136,12 +126,8 @@ function tapa(){if(sale)return true;const v=vv();if(!shown||!st()||!v||!v.G)retu
  const s=$('slSello');s.classList.remove('on');void s.offsetWidth;s.classList.add('on');
  const RM=window.CCAM&&CCAM.RM,fin=()=>{sale=0;ocultar();if(typeof render=='function')render()};
  setTimeout(()=>{if(window.CCAM)CCAM.fade(1,RM?120:280).then(()=>{fin();setTimeout(()=>CCAM.fade(0,RM?120:520),60)});else fin()},RM?250:1100);return true}
-function ocultar(){shown=false;sale=0;if(!el)return;el.classList.remove('in','sale','open');abierta=false;$('slModal').hidden=true;tagEls.forEach(t=>t.style.display='none');
+function ocultar(){shown=false;sale=0;if(!el)return;el.classList.remove('in','sale','open');sub=null;vista();$('slModal').hidden=true;tagEls.forEach(t=>t.style.display='none');
  if(window.CASA3D&&CASA3D.sala)CASA3D.sala.gente(null,null);sig={}}
-// celular: la hoja crece para mostrar juego, reglas, gente y música (alto animado de auto a auto)
-function mas(){if(innerWidth>=768||!el)return;const sh=$('slSh'),h0=sh.offsetHeight;abierta=!abierta;el.classList.toggle('open',abierta);snd('tick');
- sh.style.height='auto';const h1=sh.offsetHeight;sh.style.height=h0+'px';void sh.offsetHeight;sh.style.height=h1+'px';
- const end=e=>{if(e.propertyName!=='height')return;sh.style.height='';sh.removeEventListener('transitionend',end)};sh.addEventListener('transitionend',end);if(!abierta)$('slBd').scrollTop=0}
 const url=()=>location.origin+'/#'+((vv()||{}).code||'');
 function copiaL(){const u=url();const ok=()=>{if(typeof banner=='function')banner('Enlace copiado ✓')};
  if(navigator.clipboard)navigator.clipboard.writeText(u).then(ok,()=>copyT(u));else copyT(u)}
@@ -152,15 +138,15 @@ function modal(h){const m=$('slModal');m.innerHTML=h;m.hidden=false;snd('tick');
 window.SALA={ico,sync,tapa,hueco,
  on:()=>shown||sale>0||!!(st()&&!vv()&&H3()),   // también mientras entras (todavía sin datos de la sala): la casa sigue viva
  g:()=>{const v=vv();return v?v.game:typeof pgame!='undefined'?pgame:null},
- mas,copiaL,
- juego:k=>{if(vv()&&vv().host&&k!==vv().game){send({t:'game',g:k});snd('tick')}},
+ ver,copiaL,
+ juego:k=>{if(vv()&&vv().host&&k!==vv().game){send({t:'game',g:k});ver(null)}},
  copia:()=>{const v=vv();if(v)copyT(v.code)},
  comparte:()=>{const v=vv();if(!v)return;const u=url();if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(v.game)+' conmigo! Código '+v.code,url:u}).catch(()=>{});else copiaL()},
- invita:()=>{const v=vv();if(!v)return;const u=url();modal(`<div class="sl-card" role="dialog" aria-label="Invitar a la sala"><h3>Invita a tu gente</h3><p class="ui-sub">Que escaneen el código con la cámara del celular</p><div class="sl-qr" id="slQr"></div><div class="sl-big">${es(v.code)}</div><div class="sl-link">${es(u)}</div>
+ invita:()=>{const v=vv();if(!v)return;const u=url();modal(`<div class="sl-card" role="dialog" aria-label="Invitar a la sala"><h3>Invita a tu gente</h3><div class="sl-qr" id="slQr"></div><div class="sl-big">${es(v.code)}</div><div class="sl-link">${es(u)}</div>
   <div class="sl-dos"><button class="ui-btn sec" onclick="SALA.copiaL()">${I('copiar')}Copiar enlace</button><button class="ui-btn" onclick="SALA.comparte()">${I('compartir')}Compartir</button></div><button class="ui-btn ghost full" onclick="SALA.cierra()">Listo</button></div>`);qr(u)},
  reglas:()=>{if(!cur)return;modal(`<div class="sl-card sl-rul" role="dialog" aria-label="Cómo se juega"><div class="sl-rh"><h3>Cómo se juega ${es(nom(sig.k))}</h3><button class="ui-x" onclick="SALA.cierra()" aria-label="Cerrar">${I('x')}</button></div><div class="sl-rb">${cur.rules||''}</div></div>`);
   $('slModal').querySelectorAll('details').forEach(d=>d.open=true)},
  cierra:()=>{const m=$('slModal');if(m&&!m.hidden){m.hidden=true;snd('tick')}},
  salir:()=>{const v=vv();if(!v)return;if(v.host){if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}}else leave()}};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&el&&shown&&!$('slModal').hidden){SALA.cierra();e.stopPropagation()}},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&el&&shown){if(!$('slModal').hidden){SALA.cierra();e.stopPropagation()}else if(sub){ver(null);e.stopPropagation()}}},true);
 })();
