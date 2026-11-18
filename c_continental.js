@@ -41,7 +41,10 @@ function bajar(){if(!staged.length||!staged.every(okSlot))return bad('Falta comp
 function miniV(){return `<div id="mini" class="box felt"><b class="top">Mesa de armado</b>`+staged.map((g,k)=>{const ok=okSlot(g),tot=staged.filter(x=>x.type==g.type).length,n=staged.slice(0,k+1).filter(x=>x.type==g.type).length;
  return `<div class="slot${ok?' ok':g.ids.length?' no':''}" data-k="${k}"><div class="sl"><b>${TN[g.type]}${tot>1?' '+n:''}${ok?' ✓':''}</b> <span>${g.type=='T'?'3 o más del mismo número (mínimo 3 normales); admite comodines':'4 o más seguidas del mismo palo'}</span>${g.type=='C'&&g.ids.length>3?` <button class="b g sm2" onclick="autoOrd(${k})">Ordenar</button>`:''}</div><div class="row">${g.ids.map(x=>card(C(x),{did:x,on:`tapSlot(${x})`})).join('')||'<span class="ph">Suelta aquí</span>'}</div></div>`}).join('')+`<button class="b" ${staged.every(okSlot)?'':'disabled'} onclick="bajar()">Bajarme</button><button class="b g" onclick="cancelArm()">Cancelar</button></div>`}
 function pegar(k){const ch=one();if(ch.length!=1){return bad('Solo una carta')}const j=ch[0].j&&V.G.melds[k].type=='C';send({t:'pegar',k,id:ch[0].id,end:j?(confirm('¿Poner el comodín al FINAL de la corrida?\nAceptar = al final · Cancelar = al inicio')?'end':'start'):undefined})}
-function discard(){const ch=one();if(ch.length!=1){return bad('Solo una carta')}send({t:'discard',id:ch[0].id})}
+// si tu contrato ya está armado en la mesa, te bajas antes de descartar (no se regresa a la mano)
+async function discard(){const ch=one();if(ch.length!=1){return bad('Solo una carta')}const id=ch[0].id;
+ if(V.me>=0&&!V.G.down[V.me]&&staged.length&&staged.every(okSlot)&&!await send({t:'down',groups:staged.map(g=>({type:g.type,ids:g.ids}))}))return;
+ send({t:'discard',id})}
 function table(){const G=V.G,tot=G.players.map((_,i)=>G.scores.reduce((a,r)=>a+r[i],0));
  return '<table><tr><th></th>'+G.players.map(p=>`<th>${esc(p.name)}</th>`).join('')+'</tr>'+G.scores.map((r,k)=>`<tr><td>R${k+1+(G.r0||0)}</td>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')+'<tr><th>Total</th>'+tot.map(x=>`<th>${x}</th>`).join('')+'</tr></table>'}
 function contBody(){const G=V.G;let h='';
