@@ -37,6 +37,7 @@ const canAct=()=>{const G=V.G,m=me();if(m<0||G.bk[m]||G.auc||G.phase!='play')ret
 function buildable(i){const G=V.G,m=me(),s=B[i];if(s.t!='p'||G.own[i]!==m||G.hs[i]>=5)return false;const g=GR[s.g];
  if(!full(s.g,m)||g.some(j=>G.mg[j]))return false;if(G.o.even&&G.hs[i]>Math.min(...g.map(j=>G.hs[j])))return false;return G.cash[m]>=D.hc[s.g]}
 const canBuild=()=>canAct()&&V.G.own.some((o,i)=>o===me()&&buildable(i));
+if(window.MCAR)MCAR.init({get G(){return V.G},get TR(){return TR},me,B,D,GR,$m,pc,tk,tok,nm,esc,buildable,canAct,icon,onCol,MIC});
 // ---- barra de arriba: jugadores (data-seat: ahí llegan los tomates) y menú ----
 function topBar(){const G=V.G,m=me();
  return `<div class="mu-top"><div class="mu-tr1"><div class="mu-pls" id="mupls">${G.players.map((p,k)=>{const t=k===G.turn&&G.phase=='play';
@@ -79,8 +80,8 @@ function debtDock(){const G=V.G,d=G.debts[0],m=me();
  if(d.k!==m)return `<div class="mu-dk"><div class="mu-row"><span class="mu-big">${MIC.h('billete')}</span><div class="mu-f1"><b class="mu-h">${nm(d.k)} debe ${$m(d.amt)}</b><div class="mu-s">a ${nm(d.to)} · está juntando el dinero…</div></div></div></div>`;
  const f=G.cash[m]<d.amt;
  return `<div class="mu-dk hi bad"><div class="mu-row"><span class="mu-big">${MIC.h('billete')}</span><div class="mu-f1"><b class="mu-h">Debes ${$m(d.amt)} a ${nm(d.to)}</b><div class="mu-s">Tienes ${$m(G.cash[m])}${f?` · te faltan <b>${$m(d.amt-G.cash[m])}</b>. Vende casas${G.o.mort?', hipoteca':''} o haz un trato.`:''}</div></div></div>
-  <div class="mu-acts"><button class="mu-b ok" onclick="MRU.a('paydebt')"${f?' disabled':''}>Pagar</button><button class="mu-b" onclick="MRU.tab('mias')">Mis propiedades</button><button class="mu-b" onclick="if(confirm('¿Declararte en quiebra? Pierdes la partida.'))MRU.a('broke')">Quiebra</button></div></div>`}
-function tradeSide(c,L,j){return [c?`<span class="mu-chip money">${$m(c)}</span>`:'',...L.map(chipSq),j?`<span class="mu-chip">${MIC.h('llave')} ×${j}</span>`:''].filter(Boolean).join('')||'<span class="mu-s">nada</span>'}
+  <div class="mu-acts"><button class="mu-b ok" onclick="MRU.a('paydebt')"${f?' disabled':''}>Pagar</button><button class="mu-b" onclick="MRU.tab('mias')">Mías</button><button class="mu-b" onclick="if(confirm('¿Declararte en quiebra? Pierdes la partida.'))MRU.a('broke')">Quiebra</button></div></div>`}
+function tradeSide(c,L,j){return [c?`<span class="mu-chip money">${$m(c)}</span>`:'',...L.map(i=>window.MCAR?MCAR.card(i,'in'):chipSq(i)),j?`<span class="mu-chip">${MIC.h('llave')} ×${j}</span>`:''].filter(Boolean).join('')||'<span class="mu-s">nada</span>'}
 function tradeCard(dk){const G=V.G,T=G.trade,m=me();if(!T)return '';const mine=T.a===m,forMe=T.b===m;
  if(!mine&&!forMe)return `<div class="mu-card"><div class="mu-s">${MIC.h('trato')} ${nm(T.a)} le ofreció un trato a ${nm(T.b)}.</div></div>`;
  return `<div class="${dk?'mu-dk':'mu-card'} hi"><b class="mu-h">${MIC.h('trato')} ${mine?'Tu oferta a '+nm(T.b):nm(T.a)+' te ofrece un trato'}</b>
@@ -96,9 +97,9 @@ function sheet(){const t=curTab(),T={jug:['Jugadores',pJug],mias:['Mis propiedad
 function pJug(){const G=V.G;return G.players.map((p,k)=>{const L=G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0),t=k===G.turn&&G.phase=='play';
  return `<div class="mu-prow${t?' on':''}${G.bk[k]?' x':''}" style="--pc:${pc(k)}">${tok(k,'lg')}<div class="mu-f1"><b>${esc(p.name)}${k===me()?' <em class="mu-tu">TÚ</em>':''}</b>
   <div class="mu-s">${G.bk[k]?'Quebró':esc(D.tok[k%6][0])+' · en '+esc(B[G.pos[k]].n)}${G.jail[k]?' · en la cárcel':''}${G.jf[k]?' · '+MIC.h('llave')+'×'+G.jf[k]:''}</div>
-  ${L.length?`<div class="mu-own">${L.map(i=>`<i style="--gc:${col(i)}" title="${esc(B[i].n)}" onclick="MRU.sel(${i})">${G.hs[i]?(G.hs[i]==5?'H':G.hs[i]):''}</i>`).join('')}</div>`:''}</div><b class="mu-cash">${G.bk[k]?'—':$m(G.cash[k])}</b></div>`}).join('')
+  ${L.length?(window.MCAR?MCAR.jug(k):`<div class="mu-own">${L.map(i=>`<i style="--gc:${col(i)}" title="${esc(B[i].n)}" onclick="MRU.sel(${i})">${G.hs[i]?(G.hs[i]==5?'H':G.hs[i]):''}</i>`).join('')}</div>`):''}</div><b class="mu-cash">${G.bk[k]?'—':$m(G.cash[k])}</b></div>`}).join('')
  +(typeof plist=='function'?`<details class="mu-det"><summary>Sala y espectadores</summary>${plist()}</details>`:'')}
-function pMias(){const G=V.G,m=me(),L=G.own.map((o,i)=>o===m?i:-1).filter(i=>i>=0);
+function pMias(){if(window.MCAR)return MCAR.mias();const G=V.G,m=me(),L=G.own.map((o,i)=>o===m?i:-1).filter(i=>i>=0);
  if(!L.length)return `<div class="mu-empty"><span>${MIC.h('rancho')}</span><b>Aún no tienes propiedades</b>Cuando caigas en una casilla sin dueño, la puedes comprar.</div>`;
  const grp={};L.forEach(i=>{const s=B[i],key=s.t=='p'?'g'+s.g:s.t;(grp[key]=grp[key]||[]).push(i)});
  return Object.keys(grp).map(key=>{const L2=grp[key],s0=B[L2[0]];let hd;
@@ -109,7 +110,7 @@ function pTrato(){const G=V.G,m=me(),h=G.trade?tradeCard(0):'';
  if(!playing()||G.phase!='play')return h||'<div class="mu-empty">Sin tratos.</div>';
  if(G.trade)return h+'<div class="mu-s mu-pad">Cuando se resuelva este trato podrás proponer otro.</div>';
  const ot=alive(G).filter(k=>k!==m);if(!ot.length)return '';if(!ot.includes(TR.to))TR.to=ot[0];
- const props=k=>G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0);
+ if(window.MCAR)return MCAR.trato(ot);const props=k=>G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0);
  const chips=(k,key)=>props(k).map(i=>`<button class="mu-chip${TR[key].includes(i)?' on':''}" style="--gc:${col(i)}" onclick="MRU.tg('${key}',${i})"><i></i>${esc(B[i].n)}${G.hs[i]?' '+MIC.h('rancho'):''}</button>`).join('')||'<span class="mu-s">Sin propiedades</span>';
  const num=(key,max,lb)=>`<label class="mu-num">${lb}<input id="mut_${key}" class="mu-in" type="number" inputmode="numeric" min="0" max="${max}" value="${TR[key]||''}" placeholder="0" oninput="MRU.n('${key}',this.value)"></label>`;
  return `<div class="mu-card"><div class="mu-s">Con quién:</div><div class="mu-who">${ot.map(k=>`<button class="mu-chip pl${k===TR.to?' on':''}" style="--pc:${pc(k)}" onclick="MRU.to(${k})">${tk(k)} ${nm(k)}</button>`).join('')}</div>
@@ -156,7 +157,7 @@ function hud(){const w=wide();if(msg!==msgSeen){msgSeen=msg;msgT=Date.now();if(m
  const toast=msg&&Date.now()-msgT<4500?`<div class="mu-toast" onclick="msg='';render()">${esc(String(msg).replace(/^✋ No puedes hacer eso\. /,''))}</div>`:'';
  return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">'+MIC.h('aviso')+' Reconectando… tu lugar se conserva</div>'}${topBar()}
   <div class="mu-bot">${w?'':sheet()}<div class="mu-dockw" id="mudock">${dock()}${w?'':tabs()}</div>${w?tabs()+sheet():''}</div>${toast||hint}
-  ${sel>=0?modal(deed(sel)+'<button class="mu-b" onclick="MRU.sel(-1)">Cerrar</button>','MRU.sel(-1)'):''}${menu?modal(menuBox(),'MRU.menu(0)'):''}</div>`}
+  ${sel>=0?`<div class="mu-peek"><button class="mu-x mu-px" onclick="MRU.sel(-1)" aria-label="Cerrar">${SV.x}</button>${deed(sel)}</div>`:''}${menu?modal(menuBox(),'MRU.menu(0)'):''}</div>`}
 // ---- qué tablero se ve y cuánto espacio le queda ----
 const stageName=()=>mode==='3d'&&window.M3&&M3.ok()?'3d':'2d',stage=()=>stageName()=='3d'?window.M3:window.M2;
 function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.show)o.show(false);if(!st)return;
@@ -165,7 +166,7 @@ function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.
  if(w&&bt)r=innerWidth-bt.getBoundingClientRect().left;else if(dk){b=innerHeight-dk.getBoundingClientRect().top;cb=sh?b+sh.offsetHeight-14:b}
  const cl=!!document.querySelector('.mu-cam')&&land();if(cl)rs.setProperty('--mu-ct',(T+6)+'px');   // en horizontal los botones de cámara van en columna a la izquierda
  if(!w)bMax=Math.max(bMax,b);const bs=w?0:Math.min(Math.max(b,bMax),innerHeight*.45);   // el tablero no brinca cada vez que la tarjeta de acciones cambia de alto
- ins={t:T+6,r,b:bs+6,l:cl?58:0};rs.setProperty('--mu-b',b+'px');rs.setProperty('--mu-cb',(cb||b)+'px');rs.setProperty('--mu-r',(w?innerWidth-bt.getBoundingClientRect().left:0)+'px');
+ ins={t:T+6,r,b:bs+6,l:cl?58:0};rs.setProperty('--mu-b',b+'px');rs.setProperty('--mu-t',(T+6)+'px');rs.setProperty('--mu-cb',(cb||b)+'px');rs.setProperty('--mu-r',(w?innerWidth-bt.getBoundingClientRect().left:0)+'px');
  try{st.show(true);st.theme(theme);st.follow(follow);st.layout(ins);st.sync(V.G,sel)}catch(e){console.warn('Mérida tablero:',e);if(st===window.M3){M3.fail();render()}}}
 // ---- efectos: dinero que flota, carta que se voltea, "¡Te toca!" ----
 const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;return d>0&&d<=12?d*180+200:0};
@@ -193,7 +194,7 @@ GM.merida.body=function(){if(!active())return origBody();
  const ae=document.activeElement;keep.f=ae&&ae.id&&/^mu/.test(ae.id)?{id:ae.id,s:ae.selectionStart,e:ae.selectionEnd}:null;
  try{ok=true;return hud()}catch(e){console.warn('Mérida UI:',e);ok=false;return origBody()}};
 GM.merida.after=function(){if(origAfter)origAfter();if(!active()||!ok){off();return}
- on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',sel>=0||menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
+ on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;const pl=document.getElementById('mupls');if(pl&&keep.pl!=null)pl.scrollLeft=keep.pl;
  if(keep.f){const e=document.getElementById(keep.f.id);if(e){e.focus({preventScroll:true});try{if(keep.f.s!=null)e.setSelectionRange(keep.f.s,keep.f.e)}catch(_){}}}
  layout();if(keep.pl==null)turnInView();effects()};
@@ -293,6 +294,9 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-log>div{display:flex;gap:8px;align-items:flex-start;padding:7px 2px;border-bottom:1px solid var(--mu-soft);font-size:13.5px}.mu-log b{font-weight:800}
 .mu-det{margin-top:10px;font:500 13.5px/1.4 var(--mu-f);color:var(--mu-sub)}.mu-det summary{cursor:pointer;font:800 13px var(--mu-f);color:var(--mu-ink);padding:8px 0}
 .mu-sheet .box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;color:var(--mu-ink)!important;font:14px var(--mu-f)!important}.mu-pad{padding:4px 2px}
+.mu-peek{position:fixed;z-index:60;left:10px;top:var(--mu-t,70px);max-height:calc(100vh - var(--mu-t,70px) - var(--mu-b,0px) - 16px);overflow:auto;pointer-events:auto;animation:mupop .2s cubic-bezier(.2,1.4,.5,1);border-radius:10px}
+.mu-peek .mu-deed{width:min(250px,calc(100vw - 20px));font-size:13px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}.mu-peek .mu-deed td{padding:2px 6px}
+.mu-px{position:absolute;right:4px;top:4px;z-index:1;width:36px;height:36px;border-radius:999px;border:0;background:rgba(0,0,0,.25);color:#fff;display:grid;place-items:center;cursor:pointer}
 .mu-modal{position:fixed;inset:0;z-index:70;background:rgba(8,12,10,.5);display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:auto;animation:mufade .15s}
 .mu-mw{display:flex;flex-direction:column;align-items:center;gap:12px;max-height:100%;overflow:auto;animation:mupop .22s cubic-bezier(.2,1.4,.5,1)}
 .mu-deed{width:min(300px,84vw);background:#fffef8;color:#18201b;border:2px solid #18201b;border-radius:10px;padding:10px;box-shadow:0 12px 40px rgba(0,0,0,.45);font:500 14px/1.35 var(--mu-f);box-sizing:border-box}
