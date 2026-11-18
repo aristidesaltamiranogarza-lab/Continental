@@ -58,18 +58,18 @@ function dock(){const G=V.G,m=me(),T=G.trade;
 function ordDock(){const G=V.G,O=G.ord,m=me(),k=G.turn,mine=k===m&&m>=0&&!G.bk[m];
  return `<div class="mu-dk${mine?' hi':''}"><div class="mu-row">${tok(k,'lg')}<div class="mu-f1"><div class="mu-s">Quién empieza</div><b class="mu-h">${mine?'Tira tu dado':nm(k)}</b><div class="mu-s">${G.players.some((_,j)=>O.w[j]&&O.r[j])?'Desempate':mine?'El más alto empieza':'va a tirar'}</div></div>${dice()}</div>
   <div class="mu-acts">${G.players.map((p,j)=>G.bk[j]?'':`<span class="mu-chip">${tok(j)} ${O.r[j]&&!O.w[j]?die(O.r[j]):O.w[j]&&O.r[j]?'<s>'+O.r[j]+'</s>':'–'}</span>`).join('')}</div>
-  ${mine?`<button class="mu-b pri big" onclick="MRU.a('roll')">${window.UI&&UI.ico?UI.ico('dado'):''} Tirar</button>`:''}</div>`}
+  ${mine?`<button class="mu-b pri big go" onclick="MRU.a('roll')">${window.UI&&UI.ico?UI.ico('dado'):''} Tirar</button>`:''}</div>`}
 function waitDock(){const G=V.G,k=G.turn,s=B[G.pos[k]],T=G.trade,m=me();
  const st=G.jail[k]&&G.st=='roll'?'está en la cárcel':G.st=='roll'?(G.again?'sacó dobles: tira otra vez':'va a tirar los dados'):G.st=='buy'?`decide si compra <b>${esc(s.n)}</b> (${$m(s.p)})`:'está terminando su turno';
  return `<div class="mu-dk"><div class="mu-row">${tok(k,'lg')}<div class="mu-f1"><div class="mu-s">Turno de</div><b class="mu-h">${nm(k)}</b><div class="mu-s">${st}</div></div>${dice()}</div>
   ${T&&T.a===m?`<div class="mu-note">${MIC.h('trato')} Le ofreciste un trato a ${nm(T.b)}. <button class="mu-lk" onclick="MRU.tab('trato')">Ver</button></div>`:''}</div>`}
 function myDock(){const G=V.G,m=me(),q=G.pos[m],s=B[q],where=`<div class="mu-s">Estás en <b>${esc(s.n)}</b></div>`;let h;
  if(G.st=='roll'&&G.jail[m])h=`<div class="mu-row"><span class="mu-big">${MIC.h('carcel')}</span><div class="mu-f1"><b class="mu-h">Estás en la cárcel</b><div class="mu-s">Intento ${G.jail[m]} de 3: saca dobles para salir</div></div>${dice()}</div>
-  <button class="mu-b pri big" onclick="MRU.a('roll')">${MIC.h('dado')} Tirar por dobles</button><div class="mu-acts"><button class="mu-b" onclick="MRU.a('bail')"${G.cash[m]<D.bail?' disabled':''}>Pagar fianza ${$m(D.bail)}</button>${G.jf[m]?`<button class="mu-b" onclick="MRU.a('jcard')">${MIC.h('llave')} Usar tarjeta</button>`:''}</div>`;
- else if(G.st=='roll')h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">¡Tu turno!</b>${G.again?'<div class="mu-s">Sacaste dobles: tira otra vez</div>':where}</div>${dice()}</div><button class="mu-b pri big" onclick="MRU.a('roll')">${MIC.h('dado')} ${G.again?'Tirar otra vez':'Tirar dados'}</button>`;
+  <button class="mu-b pri big go" onclick="MRU.a('roll')">${MIC.h('dado')} Tirar por dobles</button><div class="mu-acts"><button class="mu-b" onclick="MRU.a('bail')"${G.cash[m]<D.bail?' disabled':''}>Pagar fianza ${$m(D.bail)}</button>${G.jf[m]?`<button class="mu-b" onclick="MRU.a('jcard')">${MIC.h('llave')} Usar tarjeta</button>`:''}</div>`;
+ else if(G.st=='roll')h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">¡Tu turno!</b>${G.again?'<div class="mu-s">Sacaste dobles: tira otra vez</div>':where}</div>${dice()}</div><button class="mu-b pri big go" onclick="MRU.a('roll')">${MIC.h('dado')} ${G.again?'Tirar otra vez':'Tirar dados'}</button>`;
  else if(G.st=='buy')h=`<div class="mu-row mu-tap" onclick="MRU.sel(${q})">${mini(q)}<div class="mu-f1"><div class="mu-s">Caíste en</div><b class="mu-h">${esc(s.n)}</b><div class="mu-s">Tienes ${$m(G.cash[m])} · <u>ver rentas</u></div></div>${dice()}</div>
   <div class="mu-acts"><button class="mu-b ok big" onclick="MRU.a('buy')"${G.cash[m]<s.p?' disabled':''}>Comprar ${$m(s.p)}</button><button class="mu-b big2" onclick="MRU.a('nobuy')">${G.o.auc?'Subastar':'No comprar'}</button></div>`;
- else h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">Tu turno</b>${where}<div class="mu-s">${canBuild()?'Ya puedes construir: <button class="mu-lk" onclick="MRU.tab(\'mias\')">ver mis propiedades</button>':'Puedes hacer un trato antes de terminar.'}</div></div>${dice()}</div><button class="mu-b pri big" onclick="MRU.a('end')">Terminar turno</button>`;
+ else h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">Tu turno</b>${where}<div class="mu-s">${canBuild()?'Ya puedes construir: <button class="mu-lk" onclick="MRU.tab(\'mias\')">ver mis propiedades</button>':'Puedes hacer un trato antes de terminar.'}</div></div>${dice()}</div><button class="mu-b pri big go" onclick="MRU.a('end')">Terminar turno</button>`;
  return `<div class="mu-dk hi">${h}</div>`}
 function aucDock(){const G=V.G,a=G.auc,m=me(),s=B[a.sq],inn=a.in.includes(m),cash=G.cash[m]||0;
  const bt=d=>{const v=a.bid+d;return `<button class="mu-b${d==10?' pri':''}" onclick="MR.bid(${v})"${v>cash?' disabled':''}>+${d}<small>${$m(v)}</small></button>`};
@@ -172,15 +172,16 @@ function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.
  try{st.show(true);st.theme(theme);st.follow(follow);st.layout(ins);st.sync(V.G,sel)}catch(e){console.warn('Mérida tablero:',e);if(st===window.M3){M3.fail();render()}}}
 // ---- efectos: dinero que flota, carta que se voltea, "¡Te toca!" ----
 const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;return d>0&&d<=12?d*180+200:0};
-function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;
+function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice(),own:G.own.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;
  G.cash.forEach((x,k)=>{const d=x-p.cash[k];if(d&&!G.bk[k])setTimeout(()=>money(k,d),hopMs(p,c,k))});
  if(G.card&&G.card.n!==p.cn){const cc=G.card,dl=Math.min(2600,hopMs(p,c,cc.k)+150),cd=D.cards[cc.d]&&D.cards[cc.d][cc.id],st=stage();let ms=0;   // la carta sale de la pila del tablero y luego el panel
   try{ms=cd&&st&&st.drawCard?st.drawCard(cc,cd.t,dl)||0:0}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc,ms>0),dl+ms)}
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc))setTimeout(yourTurn,250);
+ if(m>=0&&window.MANI&&p.own)c.own.forEach((o,i)=>{if(o===m&&p.own[i]!==m)MANI.buy(mini(i),hopMs(p,c,m)+80)});
  if(p.turn!==G.turn)turnInView()}
 function turnInView(){const pl=document.getElementById('mupls'),e=pl&&pl.querySelector('.mu-pl.on');if(!e)return;const a=e.offsetLeft-pl.offsetLeft,b=a+e.offsetWidth;if(a<pl.scrollLeft||b>pl.scrollLeft+pl.clientWidth)pl.scrollLeft=a-12}
 function money(k,d){if(!active())return;const el=document.querySelector(`.mu-pl[data-seat="${k}"]`);if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('div');
- f.className='mu-mf '+(d>0?'up':'dn');f.textContent=(d>0?'+':'−')+$m(Math.abs(d));f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';
+ f.className='mu-mf '+(d>0?'up':'dn');f.textContent=(d>0?'+':'−')+$m(Math.abs(d));f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';if(window.MANI)MANI.go(k);
  document.body.appendChild(f);setTimeout(()=>f.remove(),1800);if(k===me())sfx(d>0?'go':'tick')}
 function cardFx(c,pre){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;const old=document.getElementById('mucfx');if(old)old.remove();
  const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx')+(pre?' pre':'');   // ojo: .c y .bk ya existen en style.css (cartas)
@@ -199,17 +200,17 @@ GM.merida.after=function(){if(origAfter)origAfter();if(!active()||!ok){off();ret
  on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;const pl=document.getElementById('mupls');if(pl&&keep.pl!=null)pl.scrollLeft=keep.pl;
  if(keep.f){const e=document.getElementById(keep.f.id);if(e){e.focus({preventScroll:true});try{if(keep.f.s!=null)e.setSelectionRange(keep.f.s,keep.f.e)}catch(_){}}}
- layout();if(window.MENF)MENF.sync();if(keep.pl==null)turnInView();effects()};
+ layout();if(window.MENF)MENF.sync();if(keep.pl==null)turnInView();if(window.MANI)MANI.after(V.G.cash,V.G.bk,$m);effects()};
 function off(){if(!on)return;on=false;if(window.MENF)MENF.close(1);document.documentElement.classList.remove('mrui','mumodal');if(window.M3)M3.show(false);if(window.M2)M2.show(false);prev=null;sel=-1;tab=null;menu=false}
 setInterval(()=>{if(on&&!active())off()},400);
 let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=setTimeout(()=>{bMax=0;if(active())render()},120)});
 window.MRU={get selected(){return sel},get insets(){return ins},
  a:(t,sq)=>{sfx('tick');send(sq!=null?{t,sq}:{t})},
- sel:i=>{if(i!=null&&i>=0&&i!==sel&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}sel=i==null||i<0||i===sel?-1:i;sfx('tick');render()},
+ sel:i=>{if(i!=null&&i>=0&&i!==sel&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}{const n=i==null||i<0||i===sel?-1:i;if(sel>=0&&n!==sel&&window.MANI)MANI.out(".mu-peek","peek");sel=n}sfx("tick");render()},
  foc:i=>{if(i>=0&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}if(i>=0)MRU.a('build',i)},
  ficha:i=>{sel=i;sfx('tick');render()},
- tab:t=>{tab=wide()?t||'jug':t&&t!==tab?t:null;keep.sc=0;sfx('tick');render()},
- menu:o=>{menu=!!o;sfx('tick');render()},
+ tab:t=>{const o=tab;tab=wide()?t||'jug':t&&t!==tab?t:null;if(o&&!tab&&window.MANI)MANI.out('.mu-sheet','sheet');keep.sc=0;sfx('tick');render()},
+ menu:o=>{if(menu&&!o&&window.MANI)MANI.out('.mu-modal','modal');menu=!!o;sfx('tick');render()},
  mode:x=>{mode=x||(stageName()=='3d'?'2d':'3d');hintT=0;lss('merida_3d',mode=='3d'?'1':'0');menu=false;topv=false;sfx('tick');render()},
  theme:t=>{theme=t=='oscuro'?'oscuro':'menta';lss('mr_theme',theme);sfx('tick');render()},
  follow:x=>{follow=x==null?!follow:!!x;lss('mr_follow',follow?'1':'0');sfx('tick');render()},
