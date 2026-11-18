@@ -8,6 +8,9 @@ const OPTS={dbl:false,pot:false,auc:true,jr:false,mort:false,even:true,cash:1500
 const GR=[],RR=[],UU=[];B.forEach((s,i)=>{if(s.t=='p')(GR[s.g]=GR[s.g]||[]).push(i);if(s.t=='r')RR.push(i);if(s.t=='u')UU.push(i)});
 const JF={s:D.cards.s.findIndex(c=>c.jf),c:D.cards.c.findIndex(c=>c.jf)};
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+// las cartas usadas van a un descarte; cuando la pila se acaba se baraja el descarte (G.sh cuenta las barajadas para la animación)
+function disc(G,d,id){G.dp=G.dp||{s:[],c:[]};G.dp[d].push(id)}
+function reshuf(G,k,d){if(G.dk[d].length||!G.dp||!G.dp[d].length)return;G.dk[d]=shuf(G.dp[d]);G.dp[d]=[];G.sh=G.sh||{s:0,c:0};G.sh[d]++;lg(G,k,'barajó '+(d=='s'?'Suerte':'Comunidad'))}
 const lg=(G,k,t)=>{(G.log=G.log||[]).push({k,t,n:G.ln=(G.ln||0)+1});if(G.log.length>14)G.log.shift()};
 const $=v=>'$'+v,pn=(G,k)=>k>=0?G.players[k].name:'el banco',alive=G=>G.players.map((_,k)=>k).filter(k=>!G.bk[k]);
 const after=(G,k)=>G.again&&!G.jail[k]?'roll':'end';
@@ -48,8 +51,8 @@ function land(R,k,x){const G=R.G,i=G.pos[k],s=B[i];
  if(s.t=='s'||s.t=='c')return card(R,k,s.t,x);
  if(s.t=='gtj')return toJail(G,k);
  if(s.t=='free'&&G.o.pot&&G.pot){G.cash[k]+=G.pot;lg(G,k,'se lleva el bote de vacaciones: '+$(G.pot)+' pesos');G.pot=0}}
-function card(R,k,d,x){const G=R.G,id=G.dk[d].shift(),c=D.cards[d][id];G.card={d,id,k,n:(G.cn=(G.cn||0)+1)};
- lg(G,k,'sacó '+(d=='s'?'Suerte':'Comunidad')+': '+c.t);if(c.jf){G.jfc[k].push(d);return}G.dk[d].push(id);
+function card(R,k,d,x){const G=R.G;reshuf(G,k,d);const id=G.dk[d].shift(),c=D.cards[d][id];G.card={d,id,k,n:(G.cn=(G.cn||0)+1)};
+ lg(G,k,'sacó '+(d=='s'?'Suerte':'Comunidad')+': '+c.t);if(c.jf)G.jfc[k].push(d);else disc(G,d,id);reshuf(G,k,d);if(c.jf)return;
  if(c.go!=null){moveTo(G,k,c.go,true);return land(R,k,x)}
  if(c.back){G.pos[k]=(G.pos[k]-c.back+NB)%NB;return land(R,k,x)}
  if(c.near){const L=c.near=='r'?RR:UU;let j=G.pos[k];do j=(j+1)%NB;while(!L.includes(j));moveTo(G,k,j,true);return land(R,k,Object.assign({},x,c.near=='r'?{x2:1}:{u10:1}))}
@@ -83,7 +86,7 @@ function broke(R,k,to){const G=R.G;if(G.bk[k])return;let c=G.cash[k];
  B.forEach((s,i)=>{if(G.own[i]===k&&G.hs[i]){c+=G.hs[i]*D.hc[s.g]/2;G.hs[i]=0}});G.cash[k]=0;G.bk[k]=1;
  G.debts=G.debts.filter(d=>d.k!==k);G.debts.forEach(d=>{if(d.to===k)d.to=-1});
  if(to>=0&&!G.bk[to]){G.cash[to]+=c;G.own.forEach((o,i)=>{if(o===k)G.own[i]=to});G.jfc[to].push(...G.jfc[k]);lg(G,k,'quebró: todo lo suyo pasa a '+pn(G,to))}
- else{G.own.forEach((o,i)=>{if(o===k){G.own[i]=-1;G.mg[i]=0;if(G.o.qa)G.aq.push(i)}});G.jfc[k].forEach(d=>G.dk[d].push(JF[d]));lg(G,k,'quebró: sus propiedades regresan al banco')}
+ else{G.own.forEach((o,i)=>{if(o===k){G.own[i]=-1;G.mg[i]=0;if(G.o.qa)G.aq.push(i)}});G.jfc[k].forEach(d=>disc(G,d,JF[d]));lg(G,k,'quebró: sus propiedades regresan al banco')}
  G.jfc[k]=[];if(G.trade&&(G.trade.a===k||G.trade.b===k))G.trade=null;
  const a=G.auc;if(a){a.in=a.in.filter(x=>x!==k);if(a.hi===k){a.hi=-1;a.bid=0}}
  if(won(G))return;if(G.turn===k)nextTurn(G);if(a)aucCheck(R);else if(G.aq.length)aucStart(R,G.aq.shift());settle(G)}
@@ -145,11 +148,11 @@ function inner(R,G,i,t,m){const a=G.auc;
   G.st=after(G,i);if(G.o.auc)aucStart(R,q);else lg(G,i,'no compró '+s.n);return}
  if(t=='bail'||t=='jcard'){if(!G.jail[i]||G.st!='roll')return 'No estás en la cárcel.';
   if(t=='bail'){if(G.cash[i]<BAIL)return 'La fianza cuesta '+$(BAIL)+' pesos.';xfer(G,i,BAIL,-2);lg(G,i,'pagó '+$(BAIL)+' pesos de fianza')}
-  else{if(!G.jfc[i].length)return 'No tienes tarjeta para salir.';const d=G.jfc[i].pop();G.dk[d].push(JF[d]);lg(G,i,'usó su tarjeta para salir de la cárcel')}
+  else{if(!G.jfc[i].length)return 'No tienes tarjeta para salir.';const d=G.jfc[i].pop();disc(G,d,JF[d]);lg(G,i,'usó su tarjeta para salir de la cárcel')}
   G.jail[i]=0;return}
  if(t=='end'){if(G.st!='end')return G.st=='roll'?'Primero tira los dados.':'Primero decide si compras.';nextTurn(G);return}
  return 'Esa acción no existe.'}
-function view(R,tok,me,now){const G=R.G,v=Object.assign({},G,{dk:{s:G.dk.s.length,c:G.dk.c.length},jf:G.jfc.map(x=>x.length)});delete v.jfc;
+function view(R,tok,me,now){const G=R.G,v=Object.assign({},G,{dk:{s:G.dk.s.length,c:G.dk.c.length},sh:G.sh||{s:0,c:0},jf:G.jfc.map(x=>x.length)});delete v.jfc;delete v.dp;
  if(G.auc)v.auc=Object.assign({},G.auc,{left:Math.max(0,G.auc.t-now)});return {G:v,claim:false,pend:false}}
 function kick(R,k){quit(R,k)}
 // el que lleva AWAY_MS sin conectarse abandona: sus propiedades regresan al banco

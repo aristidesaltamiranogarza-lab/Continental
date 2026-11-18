@@ -171,15 +171,16 @@ function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.
 const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;return d>0&&d<=12?d*180+200:0};
 function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;
  G.cash.forEach((x,k)=>{const d=x-p.cash[k];if(d&&!G.bk[k])setTimeout(()=>money(k,d),hopMs(p,c,k))});
- if(G.card&&G.card.n!==p.cn)setTimeout(()=>cardFx(G.card),Math.min(2600,hopMs(p,c,G.card.k)+150));
+ if(G.card&&G.card.n!==p.cn){const cc=G.card,dl=Math.min(2600,hopMs(p,c,cc.k)+150),cd=D.cards[cc.d]&&D.cards[cc.d][cc.id],st=stage();let ms=0;   // la carta sale de la pila del tablero y luego el panel
+  try{ms=cd&&st&&st.drawCard?st.drawCard(cc,cd.t,dl)||0:0}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc,ms>0),dl+ms)}
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc))setTimeout(yourTurn,250);
  if(p.turn!==G.turn)turnInView()}
 function turnInView(){const pl=document.getElementById('mupls'),e=pl&&pl.querySelector('.mu-pl.on');if(!e)return;const a=e.offsetLeft-pl.offsetLeft,b=a+e.offsetWidth;if(a<pl.scrollLeft||b>pl.scrollLeft+pl.clientWidth)pl.scrollLeft=a-12}
 function money(k,d){if(!active())return;const el=document.querySelector(`.mu-pl[data-seat="${k}"]`);if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('div');
  f.className='mu-mf '+(d>0?'up':'dn');f.textContent=(d>0?'+':'−')+$m(Math.abs(d));f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';
  document.body.appendChild(f);setTimeout(()=>f.remove(),1800);if(k===me())sfx(d>0?'go':'tick')}
-function cardFx(c){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;const old=document.getElementById('mucfx');if(old)old.remove();
- const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx');   // ojo: .c y .bk ya existen en style.css (cartas)
+function cardFx(c,pre){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;const old=document.getElementById('mucfx');if(old)old.remove();
+ const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx')+(pre?' pre':'');   // ojo: .c y .bk ya existen en style.css (cartas)
  e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${c.d=='s'?MIC.h('suerte'):MIC.h('regalo')}</b><span>${c.d=='s'?'Suerte':'Comunidad'}</span></div>
   <div class="fc mu-front"><h5>${c.d=='s'?MIC.h('suerte')+' Suerte':MIC.h('regalo')+' Comunidad'}</h5><p>${esc(cd.t)}</p><small>${tok(c.k,'xs')} ${nm(c.k)}</small></div></div>`;
  e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;e.onclick=()=>e.remove();document.body.appendChild(e);sfx('card');
@@ -312,6 +313,7 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-off{position:fixed;top:calc(env(safe-area-inset-top,0px) + 64px);left:50%;transform:translateX(-50%);background:#ffe08a;color:#3b2600;border:2px solid #18201b;border-radius:10px;padding:6px 12px;font:800 13px var(--mu-f);pointer-events:auto;z-index:4}
 .mu-cfx,.mu-yt{position:fixed;left:0;top:0;right:0;bottom:0;z-index:66;display:flex;align-items:center;justify-content:center;pointer-events:none;perspective:1000px}
 .mu-cf{pointer-events:auto;position:relative;width:min(310px,80vw);aspect-ratio:1.55;transform-style:preserve-3d;animation:muflip 1s cubic-bezier(.3,1.25,.5,1) forwards;cursor:pointer}
+.mu-cfx.pre .mu-cf{animation:mupre .25s ease-out forwards}@keyframes mupre{from{transform:rotateY(180deg) scale(.96);opacity:.6}to{transform:rotateY(180deg) scale(1);opacity:1}}
 .mu-cfx.out .mu-cf{animation:muout .4s ease-in forwards}
 .mu-cf .fc{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:14px;border:3px solid #18201b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 16px;box-sizing:border-box;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:var(--mu-f);text-align:center}
 .mu-cf .mu-back{background:#f7a21b;color:#18201b}.mu-cfx.cx .mu-back{background:#5bb4ec}.mu-cf .mu-back b{font:900 64px/1 var(--mu-f)}.mu-cf .mu-back span{font:900 20px var(--mu-f);text-transform:uppercase;letter-spacing:.12em}

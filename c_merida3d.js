@@ -28,9 +28,8 @@ function boardTex(th){if(TX[th])return TX[th];const P=PAL[th],c=document.createE
  g.save();g.translate(1024,1024);g.rotate(-38*Math.PI/180);g.textAlign='center';g.textBaseline='middle';g.font='900 108px '+F;
  const tw=g.measureText('MÉRIDA EN VENTA').width+80;g.fillStyle='#18201b';g.fillRect(-tw/2-14,-100,tw+28,200);g.fillStyle='#fff';g.fillRect(-tw/2-7,-93,tw+14,186);g.fillStyle='#d7261e';g.fillRect(-tw/2,-86,tw,172);
  g.fillStyle='#fff';g.fillText('MÉRIDA EN VENTA',0,6);g.fillStyle=P.sb;g.font='italic 600 56px Georgia,serif';g.fillText('la Ciudad Blanca',0,165);g.restore();
- [[-1,'suerte','SUERTE','#f7a21b'],[1,'regalo','COMUNIDAD','#5bb4ec']].forEach(([s,ic,t,col])=>{g.save();g.translate(1024+s*330,1024+s*330);g.rotate(-Math.PI/4);
-  g.fillStyle='rgba(0,0,0,.25)';g.fillRect(-142,-88,300,200);g.fillStyle=col;g.strokeStyle='#18201b';g.lineWidth=8;g.beginPath();if(g.roundRect)g.roundRect(-150,-100,300,200,20);else g.rect(-150,-100,300,200);g.fill();g.stroke();
-  g.fillStyle='#18201b';g.textAlign='center';g.textBaseline='middle';MIC.draw(g,ic,0,-30,92,'#18201b');g.font='900 34px '+F;g.fillText(t,0,52);g.restore()});
+ // lugar de los mazos (las pilas de cartas son de c_merida_mazo.js)
+ [-1,1].forEach(s=>{g.save();g.translate(1024+s*330,1024+s*330);g.rotate(-Math.PI/4);g.strokeStyle=P.sb;g.globalAlpha=.45;g.setLineDash([22,16]);g.lineWidth=6;g.beginPath();if(g.roundRect)g.roundRect(-150,-98,300,196,22);else g.rect(-150,-98,300,196);g.stroke();g.restore()});
  for(let i=0;i<40;i++){const s=B[i],[x,z]=cpos(i),cor=i%10==0,w=(cor?1.5:1)*K,h=1.5*K;g.save();g.translate((x+6)*K,(z+6)*K);g.rotate(side(i)*Math.PI/2);
   g.fillStyle=P.bg;g.fillRect(-w/2,-h/2,w,h);g.strokeStyle=P.ln;g.lineWidth=5;g.strokeRect(-w/2,-h/2,w,h);g.textAlign='center';g.textBaseline='middle';
   let y=-h/2+20;const nm=s.n.toUpperCase();
@@ -118,6 +117,7 @@ function init(){if(ready)return;ready=true;
  ring=new THREE.Mesh(new THREE.TorusGeometry(.36,.035,10,40),new THREE.MeshBasicMaterial({color:0xffd54a}));ring.rotation.x=Math.PI/2;SC.add(ring);
  for(let v=1;v<=6;v++)faces[v]=new THREE.MeshStandardMaterial({map:pipTex(v),roughness:.35});
  for(let j=0;j<2;j++){const d=new THREE.Mesh(box(.5,.5,.5),[1,6,2,5,3,4].map(v=>faces[v]));d.castShadow=true;SC.add(d);dice.push(d)}
+ mz=window.MZ?MZ.m3(THREE,SC,R):null;
  root=document.createElement('div');root.id='m3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
  cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{ptr.delete(e.pointerId);if(ptr.size<2)pin=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('wheel',e=>{if(!shown)return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
@@ -172,7 +172,8 @@ function rebuild(G){const key=JSON.stringify([G.own,G.hs,G.mg]);if(key===dynKey)
  for(let i=0;i<40;i++){const o=G.own[i];if(o<0)continue;const [x,z]=cpos(i),s=side(i),[ix,iz]=INW[s],w=i%10==0?1.5:1;
   const bar=new THREE.Mesh(box(Math.abs(iz)?w*.92:.1,.04,Math.abs(ix)?w*.92:.1),std(MR.pc(o),.45,{transparent:!!G.mg[i],opacity:G.mg[i]?.35:1}));bar.position.set(x-ix*.69,.12,z-iz*.69);dyn.add(bar);
   const h=G.hs[i];if(!h)continue;const n=h==5?1:h;for(let j=0;j<n;j++){const m=house(h==5),t=n==1?0:(j-(n-1)/2)*.22;m.position.set(x+ix*.6+Math.abs(iz)*t,.11,z+iz*.6+Math.abs(ix)*t);m.rotation.y=s*Math.PI/2;dyn.add(m)}}}
-function sync(G,sel){G0=G;
+let mz=null;
+function sync(G,sel){G0=G;if(mz)mz.sync(G);
  G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=piece(k);SC.add(toks[k]);arrs[k]=arrow(k);SC.add(arrs[k]);shownPos[k]=G.pos[k];const [x,z]=slot(k,G);toks[k].position.set(x,.1,z);anim[k]=null}
   toks[k].visible=arrs[k].visible=!G.bk[k];const t=G.pos[k];
   if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
@@ -197,7 +198,7 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;
   if(t<1){const q=1-t;d.position.set(bx+1.8*q*q+Math.sin(now/70+j)*.15*q,.36+Math.abs(Math.sin(t*Math.PI*2.5))*1.2*q,bz-1.8*q*q+Math.cos(now/80+j)*.15*q);d.rotation.set(now/60*q+j,now/50*q,now/75*q)}
   else{d.position.set(bx,.36,bz);d.rotation.set(0,j?.35:-.2,0)}});
  // la cámara se desliza hacia donde va
- const f=1-Math.exp(-dt/(moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV}
+ const f=1-Math.exp(-dt/(moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV;if(mz)mz.step(now,CA)}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize();
@@ -207,7 +208,8 @@ function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const 
 window.M3={ok:()=>!failed,
  fail(){failed=true;this.show(false)},
  show(on){if(on&&!failed){try{init()}catch(e){failed=true;console.warn('Mérida 3D: no se pudo iniciar',e);throw e}}if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';
-  if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{toks.forEach(t=>t&&SC.remove(t));arrs.forEach(a=>a&&SC.remove(a));toks.length=arrs.length=anim.length=shownPos.length=0;dynKey='';rollN=-1;G0=null;back=null}},
+  if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{toks.forEach(t=>t&&SC.remove(t));arrs.forEach(a=>a&&SC.remove(a));toks.length=arrs.length=anim.length=shownPos.length=0;dynKey='';rollN=-1;G0=null;back=null;if(mz)mz.reset()}},
+ drawCard:(c,t,dl)=>mz&&shown?mz.draw(c,t,dl):0,
  layout(i){const ch=i.t!==ins.t||i.b!==ins.b||i.r!==ins.r||i.l!==ins.l;Object.assign(ins,i);if(ch||!W)resize()},
  theme:t=>applyTheme(t),follow:on=>{fol=on},
  sync:(G,sel)=>sync(G,sel),

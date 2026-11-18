@@ -24,12 +24,13 @@ function cellHtml(i){const s=B[i],sd=side(i),cor=i%10==0,[x,z]=cpos(i),w=cor?1.5
  return `<div class="m2c s${sd}${cor?' cor':''}${s.t=='p'?' p':''}" data-i="${i}" style="left:${pct(x-w/2)};top:${pct(z-h/2)};width:${w/12*100}%;height:${h/12*100}%">
   ${s.t=='p'?`<div class="m2bar" style="background:${D.gcol[s.g]}"></div>`:''}<div class="m2tx">${s.t!='p'?`<span class="m2ic">${icon(s)}</span>`:''}
   <span class="m2nm" style="font-size:calc(var(--u) * ${fit(i)})">${esc(s.n)}</span>${s.s?`<span class="m2sb">${esc(s.s)}</span>`:''}${s.p||s.v?`<span class="m2pr">$${s.p||s.v}</span>`:''}<span class="m2oc"></span></div><div class="m2own"></div></div>`}
+let mz=null;
 function build(){if(ready)return;ready=true;
  root=document.createElement('div');root.id='m2root';root.dataset.t='menta';
  let h='';for(let i=0;i<40;i++)h+=cellHtml(i);
- root.innerHTML=`<div class="m2w"><div class="m2b">${h}<div class="m2ctr"><div class="m2deck s"><span>${MIC.h('suerte')}</span><b>Suerte</b></div><div class="m2deck c"><span>${MIC.h('regalo')}</span><b>Comunidad</b></div>
+ root.innerHTML=`<div class="m2w"><div class="m2b">${h}<div class="m2ctr">
   <div class="m2logo"><b>Mérida en Venta</b><small>la Ciudad Blanca</small></div><div class="m2dice"></div><div class="m2pot"></div></div><div class="m2tl"></div></div></div>`;
- document.body.appendChild(root);wrap=root.firstChild;brd=wrap.firstChild;diceEl=root.querySelector('.m2dice');potEl=root.querySelector('.m2pot');
+ document.body.appendChild(root);wrap=root.firstChild;brd=wrap.firstChild;diceEl=root.querySelector('.m2dice');potEl=root.querySelector('.m2pot');mz=window.MZ?MZ.m2(root.querySelector('.m2ctr')):null;
  root.querySelectorAll('.m2c').forEach(e=>cells[+e.dataset.i]=e);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>cells.forEach((e,i)=>{e.querySelector('.m2nm').style.fontSize=`calc(var(--u) * ${fit(i)})`}));
  root.addEventListener('pointerdown',pDown);root.addEventListener('pointermove',pMove);root.addEventListener('pointerup',pUp);root.addEventListener('pointercancel',e=>{ptr.delete(e.pointerId)});
@@ -95,10 +96,11 @@ function kick(){if(!raf&&shown)raf=requestAnimationFrame(loop)}
 function loop(now){raf=0;if(!shown||!G0)return;let busy=step(now);
  const f=ptr.size?1:.2;['x','y','k'].forEach(q=>{const d=vt[q]-vw[q];if(Math.abs(d)>(q=='k'?1e-4:.3)){vw[q]+=d*f;busy=true}else vw[q]=vt[q]});apply();if(busy)kick()}
 window.M2={ok:()=>true,
- show(on){if(on)build();if(shown===on)return;shown=on;if(root)root.style.display=on?'block':'none';if(on)kick()},
+ show(on){if(on)build();if(shown===on)return;shown=on;if(root)root.style.display=on?'block':'none';if(on)kick();else if(mz)mz.reset()},
+ drawCard:(c,t,dl)=>mz&&shown?mz.draw(c,t,dl,ins):0,
  layout(i){ins=i;const s=Math.floor(Math.min(visW(),visH())*.98);if(s!==S0){const r=S0?s/S0:1;S0=s;wrap.style.width=wrap.style.height=s+'px';brd.style.setProperty('--u',(s/12)+'px');vt.x*=r;vt.y*=r;vw.x*=r;vw.y*=r}clampV();apply();kick()},
  theme(t){if(root&&root.dataset.t!==t)root.dataset.t=t},follow(on){fol=on},
- sync(G,sel){G0=G;syncCells(G,sel);syncToks(G);syncDice(G);potEl.textContent=G.o.pot?'Bote: '+MR.$m(G.pot):'';kick()},
+ sync(G,sel){G0=G;if(mz)mz.sync(G);syncCells(G,sel);syncToks(G);syncDice(G);potEl.textContent=G.o.pot?'Bote: '+MR.$m(G.pot):'';kick()},
  cam(c){if(c=='home')home();else if(c=='zi')zoomAt(cx(),cy(),vt.k*1.4);else if(c=='zo')zoomAt(cx(),cy(),vt.k/1.4)},
  look(k){const G=G0;if(!G||G.bk[k])return;const [x,z]=slot(k,G);if(vt.k>1.5&&Math.abs(vt.x+(x/12)*S0*vt.k)<8&&Math.abs(vt.y+(z/12)*S0*vt.k)<8)home();else lookAt(x,z,Math.max(vt.k,2.4))}};
 const css=document.createElement('style');css.textContent=`
@@ -128,9 +130,6 @@ const css=document.createElement('style');css.textContent=`
 .m2logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-38deg);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.1)}
 .m2logo b{display:block;white-space:nowrap;background:#d7261e;color:#fff;font-weight:900;font-size:calc(var(--u)*.62);line-height:1;text-transform:uppercase;letter-spacing:.02em;padding:calc(var(--u)*.16) calc(var(--u)*.34);border:calc(var(--u)*.06) solid #fff;outline:calc(var(--u)*.06) solid #18201b;box-shadow:0 calc(var(--u)*.12) 0 rgba(0,0,0,.3)}
 .m2logo small{font:italic 600 calc(var(--u)*.26) Georgia,serif;color:var(--sb)}
-.m2deck{position:absolute;width:calc(var(--u)*2.1);height:calc(var(--u)*1.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*.04);border-radius:calc(var(--u)*.14);border:calc(var(--u)*.05) solid #18201b;color:#18201b;transform:translate(-50%,-50%) rotate(-45deg);box-shadow:calc(var(--u)*.06) calc(var(--u)*.08) 0 rgba(0,0,0,.28)}
-.m2deck span{font-size:calc(var(--u)*.45);line-height:1}.m2deck b{font-weight:900;font-size:calc(var(--u)*.2);text-transform:uppercase;letter-spacing:.08em}
-.m2deck.s{left:24%;top:24%;background:#f7a21b}.m2deck.c{left:76%;top:76%;background:#5bb4ec}
 .m2dice{position:absolute;left:61%;top:61%;display:flex;gap:calc(var(--u)*.14);transform:translate(-50%,-50%)}.m2dice svg{width:calc(var(--u)*.78);height:calc(var(--u)*.78);filter:drop-shadow(0 calc(var(--u)*.06) 0 rgba(0,0,0,.35))}
 .m2dice.roll svg{animation:m2roll .7s cubic-bezier(.2,.9,.3,1.1)}.m2dice.roll svg+svg{animation-delay:.05s}
 @keyframes m2roll{0%{transform:translate(calc(var(--u)*2),calc(var(--u)*-2)) rotate(300deg) scale(.6)}60%{transform:translate(calc(var(--u)*-.1),calc(var(--u)*.1)) rotate(-12deg) scale(1.08)}100%{transform:none}}
