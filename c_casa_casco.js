@@ -81,13 +81,14 @@ function bajo(){const L=LOTE(),V=LOTE(),Z=LOTE();
  return [Z,L,V]}
 
 // ---------- la planta alta por fuera ----------
-function alta(){const L=LOTE(),V=LOTE(),Hd=LOTE(),H=TE-A,yc=(A+TE)/2,W=2*(X+T);
+// E: la cara de adentro de estos muros queda un poco afuera de las paredes del cuarto (si coinciden, desde el balcón parpadean)
+function alta(){const E=.06,L=LOTE(),V=LOTE(),Hd=LOTE(),H=TE-A,yc=(A+TE)/2,W=2*(X+T);
  const b=(l,w,h,d,c,u,y,kk,Q)=>{const [x,z]=P(l,u,kk);(Q||L).box(w,h,d,c,x,y,z,RY(l))};
  // muros: ocre a la calle y a los lados, amarillo al patio (como las fachadas de abajo)
  {const d=VA.find(v=>v.balcon),a=d.u-d.w/2,c=d.u+d.w/2,hd=d.y+d.h/2;   // muro de la calle con el vano de la puerta del balcón
-  L.box(a+W/2,H,T,OC,(a-W/2)/2,yc,ZF+T/2);L.box(W/2-c,H,T,OC,(c+W/2)/2,yc,ZF+T/2);L.box(d.w,H-hd,T,OC,d.u,A+(hd+H)/2,ZF+T/2);
+  L.box(a+W/2,H,T-E,OC,(a-W/2)/2,yc,ZF+(T+E)/2);L.box(W/2-c,H,T-E,OC,(c+W/2)/2,yc,ZF+(T+E)/2);L.box(d.w,H-hd,T-E,OC,d.u,A+(hd+H)/2,ZF+(T+E)/2);
   Hd.box(d.w,d.h,.04,OSC,d.u,A+d.y,ZF-.02)}
- L.box(W,H,T,AM,0,yc,ZB-T/2);[-1,1].forEach(s=>L.box(T,H,ZF-ZB,OC,s*(X+T/2),yc,(ZF+ZB)/2));
+ L.box(W,H,T-E,AM,0,yc,ZB-(T+E)/2);[-1,1].forEach(s=>L.box(T-E,H,ZF-ZB,OC,s*(X+(T+E)/2),yc,(ZF+ZB)/2));
  const lados=[['fr',W,OC],['at',W,AM],['izq',ZF-ZB+2*T,OC],['der',ZF-ZB+2*T,OC]],cu=l=>l==='izq'||l==='der'?(ZF+ZB)/2:0;
  lados.forEach(([l,w,c])=>{const u=cu(l);
   if(l==='fr'){const d=VA.find(v=>v.balcon),e=[-w/2,d.u-d.w/2-.13],f=[d.u+d.w/2+.13,w/2];[e,f].forEach(([p,q])=>b(l,q-p,.7,.06,dk(c),(p+q)/2,A+.35,.03))}   // zócalo (con el vano de la puerta)

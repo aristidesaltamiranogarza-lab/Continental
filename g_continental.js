@@ -87,7 +87,13 @@ function bgDepth(g,p){let b=0;for(const m of bgSingles(g,p)){const c=bgCl(g);bgA
 // jugadas válidas: hay que usar todos los dados que se pueda; si solo cabe uno, el mayor
 function bgLegal(g,p){const ms=bgSingles(g,p);if(!ms.length)return [];const sc=ms.map(m=>{const c=bgCl(g);bgApply(c,p,...m);return 1+bgDepth(c,p)}),mx=Math.max(...sc);
  let L=ms.filter((_,i)=>sc[i]==mx);if(mx==1&&g.left.length==2&&g.left[0]!=g.left[1]){const big=Math.max(...L.map(m=>m[1]));L=L.filter(m=>m[1]==big)}return L}
-function bgRoll(g){const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6);g.dice=[a,b];g.left=a==b?[a,a,a,a]:[a,b];g.rn=(g.rn||0)+1;g.mv=bgLegal(g,g.turn)}
+// jugadas de varios dados con la misma ficha (p. ej. 6 y 2 -> también la suma): [desde, hasta, dados]
+function bgCombos(g,p){const out=[],seen=new Set(g.mv.map(m=>m[0]+'>'+m[2]));
+ const rec=(c,from,cur,ds,L)=>{for(const m of L){if(m[0]!==cur||m[2]===-1&&!ds.length)continue;const c2=bgCl(c);bgApply(c2,p,...m);const d2=[...ds,m[1]];
+  if(d2.length>1){const k=from+'>'+m[2];if(!seen.has(k)){seen.add(k);out.push([from,m[2],d2])}}if(m[2]!==-1&&c2.left.length)rec(c2,from,m[2],d2,bgLegal(c2,p))}};
+ for(const f of new Set(g.mv.map(m=>m[0])))rec(bgCl(g),f,f,[],g.mv);return out}
+function bgSet(g,p){g.mv=bgLegal(g,p);g.mv2=g.mv.length?bgCombos(g,p):[]}
+function bgRoll(g){const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6);g.dice=[a,b];g.left=a==b?[a,a,a,a]:[a,b];g.rn=(g.rn||0)+1;bgSet(g,g.turn)}
 function bg(R,i,m){const G=R.G;if(i<0)return 'Solo los jugadores pueden jugar Backgammon.';const L=G.bgs=G.bgs||[],op=m.op,g=L.find(x=>x.id===m.id);
  const busy=k=>L.some(x=>x.st!='end'&&x.p.includes(k));
  if(op=='inv'){const k=m.k;if(!(k>=0&&k<G.players.length)||k==i||R.players[k].out)return 'Ese jugador no puede jugar.';
@@ -100,8 +106,10 @@ function bg(R,i,m){const G=R.G;if(i<0)return 'Solo los jugadores pueden jugar Ba
  const next=()=>{g.turn=1-g.turn;bgRoll(g)};
  if(op=='pass'){if(g.mv.length)return 'Todavía tienes jugadas posibles.';next();return}
  if(op=='move'){const mv=g.mv.find(x=>x[0]===m.from&&x[1]===m.die);if(!mv)return 'Esa jugada no se puede.';
-  bgApply(g,me,...mv);g.last=[mv[0],mv[2],me];if(g.off[me]==15){g.st='end';g.w=me;g.left=[];g.mv=[];return}
-  g.mv=bgLegal(g,me);if(!g.left.length||!g.mv.length)next();return}
+  bgApply(g,me,...mv);g.last=[mv[0],mv[2],me];if(g.off[me]==15){g.st='end';g.w=me;g.left=[];g.mv=[];g.mv2=[];return}
+  bgSet(g,me);if(!g.left.length||!g.mv.length)next();return}
+ if(op=='moves'){const c=g.mv2&&g.mv2.find(x=>x[0]===m.from&&Array.isArray(m.dice)&&x[2].join()==m.dice.join());if(!c)return 'Esa jugada no se puede.';
+  let cur=c[0];for(const d of c[2]){const r=bg(R,i,{op:'move',id:g.id,from:cur,die:d});if(r||g.st!='play'||g.turn!=me)return r;cur=g.last[1]}return}
  return 'Acción desconocida.'}
 function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),H=R.host==tok,t=m.t,own=G&&G.phase=='play'&&i>=0&&i==G.turn;
  if(t=='c4')return c4(R,i,m);

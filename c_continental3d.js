@@ -325,7 +325,7 @@ function bgSync(){if(!BGB)return;hits.push(...BGB.hits);const g=bgshow();
 function bgMark(){if(!BGB)return;const g=bgmine(),zs=BGB.zs;Object.values(zs).forEach(z=>{z.material.opacity=0});if(!g)return;
  if(bgSel!=null&&!g.mv.some(m=>m[0]===bgSel))bgSel=null;
  g.mv.forEach(m=>{const z=zs[m[0]];if(z&&bgSel==null){z.material.color.set(0x8fd0ff);z.material.opacity=.22}});
- if(bgSel!=null){zs[bgSel].material.color.set(0xffd54a);zs[bgSel].material.opacity=.35;g.mv.filter(m=>m[0]===bgSel).forEach(m=>{const z=zs[m[2]];z.material.color.set(0x6dff8a);z.material.opacity=.38})}}
+ if(bgSel!=null){zs[bgSel].material.color.set(0xffd54a);zs[bgSel].material.opacity=.35;[...g.mv,...(g.mv2||[])].filter(m=>m[0]===bgSel).forEach(m=>{const z=zs[m[2]];if(!z)return;z.material.color.set(0x6dff8a);z.material.opacity=.38})}}
 function bgLight(v){BGB.lit=v;BGB.mats.forEach(o=>o.m.color.copy(o.base).multiplyScalar(v))}
 function bgStep(now){if(!BGB)return;const lt=VT.bg?1:.45;if(Math.abs(BGB.lit-lt)>.005)bgLight(BGB.lit+(lt-BGB.lit)*.06);
  [...BGB.ck[0],...BGB.ck[1]].forEach(m=>{const t=m.userData.to;if(t)m.position.lerp(t,RM?1:.18)});
@@ -333,7 +333,7 @@ function bgStep(now){if(!BGB)return;const lt=VT.bg?1:.45;if(Math.abs(BGB.lit-lt)
   d.rotation.set((1-k)*9,(1-k)*7,(1-k)*5);if(k>=1)d.userData.t0=0})}
 // tocar el tablero: primero la cámara se acerca; luego eliges ficha y destino
 function bgTap(p){const g=bgmine();if(!g){if(!bgg()){bgopen=true;render()}return}
- if(bgSel!=null){const m=g.mv.find(x=>x[0]===bgSel&&x[2]===p);if(m){bgSend({op:'move',id:g.id,from:m[0],die:m[1]});bgSel=null;sfx('place');return}}
+ if(bgSel!=null){const m=g.mv.find(x=>x[0]===bgSel&&x[2]===p),m2=!m&&(g.mv2||[]).find(x=>x[0]===bgSel&&x[2]===p);if(m2){bgSend({op:'moves',id:g.id,from:m2[0],dice:m2[2]});bgSel=null;sfx('place');return}if(m){bgSend({op:'move',id:g.id,from:m[0],die:m[1]});bgSel=null;sfx('place');return}}
  if(g.mv.some(x=>x[0]===p)){bgSel=bgSel===p?null:p;sfx('card')}else if(g.bar[g.p.indexOf(V.me)]&&g.mv.length){bgSel=25;sfx('card')}else bgSel=null;bgMark()}
 // cámara: casi desde arriba, del lado de tu color
 function bgLook(){if(!BGB||!L)return;const wc=BGB.g.localToWorld(v3(.2,.15,0)),me=bgg(),a=me&&me.p.indexOf(V.me)==1?Math.PI:0,e=1.3,t=wc.y/Math.sin(e);

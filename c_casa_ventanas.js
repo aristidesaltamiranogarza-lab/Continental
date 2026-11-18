@@ -41,6 +41,8 @@ function pon(S,piso,o){const H=window.CASA3D,std=H.std,g=new THREE.Group();
  const gl=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:0x223344}));gl.position.z=.07;g.add(gl);v.gl=gl;
  g.updateMatrixWorld(true);gl.getWorldPosition(v.c);v.n.set(0,0,1).applyQuaternion(gl.getWorldQuaternion(new THREE.Quaternion()));
  gl.geometry.computeBoundingSphere();v.mP=matPortal(v);
+ // si el piso se vuelve a armar, la ventana vieja (y su rayo de sol) se va: si no, las sombras se repiten
+ {const k=piso+'|'+o.x+'|'+o.y+'|'+o.z,i=V.findIndex(u=>u.k===k);v.k=k;if(i>=0){const u=V[i];if(u.spot){u.spot.parent&&u.spot.parent.remove(u.spot,u.spot.target);u.spot.dispose&&u.spot.dispose()}V.splice(i,1)}}
  if(v.sol)luz(S,v);V.push(v);return g}
 
 // rayo de sol (o de luna) que entra por la ventana: SpotLight desde afuera con una máscara del hueco proyectado (cookie).
@@ -61,7 +63,9 @@ if(window.CIELO)CIELO.on(()=>V.forEach(apunta));
 // ---------- cada cuadro ----------
 function paso(piso,R,cam){if(!R||!cam||!window.CIELO)return;const q=window.CALIDAD,mine=V.filter(v=>v.piso===piso);if(!mine.length)return;
  CIELO.sync();const com=q==='completo';
- mine.forEach(v=>{if(v.spot){const on=com&&v.spot.userData.entra;if(v.spot.visible!==on)v.spot.visible=on}});
+ // un solo rayo de sol a la vez (el de la ventana más cercana a la cámara): con varios, cada mueble echaba dos o tres sombras
+ let sol=null,dm=1e9;if(com)mine.forEach(v=>{if(v.spot&&v.spot.userData.entra){const d=v.c.distanceToSquared(cam.position);if(d<dm){dm=d;sol=v}}});
+ mine.forEach(v=>{if(v.spot){const on=v===sol;if(v.spot.visible!==on)v.spot.visible=on}});
  if(com){cam.updateMatrixWorld();fr.setFromProjectionMatrix(pm.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));
   const ve=mine.filter(v=>{const sp=v.gl.geometry.boundingSphere.clone().applyMatrix4(v.gl.matrixWorld);return fr.intersectsSphere(sp)});
   mine.forEach(v=>{if(v.gl.material!==v.mP)v.gl.material=v.mP});if(!ve.length)return;

@@ -86,13 +86,13 @@ function bgSync(){if(!BG)return;const g=shown('bg'),{bgX,bgZ,bgDir,BGD,BGPW,dice
 function bgMark(){const g=myTurn('bg'),zs=BG.zs;Object.values(zs).forEach(z=>{z.material.opacity=0});if(!g)return sel=null;
  if(sel!=null&&!g.mv.some(m=>m[0]===sel))sel=null;
  if(sel==null)g.mv.forEach(m=>{const z=zs[m[0]];if(z){z.material.color.set(0x8fd0ff);z.material.opacity=.22}});
- else{zs[sel].material.color.set(0xffd54a);zs[sel].material.opacity=.35;g.mv.filter(m=>m[0]===sel).forEach(m=>{const z=zs[m[2]];z.material.color.set(0x6dff8a);z.material.opacity=.38})}}
+ else{zs[sel].material.color.set(0xffd54a);zs[sel].material.opacity=.35;[...g.mv,...(g.mv2||[])].filter(m=>m[0]===sel).forEach(m=>{const z=zs[m[2]];if(!z)return;z.material.color.set(0x6dff8a);z.material.opacity=.38})}}
 // ---------- tocar los modelos ----------
 const send=(t,m)=>{q=Object.assign({t},m);err=''};
 function tap(h){if(!J)return;
  if(h.t=='c4'){const g=myTurn('c4');if(g){send('c4',{op:'drop',id:g.id,c:h.c});return}return JG3.open('c4')}
  const g=myTurn('bg');if(!g)return JG3.open('bg');const p=h.p;
- if(sel!=null){const m=g.mv.find(x=>x[0]===sel&&x[2]===p);if(m){send('bg',{op:'move',id:g.id,from:m[0],die:m[1]});sel=null;sfx('place');return}}
+ if(sel!=null){const m=g.mv.find(x=>x[0]===sel&&x[2]===p),m2=!m&&(g.mv2||[]).find(x=>x[0]===sel&&x[2]===p);if(m2){send('bg',{op:'moves',id:g.id,from:m2[0],dice:m2[2]});sel=null;sfx('place');return}if(m){send('bg',{op:'move',id:g.id,from:m[0],die:m[1]});sel=null;sfx('place');return}}
  if(g.mv.some(x=>x[0]===p)){sel=sel===p?null:p;sfx('card')}else if(g.bar[g.p.indexOf(J.me)]&&g.mv.length){sel=25;sfx('card')}else sel=null;bgMark()}
 // ---------- ventana ----------
 function hud(busy){if(!open||busy||!J)return '';const t=open,N=t=='c4'?'Conecta 4':'Backgammon',g=mine(t),mi=g?g.p.indexOf(J.me):-1,op=g?g.p[1-mi]:-1;
