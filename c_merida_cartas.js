@@ -19,7 +19,7 @@ MC.mias=()=>{const G=H.G,m=H.me(),R=fams().filter(f=>f.L.some(i=>G.own[i]===m));
  return `<div class="mc-wrap">${R.map(f=>{const n=f.L.filter(i=>G.own[i]===m).length,all=n==f.L.length;let bt='';
   if(f.g!=null&&all){const b=f.L.filter(i=>H.buildable(i)).sort((x,y)=>G.hs[x]-G.hs[y])[0],ok=b!=null&&H.canAct();
    const t=b!=null&&G.hs[b]==4?'Hotel':'Construir';
-   bt=`<button class="mu-b sm ok mc-con" onclick="MRU.a('build',${ok?b:-1})"${ok?'':' disabled'}>${H.MIC.h('rancho')} ${t} ${H.$m(H.D.hc[f.g])}</button>`}
+   bt=`<button class="mu-b sm ok mc-con" onclick="MRU.foc(${ok?b:-1})"${ok?'':' disabled'}>${H.MIC.h('rancho')} ${t} ${H.$m(H.D.hc[f.g])}</button>`}
   return `<div class="mc-g${all?' full':''}"${f.g!=null?` style="--gc:${H.D.gcol[f.g]}"`:''}><div class="mc-row">${f.L.map(i=>G.own[i]===m?card(i):hole(i)).join('')}</div>
    <div class="mc-ft"><span class="mc-n">${n}/${f.L.length}</span>${bt}</div></div>`}).join('')}</div>`};
 // Jugadores: sus títulos en mini-cartas chicas, juntas por color

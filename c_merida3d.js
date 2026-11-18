@@ -1,6 +1,6 @@
 // Mérida en Venta 3D: el tablero sobre una mesa de madera en el cuarto del Continental 3D (C3D.buildRoom), fichas yucatecas de metal con base
 // del color de cada jugador, flechas que rebotan encima de cada ficha, casas y hoteles con arcos, dados que ruedan y tema Menta u Oscuro.
-// Lo maneja c_meridaui.js como window.M3 (ok, show, layout, theme, follow, sync, cam, look). NO cambia reglas ni servidor.
+// Lo maneja c_meridaui.js como window.M3 (ok, show, layout, theme, follow, sync, cam, look); c_merida_enfoque.js usa focus y blink. NO cambia reglas ni servidor.
 // Cámara: 1 dedo gira e inclina; 2 dedos acercan, mueven y giran; ratón: arrastrar gira, clic derecho (o Shift) mueve, rueda acerca. Doble toque recentra.
 (function(){
 if(typeof THREE==='undefined'||!window.MR){console.warn('Mérida 3D: falta Three.js o c_merida.js');return}
@@ -112,7 +112,7 @@ function init(){if(ready)return;ready=true;
  // tablero
  const base=new THREE.Mesh(box(12.3,.2,12.3),std(0x18201b,.6));base.receiveShadow=base.castShadow=true;SC.add(base);
  topMat=new THREE.MeshStandardMaterial({roughness:.82});const top=new THREE.Mesh(new THREE.PlaneGeometry(12,12),topMat);top.rotation.x=-Math.PI/2;top.position.y=.101;top.receiveShadow=true;SC.add(top);
- dyn=new THREE.Group();SC.add(dyn);
+ dyn=new THREE.Group();SC.add(dyn);fxg=new THREE.Group();fxg.position.y=.08;SC.add(fxg);
  selM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xff8a00,transparent:true,opacity:.42,depthWrite:false}));selM.rotation.x=-Math.PI/2;selM.position.y=.106;selM.visible=false;SC.add(selM);
  ring=new THREE.Mesh(new THREE.TorusGeometry(.36,.035,10,40),new THREE.MeshBasicMaterial({color:0xffd54a}));ring.rotation.x=Math.PI/2;SC.add(ring);
  for(let v=1;v<=6;v++)faces[v]=new THREE.MeshStandardMaterial({map:pipTex(v),roughness:.35});
@@ -169,21 +169,65 @@ function slot(k,G){const i=G.pos[k],[x,z]=cpos(i),s=side(i),[ix,iz]=INW[s],tx=Ma
  const c=same.length<2?0:(n%2)-.5,r=Math.floor(n/2)-(Math.ceil(same.length/2)-1)/2;return [x+tx*c*.44+ix*(r*.4-.12),z+tz*c*.44+iz*(r*.4-.12)]}
 function rebuild(G){const key=JSON.stringify([G.own,G.hs,G.mg]);if(key===dynKey)return;dynKey=key;
  while(dyn.children.length)dyn.remove(dyn.children[0]);
+ const H0=HS0&&!RMo()?HS0:null;HS0=G.hs.slice();HFX.length=0;
  for(let i=0;i<40;i++){const o=G.own[i];if(o<0)continue;const [x,z]=cpos(i),s=side(i),[ix,iz]=INW[s],w=i%10==0?1.5:1;
   const bar=new THREE.Mesh(box(Math.abs(iz)?w*.92:.1,.04,Math.abs(ix)?w*.92:.1),std(MR.pc(o),.45,{transparent:!!G.mg[i],opacity:G.mg[i]?.35:1}));bar.position.set(x-ix*.69,.12,z-iz*.69);dyn.add(bar);
-  const h=G.hs[i];if(!h)continue;const n=h==5?1:h;for(let j=0;j<n;j++){const m=house(h==5),t=n==1?0:(j-(n-1)/2)*.22;m.position.set(x+ix*.6+Math.abs(iz)*t,.11,z+iz*.6+Math.abs(ix)*t);m.rotation.y=s*Math.PI/2;dyn.add(m)}}}
+  casas(G,i,H0,x,z,s,ix,iz)}}
+// ---- casas que caen con rebote y polvo, se levantan al venderse y se juntan en hotel ----
+let FO=null,FT=null,HS0=null,fxg=null;const HFX=[],BL=[],RMo=()=>typeof RM!=='undefined'&&RM;
+function casas(G,i,H0,x,z,s,ix,iz){const h=G.hs[i],h0=H0?H0[i]:h;if(!h&&!h0)return;const n=h==5?1:h,n0=h0==5?1:h0,now=performance.now(),
+  tp=(N,j)=>N<2?0:(j-(N-1)/2)*.22,P=t=>[x+ix*.6+Math.abs(iz)*t,.11,z+iz*.6+Math.abs(ix)*t],
+  mk=(hot,t,k,o)=>{const m=house(hot),p=P(t);m.position.set(p[0],p[1],p[2]);m.rotation.y=s*Math.PI/2;dyn.add(m);if(k){m.visible=k!='cae'&&k!='pop';HFX.push(Object.assign({m,k,p,t0:now,d:520},o))}return m};
+ if(h===h0){for(let j=0;j<n;j++)mk(h==5,tp(n,j));return}
+ if(h==5){for(let j=0;j<n0;j++)mk(false,tp(n0,j),'jun',{b:P(0),d:420});mk(true,0,'pop',{t0:now+380,d:560});return}
+ if(h0==5){mk(true,0,'sube');for(let j=0;j<n;j++)mk(false,tp(n,j),'cae',{t0:now+240+j*100,d:560});return}
+ for(let j=0;j<n;j++){if(j<n0)mk(false,tp(n0,j),'mov',{b:P(tp(n,j)),d:280});else mk(false,tp(n,j),'cae',{t0:now+(j-n0)*120,d:560})}
+ for(let j=n;j<n0;j++)mk(false,tp(n0,j),'sube')}
+const golpe=(p,k)=>{if(window.MFX)MFX.polvo(fxg,{x:p[0],z:p[2]},k);if(typeof sfx=='function')sfx('place')};
+function hstep(now){for(let q=HFX.length-1;q>=0;q--){const e=HFX[q],m=e.m,p=e.p;let u=(now-e.t0)/e.d;if(u<0)continue;m.visible=true;const fin=u>=1;u=Math.min(1,u);
+  if(e.k=='cae'){let y=0,sq=0;if(u<.5){const v=u/.5;y=1.6*(1-v*v)}else{const v=(u-.5)/.5;y=Math.abs(Math.sin(v*Math.PI*2))*.16*(1-v)*(1-v);sq=Math.max(0,.3*(1-v*5));if(!e.hit){e.hit=1;golpe(p,.32)}}
+   m.position.set(p[0],p[1]+y,p[2]);m.scale.set(1+sq*.5,1-sq,1+sq*.5)}
+  else if(e.k=='sube'){m.position.set(p[0],p[1]+u*u*1.3,p[2]);m.scale.setScalar(Math.max(.001,1-u));m.rotation.y+=.06}
+  else if(e.k=='jun'||e.k=='mov'){const v=1-Math.pow(1-u,3),b=e.b;m.position.set(p[0]+(b[0]-p[0])*v,p[1]+(e.k=='jun'?Math.sin(u*Math.PI)*.25:0),p[2]+(b[2]-p[2])*v);if(e.k=='jun')m.scale.setScalar(Math.max(.001,1-.75*u))}
+  else if(e.k=='pop'){if(!e.hit){e.hit=1;golpe(p,.45)}const v=u-1;m.scale.setScalar(Math.max(.001,1+2.70158*v*v*v+1.70158*v*v));m.position.set(p[0],p[1],p[2])}
+  if(fin){if(e.k=='sube'||e.k=='jun')dyn.remove(m);else{m.scale.set(1,1,1);const b=e.b||p;m.position.set(b[0],b[1],b[2])}HFX.splice(q,1)}}}
+// casillas que parpadean (la que falta para construir parejo)
+function blink(L){const now=performance.now();(L||[]).forEach(i=>{if(!(i>=0&&i<40))return;let m=BL.find(b=>!b.visible);
+  if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffc400,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=2;SC.add(m);BL.push(m)}
+  const [x,z]=cpos(i),s=side(i),w=i%10==0?1.5:1;m.position.set(x,.109,z);m.scale.set(s%2?1.5:w,s%2?w:1.5,1);m.userData.t0=now;m.visible=true})}
+function bstep(now){BL.forEach(m=>{if(!m.visible)return;const u=(now-m.userData.t0)/1400;if(u>=1){m.visible=false;return}m.material.opacity=.8*Math.abs(Math.sin(u*Math.PI*3))})}
+// ---- modo enfoque (c_merida_enfoque.js): la cámara se acerca a una colonia vista desde fuera y viaja por el borde del tablero ----
+const smt=v=>v*v*(3-2*v),eio=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+function perim(f){const r=(f%40+40)%40,a=Math.floor(r),u=r-a,p=cpos(a),q=cpos((a+1)%40);return [p[0]+(q[0]-p[0])*u,p[1]+(q[1]-p[1])*u]}
+function sideF(f){const m=Math.round(f/10),d=f-10*m;return Math.abs(d)<1?m-1+smt((d+1)/2):Math.floor(f/10)}   // gira suave al doblar una esquina
+function fDist(){const t=Math.tan(CA.fov*Math.PI/360),Hf=H+Math.abs(ins.t-ins.b),wf=Math.max(80,W-ins.l-ins.r),hf=Math.max(80,H-ins.t-ins.b);
+ return Math.max(3,Math.min(10,Math.max(2.4*Hf/(wf*2*t),2.3*Hf/(hf*2*t))))}
+function fPose(f,d){const a=-sideF(f)*Math.PI/2+FO.aw,[px,pz]=perim(f);return {x:px-Math.sin(a)*.3,z:pz-Math.cos(a)*.3,a,t:.62,k:fitV/d}}
+function focus(i,dir){const now=performance.now();
+ if(i==null||i<0){if(!FO)return;const b=Object.assign({},FO.back);b.a=VW.a+wrapA(b.a-VW.a);FT={out:1,from:Object.assign({},VW),to:b,t0:now,d:650};FO=null;return}
+ if(!FO){const a0=-sideF(i)*Math.PI/2;FO={i,f:i,cf:i,aw:2*Math.PI*Math.round((VW.a-a0)/(2*Math.PI)),back:FT&&FT.out?FT.to:Object.assign({},VT)};
+  FT={in:1,from:Object.assign({d:fitV/VW.k},VW),t0:now,d:750};back=null;touched=true;return}
+ if(i===FO.i)return;const fw=((i-FO.i)%40+40)%40,df=dir<0?fw-40:fw;
+ FT={mv:1,f0:FO.cf,f1:FO.f+df,t0:now,d:Math.min(1200,480+Math.abs(df)*45)};FO.i=i;FO.f+=df}
+function fstep(now){const u=FT?Math.min(1,(now-FT.t0)/FT.d):1,e=eio(u);
+ if(FT&&FT.out){const A=FT.from,Bk=FT.to;VK.forEach(q=>VT[q]=A[q]+(Bk[q]-A[q])*e);if(u>=1){FT=null;clampV()}return}
+ if(!FO){FT=null;return}const dist=fDist();
+ if(FT&&FT.in){const P=fPose(FO.f,dist),A=FT.from;['x','z','a','t'].forEach(q=>VT[q]=A[q]+(P[q]-A[q])*e);VT.k=fitV/(A.d+(dist-A.d)*e);FO.cf=FO.f}
+ else if(FT&&FT.mv){const f=FT.f0+(FT.f1-FT.f0)*e;FO.cf=f;Object.assign(VT,fPose(f,dist*(1+.3*Math.sin(Math.PI*u)*Math.min(1,Math.abs(FT.f1-FT.f0)/4))))}
+ else{FO.cf=FO.f;Object.assign(VT,fPose(FO.f,dist))}
+ if(FT&&u>=1)FT=null}
 let mz=null;
 function sync(G,sel){G0=G;if(mz)mz.sync(G);
  G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=piece(k);SC.add(toks[k]);arrs[k]=arrow(k);SC.add(arrs[k]);shownPos[k]=G.pos[k];const [x,z]=slot(k,G);toks[k].position.set(x,.1,z);anim[k]=null}
   toks[k].visible=arrs[k].visible=!G.bk[k];const t=G.pos[k];
   if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
-   shownPos[k]=t;anim[k]={path,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
+   shownPos[k]=t;anim[k]={path,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size&&!FO&&!FT){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
   else if(!anim[k]){const [x,z]=slot(k,G);toks[k].position.set(x,.1,z)}});
  if(G.rn!==rollN){if(rollN>=0)rollT=performance.now();rollN=G.rn;setDice(G.dice)}
  rebuild(G);selI=sel;selM.visible=sel>=0;if(sel>=0){const [x,z]=cpos(sel),s=side(sel),w=sel%10==0?1.5:1;selM.position.set(x,.106,z);selM.scale.set(s%2?1.5:w,s%2?w:1.5,1)}}
 function setDice(v){dice.forEach((d,j)=>{const n=v[j]||1,m=d.material;d.visible=!j||!!v[1]||!v[0];m[2]=faces[n];m[3]=faces[7-n];const o=[1,2,3,4,5,6].filter(x=>x!==n&&x!==7-n);m[0]=faces[o[0]];m[1]=faces[7-o[0]];m[4]=faces[o[1]];m[5]=faces[7-o[1]]})}
 // ---- cada cuadro: fichas que brincan casilla por casilla, flechas que rebotan, dados, cámara suave ----
-function step(now,dt){const G=G0;if(!G)return;let moving=false;
+function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(now);if(window.MFX)MFX.paso(now);
  G.players.forEach((_,k)=>{const a=anim[k],T=toks[k];if(!T)return;
   if(a){moving=true;let t=(now-a.t0)/HOP;
    if(t>=1){a.path.shift();a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
@@ -198,7 +242,7 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;
   if(t<1){const q=1-t;d.position.set(bx+1.8*q*q+Math.sin(now/70+j)*.15*q,.36+Math.abs(Math.sin(t*Math.PI*2.5))*1.2*q,bz-1.8*q*q+Math.cos(now/80+j)*.15*q);d.rotation.set(now/60*q+j,now/50*q,now/75*q)}
   else{d.position.set(bx,.36,bz);d.rotation.set(0,j?.35:-.2,0)}});
  // la cámara se desliza hacia donde va
- const f=1-Math.exp(-dt/(moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV;if(mz)mz.step(now,CA)}
+ if(FO||FT)fstep(now);const f=1-Math.exp(-dt/(FO||FT?90:moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV;if(mz)mz.step(now,CA)}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize();
@@ -208,8 +252,9 @@ function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const 
 window.M3={ok:()=>!failed,
  fail(){failed=true;this.show(false)},
  show(on){if(on&&!failed){try{init()}catch(e){failed=true;console.warn('Mérida 3D: no se pudo iniciar',e);throw e}}if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';
-  if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{toks.forEach(t=>t&&SC.remove(t));arrs.forEach(a=>a&&SC.remove(a));toks.length=arrs.length=anim.length=shownPos.length=0;dynKey='';rollN=-1;G0=null;back=null;if(mz)mz.reset()}},
+  if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{toks.forEach(t=>t&&SC.remove(t));arrs.forEach(a=>a&&SC.remove(a));toks.length=arrs.length=anim.length=shownPos.length=0;dynKey='';rollN=-1;G0=null;back=null;FO=FT=HS0=null;HFX.length=0;BL.forEach(m=>m.visible=false);if(mz)mz.reset()}},
  drawCard:(c,t,dl)=>mz&&shown?mz.draw(c,t,dl):0,
+ focus:(i,dir)=>{if(ready&&shown)focus(i,dir)},blink:L=>{if(ready&&shown)blink(L)},
  layout(i){const ch=i.t!==ins.t||i.b!==ins.b||i.r!==ins.r||i.l!==ins.l;Object.assign(ins,i);if(ch||!W)resize()},
  theme:t=>applyTheme(t),follow:on=>{fol=on},
  sync:(G,sel)=>sync(G,sel),

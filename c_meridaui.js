@@ -38,6 +38,7 @@ function buildable(i){const G=V.G,m=me(),s=B[i];if(s.t!='p'||G.own[i]!==m||G.hs[
  if(!full(s.g,m)||g.some(j=>G.mg[j]))return false;if(G.o.even&&G.hs[i]>Math.min(...g.map(j=>G.hs[j])))return false;return G.cash[m]>=D.hc[s.g]}
 const canBuild=()=>canAct()&&V.G.own.some((o,i)=>o===me()&&buildable(i));
 if(window.MCAR)MCAR.init({get G(){return V.G},get TR(){return TR},me,B,D,GR,$m,pc,tk,tok,nm,esc,buildable,canAct,icon,onCol,MIC});
+if(window.MENF)MENF.init({get G(){return V.G},me,B,D,GR,$m,esc,pc,onCol,MIC,buildable,canAct,full,is3d:()=>stageName()=='3d',stage:()=>stage()});
 // ---- barra de arriba: jugadores (data-seat: ahí llegan los tomates) y menú ----
 function topBar(){const G=V.G,m=me();
  return `<div class="mu-top"><div class="mu-tr1"><div class="mu-pls" id="mupls">${G.players.map((p,k)=>{const t=k===G.turn&&G.phase=='play';
@@ -105,7 +106,7 @@ function pMias(){if(window.MCAR)return MCAR.mias();const G=V.G,m=me(),L=G.own.ma
  return Object.keys(grp).map(key=>{const L2=grp[key],s0=B[L2[0]];let hd;
   if(s0.t=='p'){const g=GR[s0.g],n=g.filter(j=>G.own[j]===m).length;hd=`<header style="--gc:${D.gcol[s0.g]}"><i></i><b>${n} de ${g.length}</b><span>${n==g.length?'¡Grupo completo! Puedes construir':'Te '+(g.length-n>1?'faltan '+(g.length-n):'falta 1')+' para construir'}</span><small>Casa ${$m(D.hc[s0.g])}</small></header>`}
   else hd=`<header><b>${s0.t=='r'?MIC.h('bus')+' Va y Ven':MIC.h('idea')+' Servicios'}</b><span>${L2.length} de ${s0.t=='r'?4:2}</span></header>`;
-  return `<div class="mu-grp">${hd}${L2.map(i=>{const s=B[i],h=G.hs[i];return `<div class="mu-prop" onclick="MRU.sel(${i})"><b>${esc(s.n)}</b><span>${h==5?MIC.h('hotel')+' Hotel':h?MIC.h('rancho').repeat(h):''}${G.mg[i]?' <em>hipotecada</em>':''}</span>${buildable(i)&&canAct()?`<button class="mu-b sm ok" onclick="event.stopPropagation();MRU.a('build',${i})">＋${MIC.h('rancho')} ${$m(D.hc[s.g])}</button>`:''}</div>`}).join('')}</div>`}).join('')}
+  return `<div class="mu-grp">${hd}${L2.map(i=>{const s=B[i],h=G.hs[i];return `<div class="mu-prop" onclick="MRU.sel(${i})"><b>${esc(s.n)}</b><span>${h==5?MIC.h('hotel')+' Hotel':h?MIC.h('rancho').repeat(h):''}${G.mg[i]?' <em>hipotecada</em>':''}</span>${buildable(i)&&canAct()?`<button class="mu-b sm ok" onclick="event.stopPropagation();MRU.foc(${i})">＋${MIC.h('rancho')} ${$m(D.hc[s.g])}</button>`:''}</div>`}).join('')}</div>`}).join('')}
 function pTrato(){const G=V.G,m=me(),h=G.trade?tradeCard(0):'';
  if(!playing()||G.phase!='play')return h||'<div class="mu-empty">Sin tratos.</div>';
  if(G.trade)return h+'<div class="mu-s mu-pad">Cuando se resuelva este trato podrás proponer otro.</div>';
@@ -137,7 +138,7 @@ function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body=''
  let own=s.p?`<div class="mu-down">${o>=0?`${tok(o,'xs')} Dueño: <b>${nm(o)}</b>${h?' · '+(h==5?'hotel':h+(h>1?' casas':' casa')):''}${G.mg[i]?' · <em>hipotecada</em>':''}`:`Sin dueño · cuesta <b>${$m(s.p)}</b>`}</div>`:'';
  if(here.length)own+=`<div class="mu-down">Aquí está${here.length>1?'n':''}: ${here.map(k=>tok(k,'xs')+' '+nm(k)).join(', ')}</div>`;
  let act='';if(o===m&&m>=0&&G.phase=='play'){const okk=canAct(),hc=s.t=='p'?D.hc[s.g]:0,b=[];
-  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.a('build',${i})"${!okk||!buildable(i)?' disabled':''}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okk?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
+  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.foc(${i})"${!okk||!buildable(i)?' disabled':''}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okk?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
   if(G.o.mort)b.push(G.mg[i]?`<button class="mu-b" onclick="MRU.a('unm',${i})"${okk?'':' disabled'}>Deshipotecar ${$m(Math.ceil(s.p*.55))}</button>`:`<button class="mu-b" onclick="MRU.a('mort',${i})"${okk?'':' disabled'}>Hipotecar +${$m(s.p/2)}</button>`);
   const why=s.t!='p'||h>=5?'':!okk?'Puedes construir en tu turno (o cuando debes dinero).':!full(s.g,m)?'Para construir necesitas todas las colonias de este color.':GR[s.g].some(j=>G.mg[j])?'Hay una colonia hipotecada en el grupo.':G.cash[m]<hc?'No te alcanza para otra casa.':!buildable(i)?'Construye parejo: primero en las otras del grupo.':'';
   if(b.length)act=`<div class="mu-acts">${b.join('')}</div>${why?`<div class="mu-hint">${why}</div>`:''}`}
@@ -163,6 +164,7 @@ const stageName=()=>mode==='3d'&&window.M3&&M3.ok()?'3d':'2d',stage=()=>stageNam
 function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.show)o.show(false);if(!st)return;
  const t=document.querySelector('.mu-top'),dk=document.getElementById('mudock'),bt=document.querySelector('.mu-bot'),sh=document.querySelector('.mu-sheet'),w=wide(),rs=document.documentElement.style;
  let T=t?t.getBoundingClientRect().bottom:0,b=0,r=0,cb=0;
+ if(window.MENF&&MENF.on){ins={t:T+6,r:0,b:MENF.bot(),l:0};rs.setProperty('--mu-t',(T+6)+'px');try{st.show(true);st.theme(theme);st.follow(follow);st.layout(ins);st.sync(V.G,-1)}catch(e){console.warn('Mérida tablero:',e)}return}   // modo enfoque (c_merida_enfoque.js): sin dock
  if(w&&bt)r=innerWidth-bt.getBoundingClientRect().left;else if(dk){b=innerHeight-dk.getBoundingClientRect().top;cb=sh?b+sh.offsetHeight-14:b}
  const cl=!!document.querySelector('.mu-cam')&&land();if(cl)rs.setProperty('--mu-ct',(T+6)+'px');   // en horizontal los botones de cámara van en columna a la izquierda
  if(!w)bMax=Math.max(bMax,b);const bs=w?0:Math.min(Math.max(b,bMax),innerHeight*.45);   // el tablero no brinca cada vez que la tarjeta de acciones cambia de alto
@@ -197,13 +199,15 @@ GM.merida.after=function(){if(origAfter)origAfter();if(!active()||!ok){off();ret
  on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;const pl=document.getElementById('mupls');if(pl&&keep.pl!=null)pl.scrollLeft=keep.pl;
  if(keep.f){const e=document.getElementById(keep.f.id);if(e){e.focus({preventScroll:true});try{if(keep.f.s!=null)e.setSelectionRange(keep.f.s,keep.f.e)}catch(_){}}}
- layout();if(keep.pl==null)turnInView();effects()};
-function off(){if(!on)return;on=false;document.documentElement.classList.remove('mrui','mumodal');if(window.M3)M3.show(false);if(window.M2)M2.show(false);prev=null;sel=-1;tab=null;menu=false}
+ layout();if(window.MENF)MENF.sync();if(keep.pl==null)turnInView();effects()};
+function off(){if(!on)return;on=false;if(window.MENF)MENF.close(1);document.documentElement.classList.remove('mrui','mumodal');if(window.M3)M3.show(false);if(window.M2)M2.show(false);prev=null;sel=-1;tab=null;menu=false}
 setInterval(()=>{if(on&&!active())off()},400);
 let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=setTimeout(()=>{bMax=0;if(active())render()},120)});
 window.MRU={get selected(){return sel},get insets(){return ins},
  a:(t,sq)=>{sfx('tick');send(sq!=null?{t,sq}:{t})},
- sel:i=>{sel=i==null||i<0||i===sel?-1:i;sfx('tick');render()},
+ sel:i=>{if(i!=null&&i>=0&&i!==sel&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}sel=i==null||i<0||i===sel?-1:i;sfx('tick');render()},
+ foc:i=>{if(i>=0&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}if(i>=0)MRU.a('build',i)},
+ ficha:i=>{sel=i;sfx('tick');render()},
  tab:t=>{tab=wide()?t||'jug':t&&t!==tab?t:null;keep.sc=0;sfx('tick');render()},
  menu:o=>{menu=!!o;sfx('tick');render()},
  mode:x=>{mode=x||(stageName()=='3d'?'2d':'3d');hintT=0;lss('merida_3d',mode=='3d'?'1':'0');menu=false;topv=false;sfx('tick');render()},
