@@ -8,11 +8,13 @@ const fams=()=>{const B=H.B,F=H.GR.map((L,g)=>({k:'g'+g,g,L:L.slice()}));
  [['r','r'],['u','u']].forEach(([k,t])=>{const L=[];B.forEach((s,i)=>{if(s.t==t)L.push(i)});if(L.length)F.push({k,L})});return F};
 const houses=h=>h==5?'<span class="mc-hs"><i class="ht"></i></span>':h?`<span class="mc-hs">${'<i></i>'.repeat(h)}</span>`:'';
 const gc=i=>{const s=H.B[i];return s.t=='p'?H.D.gcol[s.g]:''};
+// letra que cabe: la palabra mas larga entra entera en la carta (sin partirla)
+const fz=n=>{const w=Math.max(...String(n).split(/\s+/).map(x=>x.length));const p=Math.min(9.5,Math.max(6.2,58/(w*.68)));return p<9.5?` style="font-size:${p.toFixed(1)}px"`:"";};
 function card(i,o={}){const G=H.G,s=H.B[i],c=gc(i),cl='mc'+(o.c?' '+o.c:'')+(G.mg[i]?' dorso':'')+(c?'':' srv'),nm=H.esc(s.n);
  const on=o.on||`MRU.sel(${i})`,dr=o.drag?` draggable="true" ondragstart="MCAR.drag(event,'${o.drag}',${i})"`:'';
- return `<button class="${cl}"${c?` style="--gc:${c};--go:${H.onCol(c)}"`:''} onclick="${on}"${dr} title="${nm}"><span class="mc-b">${c?'':H.icon(s)}</span><b>${nm}</b>${G.mg[i]?'':houses(G.hs[i])}</button>`}
+ return `<button class="${cl}"${c?` style="--gc:${c};--go:${H.onCol(c)}"`:''} onclick="${on}"${dr} title="${nm}"><span class="mc-b">${c?'':H.icon(s)}</span><b${fz(s.n)}>${nm}</b>${G.mg[i]?'':houses(G.hs[i])}</button>`}
 function hole(i){const G=H.G,s=H.B[i],w=G.own[i],c=gc(i);
- return `<button class="mc hole${c?'':' srv'}"${c?` style="--gc:${c}"`:''} onclick="MRU.sel(${i})" title="${H.esc(s.n)}"><span class="mc-b">${c?'':H.icon(s)}</span><b>${H.esc(s.n)}</b>${w>=0?`<span class="mc-who">${H.tok(w,'xs')}</span>`:''}</button>`}
+ return `<button class="mc hole${c?'':' srv'}"${c?` style="--gc:${c}"`:''} onclick="MRU.sel(${i})" title="${H.esc(s.n)}"><span class="mc-b">${c?'':H.icon(s)}</span><b${fz(s.n)}>${H.esc(s.n)}</b>${w>=0?`<span class="mc-who">${H.tok(w,'xs')}</span>`:''}</button>`}
 // Mis propiedades: una fila por grupo, con huecos punteados para lo que falta
 MC.mias=()=>{const G=H.G,m=H.me(),R=fams().filter(f=>f.L.some(i=>G.own[i]===m));
  if(!R.length)return `<div class="mu-empty"><span>${H.MIC.h('rancho')}</span><b>Sin propiedades</b></div>`;
@@ -59,7 +61,7 @@ const CSS=`
 .mc:active{transform:scale(.94)}
 .mc-b{flex:none;display:grid;place-items:center;height:22px;background:var(--gc);color:var(--go,#fff);border-bottom:1.5px solid rgba(0,0,0,.3)}
 .mc.srv .mc-b{background:#ece6d8;color:#18201b;height:26px}.mc.srv .mc-b svg{width:18px;height:18px}
-.mc>b{flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:3px 3px 0;font:800 9.5px/1.15 var(--mu-f);text-align:center;text-transform:uppercase;word-break:break-word}
+.mc>b{flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:3px 3px 0;font:800 9.5px/1.15 var(--mu-f);text-align:center;text-transform:uppercase;letter-spacing:-.02em;word-break:normal;overflow-wrap:anywhere}
 .mc-hs{position:absolute;left:0;right:0;bottom:3px;display:flex;justify-content:center;gap:2px}
 .mc-hs i{width:10px;height:9px;background:#3E8E4F;clip-path:polygon(50% 0,100% 45%,100% 100%,0 100%,0 45%)}
 .mc-hs i.ht{width:18px;background:#C2412A}

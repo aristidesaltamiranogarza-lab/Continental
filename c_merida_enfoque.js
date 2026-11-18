@@ -111,7 +111,7 @@ html.mufoc .mu-hud>:not(.mu-top){opacity:0!important;visibility:hidden!important
 html[data-tema=noche] .mf{--mf-ok:#7fd6a0}
 .mf.out{pointer-events:none}.mf.out>*{animation:mfOut .22s ease both!important}   /* sin opacidad en .mf: si no, el backdrop-filter de .mf-blur no ve el tablero */
 .mf button{font-family:var(--ui-font);-webkit-tap-highlight-color:transparent}
-.mf-blur{position:absolute;inset:0;animation:mfIn .3s ease both;-webkit-backdrop-filter:blur(6px) brightness(.62) saturate(.8);backdrop-filter:blur(6px) brightness(.62) saturate(.8)}
+.mf-blur{position:absolute;inset:0;animation:mfIn .3s ease both;-webkit-backdrop-filter:blur(3.5px) brightness(.66) saturate(.85);backdrop-filter:blur(3.5px) brightness(.66) saturate(.85)}
 .mf.d2 .mf-blur{background:var(--ui-scrim)}
 .mf-x,.mf-ar,.mf-fi{width:48px;height:48px;padding:0;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-panel);color:var(--ui-icon);display:grid;place-items:center;box-shadow:var(--ui-shadow);cursor:pointer;transition:transform .1s}
 .mf-x svg,.mf-ar svg{width:24px;height:24px}
