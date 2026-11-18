@@ -32,7 +32,7 @@ function deal(R){const G=R.G,r=G.round,n=G.players.length,d=shuf([...Array(53*(M
  G.rlUntil=Date.now()+RMS;G.cdUntil=G.rlUntil+3000;R.pb=null;R.cl={}}
 function endRound(R,w){const G=R.G;G.out=w;G.scores.push(G.hands.map((h,k)=>k==w||R.players[k].out?0:h.reduce((a,x)=>a+pts(C(x)),0)));G.phase='end';G.rd=G.players.map(()=>false)}
 const RN=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],SU=['♠','♥','♦','♣'];
-const cn=id=>{const c=C(id);return c.j?'🃏 comodín':RN[c.r-1]+SU[c.s]};
+const cn=id=>{const c=C(id);return c.j?'comodín':RN[c.r-1]+SU[c.s]};
 const lg=(G,k,t,c)=>{(G.log=G.log||[]).push({k,t,c,n:G.ln=(G.ln||0)+1});if(G.log.length>12)G.log.shift()};
 const fits=(G,id)=>{const c=C(id);return G.melds.some(m=>{const a=m.cards.map(C).concat(c);return m.type=='T'?trio(a):!!runArr(a)})};
 function chkReady(R,f){const G=R.G;if(!G||G.phase!='end')return;const now=Date.now();
@@ -142,3 +142,4 @@ function view(R,tok,me,now){const G=R.G;
   claim:me>=0&&R.cl[R.players[me].id]==G.tc,pend:!!R.pb}}
 module.exports={id:'continental',name:'Continental',min:2,max:5,opts:{},start,view,act,kick,tick:chkReady,
  c4,bg};   // g_casajuegos.js usa c4 y bg para las de la Casa 3D
+module.exports.bot=require('./g_continental_bot.js')({C,pts,trio,runArr,runOrd,fits,CON});
