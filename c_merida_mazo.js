@@ -2,7 +2,7 @@
 // La pila baja conforme se sacan cartas y se rehace al barajar (G.dk = cartas que quedan, G.sh = barajadas). Al sacar, la de arriba
 // se levanta, viaja a la cámara y se voltea; draw() devuelve cuánto dura para que el panel de la carta salga después.
 (function(){
-const COL={s:'#f7a21b',c:'#5bb4ec'},IC={s:'suerte',c:'regalo'},NM={s:'Suerte',c:'Comunidad'},F='Archivo,"Segoe UI","Noto Sans",system-ui,sans-serif',FLY=1400;
+const COL={s:'#f7a21b',c:'#5bb4ec'},IC={s:'suerte',c:'regalo'},NM={s:'Suerte',c:'Comunidad'},F='Archivo,"Segoe UI","Noto Sans",system-ui,sans-serif',FLY=1400,BK=650;
 const RM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
 const rr=(g,x,y,w,h,r)=>{g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h)};
 function wrap(g,t,mw){const w=String(t).split(' '),L=[];let l='';w.forEach(x=>{const y=l?l+' '+x:x;if(g.measureText(y).width>mw&&l){L.push(l);l=x}else l=y});if(l)L.push(l);return L}
@@ -46,21 +46,26 @@ function m3(THREE,SC,R){
  bk.position.z=CT/2;fr.position.z=-CT/2;fr.rotation.y=Math.PI;fly.add(bk,fr,ed);fly.visible=false;fly.renderOrder=20;[bk,fr,ed].forEach(o=>o.renderOrder=20);SC.add(fly);
  const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),qY4=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI/4),q0=qY4.clone().multiply(qX);
  const qF=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI),qT=new THREE.Quaternion(),v=new THREE.Vector3(),pA=new THREE.Vector3(),pB=new THREE.Vector3();
- let F0=null;const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+ let F0=null,LP=null;const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
  return {
   sync:G=>tr.sync(G),
   draw(c,text,delay){if(RM())return 0;const s=S[c.d];if(!s)return 0;const top=tr.wait(c.d,delay),p=s.m.position;
    if(fr.material.map)fr.material.map.dispose();const ft=tex(frontCv(c.d,text));fr.material.map=fr.material.emissiveMap=ft;bk.material.map=bk.material.emissiveMap=backT[c.d];fr.material.needsUpdate=bk.material.needsUpdate=true;
-   F0={t0:performance.now()+delay,p0:new THREE.Vector3(p.x,Y0+top*CT+CT/2,p.z)};return FLY},
+   F0={t0:performance.now()+delay,p0:new THREE.Vector3(p.x,Y0+top*CT+CT/2,p.z)};LP=F0.p0;return FLY},
+  // regreso: de frente a la cámara vuelve a la pila boca abajo
+  back(){if(RM()||!LP)return 0;F0={t0:performance.now(),p0:LP,bw:1};return BK},
   step(now,CA){['s','c'].forEach(d=>{const s=S[d];if(s.shT<0)return;const t=(now-s.shT)/700;lay(s,t);if(t>=1)s.shT=-1});
-   if(!F0){fly.visible=false;return}const u=(now-F0.t0)/FLY;if(u<0){fly.visible=false;return}if(u>=1){F0=null;fly.visible=false;return}fly.visible=true;
-   // delante de la cámara, con la carta a ~30% del alto de la vista
-   const dist=CD/(.3*2*Math.tan(CA.fov*Math.PI/360));v.set(0,0,-1).applyQuaternion(CA.quaternion);pB.copy(CA.position).addScaledVector(v,dist);
-   pA.copy(F0.p0);pA.y+=.5;const dt=u>.25;[bk,fr,ed].forEach(o=>{o.material.depthTest=!dt});
+   if(!F0){fly.visible=false;return}const u=(now-F0.t0)/(F0.bw?BK:FLY);if(u<0){fly.visible=false;return}if(u>=1){F0=null;fly.visible=false;return}fly.visible=true;
+   // delante de la cámara, con la carta a ~30% del alto de la vista; qT = de frente a la cámara
+   const dist=CD/(.3*2*Math.tan(CA.fov*Math.PI/360));v.set(0,0,-1).applyQuaternion(CA.quaternion);pB.copy(CA.position).addScaledVector(v,dist);qT.copy(CA.quaternion).multiply(qF);
+   const dz=x=>[bk,fr,ed].forEach(o=>{o.material.depthTest=x});
+   if(F0.bw){const e=ease(u);dz(u>.75);fly.position.lerpVectors(pB,F0.p0,e);fly.position.y+=Math.sin(e*Math.PI)*.5;fly.quaternion.copy(qT).slerp(q0,e);fly.scale.setScalar(1);return}
+   pA.copy(F0.p0);pA.y+=.5;dz(u<=.25);
+   // se levanta, viaja volteándose en el camino y llega ya de frente (sin pararse grande antes de voltear)
    if(u<.18){const e=ease(u/.18);fly.position.copy(F0.p0);fly.position.y+=.5*e;fly.quaternion.copy(q0);fly.scale.setScalar(1)}
-   else if(u<.6){const e=ease((u-.18)/.42);fly.position.lerpVectors(pA,pB,e);fly.position.y+=Math.sin(e*Math.PI)*.6;fly.quaternion.copy(q0).slerp(CA.quaternion,e)}
-   else{const e=ease(Math.min(1,(u-.6)/.25));fly.position.copy(pB);qT.identity().slerp(qF,e);fly.quaternion.copy(CA.quaternion).multiply(qT);fly.scale.setScalar(1+Math.sin(e*Math.PI)*.06)}},
-  reset(){tr.reset();F0=null;fly.visible=false;['s','c'].forEach(d=>{S[d].dn=0;S[d].shT=-1;S[d].m.count=0})}}}
+   else if(u<.85){const e=ease((u-.18)/.67);fly.position.lerpVectors(pA,pB,e);fly.position.y+=Math.sin(e*Math.PI)*.6;fly.quaternion.copy(q0).slerp(qT,e);fly.scale.setScalar(1)}
+   else{const e=(u-.85)/.15;fly.position.copy(pB);fly.quaternion.copy(qT);fly.scale.setScalar(1+Math.sin(e*Math.PI)*.04)}},
+  reset(){tr.reset();F0=LP=null;fly.visible=false;['s','c'].forEach(d=>{S[d].dn=0;S[d].shT=-1;S[d].m.count=0})}}}
 
 // ---------- 2D ----------
 const N2=8;
@@ -81,6 +86,11 @@ function m2(ctr){const S={};
     const A=`translate(${dx}px,${dy}px) rotate(-45deg) scale(${s0})`,B=`translate(${dx}px,${dy-24}px) rotate(-45deg) scale(${s0*1.12})`;
     fc.animate([{transform:A+' rotateY(0deg)',offset:0},{transform:B+' rotateY(0deg)',offset:.18},{transform:'translate(0,0) rotate(0) scale(1) rotateY(0deg)',offset:.6},{transform:'scale(1.05) rotateY(180deg)',offset:.85},{transform:'scale(1) rotateY(180deg)',offset:1}],
      {duration:FLY,easing:'ease-in-out',fill:'forwards'});setTimeout(()=>box.remove(),FLY+40)},delay);return FLY},
+  back(c,ins,text){if(RM())return 0;const e=S[c.d];if(!e)return 0;const ks=[...e.querySelectorAll('.m2k')].filter(k=>k.style.display!='none'),top=ks[ks.length-1]||e,r=top.getBoundingClientRect();
+   const box=document.createElement('div');box.className='mz2box';const I=ins||{t:0,b:0,r:0};box.style.cssText=`top:${I.t||0}px;bottom:${I.b||0}px;right:${I.r||0}px`;
+   box.innerHTML=`<div class="mz2c"><div class="mz2f mz2b ${c.d}"><span>${MIC.h(IC[c.d])}</span><b>${NM[c.d]}</b></div><div class="mz2f mz2t ${c.d}"><h5>${MIC.h(IC[c.d])} ${NM[c.d]}</h5><p></p></div></div>`;
+   box.querySelector('p').textContent=text||'';document.body.appendChild(box);const fc=box.firstChild,fb=fc.getBoundingClientRect(),dx=r.left+r.width/2-(fb.left+fb.width/2),dy=r.top+r.height/2-(fb.top+fb.height/2),s0=Math.max(.15,Math.min(1,(r.width/1.2)/fb.width));
+   fc.animate([{transform:'translate(0,0) rotate(0) scale(1) rotateY(180deg)'},{transform:`translate(${dx}px,${dy}px) rotate(-45deg) scale(${s0}) rotateY(0deg)`}],{duration:BK,easing:'ease-in-out',fill:'forwards'});setTimeout(()=>box.remove(),BK+40);return BK},
   reset(){tr.reset()}}}
 
 const css=document.createElement('style');css.textContent=`

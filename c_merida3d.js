@@ -99,7 +99,7 @@ function init(){if(ready)return;ready=true;
  M1=new THREE.MeshStandardMaterial({color:0xdfe3e8,metalness:1,roughness:.24,envMap:envT,envMapIntensity:1.25});M2=new THREE.MeshStandardMaterial({color:0xa9aeb6,metalness:1,roughness:.42,envMap:envT,envMapIntensity:1});
  LT.h=new THREE.HemisphereLight(0xfff4e0,0x3a2a1e,1.5);SC.add(LT.h);
  LT.d=new THREE.DirectionalLight(0xfff0d8,2.3);LT.d.position.set(-6,16,8);LT.d.castShadow=true;LT.d.shadow.mapSize.set(mob?1024:2048,mob?1024:2048);
- Object.assign(LT.d.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:1,far:50});LT.d.shadow.bias=-.0005;SC.add(LT.d);
+ Object.assign(LT.d.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:1,far:50});LT.d.shadow.bias=-.0005;LT.d.shadow.normalBias=.02;SC.add(LT.d);
  LT.s=new THREE.SpotLight(0xffd9a0,0,0,.62,.55,0);LT.s.position.set(0,15,0);LT.s.target.position.set(0,0,0);SC.add(LT.s,LT.s.target);
  // mesa
  const wood=new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7,clearcoatRoughness:.25}),dw=std(0x3a1e0c,.6);
@@ -110,7 +110,7 @@ function init(){if(ready)return;ready=true;
  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const l=new THREE.Mesh(box(.9,-.6-FY,.9),dw);l.position.set(a*6.2,(-.6+FY)/2,b*6.2);l.castShadow=true;SC.add(l);pata.push(l)});
  if(K3&&K3.buildRoom){try{room=K3.buildRoom(false,6.2,6.2);room.scale.setScalar(RS);SC.add(room);room.traverse(o=>{if(o.isLight)o.userData.i0=o.intensity})}catch(e){console.warn('Mérida 3D: sin cuarto',e);room=null}}
  // tablero
- const base=new THREE.Mesh(box(12.3,.2,12.3),std(0x18201b,.6));base.receiveShadow=base.castShadow=true;SC.add(base);
+ const base=new THREE.Mesh(box(12.3,.16,12.3),std(0x18201b,.6));base.position.y=-.02;base.receiveShadow=base.castShadow=true;SC.add(base);
  topMat=new THREE.MeshStandardMaterial({roughness:.82});const top=new THREE.Mesh(new THREE.PlaneGeometry(12,12),topMat);top.rotation.x=-Math.PI/2;top.position.y=.101;top.receiveShadow=true;SC.add(top);
  dyn=new THREE.Group();SC.add(dyn);fxg=new THREE.Group();fxg.position.y=.08;SC.add(fxg);
  selM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xff8a00,transparent:true,opacity:.42,depthWrite:false}));selM.rotation.x=-Math.PI/2;selM.position.y=.106;selM.visible=false;SC.add(selM);
@@ -254,6 +254,7 @@ window.M3={ok:()=>!failed,
  show(on){if(on&&!failed){try{init()}catch(e){failed=true;console.warn('Mérida 3D: no se pudo iniciar',e);throw e}}if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';
   if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{toks.forEach(t=>t&&SC.remove(t));arrs.forEach(a=>a&&SC.remove(a));toks.length=arrs.length=anim.length=shownPos.length=0;dynKey='';rollN=-1;G0=null;back=null;FO=FT=HS0=null;HFX.length=0;BL.forEach(m=>m.visible=false);if(mz)mz.reset()}},
  drawCard:(c,t,dl)=>mz&&shown?mz.draw(c,t,dl):0,
+ backCard:()=>mz&&shown?mz.back():0,
  focus:(i,dir)=>{if(ready&&shown)focus(i,dir)},blink:L=>{if(ready&&shown)blink(L)},
  layout(i){const ch=i.t!==ins.t||i.b!==ins.b||i.r!==ins.r||i.l!==ins.l;Object.assign(ins,i);if(ch||!W)resize()},
  theme:t=>applyTheme(t),follow:on=>{fol=on},

@@ -178,17 +178,23 @@ function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc
   try{ms=cd&&st&&st.drawCard?st.drawCard(cc,cd.t,dl)||0:0}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc,ms>0),dl+ms)}
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc))setTimeout(yourTurn,250);
  if(m>=0&&window.MANI&&p.own)c.own.forEach((o,i)=>{if(o===m&&p.own[i]!==m)MANI.buy(mini(i),hopMs(p,c,m)+80)});
- if(p.turn!==G.turn)turnInView()}
+ if(p.turn!==G.turn){turnInView();cardEnd(0)}}
 function turnInView(){const pl=document.getElementById('mupls'),e=pl&&pl.querySelector('.mu-pl.on');if(!e)return;const a=e.offsetLeft-pl.offsetLeft,b=a+e.offsetWidth;if(a<pl.scrollLeft||b>pl.scrollLeft+pl.clientWidth)pl.scrollLeft=a-12}
 function money(k,d){if(!active())return;const el=document.querySelector(`.mu-pl[data-seat="${k}"]`);if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('div');
  f.className='mu-mf '+(d>0?'up':'dn');f.textContent=(d>0?'+':'−')+$m(Math.abs(d));f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';if(window.MANI)MANI.go(k);
  document.body.appendChild(f);setTimeout(()=>f.remove(),1800);if(k===me())sfx(d>0?'go':'tick')}
-function cardFx(c,pre){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;const old=document.getElementById('mucfx');if(old)old.remove();
+function cardFx(c,pre){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;cardOff(1);const old=document.getElementById('mucfx');if(old)old.remove();
  const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx')+(pre?' pre':'');   // ojo: .c y .bk ya existen en style.css (cartas)
  e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${c.d=='s'?MIC.h('suerte'):MIC.h('regalo')}</b><span>${c.d=='s'?'Suerte':'Comunidad'}</span></div>
   <div class="fc mu-front"><h5>${c.d=='s'?MIC.h('suerte')+' Suerte':MIC.h('regalo')+' Comunidad'}</h5><p>${esc(cd.t)}</p><small>${tok(c.k,'xs')} ${nm(c.k)}</small></div></div>`;
- e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;e.onclick=()=>e.remove();document.body.appendChild(e);sfx('card');
- setTimeout(()=>e.classList.add('out'),5600);setTimeout(()=>e.remove(),6000)}
+ e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;e.onclick=()=>cardOff();document.body.appendChild(e);sfx('card');cfx={e,c,t:Date.now()};cardEnd(V.G&&V.G.turn!==c.k?2200:5600);
+}
+// la carta grande se va (clic, tiempo o cambio de turno) y regresa volando a su pila; now = quitarla ya, sin regreso
+let cfx=null;
+function cardOff(now){if(!cfx)return;const{e,c}=cfx;cfx=null;clearTimeout(e._t);let ms=0;
+ if(!now&&active()){const st=stage(),cd=D.cards[c.d]&&D.cards[c.d][c.id];try{ms=st&&st.backCard?st.backCard(c,cd?cd.t:'')||0:0}catch(_){}}
+ if(ms||now)e.remove();else{e.classList.add('out');setTimeout(()=>e.remove(),400)}}
+function cardEnd(ms){if(!cfx)return;const e=cfx.e;clearTimeout(e._t);e._t=setTimeout(()=>{if(cfx&&cfx.e===e)cardOff()},Math.max(ms,1600-(Date.now()-cfx.t)))}
 function yourTurn(){if(!active())return;const e=document.createElement('div');e.className='mu-yt';e.innerHTML=`<div>${tok(me(),'lg')}<b>¡Te toca!</b></div>`;e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;
  document.body.appendChild(e);setTimeout(()=>e.remove(),1900);try{if(navigator.vibrate)navigator.vibrate([90,60,90])}catch(_){}}
 // ---- enganche con game.js ----
