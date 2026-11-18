@@ -20,13 +20,13 @@ const board=[{t:'go',n:'Salida',s:'Plaza Grande'},
  V('Ruta Nocturna'),{t:'tax',n:'Pago al SAT',v:100},P('Temozón Norte',7,350,[35,175,500,1100,1300,1500]),C,P('Paseo de Montejo',7,400,[50,200,600,1400,1700,2000])];
 // grupos: color y costo de cada casa
 const gcol=['#8d5a3b','#22b3c4','#8e44ad','#ef7d22','#d63a3a','#f2c230','#2e9e57','#f4f1e8'],hc=[50,50,100,100,150,150,200,200];
-const tok=[['Sombrero','👒'],['Hamaca','🪢'],['Tricitaxi','🛺'],['Panucho','🌮'],['Huipil','👗'],['Guayabera','👔']];
+const tok=[['Sombrero','sombrero'],['Hamaca','hamaca'],['Tricitaxi','tricitaxi'],['Panucho','panucho'],['Huipil','huipil'],['Guayabera','guayabera']];
 const pcol=['#e53935','#1e88e5','#43a047','#fb8c00','#8e24aa','#00897b'];
 // cartas: go (avanza a), back (regresa n), jail, jf (sal de la cárcel), pay / get (banco), each (pagas a cada quien), all (cada quien te paga),
 // rep [por casa, por hotel], near r|u (el Va y Ven / servicio más cercano: renta doble / 10 veces los dados)
 const cards={s:[
  {t:'Te invitaron a una boda en Paseo de Montejo. Avanza hasta allá.',go:39},
- {t:'Avanza hasta la Salida y cobra $200.',go:0},
+ {t:'Avanza hasta la Salida y cobra $300.',go:0},
  {t:'Se te antojaron unas marquesitas: avanza hasta Santa Lucía. Si pasas por la Salida, cobra $200.',go:19},
  {t:'Te invitaron a comer a García Ginerés. Avanza hasta allá. Si pasas por la Salida, cobra $200.',go:26},
  {t:'Súbete al Va y Ven más cercano. Si tiene dueño, le pagas el doble de la renta.',near:'r'},
@@ -42,7 +42,7 @@ const cards={s:[
  {t:'Te pagaron el préstamo de la construcción: cobra $150.',get:150},
  {t:'Ganaste la rifa de la kermés: cobra $100.',get:100}],
 c:[
- {t:'Avanza hasta la Salida y cobra $200.',go:0},
+ {t:'Avanza hasta la Salida y cobra $300.',go:0},
  {t:'El banco se equivocó a tu favor: cobra $200.',get:200},
  {t:'Consulta con el doctor: paga $50.',pay:50},
  {t:'Vendiste tu cochinita pibil del domingo: cobra $50.',get:50},
@@ -58,4 +58,4 @@ c:[
  {t:'Segundo lugar en el concurso de jarana: cobra $10.',get:10},
  {t:'Heredaste una casona en el Centro: cobra $100.',get:100},
  {t:'Vendiste tus acciones: cobra $50.',get:50}]};
-return {board,gcol,hc,tok,pcol,cards,go:200,jail:10,bail:50}})());
+return {board,gcol,hc,tok,pcol,cards,go:200,goExact:300,jail:10,bail:50}})());

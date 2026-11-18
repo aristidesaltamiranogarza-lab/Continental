@@ -19,7 +19,7 @@ function sqAt(x,z){const a=Math.abs(x),b=Math.abs(z);if(a>6||b>6||(a<4.5&&b<4.5)
  if(z>4.5)return x>4.5?0:x<-4.5?10:Math.floor(5.5-x);if(z<-4.5)return x<-4.5?20:x>4.5?30:20+Math.floor(x+5.5);
  return x<0?10+Math.floor(5.5-z):30+Math.floor(z+5.5)}
 // ---- texturas del tablero (una por tema) ----
-const ICO={go:'⬅️',jail:'🔒',free:'🏖️',gtj:'👮',s:'❓',c:'🎁',tax:'🧾',r:'🚌'},UI={CFE:'⚡',JAPAY:'💧'};
+
 const PAL={menta:{bg:'#cde6d0',ln:'#18201b',tx:'#18201b',sb:'#33413a',c0:'#d8ecda',c1:'#c3dcc6'},oscuro:{bg:'#1f2a25',ln:'#5f7469',tx:'#e9f0eb',sb:'#a7b8ae',c0:'#28352f',c1:'#1a231f'}},TX={};
 function wrapT(g,t,mw){const w=t.split(' '),L=[];let l='';w.forEach(x=>{const y=l?l+' '+x:x;if(g.measureText(y).width>mw&&l){L.push(l);l=x}else l=y});if(l)L.push(l);return L}
 function boardTex(th){if(TX[th])return TX[th];const P=PAL[th],c=document.createElement('canvas');c.width=c.height=2048;const g=c.getContext('2d'),F='Archivo,"Segoe UI","Noto Sans",system-ui,sans-serif';
@@ -28,15 +28,15 @@ function boardTex(th){if(TX[th])return TX[th];const P=PAL[th],c=document.createE
  g.save();g.translate(1024,1024);g.rotate(-38*Math.PI/180);g.textAlign='center';g.textBaseline='middle';g.font='900 108px '+F;
  const tw=g.measureText('MÉRIDA EN VENTA').width+80;g.fillStyle='#18201b';g.fillRect(-tw/2-14,-100,tw+28,200);g.fillStyle='#fff';g.fillRect(-tw/2-7,-93,tw+14,186);g.fillStyle='#d7261e';g.fillRect(-tw/2,-86,tw,172);
  g.fillStyle='#fff';g.fillText('MÉRIDA EN VENTA',0,6);g.fillStyle=P.sb;g.font='italic 600 56px Georgia,serif';g.fillText('la Ciudad Blanca',0,165);g.restore();
- [[-1,'❓','SUERTE','#f7a21b'],[1,'🎁','COMUNIDAD','#5bb4ec']].forEach(([s,ic,t,col])=>{g.save();g.translate(1024+s*330,1024+s*330);g.rotate(-Math.PI/4);
+ [[-1,'suerte','SUERTE','#f7a21b'],[1,'regalo','COMUNIDAD','#5bb4ec']].forEach(([s,ic,t,col])=>{g.save();g.translate(1024+s*330,1024+s*330);g.rotate(-Math.PI/4);
   g.fillStyle='rgba(0,0,0,.25)';g.fillRect(-142,-88,300,200);g.fillStyle=col;g.strokeStyle='#18201b';g.lineWidth=8;g.beginPath();if(g.roundRect)g.roundRect(-150,-100,300,200,20);else g.rect(-150,-100,300,200);g.fill();g.stroke();
-  g.fillStyle='#18201b';g.textAlign='center';g.textBaseline='middle';g.font='78px '+F;g.fillText(ic,0,-28);g.font='900 34px '+F;g.fillText(t,0,52);g.restore()});
+  g.fillStyle='#18201b';g.textAlign='center';g.textBaseline='middle';MIC.draw(g,ic,0,-30,92,'#18201b');g.font='900 34px '+F;g.fillText(t,0,52);g.restore()});
  for(let i=0;i<40;i++){const s=B[i],[x,z]=cpos(i),cor=i%10==0,w=(cor?1.5:1)*K,h=1.5*K;g.save();g.translate((x+6)*K,(z+6)*K);g.rotate(side(i)*Math.PI/2);
   g.fillStyle=P.bg;g.fillRect(-w/2,-h/2,w,h);g.strokeStyle=P.ln;g.lineWidth=5;g.strokeRect(-w/2,-h/2,w,h);g.textAlign='center';g.textBaseline='middle';
   let y=-h/2+20;const nm=s.n.toUpperCase();
   if(s.t=='p'){g.fillStyle=D.gcol[s.g];g.fillRect(-w/2,-h/2,w,.3*K);g.strokeRect(-w/2,-h/2,w,.3*K);y+=.3*K+8}
-  else if(!cor){g.font='66px '+F;g.fillStyle=P.tx;g.fillText(s.t=='u'?UI[s.n]:ICO[s.t],0,-h/2+.34*K);y+=.6*K}
-  else{g.font='118px '+F;g.fillStyle=P.tx;g.fillText(ICO[s.t],0,-14)}
+  else if(!cor){MIC.draw(g,MIC.sq(s),0,-h/2+.34*K,70,P.tx);y+=.6*K}
+  else{MIC.draw(g,MIC.sq(s),0,-14,120,P.tx)}
   let fs=cor?40:31;g.font=`800 ${fs}px ${F}`;const mw=Math.max(...nm.split(' ').map(t=>g.measureText(t).width)),lim=w-22;if(mw>lim){fs=Math.floor(fs*lim/mw);g.font=`800 ${fs}px ${F}`}
   const L=wrapT(g,nm,lim);g.fillStyle=P.tx;
   if(cor){L.forEach((l,j)=>g.fillText(l,0,-h/2+40+j*fs*1.08));if(s.s){g.fillStyle=P.sb;g.font='600 28px '+F;g.fillText(s.s,0,h/2-36)}}
@@ -180,7 +180,7 @@ function sync(G,sel){G0=G;
   else if(!anim[k]){const [x,z]=slot(k,G);toks[k].position.set(x,.1,z)}});
  if(G.rn!==rollN){if(rollN>=0)rollT=performance.now();rollN=G.rn;setDice(G.dice)}
  rebuild(G);selI=sel;selM.visible=sel>=0;if(sel>=0){const [x,z]=cpos(sel),s=side(sel),w=sel%10==0?1.5:1;selM.position.set(x,.106,z);selM.scale.set(s%2?1.5:w,s%2?w:1.5,1)}}
-function setDice(v){dice.forEach((d,j)=>{const n=v[j]||1,m=d.material;m[2]=faces[n];m[3]=faces[7-n];const o=[1,2,3,4,5,6].filter(x=>x!==n&&x!==7-n);m[0]=faces[o[0]];m[1]=faces[7-o[0]];m[4]=faces[o[1]];m[5]=faces[7-o[1]]})}
+function setDice(v){dice.forEach((d,j)=>{const n=v[j]||1,m=d.material;d.visible=!j||!!v[1]||!v[0];m[2]=faces[n];m[3]=faces[7-n];const o=[1,2,3,4,5,6].filter(x=>x!==n&&x!==7-n);m[0]=faces[o[0]];m[1]=faces[7-o[0]];m[4]=faces[o[1]];m[5]=faces[7-o[1]]})}
 // ---- cada cuadro: fichas que brincan casilla por casilla, flechas que rebotan, dados, cámara suave ----
 function step(now,dt){const G=G0;if(!G)return;let moving=false;
  G.players.forEach((_,k)=>{const a=anim[k],T=toks[k];if(!T)return;

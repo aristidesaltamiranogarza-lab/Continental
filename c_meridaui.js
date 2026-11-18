@@ -8,10 +8,10 @@ const D=MR.D,B=MR.B,GR=MR.GR,$m=MR.$m,pc=MR.pc,tk=MR.tk,origBody=GM.merida.body,
 const lsg=(k,d)=>{try{const x=localStorage.getItem(k);return x==null?d:x}catch(e){return d}},lss=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
 let theme=lsg('mr_theme','menta')=='oscuro'?'oscuro':'menta',mode=lsg('merida_3d','1')==='0'?'2d':'3d',follow=lsg('mr_follow','1')!=='0',topv=false;
 let tab=null,menu=false,sel=-1,prev=null,keep={},on=false,ok=true,msgSeen='',msgT=0,hintT=0,TR={to:-1,ap:[],bp:[],ac:0,bc:0,aj:0,bj:0},ins={t:0,r:0,b:0,l:0},bMax=0;
-const ICO={go:'⬅️',jail:'🔒',free:'🏖️',gtj:'👮',s:'❓',c:'🎁',tax:'🧾',r:'🚌'},UI={CFE:'⚡',JAPAY:'💧'},icon=s=>s.t=='u'?UI[s.n]||'💡':ICO[s.t]||'';
+const icon=s=>MIC.s(s);
 // panel a la derecha en compu y en celular acostado; abajo en celular parado
 const land=()=>innerWidth>innerHeight,wide=()=>innerWidth>=900&&innerHeight>=520||land()&&innerWidth>=600;
-const active=()=>!!S&&!!V&&V.game==='merida'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final');
+const active=()=>!!S&&!!V&&V.game==='merida'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='orden'||V.G.phase==='final');
 const me=()=>V.me,nm=k=>k>=0&&V.G.players[k]?esc(V.G.players[k].name):'el banco',alive=G=>G.players.map((_,k)=>k).filter(k=>!G.bk[k]);
 const col=i=>B[i].t=='p'?D.gcol[B[i].g]:'#9aa59f',full=(g,o)=>GR[g].every(j=>V.G.own[j]===o);
 const lum=h=>{const n=parseInt(h.slice(1),16);return ((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000},onCol=h=>lum(h)>165?'#18201b':'#fff';
@@ -29,9 +29,9 @@ const SV={menu:ic('<path d="M4 7h16M4 12h16M4 17h16"/>'),x:ic('<path d="M6 6l12 
  log:ic('<path d="M6 3.5h12v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/>')};
 const PIPS={1:[[12,12]],2:[[7,7],[17,17]],3:[[6.5,6.5],[12,12],[17.5,17.5]],4:[[7,7],[17,7],[7,17],[17,17]],5:[[6.5,6.5],[17.5,6.5],[12,12],[6.5,17.5],[17.5,17.5]],6:[[7,6],[17,6],[7,12],[17,12],[7,18],[17,18]]};
 const die=n=>`<svg class="mu-die" viewBox="0 0 24 24" aria-label="${n}"><rect x="1.2" y="1.2" width="21.6" height="21.6" rx="5"/>${(PIPS[n]||[]).map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.3"${n==1?' class="r"':''}/>`).join('')}</svg>`;
-const dice=()=>{const G=V.G;return G.dice[0]?`<div class="mu-dice" title="Sacó ${G.dice[0]+G.dice[1]}">${die(G.dice[0])}${die(G.dice[1])}</div>`:''};
+const dice=()=>{const G=V.G;return G.dice[0]?`<div class="mu-dice" title="Sacó ${G.dice[0]+G.dice[1]}">${die(G.dice[0])}${G.dice[1]?die(G.dice[1]):''}</div>`:''};
 const mini=i=>{const s=B[i];return `<span class="mu-mini${s.t=='p'?'':' ic'}" style="--gc:${s.t=='p'?D.gcol[s.g]:'transparent'}">${s.t=='p'?'':icon(s)}</span>`};
-const chipSq=q=>`<button class="mu-chip" style="--gc:${col(q)}" onclick="MRU.sel(${q})"><i></i>${esc(B[q].n)}${V.G.hs[q]?' 🏠':''}</button>`;
+const chipSq=q=>`<button class="mu-chip" style="--gc:${col(q)}" onclick="MRU.sel(${q})"><i></i>${esc(B[q].n)}${V.G.hs[q]?' '+MIC.h('rancho'):''}</button>`;
 // ---- qué puedo hacer ----
 const canAct=()=>{const G=V.G,m=me();if(m<0||G.bk[m]||G.auc||G.phase!='play')return false;return G.debts.length?G.debts[0].k===m:G.turn===m};
 function buildable(i){const G=V.G,m=me(),s=B[i];if(s.t!='p'||G.own[i]!==m||G.hs[i]>=5)return false;const g=GR[s.g];
@@ -41,7 +41,7 @@ const canBuild=()=>canAct()&&V.G.own.some((o,i)=>o===me()&&buildable(i));
 function topBar(){const G=V.G,m=me();
  return `<div class="mu-top"><div class="mu-tr1"><div class="mu-pls" id="mupls">${G.players.map((p,k)=>{const t=k===G.turn&&G.phase=='play';
   return `<button class="mu-pl${t?' on':''}${k===m?' me':''}${G.bk[k]?' x':''}" data-seat="${k}" style="--pc:${pc(k)}" onclick="MRU.look(${k})" aria-label="${esc(p.name)}: ${G.bk[k]?'quebró':$m(G.cash[k])}">
-   ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.jail[k]?' 🔒':''}</span><b>${G.bk[k]?'Quebró':$m(G.cash[k])}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div>
+   ${tok(k)}<span class="mu-pi"><span class="n">${esc(p.name)}${G.jail[k]?' '+MIC.h('carcel'):''}</span><b>${G.bk[k]?'Quebró':$m(G.cash[k])}</b></span>${k===m?'<em>TÚ</em>':''}</button>`}).join('')}</div>
   </div>${camBar()}</div>`}
 function camBar(){const m3=stageName()=='3d',b=(c,t,h,o)=>`<button class="mu-cb${o?' on':''}" onclick="${c}" title="${t}" aria-label="${t}">${h}</button>`;
  return `<div class="mu-cam"><button class="mu-cb mu-ib" onclick="MRU.menu(1)" aria-label="Opciones" title="Opciones">${SV.menu}</button><span class="mu-sp"></span>${b('MRU.mode()','Cambiar a vista '+(m3?'2D':'3D'),`<b>${m3?'2D':'3D'}</b>`)}${b("MRU.cam('home')",'Recentrar',SV.home)}`+
@@ -49,70 +49,75 @@ function camBar(){const m3=stageName()=='3d',b=(c,t,h,o)=>`<button class="mu-cb$
    :b("MRU.cam('zi')",'Acercar',SV.zi)+b("MRU.cam('zo')",'Alejar',SV.zo)+b('MRU.follow()','Seguir la ficha que se mueve',SV.follow,follow))+'</div>'}
 // ---- tarjeta de acciones (siempre a la vista) ----
 function dock(){const G=V.G,m=me(),T=G.trade;
- if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">🏆</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.win===m?'¡Eres el último en pie! 🎉':'Fue el último que no quebró.'}</div></div></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
- if(G.auc)return aucDock();if(G.debts.length)return debtDock();if(T&&T.b===m)return tradeCard(1);
+ if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">${MIC.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.win===m?'¡Eres el último en pie!':'Fue el último que no quebró.'}</div></div></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
+ if(G.phase=='orden')return ordDock();if(G.auc)return aucDock();if(G.debts.length)return debtDock();if(T&&T.b===m)return tradeCard(1);
  if(G.turn!==m||m<0||G.bk[m])return waitDock();return myDock()}
+// orden de salida: cada quien tira un dado; se ve lo que sacó cada jugador
+function ordDock(){const G=V.G,O=G.ord,m=me(),k=G.turn,mine=k===m&&m>=0&&!G.bk[m];
+ return `<div class="mu-dk${mine?' hi':''}"><div class="mu-row">${tok(k,'lg')}<div class="mu-f1"><div class="mu-s">Quién empieza</div><b class="mu-h">${mine?'Tira tu dado':nm(k)}</b><div class="mu-s">${G.players.some((_,j)=>O.w[j]&&O.r[j])?'Desempate':mine?'El más alto empieza':'va a tirar'}</div></div>${dice()}</div>
+  <div class="mu-acts">${G.players.map((p,j)=>G.bk[j]?'':`<span class="mu-chip">${tok(j)} ${O.r[j]&&!O.w[j]?die(O.r[j]):O.w[j]&&O.r[j]?'<s>'+O.r[j]+'</s>':'–'}</span>`).join('')}</div>
+  ${mine?`<button class="mu-b pri big" onclick="MRU.a('roll')">${window.UI&&UI.ico?UI.ico('dado'):''} Tirar</button>`:''}</div>`}
 function waitDock(){const G=V.G,k=G.turn,s=B[G.pos[k]],T=G.trade,m=me();
- const st=G.jail[k]&&G.st=='roll'?'está en la cárcel 🔒':G.st=='roll'?(G.again?'sacó dobles: tira otra vez':'va a tirar los dados'):G.st=='buy'?`decide si compra <b>${esc(s.n)}</b> (${$m(s.p)})`:'está terminando su turno';
+ const st=G.jail[k]&&G.st=='roll'?'está en la cárcel':G.st=='roll'?(G.again?'sacó dobles: tira otra vez':'va a tirar los dados'):G.st=='buy'?`decide si compra <b>${esc(s.n)}</b> (${$m(s.p)})`:'está terminando su turno';
  return `<div class="mu-dk"><div class="mu-row">${tok(k,'lg')}<div class="mu-f1"><div class="mu-s">Turno de</div><b class="mu-h">${nm(k)}</b><div class="mu-s">${st}</div></div>${dice()}</div>
-  ${T&&T.a===m?`<div class="mu-note">🤝 Le ofreciste un trato a ${nm(T.b)}. <button class="mu-lk" onclick="MRU.tab('trato')">Ver</button></div>`:''}</div>`}
+  ${T&&T.a===m?`<div class="mu-note">${MIC.h('trato')} Le ofreciste un trato a ${nm(T.b)}. <button class="mu-lk" onclick="MRU.tab('trato')">Ver</button></div>`:''}</div>`}
 function myDock(){const G=V.G,m=me(),q=G.pos[m],s=B[q],where=`<div class="mu-s">Estás en <b>${esc(s.n)}</b></div>`;let h;
- if(G.st=='roll'&&G.jail[m])h=`<div class="mu-row"><span class="mu-big">🔒</span><div class="mu-f1"><b class="mu-h">Estás en la cárcel</b><div class="mu-s">Intento ${G.jail[m]} de 3: saca dobles para salir</div></div>${dice()}</div>
-  <button class="mu-b pri big" onclick="MRU.a('roll')">🎲 Tirar por dobles</button><div class="mu-acts"><button class="mu-b" onclick="MRU.a('bail')"${G.cash[m]<D.bail?' disabled':''}>Pagar fianza ${$m(D.bail)}</button>${G.jf[m]?`<button class="mu-b" onclick="MRU.a('jcard')">🗝️ Usar tarjeta</button>`:''}</div>`;
- else if(G.st=='roll')h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">¡Tu turno!</b>${G.again?'<div class="mu-s">Sacaste dobles: tira otra vez</div>':where}</div>${dice()}</div><button class="mu-b pri big" onclick="MRU.a('roll')">🎲 ${G.again?'Tirar otra vez':'Tirar dados'}</button>`;
+ if(G.st=='roll'&&G.jail[m])h=`<div class="mu-row"><span class="mu-big">${MIC.h('carcel')}</span><div class="mu-f1"><b class="mu-h">Estás en la cárcel</b><div class="mu-s">Intento ${G.jail[m]} de 3: saca dobles para salir</div></div>${dice()}</div>
+  <button class="mu-b pri big" onclick="MRU.a('roll')">${MIC.h('dado')} Tirar por dobles</button><div class="mu-acts"><button class="mu-b" onclick="MRU.a('bail')"${G.cash[m]<D.bail?' disabled':''}>Pagar fianza ${$m(D.bail)}</button>${G.jf[m]?`<button class="mu-b" onclick="MRU.a('jcard')">${MIC.h('llave')} Usar tarjeta</button>`:''}</div>`;
+ else if(G.st=='roll')h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">¡Tu turno!</b>${G.again?'<div class="mu-s">Sacaste dobles: tira otra vez</div>':where}</div>${dice()}</div><button class="mu-b pri big" onclick="MRU.a('roll')">${MIC.h('dado')} ${G.again?'Tirar otra vez':'Tirar dados'}</button>`;
  else if(G.st=='buy')h=`<div class="mu-row mu-tap" onclick="MRU.sel(${q})">${mini(q)}<div class="mu-f1"><div class="mu-s">Caíste en</div><b class="mu-h">${esc(s.n)}</b><div class="mu-s">Tienes ${$m(G.cash[m])} · <u>ver rentas</u></div></div>${dice()}</div>
   <div class="mu-acts"><button class="mu-b ok big" onclick="MRU.a('buy')"${G.cash[m]<s.p?' disabled':''}>Comprar ${$m(s.p)}</button><button class="mu-b big2" onclick="MRU.a('nobuy')">${G.o.auc?'Subastar':'No comprar'}</button></div>`;
- else h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">Tu turno</b>${where}<div class="mu-s">${canBuild()?'Ya puedes construir: <button class="mu-lk" onclick="MRU.tab(\'mias\')">ver mis propiedades</button>':'Puedes hacer un trato antes de terminar.'}</div></div>${dice()}</div><button class="mu-b pri big" onclick="MRU.a('end')">Terminar turno ➜</button>`;
+ else h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">Tu turno</b>${where}<div class="mu-s">${canBuild()?'Ya puedes construir: <button class="mu-lk" onclick="MRU.tab(\'mias\')">ver mis propiedades</button>':'Puedes hacer un trato antes de terminar.'}</div></div>${dice()}</div><button class="mu-b pri big" onclick="MRU.a('end')">Terminar turno</button>`;
  return `<div class="mu-dk hi">${h}</div>`}
 function aucDock(){const G=V.G,a=G.auc,m=me(),s=B[a.sq],inn=a.in.includes(m),cash=G.cash[m]||0;
  const bt=d=>{const v=a.bid+d;return `<button class="mu-b${d==10?' pri':''}" onclick="MR.bid(${v})"${v>cash?' disabled':''}>+${d}<small>${$m(v)}</small></button>`};
- return `<div class="mu-dk hi"><div class="mu-row mu-tap" onclick="MRU.sel(${a.sq})">${mini(a.sq)}<div class="mu-f1"><div class="mu-s">🔨 Subasta · vale ${$m(s.p)}</div><b class="mu-h">${esc(s.n)}</b>
+ return `<div class="mu-dk hi"><div class="mu-row mu-tap" onclick="MRU.sel(${a.sq})">${mini(a.sq)}<div class="mu-f1"><div class="mu-s">${MIC.h('martillo')} Subasta · vale ${$m(s.p)}</div><b class="mu-h">${esc(s.n)}</b>
   <div class="mu-s">${a.hi>=0?`Va ganando ${nm(a.hi)} con <b>${$m(a.bid)}</b>`:'Nadie ha ofrecido'}</div></div><div class="mu-clock"><b id="mraT">${Math.ceil(a.left/1000)}</b><small>seg</small></div></div>
   ${inn?`<div class="mu-acts four">${[1,10,50,100].map(bt).join('')}</div><div class="mu-acts"><input id="mubv" class="mu-in" type="number" inputmode="numeric" min="${a.bid+1}" max="${cash}" placeholder="Otra cantidad"><button class="mu-b" onclick="MR.bid(+document.getElementById('mubv').value)">Ofrecer</button><button class="mu-b" onclick="MRU.a('apass')">Me retiro</button></div>`
    :`<div class="mu-s">${m>=0?'Ya te retiraste.':'Estás mirando.'} Siguen: ${a.in.map(nm).join(', ')||'nadie'}</div>`}</div>`}
 function debtDock(){const G=V.G,d=G.debts[0],m=me();
- if(d.k!==m)return `<div class="mu-dk"><div class="mu-row"><span class="mu-big">💸</span><div class="mu-f1"><b class="mu-h">${nm(d.k)} debe ${$m(d.amt)}</b><div class="mu-s">a ${nm(d.to)} · está juntando el dinero…</div></div></div></div>`;
+ if(d.k!==m)return `<div class="mu-dk"><div class="mu-row"><span class="mu-big">${MIC.h('billete')}</span><div class="mu-f1"><b class="mu-h">${nm(d.k)} debe ${$m(d.amt)}</b><div class="mu-s">a ${nm(d.to)} · está juntando el dinero…</div></div></div></div>`;
  const f=G.cash[m]<d.amt;
- return `<div class="mu-dk hi bad"><div class="mu-row"><span class="mu-big">💸</span><div class="mu-f1"><b class="mu-h">Debes ${$m(d.amt)} a ${nm(d.to)}</b><div class="mu-s">Tienes ${$m(G.cash[m])}${f?` · te faltan <b>${$m(d.amt-G.cash[m])}</b>. Vende casas${G.o.mort?', hipoteca':''} o haz un trato.`:''}</div></div></div>
+ return `<div class="mu-dk hi bad"><div class="mu-row"><span class="mu-big">${MIC.h('billete')}</span><div class="mu-f1"><b class="mu-h">Debes ${$m(d.amt)} a ${nm(d.to)}</b><div class="mu-s">Tienes ${$m(G.cash[m])}${f?` · te faltan <b>${$m(d.amt-G.cash[m])}</b>. Vende casas${G.o.mort?', hipoteca':''} o haz un trato.`:''}</div></div></div>
   <div class="mu-acts"><button class="mu-b ok" onclick="MRU.a('paydebt')"${f?' disabled':''}>Pagar</button><button class="mu-b" onclick="MRU.tab('mias')">Mis propiedades</button><button class="mu-b" onclick="if(confirm('¿Declararte en quiebra? Pierdes la partida.'))MRU.a('broke')">Quiebra</button></div></div>`}
-function tradeSide(c,L,j){return [c?`<span class="mu-chip money">${$m(c)}</span>`:'',...L.map(chipSq),j?`<span class="mu-chip">🗝️ ×${j}</span>`:''].filter(Boolean).join('')||'<span class="mu-s">nada</span>'}
+function tradeSide(c,L,j){return [c?`<span class="mu-chip money">${$m(c)}</span>`:'',...L.map(chipSq),j?`<span class="mu-chip">${MIC.h('llave')} ×${j}</span>`:''].filter(Boolean).join('')||'<span class="mu-s">nada</span>'}
 function tradeCard(dk){const G=V.G,T=G.trade,m=me();if(!T)return '';const mine=T.a===m,forMe=T.b===m;
- if(!mine&&!forMe)return `<div class="mu-card"><div class="mu-s">🤝 ${nm(T.a)} le ofreció un trato a ${nm(T.b)}.</div></div>`;
- return `<div class="${dk?'mu-dk':'mu-card'} hi"><b class="mu-h">🤝 ${mine?'Tu oferta a '+nm(T.b):nm(T.a)+' te ofrece un trato'}</b>
+ if(!mine&&!forMe)return `<div class="mu-card"><div class="mu-s">${MIC.h('trato')} ${nm(T.a)} le ofreció un trato a ${nm(T.b)}.</div></div>`;
+ return `<div class="${dk?'mu-dk':'mu-card'} hi"><b class="mu-h">${MIC.h('trato')} ${mine?'Tu oferta a '+nm(T.b):nm(T.a)+' te ofrece un trato'}</b>
   <div class="mu-trd"><div><div class="mu-s">${mine?'Das':nm(T.a)+' da'}</div>${tradeSide(T.ac,T.ap,T.aj)}</div><div><div class="mu-s">${mine?'Pides':'Te pide'}</div>${tradeSide(T.bc,T.bp,T.bj)}</div></div>
   <div class="mu-acts">${forMe?`<button class="mu-b ok" onclick="MRU.a('tyes')">Aceptar</button><button class="mu-b" onclick="MRU.a('tno')">Rechazar</button>`:`<button class="mu-b" onclick="MRU.a('tno')">Retirar oferta</button>`}</div></div>`}
 // ---- pestañas: jugadores, mis propiedades, tratos, historial ----
 const TABS=[['jug','Jugadores','pl'],['mias','Mías','house'],['trato','Tratos','deal'],['hist','Historial','log']];
 const curTab=()=>wide()?tab||'jug':tab,playing=()=>me()>=0&&!V.G.bk[me()];
-function tabs(){const G=V.G,t=curTab(),bd={mias:canBuild()?'🏠':'',trato:G.trade&&G.trade.b===me()?'1':''};
+function tabs(){const G=V.G,t=curTab(),bd={mias:canBuild()?MIC.h('rancho'):'',trato:G.trade&&G.trade.b===me()?'1':''};
  return `<nav class="mu-tabs">${TABS.filter(x=>playing()||x[0]=='jug'||x[0]=='hist').map(([k,n,i])=>`<button class="${t===k?'on':''}" onclick="MRU.tab('${k}')">${SV[i]}<span>${n}</span>${bd[k]?`<i>${bd[k]}</i>`:''}</button>`).join('')}</nav>`}
 function sheet(){const t=curTab(),T={jug:['Jugadores',pJug],mias:['Mis propiedades',pMias],trato:['Tratos',pTrato],hist:['Historial',pHist]}[t];if(!T)return '';
  return `<section class="mu-sheet"><header><b>${T[0]}</b>${wide()?'':`<button class="mu-x" onclick="MRU.tab(null)" aria-label="Cerrar">${SV.x}</button>`}</header><div class="mu-sc" id="musc">${T[1]()}</div></section>`}
 function pJug(){const G=V.G;return G.players.map((p,k)=>{const L=G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0),t=k===G.turn&&G.phase=='play';
  return `<div class="mu-prow${t?' on':''}${G.bk[k]?' x':''}" style="--pc:${pc(k)}">${tok(k,'lg')}<div class="mu-f1"><b>${esc(p.name)}${k===me()?' <em class="mu-tu">TÚ</em>':''}</b>
-  <div class="mu-s">${G.bk[k]?'Quebró':esc(D.tok[k%6][0])+' · en '+esc(B[G.pos[k]].n)}${G.jail[k]?' · 🔒 en la cárcel':''}${G.jf[k]?' · 🗝️×'+G.jf[k]:''}</div>
+  <div class="mu-s">${G.bk[k]?'Quebró':esc(D.tok[k%6][0])+' · en '+esc(B[G.pos[k]].n)}${G.jail[k]?' · en la cárcel':''}${G.jf[k]?' · '+MIC.h('llave')+'×'+G.jf[k]:''}</div>
   ${L.length?`<div class="mu-own">${L.map(i=>`<i style="--gc:${col(i)}" title="${esc(B[i].n)}" onclick="MRU.sel(${i})">${G.hs[i]?(G.hs[i]==5?'H':G.hs[i]):''}</i>`).join('')}</div>`:''}</div><b class="mu-cash">${G.bk[k]?'—':$m(G.cash[k])}</b></div>`}).join('')
  +(typeof plist=='function'?`<details class="mu-det"><summary>Sala y espectadores</summary>${plist()}</details>`:'')}
 function pMias(){const G=V.G,m=me(),L=G.own.map((o,i)=>o===m?i:-1).filter(i=>i>=0);
- if(!L.length)return `<div class="mu-empty"><span>🏘️</span><b>Aún no tienes propiedades</b>Cuando caigas en una casilla sin dueño, la puedes comprar.</div>`;
+ if(!L.length)return `<div class="mu-empty"><span>${MIC.h('rancho')}</span><b>Aún no tienes propiedades</b>Cuando caigas en una casilla sin dueño, la puedes comprar.</div>`;
  const grp={};L.forEach(i=>{const s=B[i],key=s.t=='p'?'g'+s.g:s.t;(grp[key]=grp[key]||[]).push(i)});
  return Object.keys(grp).map(key=>{const L2=grp[key],s0=B[L2[0]];let hd;
   if(s0.t=='p'){const g=GR[s0.g],n=g.filter(j=>G.own[j]===m).length;hd=`<header style="--gc:${D.gcol[s0.g]}"><i></i><b>${n} de ${g.length}</b><span>${n==g.length?'¡Grupo completo! Puedes construir':'Te '+(g.length-n>1?'faltan '+(g.length-n):'falta 1')+' para construir'}</span><small>Casa ${$m(D.hc[s0.g])}</small></header>`}
-  else hd=`<header><b>${s0.t=='r'?'🚌 Va y Ven':'💡 Servicios'}</b><span>${L2.length} de ${s0.t=='r'?4:2}</span></header>`;
-  return `<div class="mu-grp">${hd}${L2.map(i=>{const s=B[i],h=G.hs[i];return `<div class="mu-prop" onclick="MRU.sel(${i})"><b>${esc(s.n)}</b><span>${h==5?'🏨 Hotel':h?'🏠'.repeat(h):''}${G.mg[i]?' <em>hipotecada</em>':''}</span>${buildable(i)&&canAct()?`<button class="mu-b sm ok" onclick="event.stopPropagation();MRU.a('build',${i})">＋🏠 ${$m(D.hc[s.g])}</button>`:''}</div>`}).join('')}</div>`}).join('')}
+  else hd=`<header><b>${s0.t=='r'?MIC.h('bus')+' Va y Ven':MIC.h('idea')+' Servicios'}</b><span>${L2.length} de ${s0.t=='r'?4:2}</span></header>`;
+  return `<div class="mu-grp">${hd}${L2.map(i=>{const s=B[i],h=G.hs[i];return `<div class="mu-prop" onclick="MRU.sel(${i})"><b>${esc(s.n)}</b><span>${h==5?MIC.h('hotel')+' Hotel':h?MIC.h('rancho').repeat(h):''}${G.mg[i]?' <em>hipotecada</em>':''}</span>${buildable(i)&&canAct()?`<button class="mu-b sm ok" onclick="event.stopPropagation();MRU.a('build',${i})">＋${MIC.h('rancho')} ${$m(D.hc[s.g])}</button>`:''}</div>`}).join('')}</div>`}).join('')}
 function pTrato(){const G=V.G,m=me(),h=G.trade?tradeCard(0):'';
  if(!playing()||G.phase!='play')return h||'<div class="mu-empty">Sin tratos.</div>';
  if(G.trade)return h+'<div class="mu-s mu-pad">Cuando se resuelva este trato podrás proponer otro.</div>';
  const ot=alive(G).filter(k=>k!==m);if(!ot.length)return '';if(!ot.includes(TR.to))TR.to=ot[0];
  const props=k=>G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0);
- const chips=(k,key)=>props(k).map(i=>`<button class="mu-chip${TR[key].includes(i)?' on':''}" style="--gc:${col(i)}" onclick="MRU.tg('${key}',${i})"><i></i>${esc(B[i].n)}${G.hs[i]?' 🏠':''}</button>`).join('')||'<span class="mu-s">Sin propiedades</span>';
+ const chips=(k,key)=>props(k).map(i=>`<button class="mu-chip${TR[key].includes(i)?' on':''}" style="--gc:${col(i)}" onclick="MRU.tg('${key}',${i})"><i></i>${esc(B[i].n)}${G.hs[i]?' '+MIC.h('rancho'):''}</button>`).join('')||'<span class="mu-s">Sin propiedades</span>';
  const num=(key,max,lb)=>`<label class="mu-num">${lb}<input id="mut_${key}" class="mu-in" type="number" inputmode="numeric" min="0" max="${max}" value="${TR[key]||''}" placeholder="0" oninput="MRU.n('${key}',this.value)"></label>`;
  return `<div class="mu-card"><div class="mu-s">Con quién:</div><div class="mu-who">${ot.map(k=>`<button class="mu-chip pl${k===TR.to?' on':''}" style="--pc:${pc(k)}" onclick="MRU.to(${k})">${tk(k)} ${nm(k)}</button>`).join('')}</div>
-  <div class="mu-tside"><b>Tú das</b><div>${chips(m,'ap')}</div><div class="mu-row">${num('ac',G.cash[m],'$')}${G.jf[m]?num('aj',G.jf[m],'🗝️'):''}</div></div>
-  <div class="mu-tside"><b>Tú pides</b><div>${chips(TR.to,'bp')}</div><div class="mu-row">${num('bc',G.cash[TR.to],'$')}${G.jf[TR.to]?num('bj',G.jf[TR.to],'🗝️'):''}</div></div>
+  <div class="mu-tside"><b>Tú das</b><div>${chips(m,'ap')}</div><div class="mu-row">${num('ac',G.cash[m],'$')}${G.jf[m]?num('aj',G.jf[m],MIC.h('llave')):''}</div></div>
+  <div class="mu-tside"><b>Tú pides</b><div>${chips(TR.to,'bp')}</div><div class="mu-row">${num('bc',G.cash[TR.to],'$')}${G.jf[TR.to]?num('bj',G.jf[TR.to],MIC.h('llave')):''}</div></div>
   <button class="mu-b pri big" onclick="MRU.offer()">Ofrecer trato</button></div>`}
 function pHist(){const G=V.G;
- return `<div class="mu-log">${(G.log||[]).slice().reverse().map(e=>`<div>${e.k>=0?tok(e.k,'xs'):'<span class="mu-tok xs bank">🏦</span>'}<span>${e.k>=0?`<b>${nm(e.k)}</b> `:''}${esc(e.t)}</span></div>`).join('')}</div>
+ return `<div class="mu-log">${(G.log||[]).slice().reverse().map(e=>`<div>${e.k>=0?tok(e.k,'xs'):'<span class="mu-tok xs bank">'+MIC.h('banco')+'</span>'}<span>${e.k>=0?`<b>${nm(e.k)}</b> `:''}${esc(e.t)}</span></div>`).join('')}</div>
   <details class="mu-det"><summary>Reglas</summary>${String(GM.merida.rules||'').replace(/<\/?details>|<summary>[^<]*<\/summary>/g,'')}</details>`}
 // ---- título de propiedad (tocar una casilla) ----
 function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body='',foot='';
@@ -121,7 +126,7 @@ function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body=''
   const cur=o<0?-1:h?(G.o.dbl?h+1:h):(G.o.dbl&&full(s.g,o)?1:0);
   body=`<table>${rows.map((r,j)=>`<tr${j===cur?' class="cur"':''}><td>${r[0]}</td><td>${$m(r[1])}</td></tr>`).join('')}</table>`;
   foot=`<div class="mu-df">Cada casa cuesta ${$m(D.hc[s.g])}. El hotel: 4 casas más ${$m(D.hc[s.g])}.${G.o.mort?'<br>Hipoteca: '+$m(s.p/2):''}</div>`}
- else if(s.t=='r'){const n=o>=0?B.reduce((a,x,j)=>a+(x.t=='r'&&G.own[j]===o?1:0),0):0;head=`<div class="mu-dh pl"><span>🚌</span><b>${esc(s.n)}</b><small>Va y Ven</small></div>`;
+ else if(s.t=='r'){const n=o>=0?B.reduce((a,x,j)=>a+(x.t=='r'&&G.own[j]===o?1:0),0):0;head=`<div class="mu-dh pl"><span>${MIC.h('bus')}</span><b>${esc(s.n)}</b><small>Va y Ven</small></div>`;
   body=`<table>${[1,2,3,4].map(k=>`<tr${k===n?' class="cur"':''}><td>Con ${k} ruta${k>1?'s':''}</td><td>${$m(25*2**(k-1))}</td></tr>`).join('')}</table>`;if(G.o.mort)foot=`<div class="mu-df">Hipoteca: ${$m(s.p/2)}</div>`}
  else if(s.t=='u'){head=`<div class="mu-dh pl"><span>${icon(s)}</span><b>${esc(s.n)}</b><small>Servicio</small></div>`;
   body=`<p>Si alguien cae aquí, paga <b>4 veces</b> lo que sacó en los dados.</p><p>Si el dueño tiene <b>CFE y JAPAY</b>, paga <b>10 veces</b>.</p>`;if(G.o.mort)foot=`<div class="mu-df">Hipoteca: ${$m(s.p/2)}</div>`}
@@ -131,7 +136,7 @@ function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body=''
  let own=s.p?`<div class="mu-down">${o>=0?`${tok(o,'xs')} Dueño: <b>${nm(o)}</b>${h?' · '+(h==5?'hotel':h+(h>1?' casas':' casa')):''}${G.mg[i]?' · <em>hipotecada</em>':''}`:`Sin dueño · cuesta <b>${$m(s.p)}</b>`}</div>`:'';
  if(here.length)own+=`<div class="mu-down">Aquí está${here.length>1?'n':''}: ${here.map(k=>tok(k,'xs')+' '+nm(k)).join(', ')}</div>`;
  let act='';if(o===m&&m>=0&&G.phase=='play'){const okk=canAct(),hc=s.t=='p'?D.hc[s.g]:0,b=[];
-  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.a('build',${i})"${!okk||!buildable(i)?' disabled':''}>🏠 ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okk?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
+  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.a('build',${i})"${!okk||!buildable(i)?' disabled':''}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okk?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
   if(G.o.mort)b.push(G.mg[i]?`<button class="mu-b" onclick="MRU.a('unm',${i})"${okk?'':' disabled'}>Deshipotecar ${$m(Math.ceil(s.p*.55))}</button>`:`<button class="mu-b" onclick="MRU.a('mort',${i})"${okk?'':' disabled'}>Hipotecar +${$m(s.p/2)}</button>`);
   const why=s.t!='p'||h>=5?'':!okk?'Puedes construir en tu turno (o cuando debes dinero).':!full(s.g,m)?'Para construir necesitas todas las colonias de este color.':GR[s.g].some(j=>G.mg[j])?'Hay una colonia hipotecada en el grupo.':G.cash[m]<hc?'No te alcanza para otra casa.':!buildable(i)?'Construye parejo: primero en las otras del grupo.':'';
   if(b.length)act=`<div class="mu-acts">${b.join('')}</div>${why?`<div class="mu-hint">${why}</div>`:''}`}
@@ -139,17 +144,17 @@ function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body=''
 const modal=(h,close)=>`<div class="mu-modal" onclick="if(event.target===this)${close}"><div class="mu-mw">${h}</div></div>`;
 function menuBox(){const m3ok=!!(window.M3&&M3.ok()),sn=stageName(),G=V.G,seg=(L)=>`<div class="mu-seg">${L.map(([on,c,t,dis])=>`<button class="${on?'on':''}" onclick="${c}"${dis?' disabled':''}>${t}</button>`).join('')}</div>`;
  return `<div class="mu-card mu-menu"><header><b class="mu-h">Opciones</b><button class="mu-x" onclick="MRU.menu(0)" aria-label="Cerrar">${SV.x}</button></header>
-  <div class="mu-opt"><span>Vista</span>${seg([[sn=='3d',"MRU.mode('3d')",'🎲 3D',!m3ok],[sn=='2d',"MRU.mode('2d')",'🗺️ 2D']])}</div>
+  <div class="mu-opt"><span>Vista</span>${seg([[sn=='3d',"MRU.mode('3d')",'3D',!m3ok],[sn=='2d',"MRU.mode('2d')",'2D']])}</div>
   <div class="mu-opt"><span>Tema</span>${seg([[window.UI.tema()=='auto',"GHUD.tema('auto')",'Automático'],[window.UI.tema()=='dia',"GHUD.tema('dia')",'Día'],[window.UI.tema()=='noche',"GHUD.tema('noche')",'Noche']])}</div>
   <div class="mu-opt"><span>Seguir la ficha que se mueve</span>${seg([[follow,'MRU.follow(1)','Sí'],[!follow,'MRU.follow(0)','No']])}</div>
-  <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()','🔊 Sí'],[mute,'mute=true;render()','🔇 No']])}</div>
+  <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()',MIC.h('sonido')+' Sí'],[mute,'mute=true;render()',MIC.h('mudo')+' No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}
   ${window.GHUD?GHUD.jug():''}<div class="mu-acts">${V.watch?`<button class="mu-b" onclick="leave()">Dejar de mirar</button>`:playing()&&G.phase=='play'?`<button class="mu-b danger" onclick="if(confirm('¿Abandonar la partida? Tus propiedades regresan al banco.'))MRU.a('quit')">Abandonar partida</button>`:`<button class="mu-b" onclick="leave()">Salir de la sala</button>`}</div></div>`}
 function hud(){const w=wide();if(msg!==msgSeen){msgSeen=msg;msgT=Date.now();if(msg)setTimeout(()=>{if(active())render()},4700)}
  const sn=stageName();if(!hintT&&lsg('mr_hint_'+sn,'')!=='1'){hintT=Date.now();lss('mr_hint_'+sn,'1');setTimeout(()=>{if(active())render()},6100)}
- const hint=Date.now()-hintT<6000?`<div class="mu-toast mu-hint2">${sn=='3d'?'☝️ Un dedo: girar · ✌️ Dos dedos: acercar y mover · Doble toque: centrar':'✌️ Pellizca para acercar · ☝️ arrastra para mover · toca una casilla'}</div>`:'';
+ const hint=Date.now()-hintT<6000?`<div class="mu-toast mu-hint2">${sn=='3d'?'Un dedo: girar · Dos dedos: acercar y mover · Doble toque: centrar':'Pellizca para acercar · arrastra para mover · toca una casilla'}</div>`:'';
  const toast=msg&&Date.now()-msgT<4500?`<div class="mu-toast" onclick="msg='';render()">${esc(String(msg).replace(/^✋ No puedes hacer eso\. /,''))}</div>`:'';
- return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">⚠ Reconectando… tu lugar se conserva</div>'}${topBar()}
+ return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">'+MIC.h('aviso')+' Reconectando… tu lugar se conserva</div>'}${topBar()}
   <div class="mu-bot">${w?'':sheet()}<div class="mu-dockw" id="mudock">${dock()}${w?'':tabs()}</div>${w?tabs()+sheet():''}</div>${toast||hint}
   ${sel>=0?modal(deed(sel)+'<button class="mu-b" onclick="MRU.sel(-1)">Cerrar</button>','MRU.sel(-1)'):''}${menu?modal(menuBox(),'MRU.menu(0)'):''}</div>`}
 // ---- qué tablero se ve y cuánto espacio le queda ----
@@ -175,8 +180,8 @@ function money(k,d){if(!active())return;const el=document.querySelector(`.mu-pl[
  document.body.appendChild(f);setTimeout(()=>f.remove(),1800);if(k===me())sfx(d>0?'go':'tick')}
 function cardFx(c){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;const old=document.getElementById('mucfx');if(old)old.remove();
  const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx');   // ojo: .c y .bk ya existen en style.css (cartas)
- e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${c.d=='s'?'?':'🎁'}</b><span>${c.d=='s'?'Suerte':'Comunidad'}</span></div>
-  <div class="fc mu-front"><h5>${c.d=='s'?'❓ Suerte':'🎁 Comunidad'}</h5><p>${esc(cd.t)}</p><small>${tok(c.k,'xs')} ${nm(c.k)}</small></div></div>`;
+ e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${c.d=='s'?MIC.h('suerte'):MIC.h('regalo')}</b><span>${c.d=='s'?'Suerte':'Comunidad'}</span></div>
+  <div class="fc mu-front"><h5>${c.d=='s'?MIC.h('suerte')+' Suerte':MIC.h('regalo')+' Comunidad'}</h5><p>${esc(cd.t)}</p><small>${tok(c.k,'xs')} ${nm(c.k)}</small></div></div>`;
  e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;e.onclick=()=>e.remove();document.body.appendChild(e);sfx('card');
  setTimeout(()=>e.classList.add('out'),5600);setTimeout(()=>e.remove(),6000)}
 function yourTurn(){if(!active())return;const e=document.createElement('div');e.className='mu-yt';e.innerHTML=`<div>${tok(me(),'lg')}<b>¡Te toca!</b></div>`;e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;

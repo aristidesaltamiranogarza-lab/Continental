@@ -6,7 +6,7 @@ if(!window.MR){console.warn('Mérida 2D: falta c_merida.js');return}
 const D=MR.D,B=MR.B,HOP=180,KMAX=4;
 let root,wrap,brd,diceEl,potEl,ready=false,shown=false,S0=0,ins={t:0,r:0,b:0,l:0},fol=true,raf=0,dynKey='',selI=-2,rollN=-1,G0=null,back=null,touched=false,lastTap=0;
 const vw={x:0,y:0,k:1},vt={x:0,y:0,k:1},cells=[],toks=[],shownPos=[],anim=[],ptr=new Map();
-const ICO={go:'⬅️',jail:'🔒',free:'🏖️',gtj:'👮',s:'❓',c:'🎁',tax:'🧾',r:'🚌'},UI={CFE:'⚡',JAPAY:'💧'},icon=s=>s.t=='u'?UI[s.n]||'💡':ICO[s.t]||'';
+const icon=s=>MIC.s(s);
 function cpos(i){if(i==0)return[5.25,5.25];if(i<10)return[5-i,5.25];if(i==10)return[-5.25,5.25];if(i<20)return[-5.25,5-(i-10)];
  if(i==20)return[-5.25,-5.25];if(i<30)return[-5+(i-20),-5.25];if(i==30)return[5.25,-5.25];return[5.25,-5+(i-30)]}
 const side=i=>Math.floor(i/10)%4,pct=v=>(v+6)/12*100+'%';
@@ -27,7 +27,7 @@ function cellHtml(i){const s=B[i],sd=side(i),cor=i%10==0,[x,z]=cpos(i),w=cor?1.5
 function build(){if(ready)return;ready=true;
  root=document.createElement('div');root.id='m2root';root.dataset.t='menta';
  let h='';for(let i=0;i<40;i++)h+=cellHtml(i);
- root.innerHTML=`<div class="m2w"><div class="m2b">${h}<div class="m2ctr"><div class="m2deck s"><span>❓</span><b>Suerte</b></div><div class="m2deck c"><span>🎁</span><b>Comunidad</b></div>
+ root.innerHTML=`<div class="m2w"><div class="m2b">${h}<div class="m2ctr"><div class="m2deck s"><span>${MIC.h('suerte')}</span><b>Suerte</b></div><div class="m2deck c"><span>${MIC.h('regalo')}</span><b>Comunidad</b></div>
   <div class="m2logo"><b>Mérida en Venta</b><small>la Ciudad Blanca</small></div><div class="m2dice"></div><div class="m2pot"></div></div><div class="m2tl"></div></div></div>`;
  document.body.appendChild(root);wrap=root.firstChild;brd=wrap.firstChild;diceEl=root.querySelector('.m2dice');potEl=root.querySelector('.m2pot');
  root.querySelectorAll('.m2c').forEach(e=>cells[+e.dataset.i]=e);
@@ -85,11 +85,11 @@ function step(now){let busy=false;const G=G0;
 // ---- casillas que cambian: dueño, casas, hipoteca ----
 function syncCells(G,sel){const key=JSON.stringify([G.own,G.hs,G.mg]);
  if(key!==dynKey){dynKey=key;for(let i=0;i<40;i++){const e=cells[i],o=G.own[i],h=G.hs[i];e.classList.toggle('own',o>=0);e.classList.toggle('m2mg',!!G.mg[i]);
-  if(o>=0){e.style.setProperty('--oc',MR.pc(o));e.querySelector('.m2oc').textContent=MR.tk(o)}
+  if(o>=0){e.style.setProperty('--oc',MR.pc(o));e.querySelector('.m2oc').innerHTML=MR.tk(o)}
   const bar=e.querySelector('.m2bar');if(bar)bar.innerHTML=h==5?HOTEL:HOUSE.repeat(h)}}
  if(sel!==selI){if(selI>=0&&cells[selI])cells[selI].classList.remove('sel');selI=sel;if(sel>=0&&cells[sel])cells[sel].classList.add('sel')}}
 function syncDice(G){if(G.rn===rollN)return;const first=rollN<0;rollN=G.rn;if(!G.dice[0]){diceEl.innerHTML='';return}
- diceEl.innerHTML=die(G.dice[0])+die(G.dice[1]);if(!first&&!RM){diceEl.classList.remove('roll');void diceEl.offsetWidth;diceEl.classList.add('roll')}}
+ diceEl.innerHTML=die(G.dice[0])+(G.dice[1]?die(G.dice[1]):'');if(!first&&!RM){diceEl.classList.remove('roll');void diceEl.offsetWidth;diceEl.classList.add('roll')}}
 // ---- ciclo: solo corre mientras hay algo moviéndose ----
 function kick(){if(!raf&&shown)raf=requestAnimationFrame(loop)}
 function loop(now){raf=0;if(!shown||!G0)return;let busy=step(now);
@@ -98,7 +98,7 @@ window.M2={ok:()=>true,
  show(on){if(on)build();if(shown===on)return;shown=on;if(root)root.style.display=on?'block':'none';if(on)kick()},
  layout(i){ins=i;const s=Math.floor(Math.min(visW(),visH())*.98);if(s!==S0){const r=S0?s/S0:1;S0=s;wrap.style.width=wrap.style.height=s+'px';brd.style.setProperty('--u',(s/12)+'px');vt.x*=r;vt.y*=r;vw.x*=r;vw.y*=r}clampV();apply();kick()},
  theme(t){if(root&&root.dataset.t!==t)root.dataset.t=t},follow(on){fol=on},
- sync(G,sel){G0=G;syncCells(G,sel);syncToks(G);syncDice(G);potEl.textContent=G.o.pot?'🏖️ Bote: '+MR.$m(G.pot):'';kick()},
+ sync(G,sel){G0=G;syncCells(G,sel);syncToks(G);syncDice(G);potEl.textContent=G.o.pot?'Bote: '+MR.$m(G.pot):'';kick()},
  cam(c){if(c=='home')home();else if(c=='zi')zoomAt(cx(),cy(),vt.k*1.4);else if(c=='zo')zoomAt(cx(),cy(),vt.k/1.4)},
  look(k){const G=G0;if(!G||G.bk[k])return;const [x,z]=slot(k,G);if(vt.k>1.5&&Math.abs(vt.x+(x/12)*S0*vt.k)<8&&Math.abs(vt.y+(z/12)*S0*vt.k)<8)home();else lookAt(x,z,Math.max(vt.k,2.4))}};
 const css=document.createElement('style');css.textContent=`

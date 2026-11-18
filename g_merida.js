@@ -12,11 +12,19 @@ const lg=(G,k,t)=>{(G.log=G.log||[]).push({k,t,n:G.ln=(G.ln||0)+1});if(G.log.len
 const $=v=>'$'+v,pn=(G,k)=>k>=0?G.players[k].name:'el banco',alive=G=>G.players.map((_,k)=>k).filter(k=>!G.bk[k]);
 const after=(G,k)=>G.again&&!G.jail[k]?'roll':'end';
 function start(R){const o=Object.assign({},OPTS,R.opts),n=R.players.length;
- R.G={phase:'play',round:0,tc:0,turn:Math.random()*n|0,players:R.players.map(p=>({id:p.id,name:p.name})),o,
+ R.G={phase:'orden',round:0,tc:0,turn:0,ord:{g:[[...Array(n).keys()]],r:Array(n).fill(0),w:Array(n).fill(1)},players:R.players.map(p=>({id:p.id,name:p.name})),o,
   cash:Array(n).fill(o.cash),pos:Array(n).fill(0),jail:Array(n).fill(0),jfc:R.players.map(()=>[]),bk:Array(n).fill(0),
   own:Array(NB).fill(-1),hs:Array(NB).fill(0),mg:Array(NB).fill(0),dice:[0,0],rn:0,dbl:0,again:false,st:'roll',pot:0,
   debts:[],auc:null,aq:[],trade:null,card:null,dk:{s:shuf([...Array(16).keys()]),c:shuf([...Array(16).keys()])}};
- lg(R.G,R.G.turn,'empieza la partida')}
+ lg(R.G,-1,'cada quien tira un dado: el más alto empieza')}
+// ---- orden de salida: un dado cada quien; los empatados vuelven a tirar en su lugar de la fila ----
+function ordNext(G){const O=G.ord;for(;;){const gi=O.g.findIndex(x=>x.length>1);
+ if(gi<0){G.seq=O.g.flat();G.phase='play';G.turn=G.seq[0];G.dice=[0,0];lg(G,-1,'orden de salida: '+G.seq.map(x=>pn(G,x)).join(', '));lg(G,G.turn,'empieza la partida');return}
+ const g=O.g[gi],k=g.find(x=>O.w[x]);if(k!=null){G.turn=k;return}
+ const P=[];[...g].sort((a,b)=>O.r[b]-O.r[a]).forEach(x=>{const L=P[P.length-1];if(L&&O.r[L[0]]===O.r[x])L.push(x);else P.push([x])});
+ P.forEach(p=>{if(p.length>1){p.forEach(x=>O.w[x]=1);lg(G,-1,'empate a '+O.r[p[0]]+' entre '+p.map(x=>pn(G,x)).join(' y ')+': vuelven a tirar')}});O.g.splice(gi,1,...P)}}
+function ordRoll(G,k){const O=G.ord,a=1+Math.random()*6|0;O.r[k]=a;O.w[k]=0;G.dice=[a,0];G.rn++;lg(G,k,'tiró '+a+' para ver quién empieza');ordNext(G)}
+function ordQuit(G,k){const O=G.ord;G.bk[k]=1;O.w[k]=0;O.g=O.g.map(g=>g.filter(x=>x!==k)).filter(g=>g.length);lg(G,k,'abandonó la partida');if(!won(G))ordNext(G)}
 // ---- dinero: to = jugador, -1 banco, -2 banco/bote (impuestos y multas van al bote si está prendido) ----
 function xfer(G,k,v,to){G.cash[k]-=v;if(to>=0)G.cash[to]+=v;else if(to==-2&&G.o.pot)G.pot+=v}
 function pay(G,k,v,to,why){if(v<=0)return true;if(G.cash[k]>=v){xfer(G,k,v,to);return true}
@@ -30,7 +38,7 @@ function rent(G,i,x){const s=B[i],o=G.own[i];
  const h=G.hs[i];return h?s.r[h]:s.r[0]*(G.o.dbl&&full(G,s.g,o)?2:1)}
 // ---- moverse y caer ----
 function toJail(G,k){G.pos[k]=JAIL;G.jail[k]=1;G.again=false;lg(G,k,'se va a la cárcel')}
-function moveTo(G,k,to,pass){if(pass&&to<G.pos[k]){G.cash[k]+=D.go;lg(G,k,'pasó por la Salida y cobra '+$(D.go)+' pesos')}G.pos[k]=to}
+function moveTo(G,k,to,pass){if(pass&&to===0){G.cash[k]+=D.goExact;lg(G,k,'cayó justo en la Salida y cobra '+$(D.goExact)+' pesos')}else if(pass&&to<G.pos[k]){G.cash[k]+=D.go;lg(G,k,'pasó por la Salida y cobra '+$(D.go)+' pesos')}G.pos[k]=to}
 function land(R,k,x){const G=R.G,i=G.pos[k],s=B[i];
  if(s.p){const o=G.own[i];if(o<0){G.st='buy';return}
   if(o===k||G.bk[o])return;if(G.mg[i])return lg(G,k,'cayó en '+s.n+' (hipotecada: no paga)');
@@ -58,7 +66,7 @@ function roll(R,k){const G=R.G,a=1+Math.random()*6|0,b=1+Math.random()*6|0,d=a==
   else{G.jail[k]++;return}}
  else if(d){if(++G.dbl>=3){lg(G,k,'sacó dobles 3 veces seguidas');return toJail(G,k)}G.again=true}
  moveTo(G,k,(G.pos[k]+a+b)%NB,true);land(R,k,{sum:a+b});if(G.st!='buy')G.st=after(G,k)}
-function nextTurn(G){const n=G.players.length;let t=G.turn;do t=(t+1)%n;while(G.bk[t]&&t!==G.turn);
+function nextTurn(G){const q=G.seq||G.players.map((_,k)=>k);let t=G.turn,j=q.indexOf(t);do t=q[j=(j+1)%q.length];while(G.bk[t]&&t!==G.turn);
  G.turn=t;G.tc++;G.st='roll';G.dbl=0;G.again=false;G.card=null}
 function won(G){const L=alive(G);if(L.length>1)return false;G.phase='final';G.win=L[0]??-1;G.auc=null;G.aq=[];G.trade=null;G.debts=[];
  if(G.win>=0)lg(G,G.win,'¡gana la partida!');return true}
@@ -79,7 +87,7 @@ function broke(R,k,to){const G=R.G;if(G.bk[k])return;let c=G.cash[k];
  G.jfc[k]=[];if(G.trade&&(G.trade.a===k||G.trade.b===k))G.trade=null;
  const a=G.auc;if(a){a.in=a.in.filter(x=>x!==k);if(a.hi===k){a.hi=-1;a.bid=0}}
  if(won(G))return;if(G.turn===k)nextTurn(G);if(a)aucCheck(R);else if(G.aq.length)aucStart(R,G.aq.shift());settle(G)}
-function quit(R,k){const G=R.G;if(!G||G.phase!='play'||G.bk[k])return;lg(G,k,'abandonó la partida');broke(R,k,-1)}
+function quit(R,k){const G=R.G;if(!G||G.bk[k])return;if(G.phase=='orden')return ordQuit(G,k);if(G.phase!='play')return;lg(G,k,'abandonó la partida');broke(R,k,-1)}
 // ---- tratos: a le ofrece a b. ac/ap/aj = lo que da a (pesos, casillas, tarjetas de cárcel); bc/bp/bj = lo que pide ----
 const ints=x=>[...new Set((Array.isArray(x)?x:[]).map(v=>v|0).filter(v=>v>=0&&v<NB))].slice(0,28),nn=v=>Math.max(0,Math.floor(+v||0));
 function tcheck(G,T){if(G.bk[T.a]||G.bk[T.b])return 'Ese jugador ya no está jugando.';
@@ -113,6 +121,8 @@ function manage(G,i,t,q){const s=B[q];if(!s||G.own[q]!==i)return 'Esa propiedad 
  G.hs[q]--;G.cash[i]+=hc/2;lg(G,i,'vendió '+(G.hs[q]==4?'el hotel':'una casa')+' de '+s.n+' ('+$(hc/2)+' pesos)')}
 // ---- acciones ----
 function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
+ if(G.phase=='orden'){if(i<0||G.bk[i])return 'Ya no estás jugando.';if(t=='quit'){quit(R,i);return}
+  if(t!='roll')return 'Primero se tira para ver quién empieza.';if(G.turn!==i)return 'No es tu turno de tirar.';ordRoll(G,i);return}
  if(G.phase!='play')return 'La partida terminó.';if(i<0||G.bk[i])return 'Ya no estás jugando.';
  const e=inner(R,G,i,t,m);if(!e&&G.phase=='play')settle(G);return e}
 function inner(R,G,i,t,m){const a=G.auc;
@@ -143,6 +153,6 @@ function view(R,tok,me,now){const G=R.G,v=Object.assign({},G,{dk:{s:G.dk.s.lengt
  if(G.auc)v.auc=Object.assign({},G.auc,{left:Math.max(0,G.auc.t-now)});return {G:v,claim:false,pend:false}}
 function kick(R,k){quit(R,k)}
 // el que lleva AWAY_MS sin conectarse abandona: sus propiedades regresan al banco
-function tick(R){const G=R.G;if(!G||G.phase!='play')return;const now=Date.now();let ch=0;
+function tick(R){const G=R.G;if(!G||(G.phase!='play'&&G.phase!='orden'))return;const now=Date.now();let ch=0;
  R.players.forEach((p,k)=>{if(!G.bk[k]&&(p.out||now-p.seen>AWAY_MS)){quit(R,k);ch=1}});if(ch&&R.poke)R.poke()}
 module.exports={id:'merida',name:'Mérida en Venta',min:2,max:6,opts:OPTS,rng:{cash:[500,5000]},start,view,act,kick,tick,_:{B,GR,rent,broke}};
