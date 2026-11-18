@@ -42,7 +42,7 @@ function cantina(S,d){const H=window.CASA3D;if(C||!H)return;C=1;const {XL,W,HT,T
  const red=std(0x6a1c16,.5),mt=std(0x707478,.4,{metalness:.75});
  for(let i=0;i<5;i++){const x=x0+.7+i*(bl-1.4)/4,z=bz+.95,g=grp(x,z);cyl(.22,.2,.08,red,0,.84,0,g,16);cyl(.035,.045,.8,mt,0,.42,0,g,8);cyl(.2,.22,.03,mt,0,.015,0,g,16);
   const fr=new THREE.Mesh(new THREE.TorusGeometry(.15,.014,6,18),mt);fr.rotation.x=Math.PI/2;fr.position.set(0,.32,0);g.add(fr);obs.push({x,z,r:.28});
-  mod('banco_barra',{pos:[x,0,z],rot:i*1.7,esc:1.15},g)}
+  mod('banco_barra',{pos:[x,0,z],rot:i*1.7,esc:1.15},g);if(window.SENT)SENT.reg(g,{h:.88,fy:Math.PI})}
  // banco de madera (volteado = encima de una mesa cerrada)
  const tab=(x,z,flip,y0)=>{const g=new THREE.Group();g.position.set(x,flip?y0+.78:0,z);if(flip)g.rotation.set(Math.PI,Math.random()*3,0);S.add(g);
   cyl(.2,.19,.06,wdS,0,.75,0,g,16);for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.6;cyl(.022,.028,.75,wdS,Math.cos(a)*.14,.375,Math.sin(a)*.14,g,6)}if(!flip)obs.push({x,z,r:.25});return g};

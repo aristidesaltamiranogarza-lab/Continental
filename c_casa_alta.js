@@ -94,7 +94,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
   cyl(.2,.24,.22,std(0x3a2212,.5),0,0,0,fan,20);for(let i=0;i<5;i++){const arm=new THREE.Group();arm.rotation.y=i/5*Math.PI*2;fan.add(arm);box(.32,.03,.06,brass,.3,-.02,0,arm);const bl=box(1.35,.025,.3,wd2,1.1,-.02,0,arm);bl.rotation.x=.12;bl.castShadow=false}}
 
  // ---------- rincón de lectura: sillón, lámpara de pie y globo terráqueo ----------
- const SIL=new THREE.Group();{const G=SIL;G.position.set(-12.4,0,5.2);G.rotation.y=Math.PI*.75;S.add(G);const tp=std(0x8e3b2e,.85),tc=std(0xa3493a,.9),wd=std(0x5a3418,.5);
+ const SIL=new THREE.Group();if(window.SENT)SENT.reg(SIL,{h:1.05,dz:.12});{const G=SIL;G.position.set(-12.4,0,5.2);G.rotation.y=Math.PI*.75;S.add(G);const tp=std(0x8e3b2e,.85),tc=std(0xa3493a,.9),wd=std(0x5a3418,.5);
   box(1.9,.5,1.8,tp,0,.55,0,G);box(1.3,.22,1.4,tc,0,.91,.12,G);box(1.9,1.5,.42,tp,0,1.45,-.72,G);const rr=new THREE.Mesh(new THREE.CylinderGeometry(.21,.21,1.9,16),tp);rr.rotation.z=Math.PI/2;rr.position.set(0,2.2,-.72);G.add(rr);[-1,1].forEach(s=>{box(.36,.75,1.8,tp,s*.88,.85,0,G);const a=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,1.8,14),tp);a.rotation.x=Math.PI/2;a.position.set(s*.88,1.22,0);G.add(a)});[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([a,b])=>cyl(.06,.05,.3,wd,a,.15,b,G,8));OB.push({x:-12.4,z:5.2,r:1.4})}
  {const x=-14,z=3.2;cyl(.3,.34,.06,brass,x,.03,z,S,20);cyl(.03,.03,4,brass,x,2,z,S,8);const sh=new THREE.Mesh(new THREE.CylinderGeometry(.3,.5,.55,24,1,true),std(0xe9d9b0,.8,{side:THREE.DoubleSide}));sh.position.set(x,4.1,z);S.add(sh);
   const L=new THREE.PointLight(0xffd9a0,5,7,1.6);L.position.set(x,3.8,z);S.add(L);OB.push({x,z,r:.5})}

@@ -390,7 +390,8 @@ html.c2don .pk-jug{top:calc(64px + env(safe-area-inset-top,0px))}
 /* ojo de tus cartas del Póker: siempre en el mismo lugar (abajo a la izquierda; en celular, bajo las pastillas de arriba) */
 .pk-ojo{position:fixed;z-index:13;left:calc(14px + env(safe-area-inset-left,0px));top:calc(126px + env(safe-area-inset-top,0px))}
 html.c2don .pk-ojo{top:calc(72px + env(safe-area-inset-top,0px))}
-@media (min-width:768px) and (hover:hover){.pk-ojo,html.c2don .pk-ojo{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}}
+.pk-jug{left:calc(72px + env(safe-area-inset-left,0px))}   /* junto al ojo, no encima */
+@media (min-width:768px) and (hover:hover){.pk-ojo,html.c2don .pk-ojo{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}.pk-jug{left:calc(14px + env(safe-area-inset-left,0px))}}
 /* Continental 3D: botón de orden (se despliega con transición) y Desmarcar redondo a la izquierda */
 .gj-bar .t3x{width:44px;padding:0;flex:none}
 .t3ord{display:inline-flex;align-items:center;padding:2px;border-radius:999px;background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);pointer-events:auto;flex:none}

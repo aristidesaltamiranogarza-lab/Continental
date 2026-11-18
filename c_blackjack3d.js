@@ -165,7 +165,7 @@ function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}
 function sentar(){const m=M();if(!m||!V||yo()>=0||pide>=0)return;const me=quien(yoId());if(!me)return;let b=-1,bd=1e9;
  m.lugares.forEach((l,i)=>{if(V.as[i])return;const d=Math.hypot(l.x-me.pos.x,l.z-me.pos.z);if(d<bd){bd=d;b=i}});
- if(b<0)return window.SAL&&SAL.aviso('La mesa está llena');pide=b;pideT=performance.now();act('sentar',{s:b});if(typeof sfx=='function')sfx('tick')}
+ if(b<0)return window.SAL&&SAL.aviso('Mesa llena');pide=b;pideT=performance.now();act('sentar',{s:b});if(typeof sfx=='function')sfx('tick')}
 function levantarse(){if(yo()<0)return;act('parar');parando=true;suelta();rr()}
 
 function estado(v,err){if(err&&window.SAL)SAL.aviso(err);if(err)pide=-1;if(!v||!v.as)return;v.t0=performance.now();V=v;BJ3.v=v;

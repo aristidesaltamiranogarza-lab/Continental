@@ -38,8 +38,10 @@ const botePos=(k,n)=>v3((k-(n-1)/2)*A.sepBote,TH+.002,A.zBote);
 function btnPos(s){const o=ov(.36,s,-.17);return enMesa(o,.008)}
 
 // ---------- cartas y fichas ----------
+// caras sin luz: bajo la lámpara las comunes se quemaban; así se leen igual en toda la mesa
+const CB={};function caraB(c){c%=52;return CB[c]||(CB[c]=new THREE.MeshBasicMaterial({map:K().caraMat(c).map,color:0xe4ddcd}))}
 function carta(c){const k=K();if(!GEO)GEO=new THREE.BoxGeometry(A.carta[0],.004,A.carta[1]);const {ED,DOR}=k.dorso();
- const m=new THREE.Mesh(GEO,[ED,ED,c<0?DOR:k.caraMat(c),DOR,ED,ED]),o=new THREE.Group();m.receiveShadow=true;o.add(m);R.add(o);return {o,m,c}}
+ const m=new THREE.Mesh(GEO,[ED,ED,c<0?DOR:caraB(c),DOR,ED,ED]),o=new THREE.Group();m.receiveShadow=true;o.add(m);R.add(o);return {o,m,c}}
 function pila(v){const o=new THREE.Group();K().llena(o,v);R.add(o);return {o,m:null,v}}
 
 // ---------- animaciones: x = {o grupo, m malla (volteo en m.rotation.z) o null} ----------
@@ -63,7 +65,7 @@ function cartas(snap){const T=new Map(),m=V.mano,n0=V.sb>=0?V.sb:0;let orden=[];
   if(!x){x=carta(t.c);x.L=L;x.s=t.s;x.j=t.j;CAR.set(k,x);if(snap){pon(x,L);if(tapo(t))x.m.rotation.z=PI;return}
    const i=t.s<0?nn++:orden.indexOf(k);x.o.visible=false;x.o.position.set(MAZO[0],TH+.05,MAZO[1]);x.o.rotation.y=L.ry+.5;x.m.rotation.z=PI;
    const tr=i*A.reparte+(t.s<0?250:0);ir(x,L.p,L.ry,t.c<0||tapo(t)?PI:0,A.vuelo,{arc:A.alto,tras:tr,ve:1});if(window.PKC)PKC.reparte(t.s,performance.now()+tr);return}
-  if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=K().caraMat(t.c);if(snap)pon(x,L);else{x.m.rotation.z=PI;ir(x,L.p,L.ry,0,A.volteo,{arc:.05})}}})}
+  if(x.c<0&&t.c>=0){x.c=t.c;x.m.material[2]=caraB(t.c);if(snap)pon(x,L);else{x.m.rotation.z=PI;ir(x,L.p,L.ry,0,A.volteo,{arc:.05})}}})}
 // ---------- tus cartas: nadie las ve en tu pantalla hasta que tocas Ver (se vuelven a tapar en cada mano); en el showdown se voltean ----------
 let vis=false;try{vis=localStorage.pk_ver==='1'}catch(e){}   // ver tus cartas: se queda como lo dejaste entre manos
 function abierta(){const s=mio(),a=V&&s>=0?V.as[s]:null;return !!a&&V.fase==='fin'&&(!!a.mos||V.as.some((b,j)=>b&&j!==s&&b.c&&b.c[0]>=0))}
@@ -121,13 +123,13 @@ function camara(now,s,dt){const m=M(),C=H().cam();if(!C)return;const l=m.lugares
  if(vista==='yo'){Pc.set(l.x+fx*Q.adelante,Q.ojo,l.z+fz*Q.adelante);const c=lugar({s,j:.5,c:0}).p;Lc.set(c.x*(1-Q.mira),TH,c.z*(1-Q.mira));m.G.localToWorld(Lc)}
  else{const a=Q.arriba,asp=C.aspect||1,ck=s+'|'+asp.toFixed(3)+'|'+banda();vfA=fov0||C.fov;
   if(ext.k!==ck){const c=m.G.localToWorld(v3(0,TH,0)),o1=m.G.worldToLocal(v3(l.x,TH,l.z)),W=q=>m.G.localToWorld(q).sub(c);
-   // el eje largo de la mesa (x local) va a lo largo de la pantalla; tu lugar abajo si queda en ese eje, si no a la izquierda
-   const vx=asp<1,ej=vx?'x':'z',lo=o1[ej],ot=o1[ej==='x'?'z':'x'],uL=v3(0,TH,0);uL[ej]=Math.abs(lo)>.25?(lo>=0?-1:1):1;
+   // el eje largo de la mesa (x local) va a lo largo de la pantalla; tu lugar abajo si queda en ese eje, si no a la izquierda; en vertical igual: las comunes derechas
+   const vx=asp<1,ej='z',lo=o1[ej],ot=o1[ej==='x'?'z':'x'],uL=v3(0,TH,0);uL[ej]=Math.abs(lo)>.25?(lo>=0?-1:1):1;
    let u=W(uL),un=Math.hypot(u.x,u.z)||1,ux=u.x/un,uz=u.z/un,px=uz,pz=-ux;
    if(Math.abs(lo)<=.25){const sw=W(v3(o1.x,TH,o1.z));if(sw.x*px+sw.z*pz>0){ux=-ux;uz=-uz;px=-px;pz=-pz}}
    // encuadre (horizontal): tus dos cartas, las cinco comunes, tu apuesta y el bote (la mesa se puede recortar); el centro es el del recuadro
-   const [cw,ch]=A.carta,P=[];if(!vx)for(let j=0;j<2;j++){const L=lugar({s,j,c:0});for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(L.p.x+dx*ch/2,TH,L.p.z+dz*ch/2))}
-   for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(dx*(2*A.sepMesa+cw/2),TH,A.zMesa+dz*ch/2));P.push(botePos(0,1));if(!vx)P.push(apPos(s));   // en vertical no cabe todo: comunes y bote de cerca; tu mano, en la vista previa del ojo
+   const [cw,ch]=A.carta,P=[];for(let j=0;j<2;j++){const L=lugar({s,j,c:0});for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(L.p.x+dx*ch/2,TH,L.p.z+dz*ch/2))}
+   for(const dx of [-1,1])for(const dz of [-1,1])P.push(v3(dx*(2*A.sepMesa+cw/2),TH,A.zMesa+dz*ch/2));if(!vx){P.push(botePos(0,1));P.push(apPos(s))}   // en vertical solo lo que importa: las comunes y tu mano
    let v0=1e9,v1=-1e9,h0=1e9,h1=-1e9;P.forEach(q=>{const w=W(q.clone()),a1=w.x*ux+w.z*uz,a2=w.x*px+w.z*pz;v0=Math.min(v0,a1);v1=Math.max(v1,a1);h0=Math.min(h0,a2);h1=Math.max(h1,a2)});
    let f=vfA,tv=Math.tan(f*PI/360);const hv=(v1-v0)/2+a.r,hh=(h1-h0)/2+a.r,cv=(v0+v1)/2,chh=(h0+h1)/2,cc=c.clone().add(v3(ux*cv+px*chh,0,uz*cv+pz*chh));
    const [yLo,yHi]=banda().split(',').map(Number),bh=(yHi-yLo)/2,yc=(yHi+yLo)/2;
@@ -174,7 +176,7 @@ function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.poker;return !!(me&&
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}
 function sentar(){const m=M();if(!m||!V||yo()>=0||pide>=0)return;const me=quien(yoId());if(!me)return;let b=-1,bd=1e9;
  m.lugares.forEach((l,i)=>{if(i>=V.as.length||V.as[i])return;const d=Math.hypot(l.x-me.pos.x,l.z-me.pos.z);if(d<bd){bd=d;b=i}});
- if(b<0)return window.SAL&&SAL.aviso('La mesa está llena');pide=b;pideT=performance.now();act('sentar',{s:b});son('tick')}
+ if(b<0)return window.SAL&&SAL.aviso('Mesa llena');pide=b;pideT=performance.now();act('sentar',{s:b});son('tick')}
 function levantarse(){if(yo()<0)return;act('parar');parando=true;suelta();rr()}
 
 function estado(v,err){if(err&&window.SAL)SAL.aviso(err);if(err)pide=-1;if(!v||!v.as)return;v.t0=performance.now();V=v;PK3.v=v;

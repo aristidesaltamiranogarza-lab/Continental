@@ -151,7 +151,7 @@ function buildHouse(){
  const lg=new THREE.Mesh(new THREE.PlaneGeometry(6,1.5),std(0xffffff,.6,{map:logo}));lg.position.set(0,6.6,ZB+.08);SC.add(lg);
  // sofá a la derecha, librero a la izquierda, plantas en las esquinas
  const sofa=std(0x2f4a5a,.85),sx=HX-1.4,sz=8.2;const so=new THREE.Group();so.position.set(sx,0,sz);so.rotation.y=-Math.PI/2;SC.add(so);
- box(5.4,.9,2,sofa,0,.75,0,so);box(5.4,1.7,.55,sofa,0,1.6,-.75,so);[-1,1].forEach(s=>box(.55,1.4,2,sofa,s*2.7,1.1,0,so));[-1.3,1.3].forEach(dx=>box(2.5,.35,1.6,std(0x37566a,.9),dx,1.35,.15,so));
+ box(5.4,.9,2,sofa,0,.75,0,so);if(window.SENT)SENT.reg(so,{h:1.5,dz:.15});box(5.4,1.7,.55,sofa,0,1.6,-.75,so);[-1,1].forEach(s=>box(.55,1.4,2,sofa,s*2.7,1.1,0,so));[-1.3,1.3].forEach(dx=>box(2.5,.35,1.6,std(0x37566a,.9),dx,1.35,.15,so));
  OB.push({x:sx,z:sz-1.8,r:1.4},{x:sx,z:sz,r:1.4},{x:sx,z:sz+1.8,r:1.4});
  const bw=std(0x4a2c18,.6),bx=-HX+.55,bz=4,BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0];let rs=7;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280;
  box(.9,7,.12,bw,bx,3.5,bz-1.6);box(.9,7,.12,bw,bx,3.5,bz+1.6);box(.1,7,3.3,bw,bx-.42,3.5,bz);
@@ -282,7 +282,7 @@ function solve(p){const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.m
 function bump(p){let hit=false;others.forEach(a=>{if(!a.g.visible)return;const dx=p.x-a.pos.x,dz=p.z-a.pos.z,d=Math.hypot(dx,dz),R=.62;if(d<R){hit=true;if(d<1e-4){p.x+=R;return}p.x=a.pos.x+dx/d*R;p.z=a.pos.z+dz/d*R}});if(hit)solve(p)}
 function turn(a,yaw){let d=yaw-a.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));a.g.rotation.y+=d*.18}
 let wp=[],wpFor=null;   // ruta (c_casa_ruta.js) hacia tgt, punto por punto
-function walk(dt,now){const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
+function walk(dt,now){if(window.SENT&&SENT.paso(me,keys.size||(window.JOY&&JOY.on)||tgt))return;const a=me,p=a.pos,cy=VW.a,fw=v3(-Math.sin(cy),0,-Math.cos(cy)),rt=v3(Math.cos(cy),0,-Math.sin(cy)),dir=v3(0,0,0);
  if(keys.has('w')||keys.has('arrowup'))dir.add(fw);if(keys.has('s')||keys.has('arrowdown'))dir.sub(fw);if(keys.has('d')||keys.has('arrowright'))dir.add(rt);if(keys.has('a')||keys.has('arrowleft'))dir.sub(rt); if(window.JOY&&JOY.on){dir.addScaledVector(fw,-JOY.y).addScaledVector(rt,JOY.x);tgt=null;tgtG=null}   // joystick del celular (c_casa_joy.js)
  if(!dir.lengthSq()&&tgt){if(tgt!==wpFor){wpFor=tgt;wp=window.RUTA?RUTA.find(p,tgt,FL,TB.concat(OB)):[]}while(wp.length>1&&Math.hypot(wp[0].x-p.x,wp[0].z-p.z)<.35)wp.shift();
   const aim=wp.length>1?wp[0]:tgt;dir.subVectors(aim,p).setY(0);if(aim===tgt&&dir.length()<.12){dir.set(0,0,0);arrive()}}
@@ -307,7 +307,7 @@ function walkOthers(dt,now){const f=1-Math.exp(-dt/110),t=performance.now();othe
  if(a.fr)a.pos.lerpVectors(a.fr,a.to,Math.min(1,(t-a.t0)/a.dur));else a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
  a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g),a.pos.z);pose(a,now,false)});
  seated.forEach(s=>{if(!s.av)poseSeated(s,now)});if(window.OCUP)OCUP.paso(now)}
-function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}
+function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}if(window.SENT)SENT.llega(me);
  if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}
 // llega por el hueco entre dos sillas que le quede más cerca (las sillas están a 45°, los huecos a 0°, 90°, 180° y 270°)
 function goTable(g){const t=TB.find(x=>x.g===g);if(!t)return;const p=me.pos,a=Math.round(Math.atan2(p.z-t.z,p.x-t.x)/(Math.PI/2))*(Math.PI/2);
@@ -415,7 +415,8 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
  if(h.t=='c4'||h.t=='bg')return JG3.tap(h);
  if(h.t=='fn')return h.f();   // el plano junto a la escalera (abre el 🧭) o la radio
  if(h.t=='cub'){tgt=v3(CUB3.X-1.6,0,CUB3.Z+1.6);tgtG=null;solve(tgt);showMark(tgt);return CUB3.open()}
- tgt=h.p.setY(0);tgtG=null;tgtL=null;solve(tgt);showMark(tgt)}
+ const se=h.t=='floor'&&window.SENT?SENT.toca(ray):null;   // una silla o sillón suelto: caminas a su frente y te sientas (c_casa_sentar.js)
+ tgt=se||h.p.setY(0);tgtG=null;tgtL=null;solve(tgt);showMark(tgt)}
 // botón Cuadrar: aparece solo si moviste la cámara
 function viewBtn(){const el=$id('t3view');if(!el)return;const k=viewed()?'1':'';if(el.dataset.k===k)return;el.dataset.k=k;el.style.display=k?'':'none'}
 

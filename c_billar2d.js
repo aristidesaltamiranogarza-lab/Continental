@@ -81,7 +81,8 @@ function init(){root=document.createElement('div');root.id='b2root';root.classNa
   <div class="ui b2-toast" role="status" aria-live="polite"></div>`;
  document.body.appendChild(root);cv=root.querySelector('canvas');cx=cv.getContext('2d');hud=root.querySelector('.b2-hud');ctl=root.querySelector('.b2-ctl');tst=root.querySelector('.b2-toast');
  css();
- cv.addEventListener('pointerdown',pd);cv.addEventListener('pointermove',pm);cv.addEventListener('pointerup',pu);cv.addEventListener('pointercancel',pu);
+ cv.addEventListener('pointerdown',pd);cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect();vzZoom(VZ.z*Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+ cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('dblclick',()=>{VZ.z=1;VZ.x=VZ.y=0});cv.addEventListener('pointermove',pm);cv.addEventListener('pointerup',pu);cv.addEventListener('pointercancel',pu);
  const ef=root.querySelector('.b2-efb'),efp=e=>{const r=ef.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*2-1,y=-((e.clientY-r.top)/r.height*2-1),m=Math.hypot(x,y);
   if(m<.18){ex=ey=0}else{const k=m>1?1/m:1;ex=Math.round(x*k*20)/20;ey=Math.round(y*k*20)/20}pintaEf()};
  ef.addEventListener('pointerdown',e=>{ef.setPointerCapture(e.pointerId);ef._d=1;efp(e)});ef.addEventListener('pointermove',e=>{if(ef._d)efp(e)});
@@ -188,7 +189,14 @@ function talla(){const w=root.clientWidth,h=root.clientHeight,d=Math.min(2,windo
  land=W>H*1.15;document.documentElement.classList.toggle('b2land',land);
  const j=V&&V.fase==='juego',x0=land?(j?92:12):10,x1=W-(j?64:10),y0=land?(j?60:12):(j?112:14),y1=H-(land?(j?30:12):(j?150:14));
  const aw=Math.max(50,x1-x0),ah=Math.max(50,y1-y0),hx=FL/2+CW+RW,hz=AN/2+CW+RW,rot=ah>aw*1.05;
- const s=rot?Math.min(aw/(2*hz),ah/(2*hx)):Math.min(aw/(2*hx),ah/(2*hz));T={s,rot,cx:x0+aw/2,cy:y0+ah/2}}
+ const s=rot?Math.min(aw/(2*hz),ah/(2*hx)):Math.min(aw/(2*hx),ah/(2*hz));VZ.bx=x0+aw/2;VZ.by=y0+ah/2;vzLim();T={s:s*VZ.z,rot,cx:VZ.bx+VZ.x,cy:VZ.by+VZ.y}}
+// vista movible como en 3D: dos dedos acercan y mueven; rueda acerca; un dedo la mueve cuando no es tu tiro; doble toque la regresa
+const VZ={z:1,x:0,y:0,bx:0,by:0},dd=new Map();let gs=null;
+function vzLim(){const mx=W*(VZ.z-1)/2,my=H*(VZ.z-1)/2;VZ.x=cl(VZ.x,-mx,mx);VZ.y=cl(VZ.y,-my,my)}
+function vzZoom(z,px,py){z=cl(z,1,3.2);const k=z/VZ.z,cx=VZ.bx+VZ.x,cy=VZ.by+VZ.y;VZ.x=px-(px-cx)*k-VZ.bx;VZ.y=py-(py-cy)*k-VZ.by;VZ.z=z;vzLim()}
+function gsIni(){const p=[...dd.values()];if(!p.length){gs=null;return}const a=p[0],b=p[1]||a;gs={d:Math.hypot(a.x-b.x,a.y-b.y)||1,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,z:VZ.z,dos:p.length>1}}
+function gsMueve(){const p=[...dd.values()];if(!gs||!p.length)return;const a=p[0],b=p[1]||a,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,r=cv.getBoundingClientRect();
+ VZ.x+=cx-gs.cx;VZ.y+=cy-gs.cy;gs.cx=cx;gs.cy=cy;if(gs.dos&&p.length>1)vzZoom(gs.z*Math.hypot(a.x-b.x,a.y-b.y)/gs.d,cx-r.left,cy-r.top);else vzLim()}
 const aS=(x,z)=>T.rot?[T.cx+z*T.s,T.cy-x*T.s]:[T.cx+x*T.s,T.cy+z*T.s];
 const dS=(x,z)=>T.rot?[z,-x]:[x,z];
 const aW=(sx,sy)=>T.rot?[(T.cy-sy)/T.s,(sx-T.cx)/T.s]:[(sx-T.cx)/T.s,(sy-T.cy)/T.s];
@@ -289,18 +297,19 @@ function taco(b0,now){const c=cx,dx=Math.cos(ang),dz=Math.sin(ang),atras=R*1.6+p
 
 // ---------- toques sobre la mesa ----------
 function mundo(e){const r=cv.getBoundingClientRect();return aW(e.clientX-r.left,e.clientY-r.top)}
-function pd(e){menu&&(menu=false,pinta());if(!miTurno())return;const [x,z]=mundo(e),v=V,es0=E();if(!es0)return;
+function pd(e){menu&&(menu=false,pinta());dd.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(dd.size>1||!miTurno()||e.button===1||e.button===2){if(drag&&drag.a0!=null)ang=drag.a0;drag=null;try{cv.setPointerCapture(e.pointerId)}catch(_){}gsIni();return}const [x,z]=mundo(e),v=V,es0=E();if(!es0)return;
  if(v.canta){let b=-1,bd=1e9;FM.P.forEach((p,i)=>{const d=Math.hypot(p.x-x,p.z-z);if(d<Math.max(p.r*2.2,30/T.s)&&d<bd){bd=d;b=i}});if(b>=0){hoyo=b;son('tick');pinta();return}}
  cv.setPointerCapture(e.pointerId);
  if(v.mano&&es0[0]&&Math.hypot(es0[0][0]-x,es0[0][1]-z)<Math.max(R*2.5,26/T.s)){drag={t:'bola'};return}
- apunta(x,z,es0);drag={t:'apunta',sx:e.clientX,sy:e.clientY,fa:rodea(x,z,es0),fino:false}}
-function pm(e){if(!drag||!miTurno())return;const [x,z]=mundo(e);
+ const a0=ang;apunta(x,z,es0);drag={a0,t:'apunta',sx:e.clientX,sy:e.clientY,fa:rodea(x,z,es0),fino:false}}
+function pm(e){const q=dd.get(e.pointerId);if(q){q.x=e.clientX;q.y=e.clientY}if(gs){gsMueve();return}if(!drag||!miTurno())return;const [x,z]=mundo(e);
  if(drag.t==='bola'){const es0=V.E.map(b=>b&&b.slice());const coc=V.mano==='cocina';const xx=cl(x,-FL/2+R,coc?-FL/4:FL/2-R),zz=cl(z,-AN/2+R,AN/2-R);if(BFIS.libre(es0,xx,zz,coc)){bx=xx;bz=zz}return}
  // tocar apunta hacia el dedo; si después arrastra, afina: el taco gira a 1/4 de lo que el dedo rodea a la blanca (como en 3D)
  const es0=E();if(!drag.fino&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>8)drag.fino=true;if(!drag.fino)return;
  const fa=rodea(x,z,es0);if(fa==null||drag.fa==null){drag.fa=fa;return}let d=fa-drag.fa;d=Math.atan2(Math.sin(d),Math.cos(d));drag.fa=fa;ang+=d*.25}
 function rodea(x,z,es0){const b=es0&&es0[0];if(!b||Math.hypot(x-b[0],z-b[1])<R*1.5)return null;return Math.atan2(z-b[1],x-b[0])}
-function pu(){drag=null}
+function pu(e){drag=null;if(e&&dd.delete(e.pointerId)&&gs)gsIni()}
 function apunta(x,z,es0){const b=es0&&es0[0];if(!b)return;const dx=x-b[0],dz=z-b[1];if(Math.hypot(dx,dz)<R*1.2)return;ang=Math.atan2(dz,dx)}
 function kd(e){if(!g||/input|textarea|select/i.test((e.target&&e.target.tagName)||''))return;if(!miTurno())return;
  const k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A'){fino=-1;lento=e.shiftKey;e.preventDefault()}else if(k==='ArrowRight'||k==='d'||k==='D'){fino=1;lento=e.shiftKey;e.preventDefault()}

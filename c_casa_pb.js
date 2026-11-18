@@ -123,7 +123,7 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H
 
  // ---------- comedor: mesa larga con 8 sillas, trinchador, cuadro y candil ----------
  const silla=(P,x,z,m)=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.atan2(-x,-z);P.add(g);B(.9,.1,.9,m,0,.9,0,g);B(.9,1.3,.1,m,0,1.55,-.4,g);
-  [[-.38,-.38],[.38,-.38],[-.38,.38],[.38,.38]].forEach(([a,b])=>C(.045,.045,.9,m,a,.45,b,g,6));return g};
+  [[-.38,-.38],[.38,-.38],[-.38,.38],[.38,.38]].forEach(([a,b])=>C(.045,.045,.9,m,a,.45,b,g,6));return window.SENT?SENT.reg(g,{h:.95}):g};
  {const x=-9,z=-20.4,G=grp(x,z,0),mc=std(0x6b3a1c,.45);B(5.4,.14,2.1,mc,0,1.5,0,G);[[-2.4,-.8],[2.4,-.8],[-2.4,.8],[2.4,.8]].forEach(([a,b])=>C(.09,.07,1.43,mc,a,.72,b,G,8));
   B(5.6,.01,.7,std(0xb5473a,.85),0,1.578,0,G).castShadow=false;
   C(.45,.3,.18,std(0x9a5a2a,.6),0,1.67,0,G,16);[[-.15,0,0xffa726],[.12,.1,0x7cb342],[.05,-.14,0xffd54f],[-.05,.12,0xe53935]].forEach(([a,b,c])=>{const f=new THREE.Mesh(new THREE.SphereGeometry(.13,12,8),std(c,.5));f.position.set(a,1.82,b);G.add(f)});
@@ -192,9 +192,9 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H
  {const L=new THREE.PointLight(0xfff2dc,10,9,1.6);L.position.set(14.6,6.6,-22.3);SC.add(L)}
  maceta(12.9,-20.4,.7);
  // puerta del baño: hoja de madera con bisagra del lado del lavabo; se toca para abrir o cerrar (cerrada estorba el paso)
- {const G=grp(13.72,-19.5,0),D=new THREE.Group();G.add(D);const hj=std(0x6b3c1c,.55);B(1.76,3.5,.07,hj,.88,1.77,0,D);
-  [[.88,2.6],[.88,1]].forEach(([x,y])=>{B(1.36,1.2,.03,std(0x5a3216,.6),x,y,.045,D);B(1.36,1.2,.03,std(0x5a3216,.6),x,y,-.045,D)});
-  [-1,1].forEach(s=>C(.05,.05,.08,lat,1.58,1.75,s*.07,D,10).rotation.x=Math.PI/2);[.5,3].forEach(y=>C(.03,.03,.22,lat,0,y,0,D,8));
+ {const G=grp(13.61,-19.5,0),D=new THREE.Group();G.add(D);const hj=std(0x6b3c1c,.55);B(1.98,3.57,.07,hj,.99,1.79,0,D);   // la hoja llena todo el hueco (2 x 3.6): cerrada no deja ranuras
+  [[.99,2.6],[.99,1]].forEach(([x,y])=>{B(1.5,1.2,.03,std(0x5a3216,.6),x,y,.045,D);B(1.5,1.2,.03,std(0x5a3216,.6),x,y,-.045,D)});
+  [-1,1].forEach(s=>C(.05,.05,.08,lat,1.78,1.75,s*.07,D,10).rotation.x=Math.PI/2);[.5,3].forEach(y=>C(.03,.03,.22,lat,0,y,0,D,8));
   const ob={x:1e4,z:-19.5,r:.65};OB.push(ob);PTA={D,ob,ab:true,a:1.45};D.rotation.y=1.45;tap(D,puerta)}
 
  // ---------- la planta para c_casa3d.js ----------

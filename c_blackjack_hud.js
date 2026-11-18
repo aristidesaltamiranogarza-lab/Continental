@@ -26,25 +26,25 @@ function op(o){if(o==='borrar'){pend=null;BJ3.act('apostar',{v:0})}else BJ3.act(
 function fase(v,s,a){const t=turnoDe(v),h0=a.manos[0];
  if(v.fase=='apuestas')return {t:a.listo?'Listo':'Apuestas',left:v.left>0,me:!a.listo&&!!a.ap};
  if(v.fase=='reparto')return {t:'Repartiendo'};
- if(v.fase=='seguro')return h0&&!a.dec?{t:v.cr.c[0]%13==0?'¿Seguro?':'¿Sigues?',me:true,left:true}:{t:'El crupier revisa'};
+ if(v.fase=='seguro')return h0&&!a.dec?{t:v.cr.c[0]%13==0?'¿Seguro?':'¿Sigues?',me:true,left:true}:{t:'Crupier'};
  if(t&&t.s===s)return {t:'Tu turno'+(a.manos.length>1?` · mano ${t.m+1}`:''),me:true,left:true};
  if(t)return {t:'Turno de '+es(v.as[t.s]&&v.as[t.s].n)};
- if(v.fase=='crupier')return {t:'Juega el crupier'};
+ if(v.fase=='crupier')return {t:'Crupier'};
  return {t:'Pago'}}
 const B=(t,on,cls,dis)=>`<button class="ui-btn${cls?' '+cls:''}" onclick="${on}"${dis?' disabled':''}>${t}</button>`;
 const nota=t=>`<span class="gj-note">${t}</span>`;
 function botones(v,s,a){const t=turnoDe(v),h0=a.manos[0];
  if(v.fase=='apuestas'){
   const fs=`<div class="bj-fichas">${FICHAS.map(([d,k])=>`<button class="bj-ficha ${k}" onclick="BJH.ficha(${d})"${suma(v,a,d)<=a.ap?' disabled':''} aria-label="Apostar ${d} más">${d}</button>`).join('')}</div>`;
-  if(a.listo)return fs+nota(`Apostaste ${mon(a.ap)} · esperando a los demás`);
-  if(a.ap)return fs+B('Borrar',"BJH.op('borrar')",'ghost')+B(`Repartir · ${mon(a.ap)}`,"BJH.op('listo')",'go');
-  return fs+(a.ult&&a.ult<=a.f?B(`Repetir ${mon(a.ult)}`,`BJH.apostar(${a.ult})`,'sec'):nota('Toca una ficha para apostar'))}
+  if(a.listo)return fs+nota(mon(a.ap));
+  if(a.ap)return fs+B('Borrar',"BJH.op('borrar')",'ghost')+B(`Repartir ${mon(a.ap)}`,"BJH.op('listo')",'go');
+  return fs+(a.ult&&a.ult<=a.f?B(`Repetir ${mon(a.ult)}`,`BJH.apostar(${a.ult})`,'sec'):'')}
  if(v.fase=='seguro'&&h0&&!a.dec){const as=v.cr.c[0]%13==0,c=Math.floor(h0.a/2);
-  return (as?B(`Seguro · ${mon(c)}`,"BJH.op('seguro')",'sec',c>a.f)+B('Sin seguro',"BJH.op('noseguro')"):B('Seguir',"BJH.op('noseguro')"))+(h0.fin?'':B('Rendirse',"BJH.op('rendir')",'ghost'))}
+  return (as?B(`Seguro ${mon(c)}`,"BJH.op('seguro')",'sec',c>a.f)+B('Sin seguro',"BJH.op('noseguro')"):B('Seguir',"BJH.op('noseguro')"))+(h0.fin?'':B('Rendirse',"BJH.op('rendir')",'ghost'))}
  if(t&&t.s===s){const h=a.manos[t.m];if(!h)return '';const dos=h.c.length==2;
   return B('Pedir',"BJH.op('pedir')")+B('Plantarse',"BJH.op('plantar')",'sec')+(dos&&a.f>=h.a?B('Doblar',"BJH.op('doblar')",'sec'):'')
    +(dos&&val(h.c[0])==val(h.c[1])&&a.manos.length<4&&a.f>=h.a?B('Dividir',"BJH.op('dividir')",'sec'):'')+(a.manos.length==1&&dos&&!h.div?B('Rendirse',"BJH.op('rendir')",'ghost'):'')}
- if(v.fase=='pago'&&a.manos.length)return nota(a.neta>0?`Ganaste <b>${mon(a.neta)}</b>`:a.neta<0?`Perdiste ${mon(a.neta)}`:'Quedaste igual');
+ if(v.fase=='pago'&&a.manos.length)return nota(a.neta>0?`<b>+${mon(a.neta)}</b>`:a.neta<0?`−${mon(a.neta)}`:'Empate');
  return ''}
 function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=botones(v,s,a);
  return `<div class="ui bj-top"><span class="ui-pill bj-f"><small>Fichas</small><b>${mon(a.f)}</b></span>

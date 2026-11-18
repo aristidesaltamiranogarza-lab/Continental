@@ -5,7 +5,7 @@
 (function(){
 const I=n=>window.UI?UI.ico(n):'',es=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'),$=id=>document.getElementById(id);
 const mon=f=>'$'+Math.round(Math.abs(f||0)).toLocaleString('es-MX'),touchy=matchMedia('(pointer:coarse)').matches;
-const CALLE=['Antes del flop','Flop','Turn','River'];
+const CALLE=['Preflop','Flop','Turn','River'];
 const L=new Map();let tP=0,sub=null,subK='',eqK='',eq=null;
 const snd=n=>{if(typeof sfx=='function')sfx(n)};
 const segs=v=>Math.max(0,Math.ceil(((v.left||0)-(performance.now()-(v.t0||0)))/1000));
@@ -19,7 +19,7 @@ function valor(v,a,c){const k=v.mano+':'+v.calle+':'+v.alta+':'+v.minR;if(k!==su
 function op(o,x){PK3.act(o,x);snd(o==='retirar'?'tick':'chip')}
 function sube(n){const y=yo();if(!y)return;const c=cuentas(y.v,y.a);n=Math.max(c.min,Math.min(c.max,Math.round(n)));if(n>=c.max)return op('todo');op('subir',{v:n})}
 function fija(n){const y=yo();if(!y)return;const c=cuentas(y.v,y.a);sub=Math.max(c.min,Math.min(c.max,Math.round(+n)));
- const r=$('pkRng'),b=$('pkSub');if(r&&+r.value!==sub)r.value=sub;if(b)b.textContent=(sub>=c.max?'Todo · ':(y.v.alta?'Subir a ':'Apostar '))+mon(sub)}
+ const r=$('pkRng'),b=$('pkSub');if(r&&+r.value!==sub)r.value=sub;if(b)b.textContent=(sub>=c.max?'Todo ':(y.v.alta?'Subir ':'Apostar '))+mon(sub)}
 function yo(){const v=PK3.v,s=PK3.yo();return v&&s>=0&&v.as[s]?{v,a:v.as[s]}:null}
 
 // ---------- tu jugada: nombre, probabilidad de ganar contra los que siguen y outs (se calcula solo cuando cambia algo) ----------
@@ -31,7 +31,7 @@ function jugada(v,a){if(!window.PEV||!a.jug||a.fold||!a.c||a.c.length<2||a.c[0]<
 
 // ---------- pastillas y barra ----------
 function fase(v,s,a){if(v.fase==='espera')return {t:'Esperando'};
- if(!a.jug)return {t:'Siguiente mano'};
+ if(!a.jug)return {t:'Esperando'};
  if(v.fase==='fin')return {t:v.res&&v.res.some(r=>r.nom)?'Showdown':'Fin'};
  if(miTurno(v,s))return {t:'Tu turno',me:true,left:true};
  if(v.fase==='mano'&&v.turno>=0&&v.as[v.turno])return {t:'Turno de '+es(v.as[v.turno].n),left:true};
@@ -40,16 +40,16 @@ const B=(t,on,cls,dis,id)=>`<button class="ui-btn${cls?' '+cls:''}"${id?` id="${
 const nota=t=>`<span class="gj-note">${t}</span>`;
 function botones(v,s,a,sinT){
  if(v.fase==='fin'&&a.jug){const n=a.neta||0,mio=(v.res||[]).find(r=>r.g.includes(s));
-  const t=n>0?`Ganaste <b>${mon(n)}</b>${mio&&mio.nom?' con '+es(mio.nom):''}`:n<0?`Perdiste ${mon(n)}`:'Quedaste igual';
+  const t=n>0?`<b>+${mon(n)}</b>${mio&&mio.nom?' · '+es(mio.nom):''}`:n<0?`−${mon(n)}`:'Empate';
   return nota(t)+(!a.mos&&a.c&&a.c.length?B('Mostrar',"PKH.op('mostrar')",'sec'):'')}
  if(!miTurno(v,s)||a.fold||a.allin)return '';
  const c=cuentas(v,a),x=sinT?c.min:valor(v,a,c),d=c.max-c.min;
- let h=B('Retirarse',"PKH.op('retirar')",'ghost')+(c.falta?B(c.falta>=a.f?`Todo · ${mon(a.f)}`:`Igualar ${mon(c.falta)}`,"PKH.op('igualar')",'sec'):B('Pasar',"PKH.op('pasar')",'sec'));
+ let h=B('Retirarse',"PKH.op('retirar')",'ghost')+(c.falta?B(c.falta>=a.f?`Todo ${mon(a.f)}`:`Igualar ${mon(c.falta)}`,"PKH.op('igualar')",'sec'):B('Pasar',"PKH.op('pasar')",'sec'));
  if(!c.puede)return h;
  const rap=[['½ bote',c.medio],['Bote',c.entero],['Todo',c.max]].filter(([,n],i,A)=>i==2||n<c.max&&(i==0||n!==A[0][1]));
  return `<div class="pk-sube">${d>0?`<input id="pkRng" class="pk-rng" type="range" min="${c.min}" max="${c.max}" step="${v.minR>=10?5:1}" value="${x}" oninput="PKH.fija(this.value)" aria-label="Cuánto subir">`:''}
   <div class="pk-rap">${rap.map(([t,n])=>B(t,`PKH.fija(${n})`,'ghost')).join('')}</div></div>`
-  +h+B((x>=c.max?'Todo · ':(v.alta?'Subir a ':'Apostar '))+mon(x),'PKH.sube(PKH.sub())','go',false,'pkSub')}
+  +h+B((x>=c.max?'Todo ':(v.alta?'Subir ':'Apostar '))+mon(x),'PKH.sube(PKH.sub())','go',false,'pkSub')}
 // vista previa de tus dos cartas (solo mientras las ves; en 2D ya van en tu fila)
 const PALO=['♠','♥','♦','♣'],RANGO=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 function previa(v,a){if(!PK3.veo()||!a.c||!a.c.length||a.c[0]<0||a.fold||window.PK2D&&PK2D.on())return '';
@@ -63,11 +63,11 @@ function hud(v,s,sinT){const a=v.as[s];if(!a)return '';const f=fase(v,s,a),b=bot
   <button class="ui-rb c2k" onclick="PK3.levantarse()" title="Levantarse${touchy?'':' (Esc)'}" aria-label="Levantarse">${I('salir')}</button></div>
  ${window.PK2D?PK2D.html(v,s,sinT,j):''}
  ${previa(v,a)}
- ${j?`<div class="ui pk-jug"><span class="ui-pill"><b>${es(j.nom)}</b><small>${j.p} % de ganar${j.o?` · ${j.o} outs`:''}</small></span></div>`:''}
+ ${j?`<div class="ui pk-jug"><span class="ui-pill"><b>${es(j.nom)}</b><small>${j.p} %</small></span></div>`:''}
  ${b?`<div class="ui bj-bar" role="group" aria-label="Jugadas"><div class="bj-bb">${b}</div></div>`:''}`}
 
 // ---------- nombres, última jugada, resultados y botes sobre la mesa ----------
-const ACC={ciega:'Ciega',pasar:'Pasa',igualar:'Iguala',subir:'Sube a',apostar:'Apuesta',todo:'Todo',retirar:'Se retira'};
+const ACC={ciega:'Ciega',pasar:'Pasa',igualar:'Iguala',subir:'Sube',apostar:'Apuesta',todo:'Todo',retirar:'Se retira'};
 function etiqueta(k){let e=L.get(k);if(!e){e=document.createElement('div');L.set(k,e)}if(!e.isConnected)(document.getElementById('app')||document.body).appendChild(e);e.vivo=1;return e}
 function pon(e,cls,h,p,cam,W,Hh){if(e.className!==cls)e.className=cls;if(e._h!==h){e._h=h;if(window.MORPH)MORPH.set(e,h);else e.innerHTML=h}
  if(!p)return e.style.display='none';p.project(cam);const vis=p.z<1&&Math.abs(p.x)<1.05&&Math.abs(p.y)<1.05;e.style.display=vis?'':'none';
@@ -80,7 +80,7 @@ function paso(v,s,now){tP=now;const H=window.CASA3D,cam=H&&H.cam(),cv=H&&H.R&&H.
    if(i!==s)pon(etiqueta('n'+i),'ui gj-seat bj-n'+(v.fase==='mano'&&v.turno===i?' on':''),`<b>${es(a.n)}</b><small>${mon(a.f)}${ac?' · '+ac:''}</small>`,PK3.arriba(i),cam,W,Hh);
    if(fin&&a.jug&&(a.neta>0||a.nom)){const r=(v.res||[]).find(r=>r.g.includes(i));
     pon(etiqueta('r'+i),'ui bj-tot'+(a.neta>0?' gana':''),`${a.neta>0?'+'+mon(a.neta):''}${a.neta>0&&(a.nom||r&&r.nom)?' ':''}${es(a.nom||(r&&r.nom)||'')}`,PK3.ptAsiento(i),cam,W,Hh)}});
-  if(!fin)(v.botes||[]).forEach((b,k,A)=>pon(etiqueta('b'+k),'ui bj-tot',`${A.length>1?(k?'Bote '+(k+1):'Bote principal'):'Bote'} ${mon(b.v)}`,PK3.ptBote(k,A.length),cam,W,Hh))}
+  if(!fin)(v.botes||[]).forEach((b,k,A)=>pon(etiqueta('b'+k),'ui bj-tot',`${A.length>1?'Bote '+(k+1):'Bote'} ${mon(b.v)}`,PK3.ptBote(k,A.length),cam,W,Hh))}
  L.forEach((e,k)=>{if(!e.vivo){e.remove();L.delete(k)}})}
 setInterval(()=>{if(performance.now()-tP>400)L.forEach(e=>{if(e.style.display!=='none')e.style.display='none'})},300);
 
