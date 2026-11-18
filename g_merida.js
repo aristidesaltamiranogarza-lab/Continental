@@ -1,4 +1,4 @@
-// Mérida en Venta: juego original de compra y renta con colonias de Mérida. 2 a 6 jugadores, sin bots. Gana el último que no quiebra.
+// Mérida en Venta: juego original de compra y renta con colonias de Mérida. 2 a 6 jugadores; bots en g_merida_bot.js. Gana el último que no quiebra.
 // Tablero y cartas en merida_data.js. Estados del turno (G.st): roll (tirar) · buy (comprar o no) · end (terminar turno).
 // Encima del turno pueden ir capas que lo bloquean: G.auc (subasta), G.debts (deudas en fila: la primera la resuelve su deudor).
 const D=require('./merida_data.js'),B=D.board,NB=B.length,JAIL=D.jail,BAIL=D.bail,AUC_MS=12000,AWAY_MS=180000;
@@ -131,7 +131,7 @@ function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
 function inner(R,G,i,t,m){const a=G.auc;
  if(t=='bid'){if(!a)return 'No hay subasta.';if(!a.in.includes(i))return 'Ya te retiraste de esta subasta.';const v=m.v|0;
   if(v<=a.bid||v<1)return 'Tienes que ofrecer más de '+$(a.bid)+'.';if(v>G.cash[i])return 'No tienes tanto dinero.';
-  a.bid=v;a.hi=i;a.t=Math.max(a.t,Date.now()+AUC_MS*.6);lg(G,i,'ofrece '+$(v)+' pesos');return}
+  a.bid=v;a.hi=i;a.t=Math.max(a.t,Date.now()+AUC_MS*.6);lg(G,i,'ofrece '+$(v)+' pesos');aucCheck(R);return}
  if(t=='apass'){if(!a||!a.in.includes(i))return 'No estás en la subasta.';a.in=a.in.filter(x=>x!==i);lg(G,i,'se retira de la subasta');aucCheck(R);return}
  if(a)return 'Hay una subasta en curso.';
  if(t=='tprop'||t=='tyes'||t=='tno')return trade(G,i,t,m);
@@ -155,7 +155,8 @@ function inner(R,G,i,t,m){const a=G.auc;
 function view(R,tok,me,now){const G=R.G,v=Object.assign({},G,{dk:{s:G.dk.s.length,c:G.dk.c.length},sh:G.sh||{s:0,c:0},jf:G.jfc.map(x=>x.length)});delete v.jfc;delete v.dp;
  if(G.auc)v.auc=Object.assign({},G.auc,{left:Math.max(0,G.auc.t-now)});return {G:v,claim:false,pend:false}}
 function kick(R,k){quit(R,k)}
-// el que lleva AWAY_MS sin conectarse abandona: sus propiedades regresan al banco
+// quien sale de la sala abandona; si solo se desconecta, un bot juega por él (server.js botGo)
 function tick(R){const G=R.G;if(!G||(G.phase!='play'&&G.phase!='orden'))return;const now=Date.now();let ch=0;
- R.players.forEach((p,k)=>{if(!G.bk[k]&&(p.out||now-p.seen>AWAY_MS)){quit(R,k);ch=1}});if(ch&&R.poke)R.poke()}
-module.exports={id:'merida',name:'Mérida en Venta',min:2,max:6,opts:OPTS,rng:{cash:[500,5000]},start,view,act,kick,tick,_:{B,GR,rent,broke}};
+ R.players.forEach((p,k)=>{if(!G.bk[k]&&p.out){quit(R,k);ch=1}});if(ch&&R.poke)R.poke()}
+const bot=require('./g_merida_bot.js')({B,GR,D,BAIL});
+module.exports={id:'merida',name:'Mérida en Venta',min:2,max:6,opts:OPTS,rng:{cash:[500,5000]},start,view,act,kick,tick,bot,_:{B,GR,rent,broke}};
