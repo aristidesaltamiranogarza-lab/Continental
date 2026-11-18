@@ -691,10 +691,10 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  // botones de abajo
  let b='';const ic=n=>UI.ico(n);
  if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Salir</button>`:''}`;
- else{if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer</button>`;
+ else{if(sel.size)b+=`<button class="ui-btn sec t3x" onclick="c3dDesel()" title="Desmarcar" aria-label="Desmarcar">${ic('x')}</button>`;
+  if(pl){const rd=!dn&&listo();if(!dn)b+=`<button class="ui-btn${rd?' go':' sec'}" onclick="c3dBajar()">${ic('abajo')}Bajarme</button>`;if(V.pend)b+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer</button>`;
    b+=`<button class="ui-btn${sel.size==1&&!rd?' go':' sec'}" onclick="discard()">Descartar</button>`}
   if(!mine&&!G.tdc&&G.disc.length)b+=V.claim?`<button class="ui-btn sec" onclick="send({t:'unbuy'})">${ic('x')}Cancelar compra</button>`:`<button class="ui-btn sec" onclick="comprar()">Comprar</button>`;
-  if(sel.size)b+=`<button class="ui-btn sec" onclick="c3dDesel()">${ic('x')}Desmarcar</button>`;
   b+=ordBtn();}
  h+=GHUD.bar(b);
  if(ap)h+=apUI();
@@ -741,11 +741,10 @@ function c4check(){const g=c4g();if(!g){c4snap='';return}const mi=g.p.indexOf(V.
 const c4send=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'c4'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
 const c4a=op=>{const g=c4g();if(op=='acc')c4discover();if(g)c4send({op,id:g.id})};
 window.c4a=c4a;window.c4o=o=>{c4open=!!o;menu=false;if(!o&&VT.c4)home();sfx('tick');render()};
-// botón de orden: muestra la palabra; al tocarlo se abre un rato en N / P / L
-let ordA=0,ordT=0;const ORD=[['N','Número'],['P','Palo'],['L','Libre']],ordCur=()=>manual?'L':sortS?'P':'N';
-function ordBtn(){const c=ordCur();if(ordA)return `<span class="ui-seg t3ord" style="pointer-events:auto;box-shadow:var(--ui-shadow)">${ORD.map(([k,n])=>`<button class="${c==k?'on':''}" onclick="c3dOrd('${k}')" aria-label="${n}" aria-pressed="${c==k}">${k}</button>`).join('')}</span>`;
- return `<button class="ui-btn sec" onclick="c3dOrd()" title="Ordenar">${UI.ico('ordenar')}${ORD.find(o=>o[0]==c)[1]}</button>`}
-window.c3dOrd=k=>{if(k){manual=k=='L';sortS=k=='P';sfx('card')}ordA=1;clearTimeout(ordT);ordT=setTimeout(()=>{ordA=0;render()},1200);render()};
+// botón de orden: muestra el modo con su ícono; al tocarlo se despliega (ui_juegos.css .t3ord) y se puede elegir otro
+let ordA=0,ordT=0;const ORD=[['N','Número','numero'],['P','Palo','palo'],['L','Libre','libre']],ordCur=()=>manual?'L':sortS?'P':'N';
+function ordBtn(){const c=ordCur();return `<span class="ui t3ord${ordA?' open':''}" data-k="t3ord">${ORD.map(([k,n,ic])=>`<button class="${c==k?'on':''}" data-k="ord${k}" onclick="c3dOrd('${k}')" title="${n}" aria-label="${n}" aria-pressed="${c==k}">${UI.ico(ic)}<em>${n}</em></button>`).join('')}</span>`}
+window.c3dOrd=k=>{if(ordA&&k&&k!=ordCur()){manual=k=='L';sortS=k=='P';sfx('card')}ordA=1;clearTimeout(ordT);ordT=setTimeout(()=>{ordA=0;render()},1800);render()};
 window.c3dDesel=()=>{sel.clear();sfx('card');render()};
 window.c4go=()=>{c4open=true;menu=false;c4look();render()};
 window.c4inv=k=>{c4send({op:'inv',k});sfx('card')};   // el servidor borra la partida terminada al crear la nueva

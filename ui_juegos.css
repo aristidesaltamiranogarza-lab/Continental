@@ -391,3 +391,16 @@ html.c2don .pk-jug{top:calc(64px + env(safe-area-inset-top,0px))}
 .pk-ojo{position:fixed;z-index:13;left:calc(14px + env(safe-area-inset-left,0px));top:calc(126px + env(safe-area-inset-top,0px))}
 html.c2don .pk-ojo{top:calc(72px + env(safe-area-inset-top,0px))}
 @media (min-width:768px) and (hover:hover){.pk-ojo,html.c2don .pk-ojo{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}}
+/* Continental 3D: botón de orden (se despliega con transición) y Desmarcar redondo a la izquierda */
+.gj-bar .t3x{width:44px;padding:0;flex:none}
+.t3ord{display:inline-flex;align-items:center;padding:2px;border-radius:999px;background:var(--ui-panel);-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);pointer-events:auto;flex:none}
+.t3ord button{display:inline-flex;align-items:center;gap:7px;height:38px;max-width:150px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--ui-text);font:700 14px/1 var(--ui-font);white-space:nowrap;overflow:hidden;cursor:pointer;touch-action:manipulation;
+ transition:max-width .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),opacity .22s ease,background-color .2s,color .2s}
+.t3ord button svg{width:20px;height:20px;flex:none;color:var(--ui-icon);transition:color .2s}
+.t3ord em{font-style:normal;max-width:80px;overflow:hidden;transition:max-width .3s cubic-bezier(.3,.7,.2,1),opacity .22s ease}
+.t3ord:not(.open) button:not(.on){max-width:0;padding:0;opacity:0}
+.t3ord.open em{max-width:0;opacity:0}
+.t3ord.open button{padding:0 11px}
+.t3ord.open button.on{background:var(--ui-accent);color:var(--ui-on)}
+.t3ord.open button.on svg{color:var(--ui-on)}
+@media (prefers-reduced-motion:reduce){.t3ord button,.t3ord em{transition:none}}

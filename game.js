@@ -17,7 +17,9 @@ setInterval(()=>{if(document.hidden)return;acUp();if(typeof musSync=='function')
 function confetti(n){if(RM)return;for(let k=0;k<n;k++){const e=document.createElement('i');e.style.cssText=`left:${Math.random()*100}%;background:hsl(${Math.random()*360},90%,60%);animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*.8}s`;FX.appendChild(e);setTimeout(()=>e.remove(),5000)}}
 function banner(t){const e=document.createElement('div');e.className='ban';e.textContent=t;FX.appendChild(e);setTimeout(()=>e.remove(),2800)}
 function cdStart(ms,rc){const t0=Date.now();rlEnd=t0+(rc||0);sfx('shuf');cdEnd=t0+ms;cdN=0;clearInterval(cdT);cdT=setInterval(()=>{const now=Date.now(),n=Math.ceil((cdEnd-now)/1000);if(now>=rlEnd&&n!==cdN){cdN=n;sfx(n>0?'tick':'go')}if(n<=0)clearInterval(cdT);render()},100)}
-function rouletteStart(n){const rl=n.rl;if(!rl||!(n.rc>0))return;const old=document.getElementById('rl');if(old)old.remove();
+// si la sala de espera se está yendo (fundido a negro al empezar), la ruleta sale cuando termina, con el tiempo que le quede
+function rouletteStart(n,ya){if(!ya&&window.SALA&&SALA.on()){const t0=Date.now(),w=()=>{if(SALA.on()&&Date.now()-t0<4000)return setTimeout(w,80);const left=n.rc-(Date.now()-t0);if(left>1500)rouletteStart(Object.assign({},n,{rc:left}),1)};return setTimeout(w,80)}
+ const rl=n.rl;if(!rl||!(n.rc>0))return;const old=document.getElementById('rl');if(old)old.remove();
  const who=n.players[rl.who].name,ms=n.rc,spin=Math.max(0,Math.min(4800,ms-1700)),th=360/52,fin=360*6-(rl.sl+.5)*th+(Math.random()-.5)*th*.6;
  const el=document.createElement('div');el.id='rl';
  el.innerHTML=`<div class="rt">🎰 Ruleta del comodín</div><div class="rw"><div class="rp">▼</div><div class="rd"><i class="rj">🃏</i></div></div><div class="rs">${esc(who)} puede ganarse un comodín (1 de 52)</div><div class="rr"></div>`;

@@ -3,7 +3,7 @@
 // acerca al contrato, se baja en cuanto puede, pega todo lo que cabe y tira la carta alta que menos le sirve. Rechaza Conecta 4 y Backgammon.
 module.exports=function(H){
 const {C,pts,trio,runArr,runOrd,fits,CON}=H;
-const rnd=(a,b)=>a+Math.random()*(b-a);
+const rnd=(a,b)=>a+Math.random()*(b-a);   // tiempos lentos a propósito: le dan a las personas chance de comprar el descarte
 // mejor forma de armar el contrato con las cartas ids: {miss: cartas que le faltan, gs: grupos (ids con null = hueco; f = hueco que puede ir con comodín), jk, used}
 function ev(ids,con){
  const cs=ids.map(C),nat=cs.filter(c=>!c.j),jk=cs.filter(c=>c.j).map(c=>c.id),byR={},byRS={},add=(o,k,id)=>(o[k]=o[k]||[]).push(id);
@@ -54,14 +54,14 @@ function bot(R,k){const G=R.G,p=R.players[k];if(!G||!p||p.out)return null;
  if(G.turn!=k){// comprar el descarte que el de turno deja pasar, si lo acerca al contrato (máximo 2 por ronda)
   if(dn||G.tdc||top===undefined||R.cl[p.id]==G.tc)return null;const bk='b'+G.tc+':'+k,nk='bn'+G.dn+':'+k;
   const yes=once(bk,()=>{if((mem[nk]||0)>=2||h.length>12+G.round)return false;const ok=ev(h.concat(top),con).miss<ev(h,con).miss;if(ok)mem[nk]=(mem[nk]||0)+1;return ok});
-  return yes?{m:{t:'buy'},ms:at(bk,1200,2800)}:null}
+  return yes?{m:{t:'buy'},ms:at(bk,2000,4000)}:null}
  const key=G.tc+':'+G.step+':'+h.length+':'+G.melds.length;
  if(R.pb&&JSON.parse(R.pb).i==k)return {m:{t:'undoswap'},ms:at('u'+key,500,900)};
  if(G.step=='draw'){const m=once(key,()=>{let disc=top!==undefined&&(dn?fits(G,top):ev(h.concat(top),con).miss<ev(h,con).miss);
-   if(!G.deck.length&&G.disc.length<2)disc=true;return {t:'draw',src:disc?'disc':'deck'}});return {m,ms:at(key,900,1800)}}
+   if(!G.deck.length&&G.disc.length<2)disc=true;return {t:'draw',src:disc?'disc':'deck'}});return {m,ms:at(key,1800,3000)}}
  const m=once(key,()=>{
   if(!dn){const e=ev(h,con);if(e.miss==0){const gs=build(e);if(gs)return {t:'down',groups:gs}}}
   else{const ord=h.slice().sort((a,b)=>C(a).j-C(b).j);for(const x of ord)for(let q=0;q<G.melds.length;q++)if(fitM(G.melds[q],x))return {t:'pegar',k:q,id:x}}
   const id=pickDiscard(G,k,h,con);return id==null?null:{t:'discard',id}});
- return m?{m,ms:at(key,m.t=='discard'?900:700,m.t=='discard'?1600:1300)}:null}
+ return m?{m,ms:at(key,m.t=='discard'?2600:1200,m.t=='discard'?4000:2000)}:null}
 return bot};
