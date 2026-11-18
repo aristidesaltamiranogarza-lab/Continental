@@ -4,7 +4,7 @@
 const D=require('./merida_data.js'),B=D.board,NB=B.length,JAIL=D.jail,BAIL=D.bail,AUC_MS=12000,AWAY_MS=180000;
 // reglas opcionales: dbl x2 renta con grupo completo · pot bote de vacaciones · auc subasta · jr sin renta si el dueño está en la cárcel
 // mort hipotecas · even construcción pareja · cash dinero inicial · qa abandono → subasta de sus propiedades
-const OPTS={dbl:false,pot:false,auc:true,jr:false,mort:false,even:true,cash:1500,qa:false};
+const OPTS={dbl:false,pot:false,auc:true,jr:false,mort:true,even:true,cash:1500,qa:false};
 const GR=[],RR=[],UU=[];B.forEach((s,i)=>{if(s.t=='p')(GR[s.g]=GR[s.g]||[]).push(i);if(s.t=='r')RR.push(i);if(s.t=='u')UU.push(i)});
 const JF={s:D.cards.s.findIndex(c=>c.jf),c:D.cards.c.findIndex(c=>c.jf)};
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -133,6 +133,8 @@ function inner(R,G,i,t,m){const a=G.auc;
   if(v<=a.bid||v<1)return 'Tienes que ofrecer más de '+$(a.bid)+'.';if(v>G.cash[i])return 'No tienes tanto dinero.';
   a.bid=v;a.hi=i;a.t=Math.max(a.t,Date.now()+AUC_MS*.6);lg(G,i,'ofrece '+$(v)+' pesos');aucCheck(R);return}
  if(t=='apass'){if(!a||!a.in.includes(i))return 'No estás en la subasta.';a.in=a.in.filter(x=>x!==i);lg(G,i,'se retira de la subasta');aucCheck(R);return}
+ // en subasta, quien sigue pujando puede juntar dinero (vender casas o hipotecar); el reloj le da tiempo
+ if(a&&(t=='sell'||t=='mort')&&a.in.includes(i)&&!G.debts.length){const r=manage(G,i,t,m.sq|0);if(!r)a.t=Math.max(a.t,Date.now()+AUC_MS*.6);return r}
  if(a)return 'Hay una subasta en curso.';
  if(t=='tprop'||t=='tyes'||t=='tno')return trade(G,i,t,m);
  if(t=='quit'){quit(R,i);return}

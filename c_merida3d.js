@@ -1,7 +1,7 @@
 // Mérida en Venta 3D: el tablero sobre una mesa de madera en el cuarto del Continental 3D (C3D.buildRoom), fichas yucatecas de metal con base
 // del color de cada jugador, flechas que rebotan encima de cada ficha, casas y hoteles con arcos, dados que ruedan y tema Menta u Oscuro.
 // Lo maneja c_meridaui.js como window.M3 (ok, show, layout, theme, follow, sync, cam, look); c_merida_enfoque.js usa focus y blink. NO cambia reglas ni servidor.
-// Cámara: 1 dedo gira e inclina; 2 dedos acercan, mueven y giran; ratón: arrastrar gira, clic derecho (o Shift) mueve, rueda acerca. Doble toque recentra.
+// Cámara: 1 dedo mueve; 2 dedos acercan, giran e inclinan; ratón: arrastrar mueve, clic derecho (o Shift) gira, rueda acerca. Doble toque recentra.
 (function(){
 if(typeof THREE==='undefined'||!window.MR){console.warn('Mérida 3D: falta Three.js o c_merida.js');return}
 const D=MR.D,B=MR.B,K=2048/12,K3=window.C3D||null,TOPT=1.5,KMIN=.7,KMAX=4.5,HOP=180,RS=1.6;
@@ -147,13 +147,15 @@ function resize(){if(!ready)return;const b=root.getBoundingClientRect();W=Math.m
 // ---- dedos y ratón ----
 function ground(px,py){const r=cv.getBoundingClientRect();P2.set((px-r.left)/r.width*2-1,-(py-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(new THREE.Plane(v3(0,1,0),0),v3(0,0,0))}
 function zoomAt(px,py,k){const p=ground(px,py);k=Math.max(KMIN,Math.min(KMAX,k));if(p){const f=VT.k/k;VT.x=p.x-(p.x-VT.x)*f;VT.z=p.z-(p.z-VT.z)*f}VT.k=k;touched=true;clampV()}
-function pDown(e){if(!shown)return;ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,mv:false,pan:e.pointerType=='mouse'&&(e.button==2||e.shiftKey||e.button==1)});try{cv.setPointerCapture(e.pointerId)}catch(_){}
- touched=true;if(ptr.size==2){VK.forEach(q=>VT[q]=VW[q]);const [a,b]=[...ptr.values()];pin={d:Math.hypot(a.x-b.x,a.y-b.y)||1,k:VT.k,ang:Math.atan2(b.y-a.y,b.x-a.x),acc:0,rot:false,g:ground((a.x+b.x)/2,(a.y+b.y)/2)}}}
+function pDown(e){if(!shown)return;ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,mv:false,pan:!(e.pointerType=='mouse'&&(e.button==2||e.shiftKey||e.button==1))})   // un dedo o clic mueve el tablero; clic derecho/medio o Shift gira;try{cv.setPointerCapture(e.pointerId)}catch(_){}
+ touched=true;if(ptr.size==2){VK.forEach(q=>VT[q]=VW[q]);const [a,b]=[...ptr.values()];pin={d:Math.hypot(a.x-b.x,a.y-b.y)||1,k:VT.k,ang:Math.atan2(b.y-a.y,b.x-a.x),acc:0,rot:false,mx:(a.x+b.x)/2,my:(a.y+b.y)/2}}}
 function pMove(e){const p=ptr.get(e.pointerId);if(!p)return;const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;if(Math.hypot(p.x-p.x0,p.y-p.y0)>7)p.mv=true;
  if(ptr.size>=2&&pin){const [a,b]=[...ptr.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,ang=Math.atan2(b.y-a.y,b.x-a.x);let da=wrapA(ang-pin.ang);pin.ang=ang;
   // el giro arranca hasta pasar ~8°, para que pellizcar no gire sin querer
   pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.14){pin.rot=true;da=pin.acc}if(pin.rot)VT.a+=da;
-  VT.k=pin.k*(Math.hypot(a.x-b.x,a.y-b.y)||1)/pin.d;snap();const g=ground(mx,my);if(g&&pin.g){VT.x+=pin.g.x-g.x;VT.z+=pin.g.z-g.z;snap()}return}
+  VT.k=pin.k*(Math.hypot(a.x-b.x,a.y-b.y)||1)/pin.d;
+  // dos dedos: arrastrar de lado gira y de arriba a abajo inclina (ángulo de la cámara)
+  VT.a-=(mx-pin.mx)*.008;VT.t+=(my-pin.my)*.006;pin.mx=mx;pin.my=my;snap();return}
  if(!p.mv||ptr.size!=1)return;
  if(p.pan){const g0=ground(ox,oy),g1=ground(p.x,p.y);if(g0&&g1){VT.x+=g0.x-g1.x;VT.z+=g0.z-g1.z;snap()}return}
  VT.a-=(p.x-ox)*.008;VT.t+=(p.y-oy)*.006;snap()}

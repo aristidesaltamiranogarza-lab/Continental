@@ -36,6 +36,8 @@ const chipSq=q=>`<button class="mu-chip" style="--gc:${col(q)}" onclick="MRU.sel
 const canAct=()=>{const G=V.G,m=me();if(m<0||G.bk[m]||G.auc||G.phase!='play')return false;return G.debts.length?G.debts[0].k===m:G.turn===m};
 function buildable(i){const G=V.G,m=me(),s=B[i];if(s.t!='p'||G.own[i]!==m||G.hs[i]>=5)return false;const g=GR[s.g];
  if(!full(s.g,m)||g.some(j=>G.mg[j]))return false;if(G.o.even&&G.hs[i]>Math.min(...g.map(j=>G.hs[j])))return false;return G.cash[m]>=D.hc[s.g]}
+// juntar dinero (vender casas, hipotecar): en tu turno, si debes, o mientras sigues en una subasta
+const canRaise=()=>{const G=V.G,m=me();if(canAct())return true;return m>=0&&!G.bk[m]&&G.phase=='play'&&!G.debts.length&&!!G.auc&&G.auc.in.includes(m)};
 const canBuild=()=>canAct()&&V.G.own.some((o,i)=>o===me()&&buildable(i));
 if(window.MCAR)MCAR.init({get G(){return V.G},get TR(){return TR},me,B,D,GR,$m,pc,tk,tok,nm,esc,buildable,canAct,icon,onCol,MIC});
 if(window.MENF)MENF.init({get G(){return V.G},me,B,D,GR,$m,esc,pc,onCol,MIC,buildable,canAct,full,is3d:()=>stageName()=='3d',stage:()=>stage()});
@@ -68,14 +70,14 @@ function myDock(){const G=V.G,m=me(),q=G.pos[m],s=B[q],where=`<div class="mu-s">
   <button class="mu-b pri big go" onclick="MRU.a('roll')">${MIC.h('dado')} Tirar por dobles</button><div class="mu-acts"><button class="mu-b" onclick="MRU.a('bail')"${G.cash[m]<D.bail?' disabled':''}>Pagar fianza ${$m(D.bail)}</button>${G.jf[m]?`<button class="mu-b" onclick="MRU.a('jcard')">${MIC.h('llave')} Usar tarjeta</button>`:''}</div>`;
  else if(G.st=='roll')h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">¡Tu turno!</b>${G.again?'<div class="mu-s">Sacaste dobles: tira otra vez</div>':where}</div>${dice()}</div><button class="mu-b pri big go" onclick="MRU.a('roll')">${MIC.h('dado')} ${G.again?'Tirar otra vez':'Tirar dados'}</button>`;
  else if(G.st=='buy')h=`<div class="mu-row mu-tap" onclick="MRU.sel(${q})">${mini(q)}<div class="mu-f1"><div class="mu-s">Caíste en</div><b class="mu-h">${esc(s.n)}</b><div class="mu-s">Tienes ${$m(G.cash[m])} · <u>ver rentas</u></div></div>${dice()}</div>
-  <div class="mu-acts"><button class="mu-b ok big" onclick="MRU.a('buy')"${G.cash[m]<s.p?' disabled':''}>Comprar ${$m(s.p)}</button><button class="mu-b big2" onclick="MRU.a('nobuy')">${G.o.auc?'Subastar':'No comprar'}</button></div>`;
+  <div class="mu-acts"><button class="mu-b ok big" onclick="MRU.a('buy')"${G.cash[m]<s.p?' disabled':''}>Comprar ${$m(s.p)}</button><button class="mu-b big2" onclick="MRU.a('nobuy')">${G.o.auc?'Subastar':'No comprar'}</button></div>${G.cash[m]<s.p?`<div class="mu-acts"><button class="mu-b" onclick="MRU.tab('mias')">Te faltan ${$m(s.p-G.cash[m])}: vende casas${G.o.mort?' o hipoteca':''}</button></div>`:''}`;
  else h=`<div class="mu-row"><div class="mu-f1"><b class="mu-h">Tu turno</b>${where}<div class="mu-s">${canBuild()?'Ya puedes construir: <button class="mu-lk" onclick="MRU.tab(\'mias\')">ver mis propiedades</button>':'Puedes hacer un trato antes de terminar.'}</div></div>${dice()}</div><button class="mu-b pri big go" onclick="MRU.a('end')">Terminar turno</button>`;
  return `<div class="mu-dk hi">${h}</div>`}
 function aucDock(){const G=V.G,a=G.auc,m=me(),s=B[a.sq],inn=a.in.includes(m),cash=G.cash[m]||0;
  const bt=d=>{const v=a.bid+d;return `<button class="mu-b${d==10?' pri':''}" onclick="MR.bid(${v})"${v>cash?' disabled':''}>+${d}<small>${$m(v)}</small></button>`};
  return `<div class="mu-dk hi"><div class="mu-row mu-tap" onclick="MRU.sel(${a.sq})">${mini(a.sq)}<div class="mu-f1"><div class="mu-s">${MIC.h('martillo')} Subasta · vale ${$m(s.p)}</div><b class="mu-h">${esc(s.n)}</b>
   <div class="mu-s">${a.hi>=0?`Va ganando ${nm(a.hi)} con <b>${$m(a.bid)}</b>`:'Nadie ha ofrecido'}</div></div><div class="mu-clock"><b id="mraT">${Math.ceil(a.left/1000)}</b><small>seg</small></div></div>
-  ${inn?`<div class="mu-acts four">${[1,10,50,100].map(bt).join('')}</div><div class="mu-acts"><input id="mubv" class="mu-in" type="number" inputmode="numeric" min="${a.bid+1}" max="${cash}" placeholder="Otra cantidad"><button class="mu-b" onclick="MR.bid(+document.getElementById('mubv').value)">Ofrecer</button><button class="mu-b" onclick="MRU.a('apass')">Me retiro</button></div>`
+  ${inn?`<div class="mu-acts four">${[1,10,50,100].map(bt).join('')}</div><div class="mu-acts"><input id="mubv" class="mu-in" type="number" inputmode="numeric" min="${a.bid+1}" max="${cash}" placeholder="Otra cantidad"><button class="mu-b" onclick="MR.bid(+document.getElementById('mubv').value)">Ofrecer</button><button class="mu-b" onclick="MRU.a('apass')">Me retiro</button></div><div class="mu-acts"><button class="mu-b" onclick="MRU.tab('mias')">Tienes ${$m(cash)} · conseguir más</button></div>`
    :`<div class="mu-s">${m>=0?'Ya te retiraste.':'Estás mirando.'} Siguen: ${a.in.map(nm).join(', ')||'nadie'}</div>`}</div>`}
 function debtDock(){const G=V.G,d=G.debts[0],m=me();
  if(d.k!==m)return `<div class="mu-dk"><div class="mu-row"><span class="mu-big">${MIC.h('billete')}</span><div class="mu-f1"><b class="mu-h">${nm(d.k)} debe ${$m(d.amt)}</b><div class="mu-s">a ${nm(d.to)} · está juntando el dinero…</div></div></div></div>`;
@@ -137,9 +139,9 @@ function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body=''
  const here=G.players.map((_,k)=>k).filter(k=>!G.bk[k]&&G.pos[k]===i);
  let own=s.p?`<div class="mu-down">${o>=0?`${tok(o,'xs')} Dueño: <b>${nm(o)}</b>${h?' · '+(h==5?'hotel':h+(h>1?' casas':' casa')):''}${G.mg[i]?' · <em>hipotecada</em>':''}`:`Sin dueño · cuesta <b>${$m(s.p)}</b>`}</div>`:'';
  if(here.length)own+=`<div class="mu-down">Aquí está${here.length>1?'n':''}: ${here.map(k=>tok(k,'xs')+' '+nm(k)).join(', ')}</div>`;
- let act='';if(o===m&&m>=0&&G.phase=='play'){const okk=canAct(),hc=s.t=='p'?D.hc[s.g]:0,b=[];
-  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.foc(${i})"${!okk||!buildable(i)?' disabled':''}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okk?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
-  if(G.o.mort)b.push(G.mg[i]?`<button class="mu-b" onclick="MRU.a('unm',${i})"${okk?'':' disabled'}>Deshipotecar ${$m(Math.ceil(s.p*.55))}</button>`:`<button class="mu-b" onclick="MRU.a('mort',${i})"${okk?'':' disabled'}>Hipotecar +${$m(s.p/2)}</button>`);
+ let act='';if(o===m&&m>=0&&G.phase=='play'){const okk=canAct(),okr=canRaise(),hc=s.t=='p'?D.hc[s.g]:0,b=[];
+  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.foc(${i})"${!okk||!buildable(i)?' disabled':''}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okr?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
+  if(G.o.mort)b.push(G.mg[i]?`<button class="mu-b" onclick="MRU.a('unm',${i})"${okk?'':' disabled'}>Deshipotecar ${$m(Math.ceil(s.p*.55))}</button>`:`<button class="mu-b" onclick="MRU.a('mort',${i})"${okr?'':' disabled'}>Hipotecar +${$m(s.p/2)}</button>`);
   const why=s.t!='p'||h>=5?'':!okk?'Puedes construir en tu turno (o cuando debes dinero).':!full(s.g,m)?'Para construir necesitas todas las colonias de este color.':GR[s.g].some(j=>G.mg[j])?'Hay una colonia hipotecada en el grupo.':G.cash[m]<hc?'No te alcanza para otra casa.':!buildable(i)?'Construye parejo: primero en las otras del grupo.':'';
   if(b.length)act=`<div class="mu-acts">${b.join('')}</div>${why?`<div class="mu-hint">${why}</div>`:''}`}
  return `<div class="mu-deed">${head}${body}${foot}${own}${act}</div>`}
@@ -154,7 +156,7 @@ function menuBox(){const m3ok=!!(window.M3&&M3.ok()),sn=stageName(),G=V.G,seg=(L
   ${window.GHUD?GHUD.jug():''}<div class="mu-acts">${V.watch?`<button class="mu-b" onclick="leave()">Dejar de mirar</button>`:playing()&&G.phase=='play'?`<button class="mu-b danger" onclick="if(confirm('¿Abandonar la partida? Tus propiedades regresan al banco.'))MRU.a('quit')">Abandonar partida</button>`:`<button class="mu-b" onclick="leave()">Salir de la sala</button>`}</div></div>`}
 function hud(){const w=wide();if(msg!==msgSeen){msgSeen=msg;msgT=Date.now();if(msg)setTimeout(()=>{if(active())render()},4700)}
  const sn=stageName();if(!hintT&&lsg('mr_hint_'+sn,'')!=='1'){hintT=Date.now();lss('mr_hint_'+sn,'1');setTimeout(()=>{if(active())render()},6100)}
- const hint=Date.now()-hintT<6000?`<div class="mu-toast mu-hint2">${sn=='3d'?'Un dedo: girar · Dos dedos: acercar y mover · Doble toque: centrar':'Pellizca para acercar · arrastra para mover · toca una casilla'}</div>`:'';
+ const hint=Date.now()-hintT<6000?`<div class="mu-toast mu-hint2">${sn=='3d'?'Un dedo: mover · Dos dedos: girar y acercar · Doble toque: centrar':'Pellizca para acercar · arrastra para mover · toca una casilla'}</div>`:'';
  const toast=msg&&Date.now()-msgT<4500?`<div class="mu-toast" onclick="msg='';render()">${esc(String(msg).replace(/^✋ No puedes hacer eso\. /,''))}</div>`:'';
  return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">'+MIC.h('aviso')+' Reconectando… tu lugar se conserva</div>'}${topBar()}
   <div class="mu-bot">${w?'':sheet()}<div class="mu-dockw" id="mudock">${dock()}${w?'':tabs()}</div>${w?tabs()+sheet():''}</div>${toast||hint}
