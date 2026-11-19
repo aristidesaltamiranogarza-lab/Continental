@@ -120,7 +120,7 @@ function init(){if(ready)return;ready=true;
  for(let j=0;j<2;j++){const d=new THREE.Mesh(box(.5,.5,.5),[1,6,2,5,3,4].map(v=>faces[v]));d.castShadow=true;SC.add(d);dice.push(d)}
  mz=window.MZ?MZ.m3(THREE,SC,R):null;
  root=document.createElement('div');root.id='m3root';cv=R.domElement;root.appendChild(cv);document.body.appendChild(root);
- cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{ptr.delete(e.pointerId);if(ptr.size<2)pin=null});
+ cv.addEventListener('pointermove',pHov);cv.addEventListener('pointerleave',()=>window.MTIP&&MTIP.hide());cv.addEventListener('pointerdown',pDown);cv.addEventListener('pointermove',pMove);cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',e=>{ptr.delete(e.pointerId);if(ptr.size<2)pin=null});
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('wheel',e=>{if(!shown)return;e.preventDefault();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  addEventListener('keydown',e=>{if(!shown||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'')||e.ctrlKey||e.metaKey||e.altKey)return;
   const k=e.key.toLowerCase(),f={arrowleft:()=>VT.a-=.2,arrowright:()=>VT.a+=.2,arrowup:()=>VT.t+=.08,arrowdown:()=>VT.t-=.08,'+':()=>VT.k*=1.2,'=':()=>VT.k*=1.2,'-':()=>VT.k/=1.2,home:home}[k];
@@ -160,6 +160,9 @@ function pMove(e){const p=ptr.get(e.pointerId);if(!p)return;const ox=p.x,oy=p.y;
  if(!p.mv||ptr.size!=1)return;
  if(p.pan){const g0=ground(ox,oy),g1=ground(p.x,p.y);if(g0&&g1){VT.x+=g0.x-g1.x;VT.z+=g0.z-g1.z;snap()}return}
  VT.a-=(p.x-ox)*.008;VT.t+=(p.y-oy)*.006;snap()}
+// etiqueta de la casilla bajo el mouse (c_merida_tip.js)
+function pHov(e){if(!window.MTIP)return;if(e.pointerType!='mouse'||e.buttons||!G0){MTIP.hide();return}const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
+ const q=v3(0,0,0);MTIP.show(ray.ray.intersectPlane(PL0,q)?sqAt(q.x,q.z):-1,e.clientX,e.clientY)}
 function pUp(e){const p=ptr.get(e.pointerId);ptr.delete(e.pointerId);if(ptr.size<2)pin=null;if(!p||p.mv||ptr.size||(e.pointerType=='mouse'&&e.button!==0))return;
  const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
  const q=v3(0,0,0),i=ray.ray.intersectPlane(PL0,q)?sqAt(q.x,q.z):-1;
@@ -175,7 +178,14 @@ function rebuild(G){const key=JSON.stringify([G.own,G.hs,G.mg]);if(key===dynKey)
  const H0=HS0&&!RMo()?HS0:null;HS0=G.hs.slice();HFX.length=0;
  for(let i=0;i<40;i++){const o=G.own[i];if(o<0)continue;const [x,z]=cpos(i),s=side(i),[ix,iz]=INW[s],w=i%10==0?1.5:1;
   const bar=new THREE.Mesh(box(Math.abs(iz)?w*.92:.1,.04,Math.abs(ix)?w*.92:.1),std(MR.pc(o),.45,{transparent:!!G.mg[i],opacity:G.mg[i]?.35:1}));bar.position.set(x-ix*.69,.12,z-iz*.69);dyn.add(bar);
-  casas(G,i,H0,x,z,s,ix,iz)}}
+  casas(G,i,H0,x,z,s,ix,iz)}
+ // grupo completo: marco del color del dueño en cada casilla; si se acaba de completar, una luz recorre el grupo
+ const GR=MR.GR,now=performance.now(),FG=[];GR.forEach((L,g)=>{const o=G.own[L[0]];if(o>=0&&L.every(j=>G.own[j]===o))FG.push(g+':'+o)});
+ FG.forEach(k=>{const [g,o]=k.split(':').map(Number),m=std(MR.pc(o),.45,{emissive:new THREE.Color(MR.pc(o)),emissiveIntensity:.35});GR[g].forEach(i=>{const [x,z]=cpos(i),s=side(i),[ix,iz]=INW[s],tg=Math.abs(iz)?1:0,w=1,e=.07;
+   [[0,.75-e/2,1],[0,-.75+e/2,1],[w/2-e/2,0,0],[-w/2+e/2,0,0]].forEach(([a,b,ln])=>{const sa=ln?w:e,sb=ln?e:1.5,bx=new THREE.Mesh(box(tg?sa:sb,.02,tg?sb:sa),m);bx.position.set(x+(tg?a:b),.112,z+(tg?b:a));dyn.add(bx)})});
+  if(FG0&&!FG0.includes(k)&&!RMo())GR[g].forEach((i,j)=>setTimeout(()=>blink([i],MR.pc(o),1),j*160))});
+ if(FG0&&FG.some(k=>!FG0.includes(k))&&typeof sfx=='function')sfx('go');FG0=FG}
+let FG0=null;
 // ---- casas que caen con rebote y polvo, se levantan al venderse y se juntan en hotel ----
 let FO=null,FT=null,HS0=null,fxg=null;const HFX=[],BL=[],RMo=()=>typeof RM!=='undefined'&&RM;
 function casas(G,i,H0,x,z,s,ix,iz){const h=G.hs[i],h0=H0?H0[i]:h;if(!h&&!h0)return;const n=h==5?1:h,n0=h0==5?1:h0,now=performance.now(),
@@ -215,10 +225,10 @@ function sacude(i,a){const now=performance.now(),[x,z]=cpos(i);if(window.MFX)MFX
  if(a>=1)golpeH([x,.1,z]);else{if(typeof sfx=='function')sfx('place');SHK=now-700*(1-a*.6);try{if(navigator.vibrate)navigator.vibrate(30+60*a)}catch(_){}}
  dyn.children.forEach((m,j)=>{if(m.userData.sq!==i||HFX.some(e=>e.m===m))return;HFX.push({m,k:'tmb',p:[m.position.x,m.position.y,m.position.z],t0:now+j%4*40,d:600+500*a,a})})}
 // casillas que parpadean (la que falta para construir parejo)
-function blink(L){const now=performance.now();(L||[]).forEach(i=>{if(!(i>=0&&i<40))return;let m=BL.find(b=>!b.visible);
+function blink(L,col,one){const now=performance.now();(L||[]).forEach(i=>{if(!(i>=0&&i<40))return;let m=BL.find(b=>!b.visible);
   if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffc400,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=2;SC.add(m);BL.push(m)}
-  const [x,z]=cpos(i),s=side(i),w=i%10==0?1.5:1;m.position.set(x,.109,z);m.scale.set(s%2?1.5:w,s%2?w:1.5,1);m.userData.t0=now;m.visible=true})}
-function bstep(now){BL.forEach(m=>{if(!m.visible)return;const u=(now-m.userData.t0)/1400;if(u>=1){m.visible=false;return}m.material.opacity=.8*Math.abs(Math.sin(u*Math.PI*3))})}
+  const [x,z]=cpos(i),s=side(i),w=i%10==0?1.5:1;m.position.set(x,.109,z);m.scale.set(s%2?1.5:w,s%2?w:1.5,1);m.material.color.set(col||0xffc400);m.userData.t0=now;m.userData.one=!!one;m.visible=true})}
+function bstep(now){BL.forEach(m=>{if(!m.visible)return;const u=(now-m.userData.t0)/1400;if(u>=1){m.visible=false;return}m.material.opacity=m.userData.one?.85*Math.sin(Math.min(1,u*1.6)*Math.PI):.8*Math.abs(Math.sin(u*Math.PI*3))})}
 // ---- modo enfoque (c_merida_enfoque.js): la cámara se acerca a una colonia vista desde fuera y viaja por el borde del tablero ----
 const smt=v=>v*v*(3-2*v),eio=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
 function perim(f){const r=(f%40+40)%40,a=Math.floor(r),u=r-a,p=cpos(a),q=cpos((a+1)%40);return [p[0]+(q[0]-p[0])*u,p[1]+(q[1]-p[1])*u]}
