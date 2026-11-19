@@ -7,8 +7,8 @@ let vol=.74;try{const x=localStorage.getItem('cont_musv'),o=localStorage.getItem
 let volU=vol||.74;const lvl=()=>vol<=0?0:vol<.64?1:vol<.84?2:3;
 let ctx=null,master=null,bus=null,cur=null,timer=null,noise=null;const buf={};
 const hz=m=>440*Math.pow(2,(m-69)/12);
-// variedad y menos agudos: cada vuelta completa cambia de tono (TP), a veces descansa la melodía (REST) y ninguna nota pasa de Sol 5
-let TP=0,REST=false;const fold=m=>{m+=TP;while(m>79)m-=12;return m};
+// variedad y menos agudos: cada vuelta completa cambia de tono (TP), a veces descansa la melodía (REST) y la canción entera baja de tono, sin romper la melodía
+let TP=0,REST=false;const fold=m=>m+TP;
 
 // ---------- instrumentos ----------
 // tonos pregrabados en un buffer (una vez por nota): piano eléctrico, piano, bajo, marimba
@@ -122,7 +122,7 @@ function init(){if(ctx)return true;if(typeof AC=='undefined'||!AC)return false;c
  const cv=ctx.createConvolver(),wet=ctx.createGain();cv.buffer=ir;wet.gain.value=.22;bus.connect(cv);cv.connect(wet);wet.connect(master);return true}
 function tick(){if(!cur||ctx.state!=='running')return;const T=SONGS[cur.id],sd=60/T.bpm/4;
  if(cur.next<ctx.currentTime)cur.next=ctx.currentTime+.05;   // la pestaña estuvo dormida: no ponerse al corriente de golpe
- while(cur.next<ctx.currentTime+.18){const sw=cur.i%2?sd*(T.sw||0):0,cy=Math.floor(cur.i/256),bk=Math.floor(cur.i/16)%16;TP=[0,-3,2,-5][cy%4];REST=cy%2==1&&bk<4;try{T.step(cur.g,cur.i,cur.next+sw,sd)}catch(e){}cur.i++;cur.next+=sd}}
+ while(cur.next<ctx.currentTime+.18){const sw=cur.i%2?sd*(T.sw||0):0,cy=Math.floor(cur.i/256),bk=Math.floor(cur.i/16)%16;TP=[0,-3,-2,-5][cy%4];REST=cy%2==1&&bk<4;try{T.step(cur.g,cur.i,cur.next+sw,sd)}catch(e){}cur.i++;cur.next+=sd}}
 function start(id){if(cur&&cur.id===id)return;const now=ctx.currentTime;
  if(cur){const g=cur.g;g.gain.cancelScheduledValues(now);g.gain.setValueAtTime(g.gain.value,now);g.gain.linearRampToValueAtTime(0,now+1.2);setTimeout(()=>g.disconnect(),1600)}
  if(!id){cur=null;return}const g=ctx.createGain();g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+1.6);g.connect(bus);
