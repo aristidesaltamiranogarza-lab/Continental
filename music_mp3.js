@@ -1,10 +1,10 @@
-// Canciones en mp3 de la casa (musica/): rotan al azar junto con la canción sintetizada del menú de music.js, sin repetir la anterior.
+// Canciones en mp3 de la casa (musica/): rotan al azar (la sintetizada del menú solo suena si ninguno carga), sin repetir la anterior.
 // music.js llama MP3.sync(enCasa, ctx, master) en cada musSync(): devuelve true si ahora suena un mp3 (y la sintetizada calla).
 // Pasan por el master de music.js, así el 🎵 controla su volumen. Cada mp3 se descarga solo cuando le toca. Se carga DESPUÉS de music.js.
 (function(){
-const TR=['neondemedianoche','bosadelcomodin','fichalentalofi'],SYN_MS=180000,bad=new Set();   // -1 = la sintetizada (~3 min)
+const TR=['bossanova','cocteljazz','jazzcafe'],SYN_MS=180000,bad=new Set();   // -1 = la sintetizada: solo si ningún mp3 carga
 let pick=null,au=null,gn=null,ctx=null,tm=0,on=false;
-function next(){const all=[-1,...TR.keys()].filter(i=>i!==pick&&!bad.has(i));pick=all.length?all[Math.random()*all.length|0]:-1;
+function next(){const ok=[...TR.keys()].filter(i=>!bad.has(i)),all=ok.length>1?ok.filter(i=>i!==pick):ok;pick=all.length?all[Math.random()*all.length|0]:-1;
  clearTimeout(tm);if(pick<0)tm=setTimeout(()=>{if(pick<0)skip()},SYN_MS)}
 function skip(){next();if(window.musSync)musSync()}
 function mk(c,m){if(au)return;ctx=c;au=new Audio();au.preload='none';
