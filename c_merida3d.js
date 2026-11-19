@@ -249,9 +249,24 @@ function sync(G,sel){G0=G;if(mz)mz.sync(G);
    else if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
    shownPos[k]=t;anim[k]={path,cop,hp:window.MRIT?MRIT.hops(G,k,path,!!cop):null,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size&&!FO&&!FT){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
   else if(!anim[k]){const [x,z]=slot(k,G);toks[k].position.set(x,.1,z)}});
- if(G.rn!==rollN){if(rollN>=0)rollT=performance.now();rollN=G.rn;setDice(G.dice)}
+ if(G.rn!==rollN){if(rollN>=0){rollT=performance.now();dHit=0}rollN=G.rn;setDice(G.dice)}
  rebuild(G);selI=sel;selM.visible=sel>=0;if(sel>=0){const [x,z]=cpos(sel),s=side(sel),w=sel%10==0?1.5:1;selM.position.set(x,.106,z);selM.scale.set(s%2?1.5:w,s%2?w:1.5,1)}}
 function setDice(v){dice.forEach((d,j)=>{const n=v[j]||1,m=d.material;d.visible=!j||!!v[1]||!v[0];m[2]=faces[n];m[3]=faces[7-n];const o=[1,2,3,4,5,6].filter(x=>x!==n&&x!==7-n);m[0]=faces[o[0]];m[1]=faces[7-o[0]];m[4]=faces[o[1]];m[5]=faces[7-o[1]]})}
+// ---- dados con peso: entran girando, rebotan tres veces cada vez más bajo (golpe y sacudida leve en el primero) y caen ya en su cara;
+// en dobles sale un aro del color del jugador ----
+const DR=950,REB=[[0,.4,1.25],[.4,.68,.5],[.68,.86,.2],[.86,1,.06]];let dHit=0,dRing=null,dRT=-1e9;
+function toc(v){try{if(typeof mute!='undefined'&&mute)return;AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const A=AC,t=A.currentTime,sr=A.sampleRate,b=A.createBuffer(1,sr*.07|0,sr),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4);const n=A.createBufferSource(),f=A.createBiquadFilter(),g=A.createGain();n.buffer=b;f.type='bandpass';f.frequency.value=900+600*v;f.Q.value=1.4;g.gain.value=.25+.6*v;n.connect(f).connect(g).connect(A.destination);n.start(t)}catch(_){}}
+function dados(now){const t=(now-rollT)/DR,G=G0;
+ if(t<1&&!RMo()){const h=REB.findIndex(r=>t<r[1]);if(h>dHit){dHit=h;toc(1/h);if(h==1){SHK=now-520;try{if(navigator.vibrate)navigator.vibrate(25)}catch(_){}
+   if(G&&G.dice[0]&&G.dice[0]===G.dice[1]){if(!dRing){dRing=new THREE.Mesh(new THREE.RingGeometry(.34,.5,48),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false}));dRing.rotation.x=-Math.PI/2;dRing.renderOrder=3;SC.add(dRing)}
+    dRing.material.color.set(MR.pc(G.turn));dRT=now}}}}
+ else dHit=t<1?dHit:0;
+ dice.forEach((d,j)=>{const bx=1.05+(j?.3:-.3),bz=1.05+(j?-.24:.24),f=[0,j?.35:-.2,0];
+  if(t<1&&!RMo()){const q=1-Math.min(1,t/.86),r=REB.find(r=>t<r[1])||REB[3],v=(t-r[0])/(r[1]-r[0]),k=q*q*(1+j*.15);
+   d.position.set(bx+2*k+Math.sin(now/70+j)*.08*q,.36+r[2]*4*v*(1-v),bz-2*k+Math.cos(now/80+j)*.08*q);d.rotation.set(f[0]+k*(9+j*3),f[1]+k*(7-j*2),f[2]+k*(6+j*4))}
+  else{d.position.set(bx,.36,bz);d.rotation.set(f[0],f[1],f[2])}});
+ if(dRing){const u=(now-dRT)/800;dRing.visible=u<1;if(u<1){dRing.position.set(1.05,.115,1.05);dRing.scale.setScalar(1+u*2.6);dRing.material.opacity=.9*(1-u)*(1-u)}}}
 // ---- cada cuadro: fichas que brincan casilla por casilla, flechas que rebotan, dados, cámara suave ----
 function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(now);if(window.POLI)POLI.step(now);if(window.MFX)MFX.paso(now);
  G.players.forEach((_,k)=>{const a=anim[k],T=toks[k];if(!T)return;
@@ -267,9 +282,7 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
   const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
   A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w,T.position.z)});
  const k=G.turn,T=toks[k];ring.visible=!!T&&G.phase=='play'&&!G.bk[k];if(T){ring.position.set(T.position.x,T.position.y+.02,T.position.z);ring.scale.setScalar(1+Math.sin(now/250)*.08)}
- const t=(now-rollT)/800;dice.forEach((d,j)=>{const bx=1.05+(j?.3:-.3),bz=1.05+(j?-.24:.24);
-  if(t<1){const q=1-t;d.position.set(bx+1.8*q*q+Math.sin(now/70+j)*.15*q,.36+Math.abs(Math.sin(t*Math.PI*2.5))*1.2*q,bz-1.8*q*q+Math.cos(now/80+j)*.15*q);d.rotation.set(now/60*q+j,now/50*q,now/75*q)}
-  else{d.position.set(bx,.36,bz);d.rotation.set(0,j?.35:-.2,0)}});
+ dados(now);
  // la cámara se desliza hacia donde va
  if(FO||FT)fstep(now);const f=1-Math.exp(-dt/(FO||FT?90:moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV;if(mz)mz.step(now,CA)}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
