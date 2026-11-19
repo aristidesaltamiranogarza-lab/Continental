@@ -39,6 +39,7 @@ function buildable(i){const G=V.G,m=me(),s=B[i];if(s.t!='p'||G.own[i]!==m||G.hs[
 // juntar dinero (vender casas, hipotecar): en tu turno, si debes, o mientras sigues en una subasta
 const canRaise=()=>{const G=V.G,m=me();if(canAct())return true;return m>=0&&!G.bk[m]&&G.phase=='play'&&!G.debts.length&&!!G.auc&&G.auc.in.includes(m)};
 const canBuild=()=>canAct()&&V.G.own.some((o,i)=>o===me()&&buildable(i));
+if(window.MTRA)MTRA.init({get G(){return V.G},get TR(){return TR},me,B,D,GR,$m,pc,tk,tok,nm,esc,MIC,render:()=>render()});
 if(window.MCAR)MCAR.init({get G(){return V.G},get TR(){return TR},me,B,D,GR,$m,pc,tk,tok,nm,esc,buildable,canAct,icon,onCol,MIC});
 if(window.MENF)MENF.init({get G(){return V.G},me,B,D,GR,$m,esc,pc,onCol,MIC,buildable,canAct,full,is3d:()=>stageName()=='3d',stage:()=>stage()});
 // ---- barra de arriba: jugadores (data-seat: ahí llegan los tomates) y menú ----
@@ -115,7 +116,7 @@ function pTrato(){const G=V.G,m=me(),h=G.trade?tradeCard(0):'';
  if(!playing()||G.phase!='play')return h||'<div class="mu-empty">Sin tratos.</div>';
  if(G.trade)return h+'<div class="mu-s mu-pad">Cuando se resuelva este trato podrás proponer otro.</div>';
  const ot=alive(G).filter(k=>k!==m);if(!ot.length)return '';if(!ot.includes(TR.to))TR.to=ot[0];
- if(window.MCAR)return MCAR.trato(ot);const props=k=>G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0);
+ if(window.MTRA)return MTRA.ui(ot);if(window.MCAR)return MCAR.trato(ot);const props=k=>G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0);
  const chips=(k,key)=>props(k).map(i=>`<button class="mu-chip${TR[key].includes(i)?' on':''}" style="--gc:${col(i)}" onclick="MRU.tg('${key}',${i})"><i></i>${esc(B[i].n)}${G.hs[i]?' '+MIC.h('rancho'):''}</button>`).join('')||'<span class="mu-s">Sin propiedades</span>';
  const num=(key,max,lb)=>`<label class="mu-num">${lb}<input id="mut_${key}" class="mu-in" type="number" inputmode="numeric" min="0" max="${max}" value="${TR[key]||''}" placeholder="0" oninput="MRU.n('${key}',this.value)"></label>`;
  return `<div class="mu-card"><div class="mu-s">Con quién:</div><div class="mu-who">${ot.map(k=>`<button class="mu-chip pl${k===TR.to?' on':''}" style="--pc:${pc(k)}" onclick="MRU.to(${k})">${tk(k)} ${nm(k)}</button>`).join('')}</div>
