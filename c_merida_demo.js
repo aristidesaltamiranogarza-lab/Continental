@@ -16,8 +16,11 @@ function mueve(){const G=base(),k=me(),a=1+Math.random()*6|0,b=1+Math.random()*6
 function carcel(carta){const G=base(),k=me();G.jail[k]=0;G.pos[k]=carta?20:23;go();
  setTimeout(()=>{if(DS!==G)return;tira(G,3,4);G.pos[k]=10;G.jail[k]=1;go();if(carta)MRU.carta({d:'s',id:9,k,n:Date.now()},7*180+200)},700)}
 function carta(d){const n=MR.D.cards[d].length;MRU.carta({d,id:Math.random()*n|0,k:me(),n:Date.now()},0)}
+// caer en una colonia ajena con n casas (5 = hotel): saltos lentos al acercarse y caída que sacude (MRIT)
+function caer(n){const G=base(),k=me(),N=G.players.length,o=(k+1)%N,q=[...Array(9)].map((_,j)=>(G.pos[k]+4+j)%40).find(i=>B()[i].t=='p');if(q==null)return;
+ G.jail[k]=0;G.own[q]=o;G.mg[q]=0;G.hs[q]=n;go();setTimeout(()=>{if(DS!==G)return;const d=(q-G.pos[k]+40)%40,a=Math.max(1,Math.min(6,d-1));tira(G,a,d-a);G.pos[k]=q;go()},n?1500:300)}
 function real(){DS=null;try{st().sync(V.G,MRU.selected)}catch(_){}}
-const A=[['Poner casa',casa],['Poner hotel',hotel],['Vender casa',vende],['Tirar y mover',mueve],['Cárcel: casilla',()=>carcel(0)],['Cárcel: carta',()=>carcel(1)],['Carta de Suerte',()=>carta('s')],['Carta de Comunidad',()=>carta('c')]];
+const A=[['Poner casa',casa],['Poner hotel',hotel],['Vender casa',vende],['Tirar y mover',mueve],['Caer en 2 casas',()=>caer(2)],['Caer en hotel',()=>caer(5)],['Cárcel: casilla',()=>carcel(0)],['Cárcel: carta',()=>carcel(1)],['Carta de Suerte',()=>carta('s')],['Carta de Comunidad',()=>carta('c')]];
 function abre(){if(sh){cierra();return}if(!ok())return;sh=document.createElement('div');sh.className='ui mdm-sh';
  sh.innerHTML=`<div class="mdm-hd"><b>Animaciones</b><button class="mdm-x" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="mdm-gr">${A.map((a,j)=>`<button class="ui-btn sec" data-j="${j}">${a[0]}</button>`).join('')}</div><button class="ui-btn mdm-rl">Volver a la partida</button>`;
  sh.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.classList.contains('mdm-x'))return cierra();if(b.classList.contains("mdm-rl")){cierra();return real()}const a=A[+b.dataset.j];cierra();if(a&&ok())a[1]()};

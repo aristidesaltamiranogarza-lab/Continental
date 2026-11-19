@@ -180,7 +180,7 @@ function rebuild(G){const key=JSON.stringify([G.own,G.hs,G.mg]);if(key===dynKey)
 let FO=null,FT=null,HS0=null,fxg=null;const HFX=[],BL=[],RMo=()=>typeof RM!=='undefined'&&RM;
 function casas(G,i,H0,x,z,s,ix,iz){const h=G.hs[i],h0=H0?H0[i]:h;if(!h&&!h0)return;const n=h==5?1:h,n0=h0==5?1:h0,now=performance.now(),
   tp=(N,j)=>N<2?0:(j-(N-1)/2)*.22,P=t=>[x+ix*.6+Math.abs(iz)*t,.11,z+iz*.6+Math.abs(ix)*t],
-  mk=(hot,t,k,o)=>{const m=house(hot),p=P(t);m.position.set(p[0],p[1],p[2]);m.rotation.y=s*Math.PI/2;dyn.add(m);if(k){m.visible=k!='cae'&&k!='pop'&&k!='hot';HFX.push(Object.assign({m,k,p,t0:now,d:520},o))}return m};
+  mk=(hot,t,k,o)=>{const m=house(hot),p=P(t);m.userData.sq=i;m.position.set(p[0],p[1],p[2]);m.rotation.y=s*Math.PI/2;dyn.add(m);if(k){m.visible=k!='cae'&&k!='pop'&&k!='hot';HFX.push(Object.assign({m,k,p,t0:now,d:520},o))}return m};
  if(h===h0){for(let j=0;j<n;j++)mk(h==5,tp(n,j));return}
  if(h==5){for(let j=0;j<n0;j++)mk(false,tp(n0,j),'jun',{b:P(0),d:420});mk(true,0,'hot',{t0:now+380,d:1100});return}
  if(h0==5){mk(true,0,'sube');for(let j=0;j<n;j++)mk(false,tp(n,j),'cae',{t0:now+240+j*100,d:560});return}
@@ -207,8 +207,13 @@ function hstep(now){for(let q=HFX.length-1;q>=0;q--){const e=HFX[q],m=e.m,p=e.p;
   else if(e.k=='jun'||e.k=='mov'){const v=1-Math.pow(1-u,3),b=e.b;m.position.set(p[0]+(b[0]-p[0])*v,p[1]+(e.k=='jun'?Math.sin(u*Math.PI)*.25:0),p[2]+(b[2]-p[2])*v);if(e.k=='jun')m.scale.setScalar(Math.max(.001,1-.75*u))}
   else if(e.k=='hot'){let y=0,sq=0,r=0;if(!e.s){e.s=1;silba()}if(u<.45){const v=u/.45;y=3.4*(1-v*v*v);r=(1-v)*.5*Math.sin(now*.02)}else{const v=(u-.45)/.55;y=Math.abs(Math.sin(v*Math.PI*1.5))*.09*(1-v)*(1-v);sq=Math.max(0,.45*(1-v*4));if(!e.hit){e.hit=1;golpeH(p)}}
    m.position.set(p[0],p[1]+y,p[2]);m.scale.set(1+sq*.6,1-sq,1+sq*.6);m.rotation.z=r}
+  else if(e.k=='tmb'){const q=1-u,y=Math.abs(Math.sin(u*Math.PI*3))*(.12+.3*e.a)*q*q;m.position.set(p[0],p[1]+y,p[2]);m.rotation.z=Math.sin(u*Math.PI*7)*(.12+.25*e.a)*q;m.rotation.x=Math.cos(u*Math.PI*5)*.1*e.a*q}
   else if(e.k=='pop'){if(!e.hit){e.hit=1;golpe(p,.45)}const v=u-1;m.scale.setScalar(Math.max(.001,1+2.70158*v*v*v+1.70158*v*v));m.position.set(p[0],p[1],p[2])}
-  if(fin){if(e.k=='sube'||e.k=='jun')dyn.remove(m);else{m.scale.set(1,1,1);m.rotation.z=0;const b=e.b||p;m.position.set(b[0],b[1],b[2])}HFX.splice(q,1)}}}
+  if(fin){if(e.k=='sube'||e.k=='jun')dyn.remove(m);else{m.scale.set(1,1,1);m.rotation.z=0;m.rotation.x=0;const b=e.b||p;m.position.set(b[0],b[1],b[2])}HFX.splice(q,1)}}}
+// la ficha cayó fuerte en una colonia con casas u hotel (MRIT): las construcciones brincan y se tambalean; entre más casas, más fuerte
+function sacude(i,a){const now=performance.now(),[x,z]=cpos(i);if(window.MFX)MFX.polvo(fxg,{x,z},.3+.7*a);
+ if(a>=1)golpeH([x,.1,z]);else{if(typeof sfx=='function')sfx('place');SHK=now-700*(1-a*.6);try{if(navigator.vibrate)navigator.vibrate(30+60*a)}catch(_){}}
+ dyn.children.forEach((m,j)=>{if(m.userData.sq!==i||HFX.some(e=>e.m===m))return;HFX.push({m,k:'tmb',p:[m.position.x,m.position.y,m.position.z],t0:now+j%4*40,d:600+500*a,a})})}
 // casillas que parpadean (la que falta para construir parejo)
 function blink(L){const now=performance.now();(L||[]).forEach(i=>{if(!(i>=0&&i<40))return;let m=BL.find(b=>!b.visible);
   if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffc400,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=2;SC.add(m);BL.push(m)}
@@ -242,7 +247,7 @@ function sync(G,sel){G0=G;if(mz)mz.sync(G);
    // a la cárcel: si cayó en "Ve a la cárcel" o en una carta, primero llega caminando; luego viene la patrulla (c_merida_poli.js)
    if(t===10&&G.jail[k]&&window.POLI){const s0=shownPos[k],n=(G.dice[0]||0)+(G.dice[1]||0),q=(s0+n)%40;cop={q:s0,w:0};if(n>=2&&B[q]&&(q==30||B[q].t=='s'||B[q].t=='c')){for(let j=1;j<=n;j++)path.push((s0+j)%40);cop={q,w:q==30?250:2300}}}
    else if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
-   shownPos[k]=t;anim[k]={path,cop,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size&&!FO&&!FT){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
+   shownPos[k]=t;anim[k]={path,cop,hp:window.MRIT?MRIT.hops(G,k,path,!!cop):null,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size&&!FO&&!FT){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
   else if(!anim[k]){const [x,z]=slot(k,G);toks[k].position.set(x,.1,z)}});
  if(G.rn!==rollN){if(rollN>=0)rollT=performance.now();rollN=G.rn;setDice(G.dice)}
  rebuild(G);selI=sel;selM.visible=sel>=0;if(sel>=0){const [x,z]=cpos(sel),s=side(sel),w=sel%10==0?1.5:1;selM.position.set(x,.106,z);selM.scale.set(s%2?1.5:w,s%2?w:1.5,1)}}
@@ -253,11 +258,11 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
   const rest=()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null};
   if(a&&a.cop&&!a.path.length){moving=true;if(!a.cs&&now>=a.t0+a.cop.w){a.cs=1;POLI.go({THREE,SC,tok:T,q:a.cop.q,cpos,jail:slot(k,G),
     cam:(x,z)=>{if(a.fol&&!touched){VT.x=x;VT.z=z;VT.k=Math.max(VT.k,1.7);clampV()}},done:()=>{if(anim[k]===a)anim[k]=null;if(a.fol)setTimeout(rest,900)}})}}
-  else if(a){moving=true;let t=(now-a.t0)/HOP;
-   if(t>=1){a.path.shift();a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length&&a.cop)a.t0=now;else if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
+  else if(a){moving=true;const hp=a.hp&&a.hp[0];let t=(now-a.t0)/(hp?hp.d:HOP);
+   if(t>=1){a.path.shift();if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length&&a.cop)a.t0=now;else if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
      if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null},900)}}
    if(anim[k]&&a.path.length){const to=a.path[0],last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t);
-    T.position.set(a.from.x+(x-a.from.x)*u,.1+Math.sin(u*Math.PI)*.4,a.from.z+(z-a.from.z)*u);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
+    T.position.set(a.from.x+(x-a.from.x)*u,.1+(hp?window.MRIT.alto(u,hp)*.4*hp.h:Math.sin(u*Math.PI)*.4),a.from.z+(z-a.from.z)*u);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
   const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3:0);
   const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
   A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w,T.position.z)});

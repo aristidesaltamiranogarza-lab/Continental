@@ -173,10 +173,10 @@ function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.
  ins={t:T+6,r,b:bs+6,l:cl?58:0};rs.setProperty('--mu-b',b+'px');rs.setProperty('--mu-t',(T+6)+'px');rs.setProperty('--mu-cb',(cb||b)+'px');rs.setProperty('--mu-r',(w?innerWidth-bt.getBoundingClientRect().left:0)+'px');
  try{st.show(true);st.theme(theme);st.follow(follow);st.layout(ins);st.sync(V.G,sel)}catch(e){console.warn('Mérida tablero:',e);if(st===window.M3){M3.fail();render()}}}
 // ---- efectos: dinero que flota, carta que se voltea, "¡Te toca!" ----
-const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;return d>0&&d<=12?d*180+200:0};
-function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice(),own:G.own.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;
- G.cash.forEach((x,k)=>{const d=x-p.cash[k];if(d&&!G.bk[k])setTimeout(()=>money(k,d),hopMs(p,c,k))});
- if(G.card&&G.card.n!==p.cn)showCard(G.card,Math.min(2600,hopMs(p,c,G.card.k)+150))
+const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;if(!(d>0&&d<=12))return 0;return (window.MRIT&&V.G?MRIT.total(V.G,k,p.pos[k],c.pos[k]):d*180)+200};   // MRIT: saltos más lentos cerca de casas
+function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice(),own:G.own.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;const W=Math.max(0,...G.cash.map((_,k)=>hopMs(p,c,k)));   // el dinero se mueve cuando la ficha llega
+ G.cash.forEach((x,k)=>{const d=x-p.cash[k];if(d&&!G.bk[k])setTimeout(()=>money(k,d),W)});
+ if(G.card&&G.card.n!==p.cn)showCard(G.card,Math.min(4200,hopMs(p,c,G.card.k)+150))
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc))setTimeout(yourTurn,250);
  if(m>=0&&window.MANI&&p.own)c.own.forEach((o,i)=>{if(o===m&&p.own[i]!==m)MANI.buy(mini(i),hopMs(p,c,m)+80)});
  if(p.turn!==G.turn){turnInView();cardEnd(0)}}
