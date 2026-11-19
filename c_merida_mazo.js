@@ -68,6 +68,9 @@ function m3(THREE,SC,R){
   reset(){tr.reset();F0=LP=null;fly.visible=false;['s','c'].forEach(d=>{S[d].dn=0;S[d].shT=-1;S[d].m.count=0})}}}
 
 // ---------- 2D ----------
+// cada cara se apaga justo cuando el giro pasa de 90° (backface-visibility no basta en todos los navegadores: el dorso salía al revés)
+function caras(fc,dur,m,fr){const o={duration:dur,easing:'ease-in-out',fill:'forwards'},k=(a,b)=>[{opacity:a,offset:0},{opacity:a,offset:m},{opacity:b,offset:Math.min(1,m+.002)},{opacity:b,offset:1}];
+ fc.querySelector('.mz2b').animate(k(fr?0:1,fr?1:0),o);fc.querySelector('.mz2t').animate(k(fr?1:0,fr?0:1),o)}
 const N2=8;
 function m2(ctr){const S={};
  ['s','c'].forEach(d=>{const e=document.createElement('div');e.className='m2deck '+d;let h='';
@@ -85,12 +88,12 @@ function m2(ctr){const S={};
     const dx=r.left+r.width/2-(fb.left+fb.width/2),dy=r.top+r.height/2-(fb.top+fb.height/2),s0=Math.max(.15,Math.min(1,(r.width/1.2)/fb.width));
     const A=`translate(${dx}px,${dy}px) rotate(-45deg) scale(${s0})`,B=`translate(${dx}px,${dy-24}px) rotate(-45deg) scale(${s0*1.12})`;
     fc.animate([{transform:A+' rotateY(0deg)',offset:0},{transform:B+' rotateY(0deg)',offset:.18},{transform:'translate(0,0) rotate(0) scale(1) rotateY(0deg)',offset:.6},{transform:'scale(1.05) rotateY(180deg)',offset:.85},{transform:'scale(1) rotateY(180deg)',offset:1}],
-     {duration:FLY,easing:'ease-in-out',fill:'forwards'});setTimeout(()=>box.remove(),FLY+40)},delay);return FLY},
+     {duration:FLY,easing:'ease-in-out',fill:'forwards'});caras(fc,FLY,.725,0);setTimeout(()=>box.remove(),FLY+40)},delay);return FLY},
   back(c,ins,text){if(RM())return 0;const e=S[c.d];if(!e)return 0;const ks=[...e.querySelectorAll('.m2k')].filter(k=>k.style.display!='none'),top=ks[ks.length-1]||e,r=top.getBoundingClientRect();
    const box=document.createElement('div');box.className='mz2box';const I=ins||{t:0,b:0,r:0};box.style.cssText=`top:${I.t||0}px;bottom:${I.b||0}px;right:${I.r||0}px`;
    box.innerHTML=`<div class="mz2c"><div class="mz2f mz2b ${c.d}"><span>${MIC.h(IC[c.d])}</span><b>${NM[c.d]}</b></div><div class="mz2f mz2t ${c.d}"><h5>${MIC.h(IC[c.d])} ${NM[c.d]}</h5><p></p></div></div>`;
    box.querySelector('p').textContent=text||'';document.body.appendChild(box);const fc=box.firstChild,fb=fc.getBoundingClientRect(),dx=r.left+r.width/2-(fb.left+fb.width/2),dy=r.top+r.height/2-(fb.top+fb.height/2),s0=Math.max(.15,Math.min(1,(r.width/1.2)/fb.width));
-   fc.animate([{transform:'translate(0,0) rotate(0) scale(1) rotateY(180deg)'},{transform:`translate(${dx}px,${dy}px) rotate(-45deg) scale(${s0}) rotateY(0deg)`}],{duration:BK,easing:'ease-in-out',fill:'forwards'});setTimeout(()=>box.remove(),BK+40);return BK},
+   fc.animate([{transform:'translate(0,0) rotate(0) scale(1) rotateY(180deg)'},{transform:`translate(${dx}px,${dy}px) rotate(-45deg) scale(${s0}) rotateY(0deg)`}],{duration:BK,easing:'ease-in-out',fill:'forwards'});caras(fc,BK,.5,1);setTimeout(()=>box.remove(),BK+40);return BK},
   reset(){tr.reset()}}}
 
 const css=document.createElement('style');css.textContent=`

@@ -71,17 +71,21 @@ function mkTok(k){const e=document.createElement('div');e.className='m2t';e.styl
 const place=(e,x,z,hop)=>{e.style.left=pct(x);e.style.top=pct(z);e.style.setProperty('--hop',hop?(-hop*S0/12)+'px':'0px')};
 function syncToks(G){G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=mkTok(k);shownPos[k]=G.pos[k];const [x,z]=slot(k,G);place(toks[k],x,z,0)}
  const e=toks[k],t=G.pos[k];e.style.display=G.bk[k]?'none':'';e.classList.toggle('on',k===G.turn&&G.phase=='play');e.classList.toggle('me',k===V.me);e.classList.toggle('jl',!!G.jail[k]&&t===10);
- if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
-  shownPos[k]=t;const L=e.style;anim[k]={path,t0:performance.now(),from:[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6]};startFollow(k)}
+ if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];let jl=0;
+  // a la cárcel: llega caminando a "Ve a la cárcel" o a la carta, suena la sirena y salta a la cárcel con un brinco largo
+  if(t===10&&G.jail[k]){const s0=shownPos[k],n=(G.dice[0]||0)+(G.dice[1]||0),q=(s0+n)%40;jl=1;if(n>=2&&B[q]&&(q==30||B[q].t=='s'||B[q].t=='c')){for(let j=1;j<=n;j++)path.push((s0+j)%40);jl=q==30?700:2600}path.push(10)}
+  else if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
+  shownPos[k]=t;const L=e.style;anim[k]={path,jl,t0:performance.now()+(path.length==1&&jl?400:0),from:[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6]};startFollow(k)}
  else if(!anim[k]){const [x,z]=slot(k,G);place(e,x,z,0)}})}
 // la cámara sigue a la ficha que se mueve (si estás con zoom) y luego regresa a donde estabas
 function startFollow(k){if(!fol||vt.k<1.15||ptr.size)return;if(!back)back={x:vt.x,y:vt.y,k:vt.k};touched=false;anim[k].fol=true}
 function step(now){let busy=false;const G=G0;
- toks.forEach((e,k)=>{const a=anim[k];if(!a||!e)return;busy=true;let t=(now-a.t0)/HOP;
+ toks.forEach((e,k)=>{const a=anim[k];if(!a||!e)return;busy=true;const jh=a.jl&&a.path.length==1;if(jh&&!a.sn){a.sn=1;if(window.POLI)POLI.sirena(a.t0-now+HOP*5+300)}let t=(now-a.t0)/(jh?HOP*5:HOP);if(t<0)return;
   if(t>=1){a.path.shift();const L=e.style;a.from=[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6];a.t0=now;t=0;
-   if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);place(e,x,z,0);if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(vt,back);clampV()}back=null;kick()},900);return}}
+   if(a.path.length==1&&a.jl)a.t0=now+(a.jl>1?a.jl:0);
+   if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);place(e,x,z,0);if(a.jl&&window.POLI)POLI.reja();if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(vt,back);clampV()}back=null;kick()},900);return}}
   const last=a.path.length==1,[x,z]=last?slot(k,G):cpos(a.path[0]),u=Math.min(1,t),px=a.from[0]+(x-a.from[0])*u,pz=a.from[1]+(z-a.from[1])*u;
-  place(e,px,pz,Math.sin(u*Math.PI)*.32);if(a.fol&&!touched){vt.x=-(px/12)*S0*vt.k;vt.y=-(pz/12)*S0*vt.k;clampV()}});
+  place(e,px,pz,Math.sin(u*Math.PI)*(jh?1.2:.32));if(a.fol&&!touched){vt.x=-(px/12)*S0*vt.k;vt.y=-(pz/12)*S0*vt.k;clampV()}});
  return busy}
 // ---- casillas que cambian: dueño, casas, hipoteca ----
 function syncCells(G,sel){const key=JSON.stringify([G.own,G.hs,G.mg]);

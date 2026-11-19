@@ -237,19 +237,25 @@ let mz=null;
 function sync(G,sel){G0=G;if(mz)mz.sync(G);
  G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=piece(k);SC.add(toks[k]);arrs[k]=arrow(k);SC.add(arrs[k]);shownPos[k]=G.pos[k];const [x,z]=slot(k,G);toks[k].position.set(x,.1,z);anim[k]=null}
   toks[k].visible=arrs[k].visible=!G.bk[k];const t=G.pos[k];
-  if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
-   shownPos[k]=t;anim[k]={path,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size&&!FO&&!FT){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
+  if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];let cop=null;
+   // a la cárcel: si cayó en "Ve a la cárcel" o en una carta, primero llega caminando; luego viene la patrulla (c_merida_poli.js)
+   if(t===10&&G.jail[k]&&window.POLI){const s0=shownPos[k],n=(G.dice[0]||0)+(G.dice[1]||0),q=(s0+n)%40;cop={q:s0,w:0};if(n>=2&&B[q]&&(q==30||B[q].t=='s'||B[q].t=='c')){for(let j=1;j<=n;j++)path.push((s0+j)%40);cop={q,w:q==30?250:2300}}}
+   else if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
+   shownPos[k]=t;anim[k]={path,cop,t0:performance.now(),from:toks[k].position.clone()};if(fol&&!ptr.size&&!FO&&!FT){if(!back)back=Object.assign({},VT);touched=false;anim[k].fol=true}}
   else if(!anim[k]){const [x,z]=slot(k,G);toks[k].position.set(x,.1,z)}});
  if(G.rn!==rollN){if(rollN>=0)rollT=performance.now();rollN=G.rn;setDice(G.dice)}
  rebuild(G);selI=sel;selM.visible=sel>=0;if(sel>=0){const [x,z]=cpos(sel),s=side(sel),w=sel%10==0?1.5:1;selM.position.set(x,.106,z);selM.scale.set(s%2?1.5:w,s%2?w:1.5,1)}}
 function setDice(v){dice.forEach((d,j)=>{const n=v[j]||1,m=d.material;d.visible=!j||!!v[1]||!v[0];m[2]=faces[n];m[3]=faces[7-n];const o=[1,2,3,4,5,6].filter(x=>x!==n&&x!==7-n);m[0]=faces[o[0]];m[1]=faces[7-o[0]];m[4]=faces[o[1]];m[5]=faces[7-o[1]]})}
 // ---- cada cuadro: fichas que brincan casilla por casilla, flechas que rebotan, dados, cámara suave ----
-function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(now);if(window.MFX)MFX.paso(now);
+function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(now);if(window.POLI)POLI.step(now);if(window.MFX)MFX.paso(now);
  G.players.forEach((_,k)=>{const a=anim[k],T=toks[k];if(!T)return;
-  if(a){moving=true;let t=(now-a.t0)/HOP;
-   if(t>=1){a.path.shift();a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
+  const rest=()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null};
+  if(a&&a.cop&&!a.path.length){moving=true;if(!a.cs&&now>=a.t0+a.cop.w){a.cs=1;POLI.go({THREE,SC,tok:T,q:a.cop.q,cpos,jail:slot(k,G),
+    cam:(x,z)=>{if(a.fol&&!touched){VT.x=x;VT.z=z;VT.k=Math.max(VT.k,1.7);clampV()}},done:()=>{if(anim[k]===a)anim[k]=null;if(a.fol)setTimeout(rest,900)}})}}
+  else if(a){moving=true;let t=(now-a.t0)/HOP;
+   if(t>=1){a.path.shift();a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length&&a.cop)a.t0=now;else if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
      if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null},900)}}
-   if(anim[k]){const to=a.path[0],last=a.path.length==1,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t);
+   if(anim[k]&&a.path.length){const to=a.path[0],last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t);
     T.position.set(a.from.x+(x-a.from.x)*u,.1+Math.sin(u*Math.PI)*.4,a.from.z+(z-a.from.z)*u);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
   const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3:0);
   const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
