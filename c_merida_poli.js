@@ -28,7 +28,7 @@ function ring(cpos,i0,n,dir){const P=[];for(let j=0;j<=n;j++){const i=((i0+j*dir
 function at(R,s){s=Math.max(0,Math.min(R.len,s));let j=1;while(j<R.L.length-1&&R.L[j]<s)j++;const a=R.P[j-1],b=R.P[j],u=(s-R.L[j-1])/((R.L[j]-R.L[j-1])||1);
  return [a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,Math.atan2(b[1]-a[1],b[0]-a[0])]}
 function place(p,ang){car.position.set(p[0],.1,p[1]);let d=-ang-car.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));car.rotation.y+=d*.35}
-function go(o){if(S)fin();const T=o.THREE,q=o.q,dir=((10-q+40)%40)<=20?1:-1,nB=dir>0?(10-q+40)%40:(q-10+40)%40;
+function go(o){if(S)fin();const T=o.THREE,q=o.q,dir=q>10?-1:1,nB=dir>0?(10-q+40)%40:(q-10+40)%40;
  if(!car){car=mk(T);car.scale.setScalar(1.25)}o.SC.add(car);car.visible=true;car.scale.setScalar(1.25);
  const A=ring(o.cpos,q-dir*5,5,dir),B=ring(o.cpos,q,nB,dir),C=ring(o.cpos,10,4,dir),now=performance.now(),dA=1100,dB=Math.max(1300,Math.min(2800,B.len*190));
  S={o,A,B,C,dA,dB,t0:now,ph:0,p0:o.tok.position.clone(),s0:o.tok.scale.x};car.rotation.y=-at(A,0)[2];place(at(A,0),at(A,0)[2]);sirena(dA+450+dB+900)}

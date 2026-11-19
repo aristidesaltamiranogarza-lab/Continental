@@ -296,8 +296,8 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
   else if(a){moving=true;const hp=a.hp&&a.hp[0];let t=(now-a.t0)/((hp?hp.d:HOP)*(a.fast?.3:1));
    if(t>=1){a.path.shift();if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);react(k,a.lastTo===0?'go':'sq',hp&&hp.land?1:.4);a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length&&a.cop)a.t0=now;else if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
      if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null},900)}}
-   if(anim[k]&&a.path.length){const to=a.path[0];a.lastTo=to;const last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t);
-    T.position.set(a.from.x+(x-a.from.x)*u,.1+(hp?window.MRIT.alto(u,hp)*.4*hp.h:Math.sin(u*Math.PI)*.4),a.from.z+(z-a.from.z)*u);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
+   if(anim[k]&&a.path.length){const to=a.path[0];a.lastTo=to;const last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t),w=hp?window.MRIT.paso(u,hp):u;
+    T.position.set(a.from.x+(x-a.from.x)*w,.1+(hp?window.MRIT.alto(u,hp)*.4*hp.h:Math.sin(u*Math.PI)*.4),a.from.z+(z-a.from.z)*w);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
   const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3:0);tfx3(k,T,now);
   const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
   A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w,T.position.z)});

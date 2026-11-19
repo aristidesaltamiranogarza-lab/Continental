@@ -93,7 +93,7 @@ function step(now){let busy=false;const G=G0;
   if(t>=1){a.path.shift();const to0=a.path0;if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);react(k,to0===0?'go':'sq',hp&&hp.land?1:.4);const L=e.style;a.from=[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6];a.t0=now;t=0;
    if(a.path.length==1&&a.jl)a.t0=now+(a.jl>1?a.jl:0);
    if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);place(e,x,z,0);if(a.jl&&window.POLI)POLI.reja();if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(vt,back);clampV()}back=null;kick()},900);return}}
-  a.path0=a.path[0];const last=a.path.length==1,[x,z]=last?slot(k,G):cpos(a.path[0]),u=Math.min(1,t),px=a.from[0]+(x-a.from[0])*u,pz=a.from[1]+(z-a.from[1])*u;
+  a.path0=a.path[0];const last=a.path.length==1,[x,z]=last?slot(k,G):cpos(a.path[0]),u=Math.min(1,t),w=hp?MRIT.paso(u,hp):u,px=a.from[0]+(x-a.from[0])*w,pz=a.from[1]+(z-a.from[1])*w;
   place(e,px,pz,jh?Math.sin(u*Math.PI)*1.2:hp?MRIT.alto(u,hp)*.32*hp.h:Math.sin(u*Math.PI)*.32);if(a.fol&&!touched){vt.x=-(px/12)*S0*vt.k;vt.y=-(pz/12)*S0*vt.k;clampV()}});
  return busy}
 // la ficha cayó fuerte en una colonia con casas u hotel (MRIT): las casas brincan y la casilla tiembla; entre más casas, más fuerte
