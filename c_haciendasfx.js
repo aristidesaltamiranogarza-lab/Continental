@@ -7,19 +7,21 @@ const U=HZU,D=U.D,{tok,rc,chips,nm}=U,sum=a=>a.reduce((x,y)=>x+y,0);
 const lsg=(k,d)=>{try{const x=localStorage.getItem(k);return x==null?d:x}catch(e){return d}},lss=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
 let prev=null,guide=false,showSum=false,sumFor=null,tipsSeen=new Set(JSON.parse(lsg('hz_tips','[]')||'[]'));
 // ---- sonidos (Web Audio, sin archivos) ----
-let NZ=null;
+let NZ=null,SV=1;const LAST={};
+// lo que hacen los bots suena bajito y sin repetirse seguido (antes cada construcción daba un golpe)
+function sndB(k,mine){const n=Date.now();if(!mine&&n-(LAST[k]||0)<4000)return;LAST[k]=n;SV=mine?1:.3;snd(k);SV=1}
 function snd(k){if(typeof mute!='undefined'&&mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const A=AC,t0=A.currentTime;
  const tone=(t,f0,f1,d,v,ty)=>{const o=A.createOscillator(),g=A.createGain();o.type=ty||'sine';o.frequency.setValueAtTime(f0,t);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+d*.8);
-  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(A.destination);o.start(t);o.stop(t+d+.02)};
+  v*=SV;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(A.destination);o.start(t);o.stop(t+d+.02)};
  const noise=(t,d,v,f0,f1,q)=>{if(!NZ){NZ=A.createBuffer(1,A.sampleRate,A.sampleRate);const a=NZ.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1}
   const s=A.createBufferSource(),f=A.createBiquadFilter(),g=A.createGain();s.buffer=NZ;f.type='bandpass';f.Q.value=q||1;f.frequency.setValueAtTime(f0,t);if(f1)f.frequency.exponentialRampToValueAtTime(f1,t+d*.7);
-  g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(v,t+d*.15);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(g);g.connect(A.destination);s.start(t,Math.random()*.5);s.stop(t+d+.02)};
+  v*=SV;g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(v,t+d*.15);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(g);g.connect(A.destination);s.start(t,Math.random()*.5);s.stop(t+d+.02)};
  ({dados:()=>{for(let i=0;i<7;i++)noise(t0+i*.055+Math.random()*.02,.05,.25,2600+Math.random()*1500,0,3);tone(t0+.42,300,180,.07,.12,'triangle');tone(t0+.5,260,170,.06,.1,'triangle')},
-  construir:()=>{tone(t0,320,170,.08,.18,'triangle');tone(t0+.09,240,150,.07,.14,'triangle')},
+  construir:()=>{tone(t0,260,190,.12,.08);tone(t0+.1,200,150,.12,.06)},
   huracan:()=>noise(t0,1.3,.22,350,1700,.8),
-  trato:()=>{tone(t0,880,0,.3,.09);tone(t0+.11,1320,0,.4,.08)},
-  robo:()=>tone(t0,520,240,.25,.1,'square'),
-  cosecha:()=>{tone(t0,660,0,.12,.07);tone(t0+.06,990,0,.14,.05)},
+  trato:()=>{tone(t0,587,0,.3,.07);tone(t0+.11,880,0,.4,.05)},
+  robo:()=>tone(t0,420,220,.25,.08,'triangle'),
+  cosecha:()=>{tone(t0,523,0,.14,.06);tone(t0+.07,784,0,.16,.04)},
   carta:()=>{noise(t0,.18,.12,1200,3800,.7);tone(t0+.12,700,0,.12,.06,'triangle')}})[k]()}catch(e){}}
 // ---- cartas que se voltean ----
 function flip(id,who){const c=D.DEV[id[0]],e=document.createElement('div');e.className='hz-flip';
@@ -29,9 +31,9 @@ const DEVBYNAME=Object.keys(D.DEV).reduce((o,k)=>(o[D.DEV[k].nm]=k,o),{});
 // ---- cada vez que se dibuja: comparar con lo anterior y sonar / voltear / abrir el resumen ----
 function after(G,m){const c={rn:G.rn,pz:G.vo.filter(x=>x>=0).length+G.vl.reduce((a,b)=>a+b,0)+G.eo.filter(x=>x>=0).length,trn:G.trn||0,sln:G.sl?G.sl.n:0,pl:sum(G.pl),
   nd:m>=0&&G.dev[m]?G.dev[m].length:0,ph:G.phase,prn:G.prod?G.prod.rn:-1,ln:G.ln||0},p=prev;prev=c;if(!p)return;
- if(c.rn!==p.rn){snd('dados');if(G.dice[0]+G.dice[1]==7)setTimeout(()=>snd('huracan'),450)}
- if(c.pz>p.pz)setTimeout(()=>snd('construir'),c.rn!==p.rn?600:0);
- if(c.trn!==p.trn)snd('trato');if(c.sln!==p.sln)setTimeout(()=>snd('robo'),300);
+ const yo=G.turn===m;if(c.rn!==p.rn){sndB('dados',yo);if(G.dice[0]+G.dice[1]==7)setTimeout(()=>sndB('huracan',yo),450)}
+ if(c.pz>p.pz)setTimeout(()=>sndB('construir',yo),c.rn!==p.rn?600:0);
+ if(c.trn!==p.trn)sndB('trato',yo);if(c.sln!==p.sln)setTimeout(()=>sndB('robo',yo),300);
  if(c.prn!==p.prn&&m>=0&&G.prod.got[m]&&sum(G.prod.got[m]))setTimeout(()=>snd('cosecha'),700);
  if(c.nd>p.nd&&c.pl===p.pl&&G.dev[m]){const id=G.dev[m][G.dev[m].length-1].id;setTimeout(()=>flip(id,'Te salió esta carta'),200)}
  if(c.pl>p.pl){const L=(G.log||[]).filter(e=>e.n>p.ln&&/^juega /.test(e.t));L.forEach((e,i)=>{const n=e.t.slice(6).split(':')[0],id=DEVBYNAME[n];if(id)setTimeout(()=>flip(id,U.nm(e.k)+' la juega'),200+i*900)})}

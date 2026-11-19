@@ -7,6 +7,8 @@ let vol=.74;try{const x=localStorage.getItem('cont_musv'),o=localStorage.getItem
 let volU=vol||.74;const lvl=()=>vol<=0?0:vol<.64?1:vol<.84?2:3;
 let ctx=null,master=null,bus=null,cur=null,timer=null,noise=null;const buf={};
 const hz=m=>440*Math.pow(2,(m-69)/12);
+// variedad y menos agudos: cada vuelta completa cambia de tono (TP), a veces descansa la melodía (REST) y ninguna nota pasa de Sol 5
+let TP=0,REST=false;const fold=m=>{m+=TP;while(m>79)m-=12;return m};
 
 // ---------- instrumentos ----------
 // tonos pregrabados en un buffer (una vez por nota): piano eléctrico, piano, bajo, marimba
@@ -21,10 +23,10 @@ function tone(t,m){const key=t+m;if(buf[key])return buf[key];const sr=ctx.sample
  T.h.forEach(([k,g],j)=>{const fk=f*k;if(fk>sr/2.2)return;const dk=T.k*(1+j*.6);for(let i=0;i<n;i++)a[i]+=g*Math.sin(w*fk*i)*Math.exp(-dk*i/sr)});
  const at=sr*.004;for(let i=0;i<at;i++)a[i]*=i/at;let mx=0;for(let i=0;i<n;i++)mx=Math.max(mx,Math.abs(a[i]));for(let i=0;i<n;i++)a[i]/=mx||1;
  return buf[key]=b}
-function play(out,t,ins,m,v,len){const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=tone(ins,m);g.gain.value=v;
+function play(out,t,ins,m,v,len){m=fold(m);const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=tone(ins,m);g.gain.value=v;
  if(len){g.gain.setValueAtTime(v,t+len);g.gain.exponentialRampToValueAtTime(.001,t+len+.12)}s.connect(g);g.connect(out);s.start(t);s.stop(t+(len?len+.15:s.buffer.duration))}
 // osciladores para el chiptune de UNO
-function osc(out,t,type,m,v,len,cut){const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();o.type=type;o.frequency.value=hz(m);f.type='lowpass';f.frequency.value=cut||3500;
+function osc(out,t,type,m,v,len,cut){m=fold(m);cut=Math.min(cut||3500,2200);const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();o.type=type;o.frequency.value=hz(m);f.type='lowpass';f.frequency.value=cut||3500;
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.008);g.gain.setValueAtTime(v*.8,t+len*.6);g.gain.exponentialRampToValueAtTime(.001,t+len);o.connect(f);f.connect(g);g.connect(out);o.start(t);o.stop(t+len+.02)}
 // percusión
 function nzs(){if(noise)return noise;const n=ctx.sampleRate,b=ctx.createBuffer(1,n,n),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;return noise=b}
@@ -36,7 +38,7 @@ const kick=(o,t,v)=>drum(o,t,120,42,v,.28),hat=(o,t,v,d)=>hit(o,t,'highpass',750
  brush=(o,t,v)=>hit(o,t,'bandpass',2600,v,.16,.6),snare=(o,t,v)=>{hit(o,t,'bandpass',1900,v,.14,.8);drum(o,t,220,160,v*.5,.08,'triangle')},
  clave=(o,t,v)=>drum(o,t,2500,2400,v,.05),bongo=(o,t,v,hi)=>drum(o,t,hi?420:290,hi?360:245,v,.14),rim=(o,t,v)=>drum(o,t,1700,1500,v,.035,'triangle');
 // notas de la melodía de un compás: [paso, nota, duración en pasos, (segunda voz)]
-function mel(bar,i,fn){(bar||[]).forEach(n=>{if(n[0]===i)fn(n)})}
+function mel(bar,i,fn){if(REST)return;(bar||[]).forEach(n=>{if(n[0]===i)fn(n)})}
 
 // ---------- canciones (compases de 16 pasos) ----------
 const SONGS={
@@ -114,13 +116,13 @@ const SONGS={
 
 // ---------- reproducción ----------
 function init(){if(ctx)return true;if(typeof AC=='undefined'||!AC)return false;ctx=AC;
- master=ctx.createGain();master.gain.value=gainOf(vol);master.connect(ctx.destination);bus=ctx.createGain();bus.connect(master);
+ master=ctx.createGain();master.gain.value=gainOf(vol);master.connect(ctx.destination);bus=ctx.createGain();const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3200;lp.Q.value=.5;bus.connect(lp);lp.connect(master);
  // reverb suave
  const sr=ctx.sampleRate,n=sr*1.8|0,ir=ctx.createBuffer(2,n,sr);for(let c=0;c<2;c++){const a=ir.getChannelData(c);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}
  const cv=ctx.createConvolver(),wet=ctx.createGain();cv.buffer=ir;wet.gain.value=.22;bus.connect(cv);cv.connect(wet);wet.connect(master);return true}
 function tick(){if(!cur||ctx.state!=='running')return;const T=SONGS[cur.id],sd=60/T.bpm/4;
  if(cur.next<ctx.currentTime)cur.next=ctx.currentTime+.05;   // la pestaña estuvo dormida: no ponerse al corriente de golpe
- while(cur.next<ctx.currentTime+.18){const sw=cur.i%2?sd*(T.sw||0):0;try{T.step(cur.g,cur.i,cur.next+sw,sd)}catch(e){}cur.i++;cur.next+=sd}}
+ while(cur.next<ctx.currentTime+.18){const sw=cur.i%2?sd*(T.sw||0):0,cy=Math.floor(cur.i/256),bk=Math.floor(cur.i/16)%16;TP=[0,-3,2,-5][cy%4];REST=cy%2==1&&bk<4;try{T.step(cur.g,cur.i,cur.next+sw,sd)}catch(e){}cur.i++;cur.next+=sd}}
 function start(id){if(cur&&cur.id===id)return;const now=ctx.currentTime;
  if(cur){const g=cur.g;g.gain.cancelScheduledValues(now);g.gain.setValueAtTime(g.gain.value,now);g.gain.linearRampToValueAtTime(0,now+1.2);setTimeout(()=>g.disconnect(),1600)}
  if(!id){cur=null;return}const g=ctx.createGain();g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+1.6);g.connect(bus);
