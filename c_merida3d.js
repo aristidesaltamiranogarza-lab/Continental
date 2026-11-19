@@ -254,7 +254,8 @@ function fstep(now){const u=FT?Math.min(1,(now-FT.t0)/FT.d):1,e=eio(u);
 // ---- personalidad de las fichas: apachurrón al caer, se agacha al pagar, brinca al cobrar, gira al pasar por la Salida, se cae al quebrar ----
 const TF=[],wasBk=[];
 function react(k,kind,a){if(RMo()&&kind!='quiebra')return;TF[k]={k:kind,t0:performance.now(),a:a==null?1:a,d:{sq:260,paga:700,cobra:650,go:700,quiebra:1400}[kind]||500}}
-function tfx3(k,T,now){let e=TF[k];T.scale.set(1,1,1);T.rotation.x=T.rotation.z=0;if(e&&e.k=='quiebra'&&G0&&!G0.bk[k])e=TF[k]=null;if(!e)return;const u=(now-e.t0)/e.d;if(u>=1&&e.k!='quiebra'){TF[k]=null;return}const v=Math.min(1,u),q=1-v;
+function tfx3(k,T,now){let e=TF[k];T.scale.set(1,1,1);if(!anim[k])T.position.y=.1;   // quieta: altura base cada cuadro, si no los brincos de cobrar se acumulaban y la ficha salía volando
+ T.rotation.x=T.rotation.z=0;if(e&&e.k=='quiebra'&&G0&&!G0.bk[k])e=TF[k]=null;if(!e)return;const u=(now-e.t0)/e.d;if(u>=1&&e.k!='quiebra'){TF[k]=null;return}const v=Math.min(1,u),q=1-v;
  if(e.k=='sq'){const w=Math.sin(v*Math.PI)*(.18+.2*e.a)*q;T.scale.set(1+w*.6,1-w,1+w*.6)}
  else if(e.k=='paga'){const w=Math.sin(Math.min(1,v*1.6)*Math.PI)*.38;T.scale.set(1+w*.35,1-w,1+w*.35);T.rotation.z=Math.sin(v*Math.PI*6)*.12*q}
  else if(e.k=='cobra'||e.k=='go'){const h=Math.sin(v*Math.PI);T.position.y+=h*(e.k=='go'?.7:.45);T.rotation.y+=(e.k=='go'?2:1)*Math.PI*2*(1-q*q*q)}
