@@ -35,10 +35,11 @@ function boardTex(th){if(TX[th])return TX[th];const P=PAL[th],c=document.createE
   let y=-h/2+20;const nm=s.n.toUpperCase();
   if(s.t=='p'){g.fillStyle=D.gcol[s.g];g.fillRect(-w/2,-h/2,w,.3*K);g.strokeRect(-w/2,-h/2,w,.3*K);y+=.3*K+8}
   else if(!cor){MIC.draw(g,MIC.sq(s),0,-h/2+.34*K,70,P.tx);y+=.6*K}
-  else{MIC.draw(g,MIC.sq(s),0,-14,120,P.tx)}
   let fs=cor?40:31;g.font=`800 ${fs}px ${F}`;const mw=Math.max(...nm.split(' ').map(t=>g.measureText(t).width)),lim=w-22;if(mw>lim){fs=Math.floor(fs*lim/mw);g.font=`800 ${fs}px ${F}`}
   const L=wrapT(g,nm,lim);g.fillStyle=P.tx;
-  if(cor){L.forEach((l,j)=>g.fillText(l,0,-h/2+40+j*fs*1.08));if(s.s){g.fillStyle=P.sb;g.font='600 28px '+F;g.fillText(s.s,0,h/2-36)}}
+  if(cor){L.forEach((l,j)=>g.fillText(l,0,-h/2+40+j*fs*1.08));
+   // el ícono va debajo del nombre (con nombres de 3 renglones se encimaba) y se achica si no cabe
+   {const t=-h/2+40+(L.length-.5)*fs*1.08+10,bt=s.s?h/2-62:h/2-14,z=Math.min(120,bt-t);MIC.draw(g,MIC.sq(s),0,Math.max(-14,t+z/2),z,P.tx);g.fillStyle=P.tx}if(s.s){g.fillStyle=P.sb;g.font='600 28px '+F;g.fillText(s.s,0,h/2-36)}}
   else{L.forEach((l,j)=>g.fillText(l,0,y+12+j*fs*1.08));const pr=s.p||s.v;if(pr){g.fillStyle=P.sb;g.font='700 30px '+F;g.fillText('$'+pr,0,h/2-30)}}
   g.restore()}
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R.capabilities.getMaxAnisotropy();return TX[th]=t}
