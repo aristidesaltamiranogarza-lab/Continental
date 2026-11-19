@@ -176,6 +176,9 @@ function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.
 const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;if(!(d>0&&d<=12))return 0;return (window.MRIT&&V.G?MRIT.total(V.G,k,p.pos[k],c.pos[k]):d*180)+200};   // MRIT: saltos más lentos cerca de casas
 function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice(),own:G.own.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;const W=Math.max(0,...G.cash.map((_,k)=>hopMs(p,c,k)));   // el dinero se mueve cuando la ficha llega
  G.cash.forEach((x,k)=>{const d=x-p.cash[k];if(d&&!G.bk[k])setTimeout(()=>money(k,d),W)});
+ // billete que vuela del que paga al que cobra (MDIN) y la ficha reacciona: se agacha al pagar, brinca al cobrar (pasar la Salida ya lo festeja el tablero)
+ const dc=G.cash.map((x,k)=>G.bk[k]?0:x-p.cash[k]),mv=k=>p.pos[k]!==c.pos[k];if(dc.some(Boolean))setTimeout(()=>{if(!active())return;if(window.MDIN)MDIN.pasa(dc,$m,ins,mv);const st=stage();
+  if(st&&st.react)dc.forEach((d,k)=>{if(d&&!(d>0&&mv(k)&&c.pos[k]<p.pos[k]))st.react(k,d<0?'paga':'cobra')})},W);
  if(G.card&&G.card.n!==p.cn)showCard(G.card,Math.min(4200,hopMs(p,c,G.card.k)+150))
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc))setTimeout(yourTurn,250);
  if(m>=0&&window.MANI&&p.own)c.own.forEach((o,i)=>{if(o===m&&p.own[i]!==m)MANI.buy(mini(i),hopMs(p,c,m)+80)});

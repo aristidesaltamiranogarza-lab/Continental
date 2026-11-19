@@ -69,22 +69,29 @@ function slot(k,G){const i=G.pos[k],[x,z]=cpos(i),sd=side(i);
 function mkTok(k){const e=document.createElement('div');e.className='m2t';e.style.setProperty('--pc',MR.pc(k));
  e.innerHTML=`<div class="ar">${ARROW}</div><div class="tk">${MR.tk(k)}</div><em>TÚ</em>`;brd.querySelector('.m2tl').appendChild(e);return e}
 const place=(e,x,z,hop)=>{e.style.left=pct(x);e.style.top=pct(z);e.style.setProperty('--hop',hop?(-hop*S0/12)+'px':'0px')};
-function syncToks(G){G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=mkTok(k);shownPos[k]=G.pos[k];const [x,z]=slot(k,G);place(toks[k],x,z,0)}
- const e=toks[k],t=G.pos[k];e.style.display=G.bk[k]?'none':'';e.classList.toggle('on',k===G.turn&&G.phase=='play');e.classList.toggle('me',k===V.me);e.classList.toggle('jl',!!G.jail[k]&&t===10);
+function syncToks(G){G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=mkTok(k);wasBk[k]=G.bk[k]?1:0;if(G.bk[k])toks[k].style.display='none';shownPos[k]=G.pos[k];const [x,z]=slot(k,G);place(toks[k],x,z,0)}
+ const e=toks[k],t=G.pos[k];if(!G.bk[k]){if(wasBk[k]){const t=e.querySelector('.tk');if(t&&t.getAnimations)t.getAnimations().forEach(x=>x.cancel())}wasBk[k]=0;e.style.display=''}else if(!wasBk[k]){wasBk[k]=1;if(RM)e.style.display='none';else{react(k,'quiebra');setTimeout(()=>{if(G0&&G0.bk[k])e.style.display='none'},1400)}}e.classList.toggle('on',k===G.turn&&G.phase=='play');e.classList.toggle('me',k===V.me);e.classList.toggle('jl',!!G.jail[k]&&t===10);
  if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];let jl=0;
   // a la cárcel: llega caminando a "Ve a la cárcel" o a la carta, suena la sirena y salta a la cárcel con un brinco largo
   if(t===10&&G.jail[k]){const s0=shownPos[k],n=(G.dice[0]||0)+(G.dice[1]||0),q=(s0+n)%40;jl=1;if(n>=2&&B[q]&&(q==30||B[q].t=='s'||B[q].t=='c')){for(let j=1;j<=n;j++)path.push((s0+j)%40);jl=q==30?700:2600}path.push(10)}
   else if(d>0&&d<=12&&!(t===10&&G.jail[k]))for(let j=1;j<=d;j++)path.push((shownPos[k]+j)%40);else path.push(t);
   shownPos[k]=t;const L=e.style;anim[k]={path,jl,hp:window.MRIT?MRIT.hops(G,k,path,!!jl):null,t0:performance.now()+(path.length==1&&jl?400:0),from:[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6]};startFollow(k)}
  else if(!anim[k]){const [x,z]=slot(k,G);place(e,x,z,0)}})}
+// personalidad de las fichas: apachurrón al caer, se agacha al pagar, brinca al cobrar, gira en la Salida, se cae al quebrar
+const wasBk=[];
+function react(k,kind,a){const e=toks[k],t=e&&e.querySelector('.tk');if(!t||!t.animate||(RM&&kind!='quiebra'))return;a=a==null?1:a;const w=.15+.2*a;
+ const K={sq:[[{scale:'1 1'},{scale:(1+w*.6)+' '+(1-w)},{scale:'1 1'}],240],paga:[[{scale:'1 1',rotate:'0deg'},{scale:'1.3 .6',rotate:'-8deg',offset:.3},{scale:'1.25 .65',rotate:'8deg',offset:.5},{scale:'1 1',rotate:'0deg'}],700],
+  cobra:[[{translate:'0 0',rotate:'0deg'},{translate:'0 -60%',rotate:'180deg'},{translate:'0 0',rotate:'360deg'}],650],go:[[{translate:'0 0',rotate:'0deg'},{translate:'0 -90%',rotate:'360deg'},{translate:'0 0',rotate:'720deg'}],700],
+  quiebra:[[{rotate:'0deg',scale:'1',opacity:1},{rotate:'80deg',scale:'1',opacity:1,offset:.35},{rotate:'90deg',scale:'.3',opacity:0}],1400]}[kind];
+ if(K)t.animate(K[0],{duration:K[1],easing:'ease-out',fill:kind=='quiebra'?'forwards':'none'})}
 // la cámara sigue a la ficha que se mueve (si estás con zoom) y luego regresa a donde estabas
 function startFollow(k){if(!fol||vt.k<1.15||ptr.size)return;if(!back)back={x:vt.x,y:vt.y,k:vt.k};touched=false;anim[k].fol=true}
 function step(now){let busy=false;const G=G0;
  toks.forEach((e,k)=>{const a=anim[k];if(!a||!e)return;busy=true;const jh=a.jl&&a.path.length==1;if(jh&&!a.sn){a.sn=1;if(window.POLI)POLI.sirena(a.t0-now+HOP*5+300)}const hp=!jh&&a.hp&&a.hp[0];let t=(now-a.t0)/(jh?HOP*5:hp?hp.d:HOP);if(t<0)return;
-  if(t>=1){a.path.shift();if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);const L=e.style;a.from=[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6];a.t0=now;t=0;
+  if(t>=1){a.path.shift();const to0=a.path0;if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);react(k,to0===0?'go':'sq',hp&&hp.land?1:.4);const L=e.style;a.from=[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6];a.t0=now;t=0;
    if(a.path.length==1&&a.jl)a.t0=now+(a.jl>1?a.jl:0);
    if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);place(e,x,z,0);if(a.jl&&window.POLI)POLI.reja();if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(vt,back);clampV()}back=null;kick()},900);return}}
-  const last=a.path.length==1,[x,z]=last?slot(k,G):cpos(a.path[0]),u=Math.min(1,t),px=a.from[0]+(x-a.from[0])*u,pz=a.from[1]+(z-a.from[1])*u;
+  a.path0=a.path[0];const last=a.path.length==1,[x,z]=last?slot(k,G):cpos(a.path[0]),u=Math.min(1,t),px=a.from[0]+(x-a.from[0])*u,pz=a.from[1]+(z-a.from[1])*u;
   place(e,px,pz,jh?Math.sin(u*Math.PI)*1.2:hp?MRIT.alto(u,hp)*.32*hp.h:Math.sin(u*Math.PI)*.32);if(a.fol&&!touched){vt.x=-(px/12)*S0*vt.k;vt.y=-(pz/12)*S0*vt.k;clampV()}});
  return busy}
 // la ficha cayó fuerte en una colonia con casas u hotel (MRIT): las casas brincan y la casilla tiembla; entre más casas, más fuerte
@@ -106,6 +113,7 @@ function loop(now){raf=0;if(!shown||!G0)return;let busy=step(now);
 window.M2={ok:()=>true,
  show(on){if(on)build();if(shown===on)return;shown=on;if(root)root.style.display=on?'block':'none';if(on)kick();else if(mz)mz.reset()},
  cardAt:(d,dl)=>mz&&shown?mz.at(d,dl):null,
+ react:(k,kind,a)=>{if(ready&&shown)react(k,kind,a)},
  layout(i){ins=i;const s=Math.floor(Math.min(visW(),visH())*.98);if(s!==S0){const r=S0?s/S0:1;S0=s;wrap.style.width=wrap.style.height=s+'px';brd.style.setProperty('--u',(s/12)+'px');vt.x*=r;vt.y*=r;vw.x*=r;vw.y*=r}clampV();apply();kick()},
  theme(t){if(root&&root.dataset.t!==t)root.dataset.t=t},follow(on){fol=on},
  sync(G,sel){G0=G;if(mz)mz.sync(G);syncCells(G,sel);syncToks(G);syncDice(G);potEl.textContent=G.o.pot?'Bote: '+MR.$m(G.pot):'';kick()},

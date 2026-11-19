@@ -239,10 +239,18 @@ function fstep(now){const u=FT?Math.min(1,(now-FT.t0)/FT.d):1,e=eio(u);
  else if(FT&&FT.mv){const f=FT.f0+(FT.f1-FT.f0)*e;FO.cf=f;Object.assign(VT,fPose(f,dist*(1+.3*Math.sin(Math.PI*u)*Math.min(1,Math.abs(FT.f1-FT.f0)/4))))}
  else{FO.cf=FO.f;Object.assign(VT,fPose(FO.f,dist))}
  if(FT&&u>=1)FT=null}
+// ---- personalidad de las fichas: apachurrón al caer, se agacha al pagar, brinca al cobrar, gira al pasar por la Salida, se cae al quebrar ----
+const TF=[],wasBk=[];
+function react(k,kind,a){if(RMo()&&kind!='quiebra')return;TF[k]={k:kind,t0:performance.now(),a:a==null?1:a,d:{sq:260,paga:700,cobra:650,go:700,quiebra:1400}[kind]||500}}
+function tfx3(k,T,now){let e=TF[k];T.scale.set(1,1,1);T.rotation.x=T.rotation.z=0;if(e&&e.k=='quiebra'&&G0&&!G0.bk[k])e=TF[k]=null;if(!e)return;const u=(now-e.t0)/e.d;if(u>=1&&e.k!='quiebra'){TF[k]=null;return}const v=Math.min(1,u),q=1-v;
+ if(e.k=='sq'){const w=Math.sin(v*Math.PI)*(.18+.2*e.a)*q;T.scale.set(1+w*.6,1-w,1+w*.6)}
+ else if(e.k=='paga'){const w=Math.sin(Math.min(1,v*1.6)*Math.PI)*.38;T.scale.set(1+w*.35,1-w,1+w*.35);T.rotation.z=Math.sin(v*Math.PI*6)*.12*q}
+ else if(e.k=='cobra'||e.k=='go'){const h=Math.sin(v*Math.PI);T.position.y+=h*(e.k=='go'?.7:.45);T.rotation.y+=(e.k=='go'?2:1)*Math.PI*2*(1-q*q*q)}
+ else if(e.k=='quiebra'){const w=Math.min(1,v/.35),f=Math.max(0,(v-.35)/.65);T.rotation.z=w*w*Math.PI/2*.9;T.position.y-=f*f*1.2;T.scale.setScalar(Math.max(.01,1-f*.6))}}
 let mz=null;
 function sync(G,sel){G0=G;if(mz)mz.sync(G);
- G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=piece(k);SC.add(toks[k]);arrs[k]=arrow(k);SC.add(arrs[k]);shownPos[k]=G.pos[k];const [x,z]=slot(k,G);toks[k].position.set(x,.1,z);anim[k]=null}
-  toks[k].visible=arrs[k].visible=!G.bk[k];const t=G.pos[k];
+ G.players.forEach((_,k)=>{if(!toks[k]){toks[k]=piece(k);wasBk[k]=G.bk[k]?1:0;toks[k].visible=!G.bk[k];SC.add(toks[k]);arrs[k]=arrow(k);SC.add(arrs[k]);arrs[k].visible=!G.bk[k];shownPos[k]=G.pos[k];const [x,z]=slot(k,G);toks[k].position.set(x,.1,z);anim[k]=null}
+  if(!G.bk[k]){wasBk[k]=0;toks[k].visible=arrs[k].visible=true}else if(!wasBk[k]){wasBk[k]=1;if(RMo())toks[k].visible=arrs[k].visible=false;else{react(k,'quiebra');setTimeout(()=>{if(G0&&G0.bk[k])toks[k].visible=arrs[k].visible=false},1500)}}const t=G.pos[k];
   if(shownPos[k]!==t){const d=(t-shownPos[k]+40)%40,path=[];let cop=null;
    // a la cárcel: si cayó en "Ve a la cárcel" o en una carta, primero llega caminando; luego viene la patrulla (c_merida_poli.js)
    if(t===10&&G.jail[k]&&window.POLI){const s0=shownPos[k],n=(G.dice[0]||0)+(G.dice[1]||0),q=(s0+n)%40;cop={q:s0,w:0};if(n>=2&&B[q]&&(q==30||B[q].t=='s'||B[q].t=='c')){for(let j=1;j<=n;j++)path.push((s0+j)%40);cop={q,w:q==30?250:2300}}}
@@ -274,11 +282,11 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
   if(a&&a.cop&&!a.path.length){moving=true;if(!a.cs&&now>=a.t0+a.cop.w){a.cs=1;POLI.go({THREE,SC,tok:T,q:a.cop.q,cpos,jail:slot(k,G),
     cam:(x,z)=>{if(a.fol&&!touched){VT.x=x;VT.z=z;VT.k=Math.max(VT.k,1.7);clampV()}},done:()=>{if(anim[k]===a)anim[k]=null;if(a.fol)setTimeout(rest,900)}})}}
   else if(a){moving=true;const hp=a.hp&&a.hp[0];let t=(now-a.t0)/(hp?hp.d:HOP);
-   if(t>=1){a.path.shift();if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length&&a.cop)a.t0=now;else if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
+   if(t>=1){a.path.shift();if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);react(k,a.lastTo===0?'go':'sq',hp&&hp.land?1:.4);a.from=T.position.clone();a.t0=now;t=0;if(!a.path.length&&a.cop)a.t0=now;else if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);T.position.set(x,.1,z);
      if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null},900)}}
-   if(anim[k]&&a.path.length){const to=a.path[0],last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t);
+   if(anim[k]&&a.path.length){const to=a.path[0];a.lastTo=to;const last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t);
     T.position.set(a.from.x+(x-a.from.x)*u,.1+(hp?window.MRIT.alto(u,hp)*.4*hp.h:Math.sin(u*Math.PI)*.4),a.from.z+(z-a.from.z)*u);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
-  const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3:0);
+  const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3:0);tfx3(k,T,now);
   const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
   A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w,T.position.z)});
  const k=G.turn,T=toks[k];ring.visible=!!T&&G.phase=='play'&&!G.bk[k];if(T){ring.position.set(T.position.x,T.position.y+.02,T.position.z);ring.scale.setScalar(1+Math.sin(now/250)*.08)}
@@ -296,6 +304,7 @@ window.M3={ok:()=>!failed,
  show(on){if(on&&!failed){try{init()}catch(e){failed=true;console.warn('Mérida 3D: no se pudo iniciar',e);throw e}}if(!ready||shown===on)return;shown=on;root.style.display=on?'block':'none';
   if(on){tPrev=0;if(!raf)raf=requestAnimationFrame(loop)}else{toks.forEach(t=>t&&SC.remove(t));arrs.forEach(a=>a&&SC.remove(a));toks.length=arrs.length=anim.length=shownPos.length=0;dynKey='';rollN=-1;G0=null;back=null;FO=FT=HS0=null;HFX.length=0;BL.forEach(m=>m.visible=false);if(mz)mz.reset()}},
  cardAt:(d,dl)=>mz&&shown?mz.at(d,dl):null,
+ react:(k,kind,a)=>{if(ready&&shown)react(k,kind,a)},
  focus:(i,dir)=>{if(ready&&shown)focus(i,dir)},blink:L=>{if(ready&&shown)blink(L)},
  layout(i){const ch=i.t!==ins.t||i.b!==ins.b||i.r!==ins.r||i.l!==ins.l;Object.assign(ins,i);if(ch||!W)resize()},
  theme:t=>applyTheme(t),follow:on=>{fol=on},
