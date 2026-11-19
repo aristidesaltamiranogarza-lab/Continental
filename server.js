@@ -40,7 +40,7 @@ function tomato(R,tok,i){const G=R.G,now=Date.now();if(!G||G.phase!='play'||G.tu
 function bump(R){const tk=turnKey(R.G);if(tk!==R.tk){R.tk=tk;R.tt=Date.now()}R.v++;R.ts=Date.now();const ws=R.w;R.w=[];ws.forEach(w=>{clearTimeout(w.t);out(w.res,view(R,w.tok))});botGo(R)}
 // ---- bots: el módulo del juego decide (M.bot), aquí se agenda y se manda por act() como cualquier jugador ----
 // M.auto(R,k), si existe, decide quién juega en automático (bots, y personas ausentes o desconectadas); M.botn: nombres de sus bots
-const BOTN=['Ana','Beto','Caro','Dani','Eli','Fer','Gabo','Hugo','Iris'];
+const {BOTN,avDe}=require('./bots_nombres.js');
 // el asiento se queda con un bot (abandonó, o se levantó y no volvió en 2 min): token nuevo para que ya nadie lo use; si era el host, pasa a otra persona
 function botSeat(R,p){const old=p.tok;p.bot=true;p.away=0;p.tok=cr.randomBytes(12).toString('hex');if(R.host==old){const h=R.players.find(x=>!x.bot&&!x.out);if(h)R.host=h.tok}}
 // volver a tu lugar (cerraste la sala, se recargó o se durmió el celular): se te reconoce por la clave de tu aparato (me).
@@ -83,7 +83,7 @@ function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==
   if(ps.length<R.players.length)R.chat.push({k:-1,name:'Aviso',t:M2.name+' todavía no tiene bots: salieron de la sala',ts:Date.now()});
   R.players=ps;R.gt=m.g;R.opts=Object.assign({},M2.opts);R.chat.push({k:-1,name:'Aviso',t:'Ahora van a jugar '+M2.name,ts:Date.now()});return}
  if(t=='addbot'){if(!H)return 'Solo el host puede agregar bots.';if(G)return 'Ya empezó.';if(!M.bot)return 'Este juego todavía no tiene bots.';if(R.players.length>=M.max)return 'La sala está llena (máximo '+M.max+').';
-  const nm=(M.botn||BOTN).find(x=>!R.players.some(p=>p.name==x))||'Bot';R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),{bot:true}));return}
+  const nm=(M.botn||BOTN).find(x=>!R.players.some(p=>p.name==x))||'Bot';R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,avDe(nm)),{bot:true}));return}
  if(t=='start'){if(!H)return 'Solo el host puede empezar.';if(G)return 'Ya empezó.';const n=R.players.length;
   if(n<M.min||n>M.max)return 'Se necesitan de '+M.min+' a '+M.max+' jugadores.';M.start(R,m);return}
  if(!G)return 'No hay partida.';

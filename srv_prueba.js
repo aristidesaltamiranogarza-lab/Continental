@@ -21,7 +21,7 @@ module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
  const c=rnd(5),t=cr.randomBytes(12).toString('hex'),n=Math.max(2,Math.min(5,+q.get('n')||5));
  const uno=q.get('g')==='uno',mer=q.get('g')==='merida',R=rooms[c]={code:c,gt:uno?'uno':mer?'merida':'continental',opts:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
  R.poke=()=>bump(R);
- ['Ana','Beto','Caro','Dani'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),uno||(mer&&(q.get('grupos')||q.get('bot')))?{bot:true}:{})));
+ ['Lupe','Toño','Paty','Memo'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||(mer&&(q.get('grupos')||q.get('bot')))?{bot:true}:{})));
  if(mer){GAMES.merida.start(R);const G=R.G;let k=0;while(G.phase=='orden'&&G.turn!==0&&k++<50)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
   if(q.get('casas')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board;
    B.forEach((s,i)=>{if(s.t=='p'&&s.g<4){G.own[i]=0;if(q.get('hotel'))G.hs[i]=4}});G.cash[0]=3000;if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}

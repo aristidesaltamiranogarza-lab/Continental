@@ -5,13 +5,13 @@
 const cr=require('crypto'),IDLE_MS=40000,OFF_MS=35000,T={fire:1500,click:1800,bang:4800},SPD=[0,2600,1700,1000];
 // opciones: n lugares en la mesa (los bots llenan) · vel velocidad de bots (1 lenta, 3 rápida)
 const OPTS={n:6,vel:2},RNG={n:[2,6],vel:[1,3]};
-const BOTN=['Chucho','Lupe','Toño','Chela','Neto','Paty','Memo','Rosy'];
+const {BOTN,avDe}=require('./bots_nombres.js');
 const r6=()=>Math.random()*6|0,alive=G=>G.players.map((_,k)=>k).filter(k=>!G.dead[k]),pn=(G,k)=>G.players[k].name;
 const lg=(G,t)=>{G.log.push({t,n:G.ln=(G.ln||0)+1});if(G.log.length>30)G.log.shift()};
 const fx=(G,t,k,to)=>{G.fx.push({n:G.fn=(G.fn||0)+1,t,k,to,ts:Date.now()});if(G.fx.length>12)G.fx.shift()};
 function start(R){const o=Object.assign({},OPTS,R.opts),want=Math.max(R.players.length,Math.min(6,o.n));
  for(const nm of BOTN){if(R.players.length>=want)break;if(R.players.some(p=>p.name==nm))continue;
-  R.players.push({tok:cr.randomBytes(12).toString('hex'),id:cr.randomBytes(4).toString('hex'),name:nm,seen:Date.now(),bot:true})}
+  R.players.push({tok:cr.randomBytes(12).toString('hex'),id:cr.randomBytes(4).toString('hex'),name:nm,av:avDe(nm),seen:Date.now(),bot:true})}
  const n=R.players.length,t0=Math.random()*n|0;
  R.G={phase:'play',round:0,tc:0,turn:t0,players:R.players.map(p=>({id:p.id,name:p.name,bot:!!p.bot})),o,dead:Array(n).fill(0),
   cy:{b:r6(),p:r6()},fired:0,can:true,st:'spin',sh:t0,tg:null,forced:false,t0:Date.now(),at:0,res:null,nx:null,log:[],fx:[],kills:Array(n).fill(0),lastBy:Array(n).fill(null),win:null};

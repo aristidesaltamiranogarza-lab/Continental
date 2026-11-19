@@ -16,7 +16,7 @@ const lg=(G,k,t)=>{(G.log=G.log||[]).push({k,t,n:G.ln=(G.ln||0)+1});if(G.log.len
 function shuf(a){return D.shuf(a,Math.random)}
 function start(R){const o=Object.assign({},OPTS,R.opts,{vel:2}),want=Math.max(R.players.length,Math.min(6,Math.max(3,o.n|0)));
  for(const nm of B.botn){if(R.players.length>=want)break;if(R.players.some(p=>p.name==nm))continue;
-  R.players.push({tok:cr.randomBytes(12).toString('hex'),id:cr.randomBytes(4).toString('hex'),name:nm,seen:Date.now(),bot:true})}
+  R.players.push({tok:cr.randomBytes(12).toString('hex'),id:cr.randomBytes(4).toString('hex'),name:nm,av:require('./bots_nombres.js').avDe(nm),seen:Date.now(),bot:true})}
  const n=R.players.length,b=D.board(n>4?30:19,o.fijo),g=D.geo(b.n),t0=Math.random()*n|0,sq=[];
  for(let i=0;i<n;i++)sq.push((t0+i)%n);for(let i=n-1;i>=0;i--)sq.push((t0+i)%n);
  R.G={phase:'play',round:0,tc:0,turn:t0,first:t0,players:R.players.map(p=>({id:p.id,name:p.name})),o,bn:b.n,hx:b.hx,ports:b.ports,hur:b.hur,
