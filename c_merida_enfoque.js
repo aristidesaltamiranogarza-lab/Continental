@@ -127,7 +127,7 @@ html[data-tema=noche] .mf{--mf-ok:#7fd6a0}
 .mf-bts{position:absolute;left:0;right:0;bottom:calc(var(--mf-pan,120px) + 12px);display:flex;justify-content:center;gap:14px;pointer-events:none}
 .mf-bt{pointer-events:auto;min-width:132px;height:64px;padding:0 22px;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-panel);color:var(--ui-text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:800 19px/1 var(--ui-font);box-shadow:var(--ui-shadow);cursor:pointer;transition:transform .1s,opacity .2s;animation:mfPop .34s cubic-bezier(.2,1.5,.5,1) both}
 .mf-bt small{font:700 13px/1 var(--ui-font);color:var(--ui-sub)}
-.mf-bt.mg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--mf-pan,120px) + 88px);height:44px;min-width:0;font-size:16px;flex-direction:row;gap:8px}.mf-bt.mg[hidden]{display:none}
+.mf-bt.mg{position:absolute;left:50%;translate:-50% 0;bottom:calc(var(--mf-pan,120px) + 88px);height:44px;min-width:0;font-size:16px;flex-direction:row;gap:8px}.mf-bt.mg[hidden]{display:none}
 .mf-bt.ms{background:var(--ui-accent);color:var(--ui-on);border-color:transparent}.mf-bt.ms small{color:var(--ui-on);opacity:.85}
 .mf-bt.off{opacity:.5}.mf-bt:active{transform:scale(.94)}.mf-bt[hidden]{display:none}
 .mf-sh{animation:mfSh .4s!important}
