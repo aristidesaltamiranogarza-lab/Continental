@@ -179,20 +179,35 @@ function rebuild(G){const key=JSON.stringify([G.own,G.hs,G.mg]);if(key===dynKey)
 let FO=null,FT=null,HS0=null,fxg=null;const HFX=[],BL=[],RMo=()=>typeof RM!=='undefined'&&RM;
 function casas(G,i,H0,x,z,s,ix,iz){const h=G.hs[i],h0=H0?H0[i]:h;if(!h&&!h0)return;const n=h==5?1:h,n0=h0==5?1:h0,now=performance.now(),
   tp=(N,j)=>N<2?0:(j-(N-1)/2)*.22,P=t=>[x+ix*.6+Math.abs(iz)*t,.11,z+iz*.6+Math.abs(ix)*t],
-  mk=(hot,t,k,o)=>{const m=house(hot),p=P(t);m.position.set(p[0],p[1],p[2]);m.rotation.y=s*Math.PI/2;dyn.add(m);if(k){m.visible=k!='cae'&&k!='pop';HFX.push(Object.assign({m,k,p,t0:now,d:520},o))}return m};
+  mk=(hot,t,k,o)=>{const m=house(hot),p=P(t);m.position.set(p[0],p[1],p[2]);m.rotation.y=s*Math.PI/2;dyn.add(m);if(k){m.visible=k!='cae'&&k!='pop'&&k!='hot';HFX.push(Object.assign({m,k,p,t0:now,d:520},o))}return m};
  if(h===h0){for(let j=0;j<n;j++)mk(h==5,tp(n,j));return}
- if(h==5){for(let j=0;j<n0;j++)mk(false,tp(n0,j),'jun',{b:P(0),d:420});mk(true,0,'pop',{t0:now+380,d:560});return}
+ if(h==5){for(let j=0;j<n0;j++)mk(false,tp(n0,j),'jun',{b:P(0),d:420});mk(true,0,'hot',{t0:now+380,d:1100});return}
  if(h0==5){mk(true,0,'sube');for(let j=0;j<n;j++)mk(false,tp(n,j),'cae',{t0:now+240+j*100,d:560});return}
  for(let j=0;j<n;j++){if(j<n0)mk(false,tp(n0,j),'mov',{b:P(tp(n,j)),d:280});else mk(false,tp(n,j),'cae',{t0:now+(j-n0)*120,d:560})}
  for(let j=n;j<n0;j++)mk(false,tp(n0,j),'sube')}
 const golpe=(p,k)=>{if(window.MFX)MFX.polvo(fxg,{x:p[0],z:p[2]},k);if(typeof sfx=='function')sfx('place')};
+// el hotel cae de alto y retumba: tablero que tiembla, polvo grande, golpe grave y vibración
+let SHK=0;
+function retumbo(){try{if(typeof mute!='undefined'&&mute)return;AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const A=AC,t=A.currentTime,o=A.createOscillator(),g=A.createGain();
+  o.type='sine';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(28,t+1.1);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.9,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+1.4);o.connect(g).connect(A.destination);o.start(t);o.stop(t+1.5);
+  const sr=A.sampleRate,n=sr*2|0,b=A.createBuffer(1,n,sr),d=b.getChannelData(0);let l=0;for(let i=0;i<n;i++){l=l*.97+(Math.random()*2-1)*.03;d[i]=l*6*Math.pow(1-i/n,2.2)}
+  const ns=A.createBufferSource(),f=A.createBiquadFilter(),g2=A.createGain();ns.buffer=b;f.type='lowpass';f.frequency.value=180;g2.gain.value=1.1;ns.connect(f).connect(g2).connect(A.destination);ns.start(t);
+  const c=A.createBufferSource(),cf=A.createBiquadFilter(),cg=A.createGain(),cb=A.createBuffer(1,sr*.12|0,sr),cd=cb.getChannelData(0);for(let i=0;i<cd.length;i++)cd[i]=(Math.random()*2-1)*Math.pow(1-i/cd.length,3);
+  c.buffer=cb;cf.type='bandpass';cf.frequency.value=700;cg.gain.value=.8;c.connect(cf).connect(cg).connect(A.destination);c.start(t)}catch(_){}}
+function silba(){try{if(typeof mute!='undefined'&&mute)return;AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const A=AC,t=A.currentTime,o=A.createOscillator(),g=A.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(160,t+.5);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.08,t+.25);g.gain.exponentialRampToValueAtTime(.0001,t+.52);o.connect(g).connect(A.destination);o.start(t);o.stop(t+.55)}catch(_){}}
+const golpeH=p=>{if(window.MFX){MFX.polvo(fxg,{x:p[0],z:p[2]},1);setTimeout(()=>MFX.polvo(fxg,{x:p[0],z:p[2]},.7),90)}retumbo();SHK=performance.now();try{if(navigator.vibrate)navigator.vibrate([140,50,70])}catch(_){}};
+function temblor(now){const u=(now-SHK)/700;if(!SHK||u>=1){if(dyn)dyn.position.y=0;return}const a=Math.pow(1-u,2);
+  CA.position.x+=(Math.sin(now*.093)+Math.sin(now*.051))*.09*a;CA.position.y+=Math.sin(now*.11)*.07*a;CA.position.z+=(Math.sin(now*.077)+Math.sin(now*.039))*.09*a;dyn.position.y=Math.abs(Math.sin(now*.06))*.05*a}
 function hstep(now){for(let q=HFX.length-1;q>=0;q--){const e=HFX[q],m=e.m,p=e.p;let u=(now-e.t0)/e.d;if(u<0)continue;m.visible=true;const fin=u>=1;u=Math.min(1,u);
   if(e.k=='cae'){let y=0,sq=0;if(u<.5){const v=u/.5;y=1.6*(1-v*v)}else{const v=(u-.5)/.5;y=Math.abs(Math.sin(v*Math.PI*2))*.16*(1-v)*(1-v);sq=Math.max(0,.3*(1-v*5));if(!e.hit){e.hit=1;golpe(p,.32)}}
    m.position.set(p[0],p[1]+y,p[2]);m.scale.set(1+sq*.5,1-sq,1+sq*.5)}
   else if(e.k=='sube'){m.position.set(p[0],p[1]+u*u*1.3,p[2]);m.scale.setScalar(Math.max(.001,1-u));m.rotation.y+=.06}
   else if(e.k=='jun'||e.k=='mov'){const v=1-Math.pow(1-u,3),b=e.b;m.position.set(p[0]+(b[0]-p[0])*v,p[1]+(e.k=='jun'?Math.sin(u*Math.PI)*.25:0),p[2]+(b[2]-p[2])*v);if(e.k=='jun')m.scale.setScalar(Math.max(.001,1-.75*u))}
+  else if(e.k=='hot'){let y=0,sq=0,r=0;if(!e.s){e.s=1;silba()}if(u<.45){const v=u/.45;y=3.4*(1-v*v*v);r=(1-v)*.5*Math.sin(now*.02)}else{const v=(u-.45)/.55;y=Math.abs(Math.sin(v*Math.PI*1.5))*.09*(1-v)*(1-v);sq=Math.max(0,.45*(1-v*4));if(!e.hit){e.hit=1;golpeH(p)}}
+   m.position.set(p[0],p[1]+y,p[2]);m.scale.set(1+sq*.6,1-sq,1+sq*.6);m.rotation.z=r}
   else if(e.k=='pop'){if(!e.hit){e.hit=1;golpe(p,.45)}const v=u-1;m.scale.setScalar(Math.max(.001,1+2.70158*v*v*v+1.70158*v*v));m.position.set(p[0],p[1],p[2])}
-  if(fin){if(e.k=='sube'||e.k=='jun')dyn.remove(m);else{m.scale.set(1,1,1);const b=e.b||p;m.position.set(b[0],b[1],b[2])}HFX.splice(q,1)}}}
+  if(fin){if(e.k=='sube'||e.k=='jun')dyn.remove(m);else{m.scale.set(1,1,1);m.rotation.z=0;const b=e.b||p;m.position.set(b[0],b[1],b[2])}HFX.splice(q,1)}}}
 // casillas que parpadean (la que falta para construir parejo)
 function blink(L){const now=performance.now();(L||[]).forEach(i=>{if(!(i>=0&&i<40))return;let m=BL.find(b=>!b.visible);
   if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffc400,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=2;SC.add(m);BL.push(m)}
@@ -248,7 +263,7 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
  if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize();
- try{step(now,dt);applyCam();
+ try{step(now,dt);applyCam();temblor(now);
   // con la casa de fondo (c_casa_fondo.js) va primero la casa y el tablero queda encima, en la mesa de la casa y sin su cuarto
   const fs=window.FONDO?FONDO.pinta(R,CA,'merida',{r:10.5,rt:2.5,y:-.1,sillas:1}):0;if(fs!==fz){fz=fs;if(room)room.visible=!fs;pata.forEach(o=>o.visible=!fs)}if(!fs)R.clear();R.render(SC,CA)}catch(e){console.warn('Mérida 3D:',e);M3.fail();if(typeof render=='function')render()}}
 window.M3={ok:()=>!failed,
