@@ -184,21 +184,37 @@ function turnInView(){const pl=document.getElementById('mupls'),e=pl&&pl.querySe
 function money(k,d){if(!active())return;const el=document.querySelector(`.mu-pl[data-seat="${k}"]`);if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('div');
  f.className='mu-mf '+(d>0?'up':'dn');f.textContent=(d>0?'+':'−')+$m(Math.abs(d));f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';if(window.MANI)MANI.go(k);
  document.body.appendChild(f);setTimeout(()=>f.remove(),1800);if(k===me())sfx(d>0?'go':'tick')}
-// la carta sale de la pila del tablero y luego el panel (también la usa el menú de animaciones, c_merida_demo.js)
-function showCard(cc,dl){const cd=D.cards[cc.d]&&D.cards[cc.d][cc.id],st=stage();let ms=0;
- try{ms=cd&&st&&st.drawCard?st.drawCard(cc,cd.t,dl)||0:0}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc,ms>0),dl+ms)}
-function cardFx(c,pre){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;cardOff(1);const old=document.getElementById('mucfx');if(old)old.remove();
- const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx')+(pre?' pre':'');   // ojo: .c y .bk ya existen en style.css (cartas)
- e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${c.d=='s'?MIC.h('suerte'):MIC.h('regalo')}</b><span>${c.d=='s'?'Suerte':'Comunidad'}</span></div>
-  <div class="fc mu-front"><h5>${c.d=='s'?MIC.h('suerte')+' Suerte':MIC.h('regalo')+' Comunidad'}</h5><p>${esc(cd.t)}</p><small>${tok(c.k,'xs')} ${nm(c.k)}</small></div></div>`;
- e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;e.onclick=()=>cardOff();document.body.appendChild(e);sfx('card');cfx={e,c,t:Date.now()};cardEnd(V.G&&V.G.turn!==c.k?2200:5600);
+// la carta sale de la pila del tablero, vuela al centro volteándose, se queda un momento y regresa a su pila (también la usa el menú de animaciones, c_merida_demo.js)
+const CIN=650,CHOLD=1800,COUT=520,cRM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
+const pileAt=d=>{const st=stage();try{return st&&st.cardAt?st.cardAt(d):null}catch(_){return null}};
+const cT=(x,y,a,k,r)=>`translate(${x}px,${y}px) rotate(${a}deg) scale(${k}) rotateY(${r}deg)`;
+// cuánto hay que mover la carta (centrada) para que quede encima de la pila
+function cFrom(f,r){const b=f.getBoundingClientRect();return {x:r.x-(b.left+b.width/2),y:r.y-(b.top+b.height/2),a:r.a||0,k:Math.max(.08,Math.min(1,r.w/b.width))}}
+// cada cara se apaga justo a la mitad del giro (backface-visibility sola falla en algunos navegadores)
+function cFaces(f,o,front){const k=(a,b)=>[{opacity:a,offset:0},{opacity:a,offset:.5},{opacity:b,offset:.505},{opacity:b,offset:1}];
+ f.querySelector('.mu-back').animate(k(front?1:0,front?0:1),o);f.querySelector('.mu-front').animate(k(front?0:1,front?1:0),o)}
+function showCard(cc,dl){const st=stage();try{if(st&&st.cardAt)st.cardAt(cc.d,dl)}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc),dl)}
+function cardFx(c){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;cardOff(1);const old=document.getElementById('mucfx');if(old)old.remove();
+ const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx');   // ojo: .c y .bk ya existen en style.css (cartas)
+ const ic=c.d=='s'?MIC.h('suerte'):MIC.h('regalo'),t=c.d=='s'?'Suerte':'Comunidad';
+ e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${ic}</b><span>${t}</span></div>
+  <div class="fc mu-front"><h5>${ic} ${t}</h5><p>${esc(cd.t)}</p><small>${tok(c.k,'xs')} ${nm(c.k)}</small></div></div>`;
+ e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;e.onclick=()=>cardOff();document.body.appendChild(e);sfx('card');
+ const f=e.firstChild,r=cRM()?null:pileAt(c.d);
+ if(r){const p=cFrom(f,r),o={duration:CIN,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'};
+  f.animate([{transform:cT(p.x,p.y,p.a,p.k,0),offset:0},{transform:cT(p.x*.35,p.y*.35-30,p.a*.35,(p.k+1)/2,90),offset:.5},{transform:cT(0,0,0,1.03,180),offset:.85},{transform:cT(0,0,0,1,180),offset:1}],o);cFaces(f,o,1)}
+ else f.animate([{opacity:0,transform:cT(0,0,0,.94,180)},{opacity:1,transform:cT(0,0,0,1,180)}],{duration:200,easing:'ease-out',fill:'forwards'});
+ cfx={e,c,t:Date.now()};cardEnd(CIN+CHOLD);
 }
-// la carta grande se va (clic, tiempo o cambio de turno) y regresa volando a su pila; now = quitarla ya, sin regreso
+// la carta se va (clic, tiempo o cambio de turno) y regresa volando a su pila; now = quitarla ya
 let cfx=null;
-function cardOff(now){if(!cfx)return;const{e,c}=cfx;cfx=null;clearTimeout(e._t);let ms=0;
- if(!now&&active()){const st=stage(),cd=D.cards[c.d]&&D.cards[c.d][c.id];try{ms=st&&st.backCard?st.backCard(c,cd?cd.t:'')||0:0}catch(_){}}
- if(ms||now)e.remove();else{e.classList.add('out');setTimeout(()=>e.remove(),400)}}
-function cardEnd(ms){if(!cfx)return;const e=cfx.e;clearTimeout(e._t);e._t=setTimeout(()=>{if(cfx&&cfx.e===e)cardOff()},Math.max(ms,1600-(Date.now()-cfx.t)))}
+function cardOff(now){if(!cfx)return;const{e,c}=cfx;cfx=null;clearTimeout(e._t);if(now||!active()){e.remove();return}
+ const f=e.firstChild,r=cRM()?null:pileAt(c.d);f.style.pointerEvents='none';
+ if(r){const p=cFrom(f,r),o={duration:COUT,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'};
+  f.animate([{transform:cT(0,0,0,1,180),offset:0},{transform:cT(p.x*.55,p.y*.55-24,p.a*.55,(p.k+1)/2,270),offset:.5},{transform:cT(p.x,p.y,p.a,p.k,360),offset:1}],o);cFaces(f,o,0)}
+ else f.animate([{opacity:1},{opacity:0,transform:cT(0,-30,0,.85,180)}],{duration:260,easing:'ease-in',fill:'forwards'});
+ setTimeout(()=>e.remove(),(r?COUT:260)+30)}
+function cardEnd(ms){if(!cfx)return;const e=cfx.e;clearTimeout(e._t);e._t=setTimeout(()=>{if(cfx&&cfx.e===e)cardOff()},Math.max(ms,CIN+1400-(Date.now()-cfx.t)))}
 function yourTurn(){if(!active())return;const e=document.createElement('div');e.className='mu-yt';e.innerHTML=`<div>${tok(me(),'lg')}<b>¡Te toca!</b></div>`;e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;
  document.body.appendChild(e);setTimeout(()=>e.remove(),1900);try{if(navigator.vibrate)navigator.vibrate([90,60,90])}catch(_){}}
 // ---- enganche con game.js ----
@@ -331,20 +347,17 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-hint2{background:var(--mu-ink);color:var(--mu-card);font-weight:700;text-align:center;line-height:1.35}
 .mu-off{position:fixed;top:calc(env(safe-area-inset-top,0px) + 64px);left:50%;transform:translateX(-50%);background:#ffe08a;color:#3b2600;border:2px solid #18201b;border-radius:10px;padding:6px 12px;font:800 13px var(--mu-f);pointer-events:auto;z-index:4}
 .mu-cfx,.mu-yt{position:fixed;left:0;top:0;right:0;bottom:0;z-index:66;display:flex;align-items:center;justify-content:center;pointer-events:none;perspective:1000px}
-.mu-cf{pointer-events:auto;position:relative;width:min(310px,80vw);aspect-ratio:1.55;transform-style:preserve-3d;animation:muflip 1s cubic-bezier(.3,1.25,.5,1) forwards;cursor:pointer}
-.mu-cfx.pre{animation:mufade .25s ease-out}.mu-cfx.pre .mu-cf{animation:mupre .25s ease-out forwards}.mu-cfx.pre .mu-back{display:none}@keyframes mupre{from{transform:rotateY(180deg) scale(.96)}to{transform:rotateY(180deg) scale(1)}}
-.mu-cfx.out{animation:muoff .4s ease-in forwards}.mu-cfx.out .mu-cf{animation:muout .4s ease-in forwards}
-.mu-cf .fc{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:14px;border:3px solid #18201b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 16px;box-sizing:border-box;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:var(--mu-f);text-align:center}
-.mu-cf .mu-back{background:#f7a21b;color:#18201b}.mu-cfx.cx .mu-back{background:#5bb4ec}.mu-cf .mu-back b{font:900 64px/1 var(--mu-f)}.mu-cf .mu-back span{font:900 20px var(--mu-f);text-transform:uppercase;letter-spacing:.12em}
-.mu-cf .mu-front{transform:rotateY(180deg);background:#fffef8;color:#18201b;border-top:14px solid #f7a21b}.mu-cfx.cx .mu-front{border-top-color:#5bb4ec}
-.mu-cf h5{margin:0;font:900 15px var(--mu-f);text-transform:uppercase;letter-spacing:.1em}.mu-cf p{margin:0;font:700 16px/1.3 var(--mu-f)}.mu-cf small{font:600 12px var(--mu-f);color:#56635b;display:flex;align-items:center;gap:5px}
+.mu-cf{pointer-events:auto;position:relative;width:min(340px,84vw);aspect-ratio:1.5;transform-style:preserve-3d;transform:rotateY(180deg);cursor:pointer;will-change:transform}
+.mu-cf .fc{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px 20px 16px;box-sizing:border-box;box-shadow:0 18px 40px rgba(0,0,0,.35);font-family:var(--mu-f);text-align:center}
+.mu-cf .mu-back{background:#f7a21b;color:#18201b}.mu-cfx.cx .mu-back{background:#5bb4ec}.mu-cf .mu-back b{font:900 64px/1 var(--mu-f);display:flex}.mu-cf .mu-back span{font:900 20px var(--mu-f);text-transform:uppercase;letter-spacing:.12em}
+.mu-cf .mu-front{transform:rotateY(180deg);background:#fffef8;color:#18201b}.mu-cf .mu-front::before{content:'';position:absolute;left:0;right:0;top:0;height:12px;background:#f7a21b}.mu-cfx.cx .mu-front::before{background:#5bb4ec}
+.mu-cf h5{margin:0;font:900 16px var(--mu-f);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:6px}.mu-cf p{margin:0;font:700 17px/1.3 var(--mu-f)}.mu-cf small{font:600 13px var(--mu-f);color:#56635b;display:flex;align-items:center;gap:6px}
 .mu-yt>div{display:flex;align-items:center;gap:12px;background:var(--mu-red);color:#fff;border:3px solid #fff;border-radius:22px;padding:14px 24px 14px 16px;box-shadow:0 8px 0 var(--mu-redd),0 22px 44px rgba(0,0,0,.4);animation:muyt 1.9s cubic-bezier(.2,1.4,.5,1) forwards}
 .mu-yt b{font:900 clamp(30px,8vw,46px)/1 var(--mu-f);text-transform:uppercase;letter-spacing:.01em}
 .mu-mf{position:fixed;z-index:68;transform:translate(-50%,0);font:900 17px var(--mu-f);pointer-events:none;padding:3px 10px;border-radius:999px;border:2px solid #fff;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,.35);animation:mumf 1.8s ease-out forwards;white-space:nowrap}
 .mu-mf.up{background:#1e8a4a}.mu-mf.dn{background:#d7261e}
 @keyframes muup{from{transform:translateY(30px);opacity:0}}@keyframes mufade{from{opacity:0}}@keyframes mupop{from{transform:scale(.85);opacity:0}}
-@keyframes muflip{0%{transform:translateY(60px) scale(.5) rotateY(0)}35%{transform:translateY(0) scale(1.04) rotateY(0)}55%{transform:scale(1.04) rotateY(0)}100%{transform:scale(1) rotateY(180deg)}}
-@keyframes muout{to{transform:rotateY(180deg) translateY(-40px) scale(.7)}}@keyframes muoff{to{opacity:0}}
+
 @keyframes muyt{0%{transform:scale(.3) rotate(-8deg);opacity:0}18%{transform:scale(1.08) rotate(2deg);opacity:1}30%{transform:scale(1) rotate(0)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.92) translateY(-30px)}}
 @keyframes mumf{0%{opacity:0;transform:translate(-50%,-6px) scale(.6)}15%{opacity:1;transform:translate(-50%,6px) scale(1.12)}100%{opacity:0;transform:translate(-50%,48px) scale(1)}}
 @media (prefers-reduced-motion:reduce){.mu-hud *,.mu-cf,.mu-yt>div,.mu-mf{animation-duration:.01s!important}}

@@ -101,8 +101,7 @@ function loop(now){raf=0;if(!shown||!G0)return;let busy=step(now);
  const f=ptr.size?1:.2;['x','y','k'].forEach(q=>{const d=vt[q]-vw[q];if(Math.abs(d)>(q=='k'?1e-4:.3)){vw[q]+=d*f;busy=true}else vw[q]=vt[q]});apply();if(busy)kick()}
 window.M2={ok:()=>true,
  show(on){if(on)build();if(shown===on)return;shown=on;if(root)root.style.display=on?'block':'none';if(on)kick();else if(mz)mz.reset()},
- drawCard:(c,t,dl)=>mz&&shown?mz.draw(c,t,dl,ins):0,
- backCard:(c,t)=>mz&&shown?mz.back(c,ins,t):0,
+ cardAt:(d,dl)=>mz&&shown?mz.at(d,dl):null,
  layout(i){ins=i;const s=Math.floor(Math.min(visW(),visH())*.98);if(s!==S0){const r=S0?s/S0:1;S0=s;wrap.style.width=wrap.style.height=s+'px';brd.style.setProperty('--u',(s/12)+'px');vt.x*=r;vt.y*=r;vw.x*=r;vw.y*=r}clampV();apply();kick()},
  theme(t){if(root&&root.dataset.t!==t)root.dataset.t=t},follow(on){fol=on},
  sync(G,sel){G0=G;if(mz)mz.sync(G);syncCells(G,sel);syncToks(G);syncDice(G);potEl.textContent=G.o.pot?'Bote: '+MR.$m(G.pot):'';kick()},
