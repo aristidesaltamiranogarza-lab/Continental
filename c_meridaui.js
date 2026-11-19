@@ -176,8 +176,7 @@ function layout(){const st=stage(),o=st===window.M3?window.M2:window.M3;if(o&&o.
 const hopMs=(p,c,k)=>{const d=(c.pos[k]-p.pos[k]+40)%40;return d>0&&d<=12?d*180+200:0};
 function effects(){const G=V.G,m=me(),c={cash:G.cash.slice(),turn:G.turn,tc:G.tc,cn:G.card?G.card.n:-1,pos:G.pos.slice(),own:G.own.slice()},p=prev;prev=c;if(!p||p.cash.length!==c.cash.length)return;
  G.cash.forEach((x,k)=>{const d=x-p.cash[k];if(d&&!G.bk[k])setTimeout(()=>money(k,d),hopMs(p,c,k))});
- if(G.card&&G.card.n!==p.cn){const cc=G.card,dl=Math.min(2600,hopMs(p,c,cc.k)+150),cd=D.cards[cc.d]&&D.cards[cc.d][cc.id],st=stage();let ms=0;   // la carta sale de la pila del tablero y luego el panel
-  try{ms=cd&&st&&st.drawCard?st.drawCard(cc,cd.t,dl)||0:0}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc,ms>0),dl+ms)}
+ if(G.card&&G.card.n!==p.cn)showCard(G.card,Math.min(2600,hopMs(p,c,G.card.k)+150))
  if(G.phase=='play'&&m>=0&&G.turn===m&&(p.turn!==m||p.tc!==G.tc))setTimeout(yourTurn,250);
  if(m>=0&&window.MANI&&p.own)c.own.forEach((o,i)=>{if(o===m&&p.own[i]!==m)MANI.buy(mini(i),hopMs(p,c,m)+80)});
  if(p.turn!==G.turn){turnInView();cardEnd(0)}}
@@ -185,6 +184,9 @@ function turnInView(){const pl=document.getElementById('mupls'),e=pl&&pl.querySe
 function money(k,d){if(!active())return;const el=document.querySelector(`.mu-pl[data-seat="${k}"]`);if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('div');
  f.className='mu-mf '+(d>0?'up':'dn');f.textContent=(d>0?'+':'−')+$m(Math.abs(d));f.style.left=Math.max(40,Math.min(innerWidth-40,r.left+r.width/2))+'px';f.style.top=(r.bottom+2)+'px';if(window.MANI)MANI.go(k);
  document.body.appendChild(f);setTimeout(()=>f.remove(),1800);if(k===me())sfx(d>0?'go':'tick')}
+// la carta sale de la pila del tablero y luego el panel (también la usa el menú de animaciones, c_merida_demo.js)
+function showCard(cc,dl){const cd=D.cards[cc.d]&&D.cards[cc.d][cc.id],st=stage();let ms=0;
+ try{ms=cd&&st&&st.drawCard?st.drawCard(cc,cd.t,dl)||0:0}catch(e){console.warn('Mérida mazo:',e)}setTimeout(()=>cardFx(cc,ms>0),dl+ms)}
 function cardFx(c,pre){if(!active())return;const cd=D.cards[c.d]&&D.cards[c.d][c.id];if(!cd)return;cardOff(1);const old=document.getElementById('mucfx');if(old)old.remove();
  const e=document.createElement('div');e.id='mucfx';e.className='mu-cfx '+(c.d=='s'?'sx':'cx')+(pre?' pre':'');   // ojo: .c y .bk ya existen en style.css (cartas)
  e.innerHTML=`<div class="mu-cf" role="dialog" aria-label="Carta"><div class="fc mu-back"><b>${c.d=='s'?MIC.h('suerte'):MIC.h('regalo')}</b><span>${c.d=='s'?'Suerte':'Comunidad'}</span></div>
@@ -212,7 +214,7 @@ GM.merida.after=function(){if(origAfter)origAfter();if(!active()||!ok){off();ret
 function off(){if(!on)return;on=false;if(window.MENF)MENF.close(1);document.documentElement.classList.remove('mrui','mumodal');if(window.M3)M3.show(false);if(window.M2)M2.show(false);prev=null;sel=-1;tab=null;menu=false}
 setInterval(()=>{if(on&&!active())off()},400);
 let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=setTimeout(()=>{bMax=0;if(active())render()},120)});
-window.MRU={get selected(){return sel},get insets(){return ins},
+window.MRU={carta:(cc,dl)=>showCard(cc,dl||0),stage:()=>stage(),get selected(){return sel},get insets(){return ins},
  a:(t,sq)=>{sfx('tick');send(sq!=null?{t,sq}:{t})},
  sel:i=>{if(i!=null&&i>=0&&i!==sel&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}{const n=i==null||i<0||i===sel?-1:i;if(sel>=0&&n!==sel&&window.MANI)MANI.out(".mu-peek","peek");sel=n}sfx("tick");render()},
  foc:i=>{if(i>=0&&window.MENF&&MENF.can(i)){sel=-1;sfx('tick');MENF.open(i);return}if(i>=0)MRU.a('build',i)},
@@ -330,8 +332,8 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-off{position:fixed;top:calc(env(safe-area-inset-top,0px) + 64px);left:50%;transform:translateX(-50%);background:#ffe08a;color:#3b2600;border:2px solid #18201b;border-radius:10px;padding:6px 12px;font:800 13px var(--mu-f);pointer-events:auto;z-index:4}
 .mu-cfx,.mu-yt{position:fixed;left:0;top:0;right:0;bottom:0;z-index:66;display:flex;align-items:center;justify-content:center;pointer-events:none;perspective:1000px}
 .mu-cf{pointer-events:auto;position:relative;width:min(310px,80vw);aspect-ratio:1.55;transform-style:preserve-3d;animation:muflip 1s cubic-bezier(.3,1.25,.5,1) forwards;cursor:pointer}
-.mu-cfx.pre .mu-cf{animation:mupre .25s ease-out forwards}@keyframes mupre{from{transform:rotateY(180deg) scale(.96);opacity:.6}to{transform:rotateY(180deg) scale(1);opacity:1}}
-.mu-cfx.out .mu-cf{animation:muout .4s ease-in forwards}
+.mu-cfx.pre{animation:mufade .25s ease-out}.mu-cfx.pre .mu-cf{animation:mupre .25s ease-out forwards}.mu-cfx.pre .mu-back{display:none}@keyframes mupre{from{transform:rotateY(180deg) scale(.96)}to{transform:rotateY(180deg) scale(1)}}
+.mu-cfx.out{animation:muoff .4s ease-in forwards}.mu-cfx.out .mu-cf{animation:muout .4s ease-in forwards}
 .mu-cf .fc{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:14px;border:3px solid #18201b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 16px;box-sizing:border-box;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:var(--mu-f);text-align:center}
 .mu-cf .mu-back{background:#f7a21b;color:#18201b}.mu-cfx.cx .mu-back{background:#5bb4ec}.mu-cf .mu-back b{font:900 64px/1 var(--mu-f)}.mu-cf .mu-back span{font:900 20px var(--mu-f);text-transform:uppercase;letter-spacing:.12em}
 .mu-cf .mu-front{transform:rotateY(180deg);background:#fffef8;color:#18201b;border-top:14px solid #f7a21b}.mu-cfx.cx .mu-front{border-top-color:#5bb4ec}
@@ -342,7 +344,7 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-mf.up{background:#1e8a4a}.mu-mf.dn{background:#d7261e}
 @keyframes muup{from{transform:translateY(30px);opacity:0}}@keyframes mufade{from{opacity:0}}@keyframes mupop{from{transform:scale(.85);opacity:0}}
 @keyframes muflip{0%{transform:translateY(60px) scale(.5) rotateY(0)}35%{transform:translateY(0) scale(1.04) rotateY(0)}55%{transform:scale(1.04) rotateY(0)}100%{transform:scale(1) rotateY(180deg)}}
-@keyframes muout{to{transform:rotateY(180deg) translateY(-40px) scale(.7);opacity:0}}
+@keyframes muout{to{transform:rotateY(180deg) translateY(-40px) scale(.7)}}@keyframes muoff{to{opacity:0}}
 @keyframes muyt{0%{transform:scale(.3) rotate(-8deg);opacity:0}18%{transform:scale(1.08) rotate(2deg);opacity:1}30%{transform:scale(1) rotate(0)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.92) translateY(-30px)}}
 @keyframes mumf{0%{opacity:0;transform:translate(-50%,-6px) scale(.6)}15%{opacity:1;transform:translate(-50%,6px) scale(1.12)}100%{opacity:0;transform:translate(-50%,48px) scale(1)}}
 @media (prefers-reduced-motion:reduce){.mu-hud *,.mu-cf,.mu-yt>div,.mu-mf{animation-duration:.01s!important}}
