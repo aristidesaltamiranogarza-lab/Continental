@@ -54,7 +54,7 @@ function camBar(){const m3=stageName()=='3d',b=(c,t,h,o)=>`<button class="mu-cb$
    :b("MRU.cam('zi')",'Acercar',SV.zi)+b("MRU.cam('zo')",'Alejar',SV.zo)+b('MRU.follow()','Seguir la ficha que se mueve',SV.follow,follow))+'</div>'}
 // ---- tarjeta de acciones (siempre a la vista) ----
 function dock(){const G=V.G,m=me(),T=G.trade;
- if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">${MIC.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.win===m?'¡Eres el último en pie!':'Fue el último que no quebró.'}</div></div></div>${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
+ if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">${MIC.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.win===m?'¡Eres el último en pie!':'Fue el último que no quebró.'}</div></div></div>${window.MFIN?MFIN.html(G,{nm,tok,$m,B,D}):''}${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
  if(G.phase=='orden')return ordDock();if(G.auc)return aucDock();if(G.debts.length)return debtDock();if(T&&T.b===m)return tradeCard(1);
  if(G.turn!==m||m<0||G.bk[m])return waitDock();return myDock()}
 // orden de salida: cada quien tira un dado; se ve lo que sacó cada jugador

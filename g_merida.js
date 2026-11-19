@@ -40,13 +40,15 @@ function rent(G,i,x){const s=B[i],o=G.own[i];
  if(s.t=='u')return x.sum*(x.u10||UU.every(j=>G.own[j]===o)?10:4);
  const h=G.hs[i];return h?s.r[h]:s.r[0]*(G.o.dbl&&full(G,s.g,o)?2:1)}
 // ---- moverse y caer ----
-function toJail(G,k){G.pos[k]=JAIL;G.jail[k]=1;G.again=false;lg(G,k,'se va a la cárcel')}
+// números para el resumen final: renta pagada (rp) y cobrada (rr) por jugador, lo que cobró cada colonia (ern) y veces en la cárcel (jl)
+const SX=G=>G.sx||(G.sx={rp:[],rr:[],ern:{},jl:[]}),sxa=(o,k,v)=>{o[k]=(o[k]||0)+v};
+function toJail(G,k){sxa(SX(G).jl,k,1);G.pos[k]=JAIL;G.jail[k]=1;G.again=false;lg(G,k,'se va a la cárcel')}
 function moveTo(G,k,to,pass){if(pass&&to===0){G.cash[k]+=D.goExact;lg(G,k,'cayó justo en la Salida y cobra '+$(D.goExact)+' pesos')}else if(pass&&to<G.pos[k]){G.cash[k]+=D.go;lg(G,k,'pasó por la Salida y cobra '+$(D.go)+' pesos')}G.pos[k]=to}
 function land(R,k,x){const G=R.G,i=G.pos[k],s=B[i];
  if(s.p){const o=G.own[i];if(o<0){G.st='buy';return}
   if(o===k||G.bk[o])return;if(G.mg[i])return lg(G,k,'cayó en '+s.n+' (hipotecada: no paga)');
   if(G.o.jr&&G.jail[o])return lg(G,k,'no paga renta: '+pn(G,o)+' está en la cárcel');
-  const r=rent(G,i,x);lg(G,k,'paga '+$(r)+' pesos de renta a '+pn(G,o)+' por '+s.n);pay(G,k,r,o,'renta');return}
+  const r=rent(G,i,x),X=SX(G);sxa(X.rp,k,r);sxa(X.rr,o,r);sxa(X.ern,i,r);lg(G,k,'paga '+$(r)+' pesos de renta a '+pn(G,o)+' por '+s.n);pay(G,k,r,o,'renta');return}
  if(s.t=='tax'){lg(G,k,'paga '+$(s.v)+' pesos de '+s.n);pay(G,k,s.v,-2,s.n);return}
  if(s.t=='s'||s.t=='c')return card(R,k,s.t,x);
  if(s.t=='gtj')return toJail(G,k);
