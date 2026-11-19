@@ -47,7 +47,9 @@ function home(){Object.assign(vt,{x:0,y:0,k:1});back=null;kick()}
 // mirar un punto del tablero (unidades) con zoom k
 function lookAt(u,v,k){vt.k=Math.max(1,Math.min(KMAX,k));vt.x=-(u/12)*S0*vt.k;vt.y=-(v/12)*S0*vt.k;clampV();kick()}
 // ---- dedos y ratón: 1 dedo arrastra, 2 dedos pellizcan; tocar una casilla abre su tarjeta ----
-function pDown(e){ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,mv:false});try{root.setPointerCapture(e.pointerId)}catch(_){}
+// tocar el tablero mientras camina la ficha de otro la adelanta
+const prisa=()=>anim.forEach((a,k)=>{if(a&&k!==V.me)a.fast=1});
+function pDown(e){prisa();ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,mv:false});try{root.setPointerCapture(e.pointerId)}catch(_){}
  if(ptr.size==2){const [a,b]=[...ptr.values()];root._pin={d:Math.hypot(a.x-b.x,a.y-b.y)||1,k:vt.k,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,x:vt.x,y:vt.y}}}
 function pMove(e){const p=ptr.get(e.pointerId);if(!p)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
  if(Math.hypot(p.x-p.x0,p.y-p.y0)>6)p.mv=true;
@@ -87,7 +89,7 @@ function react(k,kind,a){const e=toks[k],t=e&&e.querySelector('.tk');if(!t||!t.a
 // la cámara sigue a la ficha que se mueve (si estás con zoom) y luego regresa a donde estabas
 function startFollow(k){if(!fol||vt.k<1.15||ptr.size)return;if(!back)back={x:vt.x,y:vt.y,k:vt.k};touched=false;anim[k].fol=true}
 function step(now){let busy=false;const G=G0;
- toks.forEach((e,k)=>{const a=anim[k];if(!a||!e)return;busy=true;const jh=a.jl&&a.path.length==1;if(jh&&!a.sn){a.sn=1;if(window.POLI)POLI.sirena(a.t0-now+HOP*5+300)}const hp=!jh&&a.hp&&a.hp[0];let t=(now-a.t0)/(jh?HOP*5:hp?hp.d:HOP);if(t<0)return;
+ toks.forEach((e,k)=>{const a=anim[k];if(!a||!e)return;busy=true;const jh=a.jl&&a.path.length==1;if(jh&&!a.sn){a.sn=1;if(window.POLI)POLI.sirena(a.t0-now+HOP*5+300)}const hp=!jh&&a.hp&&a.hp[0];let t=(now-a.t0)/((jh?HOP*5:hp?hp.d:HOP)*(a.fast&&!jh?.3:1));if(t<0)return;
   if(t>=1){a.path.shift();const to0=a.path0;if(a.hp)a.hp.shift();if(hp&&hp.land&&!a.path.length)sacude(G.pos[k],hp.land);react(k,to0===0?'go':'sq',hp&&hp.land?1:.4);const L=e.style;a.from=[parseFloat(L.left)/100*12-6,parseFloat(L.top)/100*12-6];a.t0=now;t=0;
    if(a.path.length==1&&a.jl)a.t0=now+(a.jl>1?a.jl:0);
    if(!a.path.length){anim[k]=null;const [x,z]=slot(k,G);place(e,x,z,0);if(a.jl&&window.POLI)POLI.reja();if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(vt,back);clampV()}back=null;kick()},900);return}}

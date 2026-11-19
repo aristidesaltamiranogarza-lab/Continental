@@ -46,7 +46,7 @@ function propose(G,k){const m=mem(G),n=G.players.length;if(G.tc-(m.last[k]??-99)
   const Tr={a:k,b:o,ac:0,ap:sw,aj:0,bc:0,bp:falt,bj:0},vt=tval(G,o,Tr),c=Math.max(0,Math.ceil((40-vt)/10)*10+T(0,4)*10);Tr.ac=c;
   if(G.cash[k]-c>=RES&&tval(G,k,Tr)>30){m.last[k]=G.tc;m.t[k]=Date.now();return {t:'tprop',to:o,ac:c,ap:sw,bp:falt}}}
  m.last[k]=G.tc;return null}
-return function bot(R,k){const G=R.G;if(!G||G.bk[k])return null;
+function bot0(R,k){const G=R.G;if(!G||G.bk[k])return null;
  if(G.phase=='orden')return G.turn===k?{ms:T(900,1600),m:{t:'roll'}}:null;
  if(G.phase!='play')return null;
  // subasta: puja hasta lo que le sirve la casilla, sin quedarse sin colchón
@@ -70,4 +70,8 @@ return function bot(R,k){const G=R.G;if(!G||G.bk[k])return null;
    if(libres>10&&G.cash[k]>=BAIL+RES)return {ms:T(1000,1600),m:{t:'bail'}}}
   return {ms:T(1100,1800),m:{t:'roll'}}}
  if(G.st=='end'){const p=!Tr&&propose(G,k);return p?{ms:T(1500,2500),m:p}:{ms:T(1800,2600),m:{t:'end'}}}
- return null}}
+ return null}
+// ritmo: piensa la mitad que antes, pero nunca antes de que su ficha termine de caminar en la pantalla (y de que se vea la carta)
+function espera(G){const m=mem(G),now=Date.now();if(G.rn!==m.rn){m.rn=G.rn;const n=(G.dice[0]||0)+(G.dice[1]||0);m.w=n?now+n*240+700:0}
+ const cn=G.card?G.card.n:-1;if(cn!==m.cn){if(m.cn!==undefined&&cn>=0)m.w=Math.max(m.w||0,now)+2300;m.cn=cn}return (m.w||0)-now}
+return function bot(R,k){const d=bot0(R,k);if(d&&R.G)d.ms=Math.max(400,Math.round(d.ms*.5),espera(R.G)+200);return d}}
