@@ -53,7 +53,8 @@ function camBar(){const m3=stageName()=='3d',b=(c,t,h,o)=>`<button class="mu-cb$
   (m3?b("MRU.cam('top')",'Vista desde arriba',SV.top,topv)+b('MRU.follow()','Seguir la ficha que se mueve',SV.follow,follow)+b("MRU.cam('rr')",'Girar',SV.rot)
    :b("MRU.cam('zi')",'Acercar',SV.zi)+b("MRU.cam('zo')",'Alejar',SV.zo)+b('MRU.follow()','Seguir la ficha que se mueve',SV.follow,follow))+'</div>'}
 // ---- tarjeta de acciones (siempre a la vista) ----
-function dock(){const G=V.G,m=me(),T=G.trade;
+let dG=null;// estado de prueba (menú de animaciones)
+function dock(){const G=dG||V.G,m=me(),T=G.trade;
  if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">${MIC.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.win===m?'¡Eres el último en pie!':'Fue el último que no quebró.'}</div></div></div>${window.MFIN?MFIN.html(G,{nm,tok,$m,B,D}):''}${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
  if(G.phase=='orden')return ordDock();if(G.auc)return aucDock();if(G.debts.length)return debtDock();if(T&&T.b===m)return tradeCard(1);
  if(G.turn!==m||m<0||G.bk[m])return waitDock();return myDock()}
@@ -247,6 +248,7 @@ window.MRU={carta:(cc,dl)=>showCard(cc,dl||0),stage:()=>stage(),get selected(){r
  theme:t=>{theme=t=='oscuro'?'oscuro':'menta';lss('mr_theme',theme);sfx('tick');render()},
  follow:x=>{follow=x==null?!follow:!!x;lss('mr_follow',follow?'1':'0');sfx('tick');render()},
  cam:c=>{const st=stage();if(c=='top')topv=!topv;if(c=='home')topv=false;if(st)st.cam(c=='top'?(topv?'top':'untop'):c);sfx('tick');render()},
+ demo:g=>{dG=g||null;render()},
  look:k=>{const st=stage();if(st&&st.look)st.look(k);sfx('tick')},
  tg:(key,i)=>{const L=TR[key],j=L.indexOf(i);if(j<0)L.push(i);else L.splice(j,1);render()},
  to:k=>{TR.to=k;TR.bp=[];TR.bj=0;TR.bc=0;render()},n:(k,v)=>{TR[k]=Math.max(0,Math.floor(+v||0))},
