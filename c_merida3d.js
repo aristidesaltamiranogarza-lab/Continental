@@ -185,7 +185,7 @@ function casas(G,i,H0,x,z,s,ix,iz){const h=G.hs[i],h0=H0?H0[i]:h;if(!h&&!h0)retu
  if(h0==5){mk(true,0,'sube');for(let j=0;j<n;j++)mk(false,tp(n,j),'cae',{t0:now+240+j*100,d:560});return}
  for(let j=0;j<n;j++){if(j<n0)mk(false,tp(n0,j),'mov',{b:P(tp(n,j)),d:280});else mk(false,tp(n,j),'cae',{t0:now+(j-n0)*120,d:560})}
  for(let j=n;j<n0;j++)mk(false,tp(n0,j),'sube')}
-const golpe=(p,k)=>{if(window.MFX)MFX.polvo(fxg,{x:p[0],z:p[2]},k);if(typeof sfx=='function')sfx('place')};
+const golpe=(p,k)=>{if(window.MFX)MFX.polvo(fxg,{x:p[0],z:p[2]},k);if(typeof sfx=='function')sfx('place');try{if(navigator.vibrate)navigator.vibrate(35)}catch(_){}};
 // el hotel cae de alto y retumba: tablero que tiembla, polvo grande, golpe grave y vibración
 let SHK=0;
 function retumbo(){try{if(typeof mute!='undefined'&&mute)return;AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const A=AC,t=A.currentTime,o=A.createOscillator(),g=A.createGain();

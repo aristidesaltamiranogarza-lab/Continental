@@ -21,10 +21,14 @@ module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
  const c=rnd(5),t=cr.randomBytes(12).toString('hex'),n=Math.max(2,Math.min(5,+q.get('n')||5));
  const uno=q.get('g')==='uno',mer=q.get('g')==='merida',R=rooms[c]={code:c,gt:uno?'uno':mer?'merida':'continental',opts:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
  R.poke=()=>bump(R);
- ['Ana','Beto','Caro','Dani'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),uno||(mer&&q.get('grupos'))?{bot:true}:{})));
+ ['Ana','Beto','Caro','Dani'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm),uno||(mer&&(q.get('grupos')||q.get('bot')))?{bot:true}:{})));
  if(mer){GAMES.merida.start(R);const G=R.G;let k=0;while(G.phase=='orden'&&G.turn!==0&&k++<50)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
   if(q.get('casas')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board;
    B.forEach((s,i)=>{if(s.t=='p'&&s.g<4){G.own[i]=0;if(q.get('hotel'))G.hs[i]=4}});G.cash[0]=3000;if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}
+  // bot=1: te toca a ti; al pasar el turno, el bot que sigue pone un hotel (en 37) y una casa (en 29), sin dinero para más
+  if(q.get('bot')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
+   if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0;const b=G.seq?G.seq[1]:1;
+   [37,39,26,28,29].forEach(i=>G.own[i]=b);Object.assign(G.hs,{37:4,39:5,26:1,28:1,29:0});G.cash[b]=560}
   // grupos=1: cada jugador con grupos de color completos (0..7 repartidos) y dinero de sobra, para ver construir casas y hoteles
   if(q.get('grupos')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board,np=R.players.length;
    B.forEach((s,i)=>{if(s.t=='p')G.own[i]=s.g%np});G.cash=G.cash.map(()=>999999);if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}}else if(uno)GAMES.uno.start(R);else{GAMES.continental.start(R,{round:+q.get('r')||0});bajaTodos(R)}
