@@ -19,6 +19,10 @@ function why(i,t){const g=G(),m=H.me(),s=H.B[i],gr=H.GR[s.g],hs=gr.map(j=>g.hs[j
  if(!g.hs[i])return {b:1};if(g.o.even&&g.hs[i]<Math.max(...hs))return {bl:gr.filter(j=>g.hs[j]>g.hs[i])};return null}
 const again=(e,c)=>{if(!e)return;e.classList.remove(c);void e.offsetWidth;e.classList.add(c)};
 function blinkL(L){const st=H.stage();if(H.is3d()&&st&&st.blink)st.blink(L);L.forEach(j=>{again(q(`.mf-gc[data-i="${j}"]`),'bl');again(q(`.mf-card[data-i="${j}"]`),'bl')})}
+// una casa en cada colonia del grupo que va mas baja (todas parejas al terminar); costo sumado
+function whyG(i){const g=G(),m=H.me(),s=H.B[i],gr=H.GR[s.g],hs=gr.map(j=>g.hs[j]),mn=Math.min(...hs);if(!H.full(s.g,m))return {bl:gr.filter(j=>g.own[j]!==m)};
+ if(gr.some(j=>g.mg[j]))return {bl:gr.filter(j=>g.mg[j])};if(mn>=5)return {b:1};if(g.cash[m]<H.D.hc[s.g]*gr.filter(j=>g.hs[j]==mn).length)return {c:1};return null}
+function actG(){const w=whyG(cur);if(w){snd('bad');if(w.bl&&w.bl.length)blinkL(w.bl);else again(q(w.c?'.mf-cash':'.mf-bt.mg'),'mf-sh');return}if(window.MRU)MRU.a('buildg',cur)}
 function act(t){const w=why(cur,t);if(w){snd('bad');if(w.bl&&w.bl.length)blinkL(w.bl);else again(q(w.c?'.mf-cash':t=='build'?'.mf-bt.ms':'.mf-bt.mn'),'mf-sh');return}
  if(window.MRU)MRU.a(t,cur)}
 // ---- moverse entre tus colonias ----
@@ -30,12 +34,12 @@ const arrow=s=>go((s=='r')===H.is3d()?-1:1);   // en 3D la siguiente colonia del
 function mk(){el=document.createElement('div');el.id='mufoc';el.className='mf';el.setAttribute('role','dialog');el.setAttribute('aria-label','Construir');
  el.innerHTML=`<div class="mf-blur"></div><div class="mf-car"></div>
 <button class="mf-x" data-a="x" aria-label="Salir">${XI()}</button><button class="mf-ar l" data-a="l" aria-label="Anterior">${AL}</button><button class="mf-ar r" data-a="r" aria-label="Siguiente">${AR}</button>
-<div class="mf-bts"><button class="mf-bt mn" data-a="sell"></button><button class="mf-bt ms" data-a="build"></button></div>
+<div class="mf-bts"><button class="mf-bt mn" data-a="sell"></button><button class="mf-bt ms" data-a="build"></button></div><button class="mf-bt mg" data-a="buildg"></button>
 <div class="mf-pan"><div class="mf-hd"><i class="mf-sw"></i><b class="mf-nm"></b><span class="mf-rt"></span><button class="mf-fi" data-a="fi" aria-label="Ficha" title="Ficha">${H.MIC.h('recibo')}</button></div>
 <div class="mf-row"><div class="mf-grp"></div><span class="mf-cash"></span></div></div>`;
  document.body.appendChild(el);
  el.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;e.stopPropagation();const a=b.dataset.a;
-  if(a=='x')close();else if(a=='l'||a=='r')arrow(a);else if(a=='build'||a=='sell')act(a);else if(a=='j')jump(+b.dataset.i);
+  if(a=='x')close();else if(a=='l'||a=='r')arrow(a);else if(a=='build'||a=='sell')act(a);else if(a=='buildg')actG();else if(a=='j')jump(+b.dataset.i);
   else if(a=='fi'){const i=cur;close();if(window.MRU&&MRU.ficha)setTimeout(()=>MRU.ficha(i),0)}});
  el.addEventListener('pointerdown',e=>{dn=e.target.closest('button')?null:{x:e.clientX,y:e.clientY,c:e.target.closest('.mf-card')}});
  el.addEventListener('pointercancel',()=>{dn=null});
@@ -52,6 +56,8 @@ function paint(){if(!el)return;const g=G(),m=H.me(),i=cur,s=H.B[i],gr=H.GR[s.g],
  const bb=q('.mf-bt.ms'),bs=q('.mf-bt.mn');
  set('.mf-bt.ms',`<b>+ ${h>=4?'Hotel':'Casa'}</b><small>${H.$m(hc)}</small>`);bb.classList.toggle('off',!!why(i,'build'));bb.hidden=h>=5;
  set('.mf-bt.mn',`<b>− ${h==5?'Hotel':'Casa'}</b><small>+${H.$m(hc/2)}</small>`);bs.classList.toggle('off',!!why(i,'sell'));bs.hidden=!h;
+ {const bg=q('.mf-bt.mg'),mn=Math.min(...gr.map(j=>g.hs[j])),n=gr.filter(j=>g.hs[j]==mn).length;bg.hidden=mn>=5||!H.full(s.g,m)||n<2;
+  if(!bg.hidden){set('.mf-bt.mg',`<b>+ ${mn>=4?'Hotel':'Casa'} en ${n==gr.length?'todas':'las '+n}</b><small>${H.$m(hc*n)}</small>`);bg.classList.toggle('off',!!whyG(i))}}
  el.querySelectorAll('.mf-ar').forEach(a=>a.hidden=L.length<2);
  cash(g.cash[m]);if(d3)set('.mf-car','');else car(L)}
 // dinero con contador animado y "−$" que flota
@@ -121,6 +127,7 @@ html[data-tema=noche] .mf{--mf-ok:#7fd6a0}
 .mf-bts{position:absolute;left:0;right:0;bottom:calc(var(--mf-pan,120px) + 12px);display:flex;justify-content:center;gap:14px;pointer-events:none}
 .mf-bt{pointer-events:auto;min-width:132px;height:64px;padding:0 22px;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-panel);color:var(--ui-text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:800 19px/1 var(--ui-font);box-shadow:var(--ui-shadow);cursor:pointer;transition:transform .1s,opacity .2s;animation:mfPop .34s cubic-bezier(.2,1.5,.5,1) both}
 .mf-bt small{font:700 13px/1 var(--ui-font);color:var(--ui-sub)}
+.mf-bt.mg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--mf-pan,120px) + 88px);height:44px;min-width:0;font-size:16px;flex-direction:row;gap:8px}.mf-bt.mg[hidden]{display:none}
 .mf-bt.ms{background:var(--ui-accent);color:var(--ui-on);border-color:transparent}.mf-bt.ms small{color:var(--ui-on);opacity:.85}
 .mf-bt.off{opacity:.5}.mf-bt:active{transform:scale(.94)}.mf-bt[hidden]{display:none}
 .mf-sh{animation:mfSh .4s!important}

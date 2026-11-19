@@ -117,6 +117,9 @@ function manage(G,i,t,q){const s=B[q];if(!s||G.own[q]!==i)return 'Esa propiedad 
   if(!G.mg[q])return 'No está hipotecada.';const c=Math.ceil(s.p*.55);if(G.cash[i]<c)return 'Para deshipotecar necesitas '+$(c)+' pesos.';
   G.cash[i]-=c;G.mg[q]=0;lg(G,i,'deshipotecó '+s.n+' ('+$(c)+' pesos)');return}
  if(s.t!='p')return 'Solo se construye en las colonias.';const g=GR[s.g],hc=D.hc[s.g],hs=g.map(j=>G.hs[j]);
+ if(t=='buildg'){if(!full(G,s.g,i))return 'Necesitas todas las colonias del grupo.';if(g.some(j=>G.mg[j]))return 'Hay una colonia hipotecada en el grupo.';
+  const mn=Math.min(...hs);if(mn>=5)return 'Ya tienen hotel.';const L=g.filter(j=>G.hs[j]==mn),c=L.length*hc;if(G.cash[i]<c)return 'Una casa en cada una cuesta '+$(c)+' pesos.';
+  G.cash[i]-=c;L.forEach(j=>G.hs[j]++);lg(G,i,(mn==4?'puso hotel en ':'construyó una casa en ')+L.map(j=>B[j].n).join(', ')+' ('+$(c)+' pesos)');return}
  if(t=='build'){if(!full(G,s.g,i))return 'Necesitas todas las colonias del grupo.';if(g.some(j=>G.mg[j]))return 'Hay una colonia hipotecada en el grupo.';
   if(G.hs[q]>=5)return 'Ya tiene hotel.';if(G.o.even&&G.hs[q]>Math.min(...hs))return 'Construye parejo: primero en las otras del grupo.';
   if(G.cash[i]<hc)return 'Una casa aquí cuesta '+$(hc)+' pesos.';G.cash[i]-=hc;G.hs[q]++;lg(G,i,(G.hs[q]==5?'puso un hotel en ':'construyó una casa en ')+s.n);return}
@@ -139,7 +142,7 @@ function inner(R,G,i,t,m){const a=G.auc;
  if(t=='tprop'||t=='tyes'||t=='tno')return trade(G,i,t,m);
  if(t=='quit'){quit(R,i);return}
  const dk=G.debts.length?G.debts[0].k:-1;
- if(t=='build'||t=='sell'||t=='mort'||t=='unm'){if(dk!==i&&(dk>=0||G.turn!==i))return 'Solo puedes hacerlo en tu turno o cuando debes dinero.';return manage(G,i,t,m.sq|0)}
+ if(t=='build'||t=='buildg'||t=='sell'||t=='mort'||t=='unm'){if(dk!==i&&(dk>=0||G.turn!==i))return 'Solo puedes hacerlo en tu turno o cuando debes dinero.';return manage(G,i,t,m.sq|0)}
  if(t=='paydebt'){if(dk!==i)return 'No debes nada.';const d=G.debts[0];if(G.cash[i]<d.amt)return 'Te faltan '+$(d.amt-G.cash[i])+' pesos.';return}  // settle() paga
  if(t=='broke'){if(dk!==i)return 'Solo si debes y no puedes pagar.';broke(R,i,G.debts[0].to);return}
  if(dk>=0)return 'Primero '+pn(G,dk)+' tiene que pagar lo que debe.';
