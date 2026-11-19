@@ -1,7 +1,7 @@
 // Nombres de bots por sexo y un personaje (código de c_avatar.js) que va con el nombre.
 // Hombre: cuerpo 1, peinados 1–3 (picos, rapado, despeinado), sin blusa ni falda. Mujer: cuerpo 2, peinados 4–7 (coleta, melena, chongo, largo).
 const cr=require('crypto'),ri=n=>cr.randomInt(n);
-const H=['Chucho','Toño','Neto','Memo','Pepe','Paco','Beto','Lalo','Nacho','Chava','Rodrigo','Arturo','Javier','Raúl','Miguel'];
+const H=['Chucho','Toño','Neto','Memo','Pepe','Paco','Beto','Lalo','Nacho','Chava','Rodrigo','Arturo','Javier','Julio','Miguel'];
 const M=['Lupe','Chela','Paty','Rosy','Lety','Mari','Conchita','Yoli','Claudia','Gaby','Fernanda','Ximena','Daniela','Sofía','Brenda'];
 // alternados para que una mesa salga mezclada
 const BOTN=H.flatMap((h,i)=>[h,M[i]]);
