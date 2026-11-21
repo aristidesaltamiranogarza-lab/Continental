@@ -245,3 +245,5 @@ html.lbon #app:has(.lbh){padding-bottom:env(safe-area-inset-bottom,0px)}
 .lbh-perfil{padding:5px 0 0 5px}
 .lbh-sheet .lb-sws{padding:5px 0 5px 5px}
 .lbh-sheet .lb-seg{display:grid;grid-template-columns:repeat(3,1fr);border-radius:18px}
+/* el inicio queda fijo a la pantalla: nunca se desliza ni se mete bajo la barra de estado */
+.lbh{position:fixed;inset:0;z-index:1;height:auto;min-height:0;max-width:640px;margin:0 auto;padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px);box-sizing:border-box}

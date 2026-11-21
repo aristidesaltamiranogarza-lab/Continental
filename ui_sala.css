@@ -213,3 +213,10 @@ html.sala2d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
 @keyframes slFlota{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
 @keyframes slRes{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes slSalto{0%{transform:scale(1)}40%{transform:scale(1.25) translateY(-8px)}100%{transform:scale(1)}}
+/* la mesa 2D se ajusta al espacio libre (container query) para que las sillas no se salgan de la pantalla ni queden bajo la hoja */
+.sl-f2a{container-type:size}
+.sl-f2m{width:min(100cqw - 160px,(100cqh - 150px)*1.35,420px)}
+.sl-f2x b{position:relative;z-index:1}
+.sl-f2s.muchos .sl-f2x i{width:40px;height:40px;font-size:17px;border-width:2px}
+.sl-f2s.muchos .sl-f2x b{font-size:11px;max-width:74px;padding:1px 7px}
+@media (min-width:768px){.sl-f2m{width:min(100cqw - 160px,(100cqh - 170px)*1.35,520px)}}

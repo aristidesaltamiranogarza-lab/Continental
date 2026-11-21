@@ -15,7 +15,7 @@ function quita(){document.documentElement.classList.remove('sala2d');sig=''}
 function pinta(icon,ps,me,libres,hola,col){const i=$('slF2i');if(i&&i.dataset.k!==icon.k){i.dataset.k=icon.k;i.innerHTML=icon.h;i.classList.remove('pop');void i.offsetWidth;i.classList.add('pop')}
  const k=JSON.stringify([ps.map(p=>[p.name,p.i,p.bot]),me,libres]);if(k===sig)return;sig=k;const box=$('slF2s');if(!box)return;
  // tú abajo al centro; los demás siguen alrededor de la mesa
- const yo=Math.max(0,ps.findIndex(p=>p.i===me)),L=ps.slice(yo).concat(ps.slice(0,yo)).map(p=>({p})).concat(Array.from({length:Math.max(0,libres)},()=>({ai:1}))),n=L.length,t=performance.now();
+ const yo=Math.max(0,ps.findIndex(p=>p.i===me)),L=ps.slice(yo).concat(ps.slice(0,yo)).map(p=>({p})).concat(Array.from({length:Math.max(0,libres)},()=>({ai:1}))),n=L.length,t=performance.now();box.classList.toggle('muchos',n>6);
  box.innerHTML=L.map((s,j)=>{const a=Math.PI/2+j*2*Math.PI/Math.max(n,2),x=50+Math.cos(a)*50,y=50+Math.sin(a)*50,st=`left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;--d:${(j*.09).toFixed(2)}s`;
   if(s.ai)return `<div class="sl-f2x ai" style="${st}"><i>AI</i></div>`;const p=s.p,yo2=p.i===me;
   return `<div class="sl-f2x${yo2?' yo':''}${t-(hola[p.name]||-1e9)<2500?' nuevo':''}" style="${st}"><i style="--c:${col(p.name)}">${ini(p.name)}</i><b>${yo2?'Tú':es(p.name)}</b></div>`}).join('')}
