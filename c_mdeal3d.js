@@ -349,7 +349,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
 function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;if(V&&V.G)sync()}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('md_3d',on?'1':'0')}catch(e){}render()}
 G0.body=function(){
- if(!active()){const G=typeof V!='undefined'&&V&&V.G,h=orig.apply(this,arguments);return (G&&(G.phase=='play'||G.phase=='final')?UI.dim(0,'md3Toggle()','md3tog'):'')+h}
+ if(!active()){const G=typeof V!='undefined'&&V&&V.G,h=orig.apply(this,arguments);return (G&&(G.phase=='play'||G.phase=='final')&&!/class="m2d /.test(h)?UI.dim(0,'md3Toggle()','md3tog'):'')+h}
  orig.apply(this,arguments);   // la vista 2D pone en orden su estado (carta elegida, pagos, rival elegido); su HTML no se usa
  GHUD.save();
  try{init();return hud()}catch(e){console.warn('Monopoly Deal 3D:',e);on=false;return orig.apply(this,arguments)}};

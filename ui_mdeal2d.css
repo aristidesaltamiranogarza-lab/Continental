@@ -1,0 +1,126 @@
+/* Monopoly Deal 2D (c_mdeal2d.js) sobre la mesa compartida M2D. Tokens de ui.css (día y noche) */
+.md2 .m2d-felt{background:radial-gradient(ellipse at 50% 38%,#3f86cf,#25629f 58%,#173f6c) padding-box,linear-gradient(140deg,#9a6238,#6a3c20 45%,#8d5530 70%,#5a321b) border-box}
+/* cartas: la cara de MD3K como imagen; mientras llega, el color de la carta */
+html[data-game] .md2 .c.m2c,html[data-game] .md2 #hand .c.m2c{height:calc(var(--cw)*1.5);border-radius:calc(var(--cw)*.09);background:var(--k,#e9e1cf);border:0;padding:0;margin:0;
+ overflow:hidden;position:relative;box-shadow:0 2px 5px rgba(0,0,0,.4);color:inherit;font-size:0}
+html[data-game] .md2 .c.m2c:has(img){background:none}
+.md2 .m2c img,.m2bi img,.c.fly.m2c img{width:100%;height:100%;display:block;pointer-events:none}
+html[data-game] .md2 .m2d-ca .c.m2c.s{transform:translateY(-24px) scale(1.06);box-shadow:0 0 0 3px var(--ui-accent),0 10px 18px rgba(0,0,0,.45)}
+html[data-game] .md2 .m2d-ca.no .c{filter:brightness(.75) saturate(.7)}
+.c.fly.m2c{background:none;border:0;padding:0;overflow:hidden;border-radius:5px}
+/* arriba: jugadas que quedan y sets completos */
+.m2-jug,.m2-meta{display:flex;align-items:center;gap:5px}
+.m2-jug i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ui-accent);box-sizing:border-box;transition:background .25s}
+.m2-jug i.on{background:var(--ui-accent)}
+.m2-jug span{margin-left:3px}
+.m2-meta i{width:14px;height:14px;border-radius:4px;border:2px dashed var(--ui-line);box-sizing:border-box}
+.m2-meta i.on{background:var(--c);border:2px solid rgba(0,0,0,.22);animation:m2pop .6s ease}
+.m2-meta b{margin-left:3px}
+/* el fieltro: el centro (mazo, descarte, acción pendiente) y tu mesa; en pantallas anchas lado a lado */
+.m2-mesa{position:absolute;inset:17% 9% 6%;display:grid;grid-template-rows:minmax(0,38fr) minmax(0,62fr);gap:2%}
+.m2-mesa.solo{grid-template-rows:minmax(0,1fr)}
+@container (min-aspect-ratio:1.75){.m2-mesa{inset:16% 7% 7%;grid-template-columns:minmax(0,28fr) minmax(0,72fr);grid-template-rows:minmax(0,1fr)}.m2-mesa.solo{grid-template-columns:1fr}}
+.m2-cen{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:8px 16px;min-height:0;border-radius:18px}
+.m2-piles{display:flex;align-items:center;gap:clamp(12px,3cqw,28px);--cw:clamp(30px,min(14cqh,8cqw),72px)}
+.m2-pila{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.m2-pila small{padding:0 8px;border-radius:999px;background:rgba(0,0,0,.35);color:#fff;font:800 11px/1.5 var(--ui-font)}
+html[data-game] .md2 .m2dk{box-shadow:2px 2px 0 #e9e1cf,4px 4px 0 #b9ad95,0 6px 12px rgba(0,0,0,.45)}
+.m2-desc{width:var(--cw);height:calc(var(--cw)*1.5)}
+.m2-d{position:absolute;left:0;top:0;transform:translate(var(--x),var(--y)) rotate(var(--r))}
+html[data-game] .md2 .m2-d .c.nw{animation:m2slam .45s cubic-bezier(.2,.9,.3,1.3)}
+html[data-game] .md2 .c.m2c.m2hueco{background:transparent;border:2px dashed rgba(255,255,255,.4);box-shadow:none}
+.m2-pa{display:flex;align-items:center;gap:8px;max-width:100%;padding:6px 12px 6px 6px;box-sizing:border-box;border-radius:16px;background:var(--ui-sheet);color:var(--ui-text);
+ border-left:6px solid var(--c,var(--ui-accent));box-shadow:var(--ui-shadow);animation:m2in .4s cubic-bezier(.2,.9,.3,1.2)}
+.m2-pa .m2d-pt{width:34px;height:34px;flex:none;border-width:2px;--sw:34px}
+.m2-pa>div{min-width:0;display:flex;flex-direction:column}
+.m2-pa b{font:800 14px/1.2 var(--ui-font)}
+.m2-pa span{font:700 12px/1.25 var(--ui-font);color:var(--ui-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m2-pa em{font:900 13px var(--ui-font);font-style:normal;color:var(--ui-accent)}
+.m2-mia{position:relative;min-height:0;min-width:0}
+/* la mesa de un jugador (tuya o la de un rival al tocarlo) */
+.m2-tab{position:absolute;inset:0;container-type:size;overflow-x:auto;overflow-y:hidden;display:flex;align-items:flex-end}
+.m2-fila{display:flex;align-items:flex-end;gap:8px;margin:0 auto;padding:0 6px;
+ --tw:clamp(22px,min(calc((100cqh - 40px) / 1.95),calc((100cqw - 12px - var(--it) * 12px) / var(--u))),84px);--cw:var(--tw)}
+.m2-props{display:flex;align-items:flex-end;gap:8px;border-radius:12px;min-height:calc(var(--tw)*1.5 + 36px)}
+.m2g,.m2bk{display:flex;flex-direction:column;align-items:center;gap:3px;flex:none;border-radius:12px;padding:2px;transition:background .2s}
+.m2bk{--c:#2e7d4f;--t:#fff}
+.m2gh{display:flex;align-items:center;gap:2px;padding:0 7px;border-radius:999px;background:var(--c);color:var(--t);font:900 12px/1.5 var(--ui-font);white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.m2gh .ui-ico{width:13px;height:13px;stroke-width:3}
+.m2g.full .m2gh{box-shadow:0 0 0 2px #ffd36a,0 2px 6px rgba(0,0,0,.4)}
+.m2gr{min-height:14px;font:800 11px/1.3 var(--ui-font);color:rgba(255,255,255,.88);text-shadow:0 1px 2px rgba(0,0,0,.5);white-space:nowrap}
+.m2g.orph .m2gr{color:#ffd0c4}
+.m2gc{display:flex;flex-direction:column;align-items:center;
+ --off:clamp(calc(var(--tw) * .14),calc((100cqh - 40px - var(--tw) * 1.5) / max(var(--n) - 1,1)),calc(var(--tw) * .3))}
+html[data-game] .md2 .m2gc>.c+.c{margin-top:calc(var(--off) - var(--tw) * 1.5)}
+.m2g.orph .m2gc{opacity:.65}
+.m2bc{display:flex;align-items:flex-end}
+.m2bi{position:relative;flex:none;width:var(--tw);height:calc(var(--tw)*1.5);border-radius:calc(var(--tw)*.09);overflow:hidden;background:var(--k);box-shadow:0 2px 5px rgba(0,0,0,.4);
+ display:flex;align-items:center;justify-content:center;color:#3a2416;font:900 13px var(--ui-font);transition:transform .15s,box-shadow .15s}
+.m2bi:has(img){background:none}
+.m2bi+.m2bi{margin-left:calc(var(--tw) * -.72)}
+.m2bk.pg .m2bi+.m2bi{margin-left:calc(var(--tw) * -.42)}
+.m2vac{display:flex;align-items:center;justify-content:center;width:calc(var(--tw)*1.2);height:calc(var(--tw)*1.5);box-sizing:border-box;padding:2px;border:2px dashed rgba(255,255,255,.45);
+ border-radius:calc(var(--tw)*.09);color:rgba(255,255,255,.8);font:800 11px/1.1 var(--ui-font);font-style:normal;text-align:center;overflow:hidden}
+.m2vg .m2vac{width:calc(var(--tw)*1.9)}
+/* estados: se puede tocar para elegir, apagado, en riesgo, se puede mover, se puede dar como pago */
+.md2 .m2-tab [onclick]{cursor:pointer}
+html[data-game] .md2 .m2c.pk,.md2 .m2g.pk .m2c{animation:m2pk 1.1s ease-in-out infinite}
+html[data-game] .md2 .m2c.pk.s{animation:none;box-shadow:0 0 0 3px var(--ui-accent),0 0 14px #ffd36a}
+.md2 .m2g.apag{opacity:.4;filter:saturate(.5)}
+html[data-game] .md2 .m2c.riesgo,.md2 .m2g.riesgo .m2c{animation:m2riesgo 1s ease-in-out infinite}
+html[data-game] .md2 .m2c.mv::after{content:"";position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-radius:50%;background:#ffd36a;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+html[data-game] .md2 .m2-tab .m2c.s{transform:translateY(-8px);box-shadow:0 0 0 3px var(--ui-accent),0 6px 12px rgba(0,0,0,.45);z-index:2}
+.md2 .m2bi.s{transform:translateY(-10px);box-shadow:0 0 0 3px var(--ui-accent),0 6px 12px rgba(0,0,0,.45);z-index:2}
+@media (hover:hover){html[data-game] .md2 .m2c.pg:hover,.md2 .m2bk.pg .m2bi:hover{transform:translateY(-6px)}.md2 .m2g:hover,.md2 .m2lo:hover{z-index:3}}
+html[data-game] .md2 .m2-tab .nw,.md2 .m2-tab .m2bi.nw{animation:m2cae .5s cubic-bezier(.2,.9,.3,1.25)}
+.md2 .m2g.over,.md2 .m2bk.over,.md2 .m2-props.over,.md2 .m2-cen.over{outline:3px dashed rgba(255,255,255,.85);outline-offset:3px;background:rgba(255,255,255,.14)}
+/* asientos de los rivales: su banco y sus sets; se tocan para ver su mesa o elegirlos */
+.md2 .m2d-seat{cursor:pointer}
+.m2-ri{display:flex;flex-direction:column;align-items:center;gap:2px}
+.m2-ri b{padding:0 7px;border-radius:999px;background:#2e7d4f;color:#fff;font:900 11px/1.45 var(--ui-font);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.m2-ri span{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:100%}
+.m2s{display:flex;gap:1px;padding:1.5px;border-radius:3px;background:rgba(0,0,0,.4)}
+.m2s u{width:5px;height:9px;border-radius:1.5px;background:rgba(255,255,255,.22)}
+.m2s u.on{background:var(--c)}
+.m2s.f{box-shadow:0 0 0 1.5px #ffd36a}
+.md2 .m2d-seat.tg .m2d-pt{animation:m2tg 1s ease-in-out infinite}
+.md2 .m2d-seat.tg .m2d-nm{background:#ffd23f;color:#3a2416;border-color:transparent}
+.md2 .m2d-seat.no{opacity:.4}
+.md2 .m2d-seat.ver .m2d-nm{outline:3px solid var(--ui-accent);outline-offset:1px}
+/* la mesa de un rival, encima */
+.m2-scr{position:absolute;inset:0;z-index:7;background:var(--ui-scrim)}
+.m2-ver{position:absolute;z-index:8;left:50%;top:8px;transform:translateX(-50%);width:min(600px,calc(100% - 20px));padding:10px 12px 12px;box-sizing:border-box;
+ border-radius:var(--ui-r);background:var(--ui-sheet);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);animation:m2up .3s cubic-bezier(.2,.9,.3,1.2)}
+.m2-vh{display:flex;align-items:center;gap:10px}
+.m2-vh .m2d-pt{width:42px;height:42px;flex:none;border-width:2px;--sw:42px}
+.m2-vh>div{flex:1;min-width:0;display:flex;flex-direction:column}
+.m2-vh b{font:800 16px/1.2 var(--ui-font)}
+.m2-vh span{font:700 13px/1.3 var(--ui-font);color:var(--ui-sub)}
+.m2-vb{position:relative;height:clamp(150px,46cqh,320px);margin-top:8px;border-radius:16px;background:radial-gradient(ellipse at 50% 35%,#3f86cf,#173f6c);box-shadow:inset 0 4px 14px rgba(0,0,0,.35)}
+.m2-vb .m2-tab{inset:6px 4px}
+@container (min-aspect-ratio:1.3){.m2-ver.st{left:10px;transform:none;width:min(600px,calc(100% - 380px));animation:none}}
+/* la tarjeta de acción (MD3U, la misma del 3D) dentro de la mesa */
+.m2-caja{position:absolute;z-index:9;left:50%;top:6px;transform:translateX(-50%);width:min(390px,calc(100% - 16px));max-height:calc(100% - 12px);display:flex;flex-direction:column}
+.m2-caja.abajo{top:auto;bottom:6px}
+.md2 .m2-caja .md3box{position:relative;inset:auto;transform:none;width:100%;max-height:none;min-height:0;box-sizing:border-box;overflow:auto}
+@container (min-aspect-ratio:1.3){.m2-caja,.m2-caja.abajo{left:auto;right:10px;top:50%;bottom:auto;transform:translateY(-50%);width:min(350px,42%)}}
+.ui-btn.m2-go{animation:m2go 1.2s ease-in-out infinite}
+/* final */
+.m2-fs{display:flex;justify-content:center;gap:6px;margin:-4px 0 12px}
+.m2-fs i,.m2-fm i{width:22px;height:22px;border-radius:6px;border:2px dashed var(--ui-line);box-sizing:border-box}
+.m2-fs i.on,.m2-fm i.on{background:var(--c);border:2px solid rgba(0,0,0,.2)}
+.m2-fm{display:flex;gap:3px}.m2-fm i{width:12px;height:12px;border-radius:3px}
+@keyframes m2cae{from{transform:translateY(-36px) scale(1.25);opacity:0}}
+@keyframes m2slam{from{transform:scale(1.6) rotate(-14deg);opacity:0}}
+@keyframes m2up{from{transform:translate(-50%,-20px);opacity:0}}
+@keyframes m2pk{50%{box-shadow:0 0 0 3px #ffd36a,0 0 16px #ffd36a}}
+@keyframes m2riesgo{50%{box-shadow:0 0 0 3px #e53935,0 0 16px #e53935}}
+@keyframes m2tg{50%{box-shadow:0 0 0 4px #ffd23f,0 0 18px #ffd23f}}
+@keyframes m2go{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--ui-accent) 30%,transparent)}}
+@media (max-width:560px){.m2-ri b{font-size:10px}.m2s u{width:4px;height:8px}.m2-pa b{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.md2 *{animation:none!important}}
+/* una carta de cerca */
+.m2-zoom{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;background:var(--ui-scrim);cursor:zoom-out;animation:uiFade .15s ease-out}
+.m2-zoom img{height:min(78vh,520px);max-width:86vw;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(0,0,0,.5));animation:m2in .3s cubic-bezier(.2,.9,.3,1.2)}
+.md2 .m2-tab .m2c:not([onclick]),.md2 .m2-desc .m2c{cursor:zoom-in}
+@container (min-aspect-ratio:1.75) and (max-height:230px){.m2-mesa{bottom:17%}}
