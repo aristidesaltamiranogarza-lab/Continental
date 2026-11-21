@@ -48,7 +48,7 @@ function silla(wood,tela,lat){const g=new THREE.Group(),M=(geo,m,x,y,z)=>{const 
  [-.3,.3].forEach(x=>M(new THREE.CylinderGeometry(.03,.03,.82,8),wood,x,-.33,-.47));M(new THREE.BoxGeometry(.56,.4,.05),tela,0,-.2,-.48);M(new THREE.BoxGeometry(.68,.07,.08),wood,0,.1,-.47);
  const aro=M(new THREE.TorusGeometry(.37,.022,8,40),lat,0,-.95,-.215);aro.rotation.x=Math.PI/2;
  return g}
-function arma(par,o={}){const n=Math.max(2,o.n||4),r=radio(n),R=r+ORL,sep=o.sep||1.7,zs=zonas(n,r,o.hueco||[1.6,1.15]),marks=[],g=new THREE.Group();g.name='mesa';par.add(g);
+function arma(par,o={}){const n=Math.max(2,o.n||4),r=o.r||radio(n),R=r+ORL,sep=o.sep||1.7,zs=zonas(n,r,o.hueco||[1.6,1.15]),marks=[],g=new THREE.Group();g.name='mesa';par.add(g);
  const wood=new THREE.MeshPhysicalMaterial({color:0x6e3b1b,roughness:.38,clearcoat:.7,clearcoatRoughness:.25}),dark=std(0x3a1e0c,.55);
  // fieltro, madera y canto acolchado (cuero)
  const fm=std(0xffffff,.95,{map:fieltro(o.col||['#2a8a5e','#123f2b'],o.logo)}),felt=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.12,96),fm);felt.position.y=-.06;felt.rotation.y=Math.PI/2;felt.receiveShadow=true;g.add(felt);

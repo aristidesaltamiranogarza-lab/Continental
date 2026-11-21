@@ -76,8 +76,8 @@ const FELT={green:['#2f9a62','#0f4a2d'],red:['#c0393f','#5e1218'],blue:['#3d84cc
 // anillo de flechas alrededor del centro: gira en el sentido del juego y se pinta del color actual
 function ringTex(d){const k='ring'+d;if(texC[k])return texC[k];const S=1024,cn=cnv(S,S),g=cn.getContext('2d'),c=S/2,r=440;
  g.strokeStyle='rgba(255,255,255,.4)';g.lineWidth=6;[r-50,r+50].forEach(q=>{g.beginPath();g.arc(c,c,q,0,7);g.stroke()});
- g.strokeStyle='#fff';g.lineWidth=17;g.lineCap='round';g.lineJoin='round';
- for(let i=0;i<20;i++){const a=i/20*Math.PI*2;g.save();g.translate(c+Math.cos(a)*r,c+Math.sin(a)*r);g.rotate(a+d*Math.PI/2);g.beginPath();g.moveTo(-14,-24);g.lineTo(14,0);g.lineTo(-14,24);g.stroke();g.restore()}
+ g.strokeStyle='#fff';g.lineWidth=24;g.lineCap='round';g.lineJoin='round';
+ for(let i=0;i<20;i++){const a=i/20*Math.PI*2;g.save();g.translate(c+Math.cos(a)*r,c+Math.sin(a)*r);g.rotate(a+d*Math.PI/2);g.beginPath();g.moveTo(-18,-30);g.lineTo(18,0);g.lineTo(-18,30);g.stroke();g.restore()}
  return texC[k]=tx(cn)}
 
 // ---------- cartas 3D ----------
@@ -142,28 +142,28 @@ function init(){if(ready)return;ready=true;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js), la misma de Continental: crece con los jugadores; los personajes en sus sillas (c_mesa_pj.js)
- const ps=por?1.25:.95;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
+ const ps=por?1.5:1.3,np=V&&V.G?V.G.players.length:4;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:np,r:MESA.radio(np)-1.8,col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
  const rx=mesa.r,rz=mesa.r;L=Object.assign(L||{},{por,rx,rz,ps,edge:null});
  // al centro de la mesa: mazo a la izquierda y descarte a la derecha (en celular parado, uno arriba del otro
  // para que no los tapen los nombres de los lados); el anillo de flechas los rodea
- L.ctr=v3(0,0,por?-.5:-.15);if(por){L.deck=v3(0,0,L.ctr.z-1.15*ps);L.disc=v3(0,0,L.ctr.z+1.15*ps)}else{L.deck=v3(-1.5*ps,0,L.ctr.z);L.disc=v3(1.5*ps,0,L.ctr.z)}
+ L.ctr=v3(0,0,por?-.5:-.15);if(por){L.deck=v3(0,0,L.ctr.z-1.0*ps);L.disc=v3(0,0,L.ctr.z+1.0*ps)}else{L.deck=v3(-1.15*ps,0,L.ctr.z);L.disc=v3(1.15*ps,0,L.ctr.z)}
  ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.5,depthWrite:false}));
- ringM.rotation.x=-Math.PI/2;const rr2=por?3.1:2.75;ringM.scale.set(rr2*2.3,rr2*2.3,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
+ ringM.rotation.x=-Math.PI/2;const rr2=por?3.4:3.1;ringM.scale.set(rr2*2.3,rr2*2.3,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
  if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=mesa.pie}
 function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
  if(G.dir!==ringDir){ringDir=G.dir;ringM.material.map=ringTex(ringDir);ringM.material.needsUpdate=true;if(!first)ringBoost=1}
  ringBoost=Math.max(0,ringBoost-dt/900);ringG.rotation.y-=ringDir*dt*(.00025+ringBoost*.006);
  // color actual: el anillo y el filo de la mesa cambian suave
- const tc=new THREE.Color(UC[G.color]||'#ffffff');ringM.material.color.lerp(tc,.08);ringM.material.opacity=.42+.12*Math.sin(now/400)+ringBoost*.3;
+ const tc=new THREE.Color(UC[G.color]||'#ffffff');ringM.material.color.lerp(tc.clone().lerp(WH3,.55),.08);ringM.material.opacity=.72+.1*Math.sin(now/400)+ringBoost*.2;
  if(L.edge){L.edge.material.color.lerp(tc,.08);L.edge.material.emissive.lerp(tc,.08)}}
 
 // ---------- cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95,tk=(por?'p':'l')+(V&&V.G?V.G.players.length:4);if(tk!==tableKey){tableKey=tk;buildTable(por)}
- const tb=$('#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
- const ch=Math.max(80,Math.min(h*.22,w*.3,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
+ const wide=w/h>1.6,tb=$(wide?'#gjTop':'#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
+ const ch=Math.max(64,Math.min(h*.19,w*.26,165));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.15)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
- const rb=h-bar-ch*.62,rh=Math.max(120,rb-top),el=por?1.12:.98;
+ const rb=h-bar-ch*(wide?.3:.62),rh=Math.max(120,rb-top),el=por?1.28:1.16;
  CA.clearViewOffset();CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.4])pts.push(v3(Math.cos(a)*(L.rx+.75),y,Math.sin(a)*(L.rz+.75)))}
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
@@ -177,7 +177,7 @@ function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4
 // la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
 function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
  CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow)CA.rotateOnWorldAxis(YA,hdNow);CA.updateMatrixWorld()}
-const YA=v3(0,1,0),MLT=v3(0,0,0);
+const WH3=new THREE.Color(1,1,1),YA=v3(0,1,0),MLT=v3(0,0,0);
 // cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno y regresa sola; la luz de la lámpara se va despacio a su lugar
 function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.asiento(rel(t)).mano:null;
  if(mesa){MLT.set(tp?tp.x*.7:0,0,tp?tp.z*.7:0);mesa.luzHacia(MLT,1-Math.exp(-dt/900));mesa.pantalla(L.el+VW.t<1.2)}
@@ -343,32 +343,32 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
 const chipC=k=>`<i class="u3chip" style="--c:${UC[k]}"></i>`,uic=n=>UI.ico(n);   // piezas de la interfaz: c_juegos_hud.js (GHUD)
 function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fin&&i==t,drawn=mine&&G.step=='drawn',pend=!fin&&G.pend>0,h=i>=0&&Array.isArray(G.hands[i])?G.hands[i]:[];
  if(!mine)upick=null;if(!fin)winHide=false;
- const hint=fin?(w>=0&&w==i?'¡Te quedaste sin cartas! 🎉':'Se quedó sin cartas. ¿Otra partida?'):G.ad>0?(mine?'Robando… ':esc(G.players[t].name)+' está robando… ')+'('+G.ad+')':i<0?mirTxt():!mine?'Esperando a '+nm(t)+'…':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con un ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:'Toca una carta para jugarla, o el mazo para robar';
+ const hint=fin?(w>=0&&w==i?'¡Te quedaste sin cartas!':'Se quedó sin cartas. ¿Otra partida?'):G.ad>0?(mine?'Robando… ':esc(G.players[t].name)+' está robando… ')+'('+G.ad+')':i<0?mirTxt():!mine?'Esperando a '+nm(t)+'…':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con un ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:((G.log||[]).filter(e=>e.k==i).length<2?'Toca una carta para jugarla, o el mazo para robar':'');
  // arriba: estado (color y sentido) y turno a la izquierda; cámara y ☰ a la derecha; abajo de ellas la ayuda o la última jugada
- const inf=fin?`🏆 <b>${w>=0?nm(w):'—'}</b> gana`:`${chipC(G.color)}<b>${UCN[G.color]}</b> ${G.dir>0?'↻':'↺'}${pend?` <b class="gj-tag">+${G.pend}</b>`:''}`;
+ const inf=fin?`<b>${w>=0?nm(w):'—'}</b> gana`:pend?`<b class="gj-tag">+${G.pend}</b>`:'';
  const trn=fin?'Fin de la partida':G.ad>0?(mine?'Robando…':nm(t)+' roba…'):mine?'¡Tu turno!':'Turno de '+nm(t);
  const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:(window.MCAM?MCAM.boton(VT.top,'u3dArriba()'):'')+GHUD.view('u3dHome()')});
- if(!mini)o+=GHUD.hint(mine||fin||!lgT?hint:lgT);
+ const ht=mine||fin||!lgT?hint:lgT;if(!mini&&ht)o+=GHUD.hint(ht);
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
  if(mt&&age<4500)o+=GHUD.toast(msg?esc(msg):'<b>'+esc(G.note)+'</b>',age,mini);
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const pl=V.players[k],on=!fin&&G.turn==k,n=hc(k),u1=fin?w==k:G.uno[k]&&n==1;
-  o+=`<div class="ui gj-seat${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${pl.on?' on':''}"></i><small>${pl.out?'expulsado':(n+(n==1?' carta':' cartas')+(on?(G.ad?' · robando…':' · jugando…'):''))}</small>${u1?`<em class="u3b">${fin?'🏆 ¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
- o+=`<div class="ui gj-pl" id="t3pdk">Mazo · ${G.deck}</div><div class="ui gj-pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;
+  o+=`<div class="ui gj-seat u3s${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}"><b>${esc(p.name)}</b>${pl.on?'':'<i class="dot"></i>'}${pl.out?'<small>expulsado</small>':`<span class="u3n" aria-label="${n} ${n==1?'carta':'cartas'}">${n}</span>`}${u1?`<em class="u3b">${fin?'¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
+ o+=`<div class="ui gj-pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;
  // botones de abajo: robar el acumulado, pasar, ¡UNO!, cobrar UNO y ordenar
  let b='';
  if(fin){b=`<button class="ui-btn" onclick="send({t:'reset'})">${uic('nuevo')}Nueva partida</button><button class="ui-btn sec" onclick="leave()">${uic('salir')}Salir</button>`;
   // resultados en una tarjeta arriba (se puede cerrar para ver la mesa)
   if(!winHide)o+=`<div id="u3win" class="ui ui-card gj-win" role="dialog" aria-labelledby="u3wt"><div class="ui-hd"><h2 class="ui-h" id="u3wt">Fin de la partida</h2><button class="ui-x" onclick="u3dWin()" aria-label="Cerrar">${uic('x')}</button></div>
-   <div class="ui-bd"><div class="u3tro">🏆</div><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
-   <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${V.players[k].out?'expulsado':k==w?'🏆':hc(k)+(hc(k)==1?' carta':' cartas')}</b></div>`).join('')}</div></div></div>`}
+   <div class="ui-bd"><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
+   <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${V.players[k].out?'expulsado':k==w?'Ganó':hc(k)+(hc(k)==1?' carta':' cartas')}</b></div>`).join('')}</div></div></div>`}
  else if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${uic('salir')}Dejar de mirar</button>`:''}`;
  else{const vk=G.vuln&&G.vuln.k!=i&&hc(G.vuln.k)==1&&!G.uno[G.vuln.k]?G.vuln.k:-1,my1=h.length==1&&!G.uno[i],said=h.length==1&&!!G.uno[i];
   if(mine&&G.step=='play'&&pend&&!G.ad)b+=`<button class="ui-btn go" onclick="udraw()">Robar ${G.pend}</button>`;
   if(drawn)b+=`<button class="ui-btn go" onclick="upass()">Pasar</button>`;
-  b+=`<button class="ui-btn${my1?' go':''}${said?' sec u3ok':''}" ${my1?'':'disabled'} onclick="uuno()" title="Tecla U">${said?uic('ok'):''}¡UNO!</button>`;
+  if(my1||said)b+=`<button class="ui-btn${my1?' go':''}${said?' sec u3ok':''}" ${my1?'':'disabled'} onclick="uuno()" title="Tecla U">${said?uic('ok'):''}¡UNO!</button>`;
   if(vk>=0)b+=`<button class="ui-btn go" onclick="ucatch()">Cobrar UNO a ${nm(vk)}</button>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${uic('ordenar')}${manual?'Mi orden':sortS?'Por número':'Por color'}</button>`}
  o+=GHUD.bar(b);

@@ -78,6 +78,9 @@ html:has(.gj-sheet,#u3pick) #chat{display:none!important}   /* el botón del cha
 @keyframes gjPop{from{transform:scale(1)}to{transform:scale(1.12)}}
 
 /* ===== Uno 3D ===== */
+.gj-seat.u3s{display:flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;border-radius:999px;font-size:12px}
+.u3s .u3n{min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ui-text);color:var(--ui-panel);font-size:11px;line-height:20px}
+.u3s .u3b{margin:0}
 .gj-seat.u3one{border-color:var(--ui-accent)}
 .gj-bar .ui-btn.u3ok[disabled]{opacity:1}
 .gj-seat .u3b{display:block;width:max-content;margin:4px auto 0;padding:2px 9px;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font-style:normal;font-weight:800;animation:gjPop .8s ease-in-out infinite alternate}
