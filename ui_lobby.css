@@ -197,3 +197,10 @@ html.lbon #app:has(.lbh){padding-bottom:env(safe-area-inset-bottom,0px)}
 @keyframes lbhFlota{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
 @keyframes lbhRes{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes lbhPop{from{opacity:0;transform:translate(var(--tx,0),var(--ty,0)) scale(.4)}to{opacity:1}}
+.lbh-sheet,.lbh-sheet *{box-sizing:border-box}
+.lbh-sheet .ui-in{display:block;width:100%;max-width:100%;margin:0}
+.lbh-sheet .ui-seg{display:flex;width:100%}
+.lbh-sheet .ui-seg button{flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 10px}
+.lbh-sheet .ui-seg .ui-ico{width:18px;height:18px}
+.lbh-sheet .lb-seg button{flex:1 0 auto}
+.lbh-sheet .ui-bd{--fl:#000!important;--fr:#000!important}

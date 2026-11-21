@@ -14,11 +14,14 @@ function juegos(k){return `<div class="lbh-js" role="radiogroup" aria-label="Jue
 function go(k){const c=CAS[k];if(k==='billar')return b2d()?`<button class="ui-btn full lbh-go" onclick="B2D.abre()">${I('jugar')}Ir a la mesa</button>`:'<button class="ui-btn full lbh-go" disabled>No disponible</button>';
  if(c)return `<button class="ui-btn full lbh-go" onclick="C2D.abre('${k}')">${I('jugar')}Ir a la mesa</button>`;
  return `<button class="ui-btn full lbh-go" onclick="mk('listo')">${I('jugar')}Crear y jugar</button>`}
+// calidad como segmentado (las opciones salen del <select> de BIEN.sel())
+function cal(){const d=document.createElement('div');d.innerHTML=BIEN.sel();const o=[...d.querySelectorAll('option')];if(!o.length)return BIEN.sel();
+ return `<div class="ui-seg lbh-seg">${o.map(x=>`<button class="${x.selected?'on':''}" onclick="BIEN.set('${es(x.value)}');render()">${es(x.textContent)}</button>`).join('')}</div>`}
 function hoja(k,g){if(!pan)return '';const x=`<button class="ui-x" onclick="LOBBY.pan('')" aria-label="Cerrar">${I('x')}</button>`;let h,b;
  if(pan==='reg'){h='Cómo se juega '+es(nom(k));b=(g.rules||'').replace(/<details/g,'<details open')}
  else{h='Ajustes';const n=window.UI&&UI.noche();
   b=`<label class="ui-lbl" for="lbNom">Tu nombre</label><input id="lbNom" class="ui-in" placeholder="¿Cómo te llamas?" maxlength="14" value="${es(pname)}" oninput="pname=this.value" autocomplete="nickname">
-  ${window.BIEN?`<span class="ui-lbl">Calidad</span>${BIEN.sel()}`:''}
+  ${window.BIEN?`<span class="ui-lbl">Calidad</span>${cal()}`:''}
   <span class="ui-lbl">Tema</span><div class="ui-seg"><button class="${n?'':'on'}" onclick="LOBBY.tema1('dia')">${I('sol')}Día</button><button class="${n?'on':''}" onclick="LOBBY.tema1('noche')">${I('luna')}Noche</button></div>
   <span class="ui-lbl">Música</span>${window.musSlider?musSlider():''}
   ${k==='continental'||k==='uno'?est(k):''}
