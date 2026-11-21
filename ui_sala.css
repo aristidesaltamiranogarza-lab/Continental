@@ -184,3 +184,4 @@ html.sala3d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
 @media (min-width:768px){html.sala3d #chat{bottom:16px;right:424px}}
 #sala .sl-reglas .box{all:unset;display:block}
 #sala .sl-reglas .box>.top:first-child{margin-top:0}
+@media (pointer:coarse){.sl-tag.ai,.sl-modal{-webkit-backdrop-filter:none;backdrop-filter:none}}
