@@ -204,3 +204,44 @@ html.lbon #app:has(.lbh){padding-bottom:env(safe-area-inset-bottom,0px)}
 .lbh-sheet .ui-seg .ui-ico{width:18px;height:18px}
 .lbh-sheet .lb-seg button{flex:1 0 auto}
 .lbh-sheet .ui-bd{--fl:#000!important;--fr:#000!important}
+/* hoja de ajustes del inicio: perfil, calidad en tarjetas, filas con el control a la derecha y "Mesa y cartas" aparte */
+.lbh-sheet .ui-hd .lbh-ht{flex:1;text-align:center}
+.lbh-perfil{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.lbh-perfil i{flex:none;display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--c);color:#fff;font:800 22px var(--ui-font);font-style:normal;box-shadow:0 0 0 3px var(--ui-sheet),0 0 0 5px var(--ui-accent)}
+.lbh-perfil .ui-in{min-height:50px;font:700 17px var(--ui-font)}
+.lbh-q{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.lbh-qc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px 9px;border-radius:18px;border:1.5px solid var(--ui-line);background:var(--ui-chip);color:var(--ui-text);font-family:var(--ui-font);cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
+.lbh-qc svg{width:44px;height:36px;margin-bottom:2px;fill:none;stroke:var(--ui-sub);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.lbh-qc b{font-size:14px;font-weight:800}
+.lbh-qc small{font-size:11px;font-weight:700;color:var(--ui-sub)}
+.lbh-qc:active{transform:scale(.96)}
+.lbh-qc.on{border-color:var(--ui-accent);background:color-mix(in srgb,var(--ui-accent) 15%,transparent)}
+.lbh-qc.on svg{stroke:var(--ui-accent)}
+.lbh-fila{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;border-bottom:1px solid var(--ui-line)}
+.lbh-fila>span{display:flex;align-items:center;gap:10px;font:700 16px var(--ui-font)}
+.lbh-fila>span .ui-ico{color:var(--ui-icon)}
+.lbh-tema{display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--ui-chip);border:1px solid var(--ui-line)}
+.lbh-tema button{width:46px;height:40px;border:0;border-radius:999px;background:none;color:var(--ui-sub);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,color .2s}
+.lbh-tema button.on{background:var(--ui-accent);color:var(--ui-on);box-shadow:0 3px 10px color-mix(in srgb,var(--ui-accent) 40%,transparent)}
+.lbh-mus{padding:10px 0;border-bottom:1px solid var(--ui-line)}
+.lbh-ir{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:12px 14px 12px 12px;border-radius:20px;border:1px solid var(--ui-line);background:var(--ui-chip);color:var(--ui-text);font-family:var(--ui-font);text-align:left;cursor:pointer;transition:transform .15s}
+.lbh-ir:active{transform:scale(.98)}
+.lbh-ir>.ui-ico{margin-left:auto;color:var(--ui-sub)}
+.lbh-irt b{display:block;font-size:16px;font-weight:800}
+.lbh-irt small{font-size:12.5px;font-weight:600;color:var(--ui-sub)}
+.lbh-prev{position:relative;flex:none;width:64px;height:48px;border-radius:14px;box-shadow:inset 0 3px 10px rgba(0,0,0,.3);overflow:hidden}
+.lbh-prev.uno{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#D93A2E,#F2C230 35%,#2EAD6B 65%,#2F7DD1);color:#fff}
+.lbh-pc,.lbh-pk{position:absolute;top:8px;width:22px;height:32px;border-radius:4px;box-shadow:0 2px 5px rgba(0,0,0,.35);border:1.5px solid #fff}
+.lbh-pc{left:11px;transform:rotate(-10deg);background:#FFFDF6;color:#C8352B;font:800 10px/1 Georgia,serif;padding:3px;font-style:normal;display:flex;flex-direction:column;align-items:flex-start}
+.lbh-pc em{font-style:normal;font-size:14px;align-self:center;margin-top:1px}
+.lbh-pc.neg{background:#1E1E22;color:#FF6B6B}
+.lbh-pk{right:11px;transform:rotate(9deg)}
+.lbh-vista{display:flex;justify-content:center;margin:0 0 6px}
+.lbh-vista .lbh-prev{width:180px;height:110px;border-radius:24px;box-shadow:0 0 0 6px #6B3F22,inset 0 6px 18px rgba(0,0,0,.35);margin:6px 0 4px}
+.lbh-vista .lbh-pc,.lbh-vista .lbh-pk{top:20px;width:46px;height:66px;border-radius:7px;border-width:2px}
+.lbh-vista .lbh-pc{left:40px;font-size:16px;padding:5px}.lbh-vista .lbh-pc em{font-size:26px;margin-top:6px}
+.lbh-vista .lbh-pk{right:40px}
+.lbh-sheet .lbh-casa{margin-top:12px}
+.lbh-perfil{padding:5px 0 0 5px}
+.lbh-sheet .lb-sws{padding:5px 0 5px 5px}
+.lbh-sheet .lb-seg{display:grid;grid-template-columns:repeat(3,1fr);border-radius:18px}
