@@ -46,6 +46,6 @@ function uvozTts(t){if(mute||!window.speechSynthesis)return;try{const u=new Spee
 if(window.speechSynthesis)try{speechSynthesis.getVoices()}catch(e){}   // algunas compus cargan las voces hasta que se piden
 GM.uno={name:'Uno',emoji:'🎴',max:10,rules:unoRules,lobby:ulobby,body:ubody,
  face:id=>{const c=U(id);return {h:`<span>${usym(c)}</span>`,cls:'u'+c.c}},
- win:(n,fin)=>{const w=n.win;if(!fin||w<0)return;const me=w==V.me;sfx('win');banner(me?'🏆 ¡Ganaste!':'🏆 '+n.players[w].name+' ganó');confetti(me?90:35)},
- ev:e=>{if(e.t.startsWith('dijo'))uvoz('¡UNO!');if(e.t.startsWith('dijo')||e.t.startsWith('cobró'))banner(e.t.startsWith('dijo')?'¡UNO! '+V.G.players[e.k].name:'😈 '+V.G.players[e.k].name+' '+e.t)},
+ win:(n,fin)=>{const w=n.win;if(!fin||w<0)return;const me=w==V.me;sfx('win');banner(me?'¡Ganaste!':n.players[w].name+' ganó');confetti(me?90:35)},
+ ev:e=>{if(e.t.startsWith('dijo'))uvoz('¡UNO!');if(e.t.startsWith('dijo')||e.t.startsWith('cobró'))banner(e.t.startsWith('dijo')?'¡UNO! '+V.G.players[e.k].name:V.G.players[e.k].name+' '+e.t)},
  after:()=>{const G=V.G;if(G&&G.phase=='play'){prevHand=new Set(Array.isArray(G.hands[V.me])?G.hands[V.me]:[]);prevTop=G.disc[G.disc.length-1]}}};
