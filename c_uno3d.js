@@ -28,6 +28,8 @@ const UC=['#e53935','#fbc02d','#43a047','#1e88e5'],UCD=['#9e1b1b','#c47f00','#1b
 
 // ---------- texturas (dibujadas en canvas) ----------
 function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
+const CS=2;   // cartas: textura 2 veces más grande (dibujo en unidades TWxTH); a 256 se veían borrosas de cerca
+function cnvC(){const c=cnv(TW*CS,TH*CS);c.getContext("2d").scale(CS,CS);return c}
 function tx(c){const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R?Math.min(8,R.capabilities.getMaxAnisotropy()):4;return t}
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
 // símbolo de la carta (número, salto, reversa, +2, +4) con contorno; s = tamaño
@@ -46,7 +48,7 @@ function wildOval(g,x,y,rx,ry,a){g.save();g.translate(x,y);g.rotate(a);
  g.lineWidth=Math.max(2,rx*.07);g.strokeStyle='#fff';g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.stroke();g.restore()}
 function shine(g){const sh=g.createLinearGradient(0,0,TW*.7,TH);sh.addColorStop(0,'rgba(255,255,255,.3)');sh.addColorStop(.42,'rgba(255,255,255,.06)');sh.addColorStop(.47,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(0,0,TW,TH)}
 function faceTex(id){const k='f'+id+(cbl?'c':'');if(texC[k])return texC[k];
- const c=U(id),cn=cnv(TW,TH),g=cn.getContext('2d'),wild=c.c==4,col=wild?'#1c1c1c':UC[c.c];
+ const c=U(id),cn=cnvC(),g=cn.getContext('2d'),wild=c.c==4,col=wild?'#1c1c1c':UC[c.c];
  g.fillStyle='#fdfdfb';rr(g,0,0,TW,TH,24);g.fill();g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;rr(g,1,1,TW-2,TH-2,23);g.stroke();
  g.save();rr(g,13,13,TW-26,TH-26,16);g.clip();
  const gr=g.createLinearGradient(0,0,TW,TH);gr.addColorStop(0,wild?'#3a3a3a':col);gr.addColorStop(1,wild?'#050505':UCD[c.c]);g.fillStyle=gr;g.fillRect(0,0,TW,TH);
@@ -60,7 +62,7 @@ function faceTex(id){const k='f'+id+(cbl?'c':'');if(texC[k])return texC[k];
  if(cbl&&!wild){g.font='800 30px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=6;g.strokeStyle='rgba(0,0,0,.6)';
   [[TW-40,44,0],[40,TH-44,1]].forEach(([x,y,r])=>{g.save();g.translate(x,y);if(r)g.rotate(Math.PI);g.strokeText('RAVZ'[c.c],0,0);g.fillStyle='#fff';g.fillText('RAVZ'[c.c],0,0);g.restore()})}
  return texC[k]=tx(cn)}
-function backTex(){if(texC.b)return texC.b;const cn=cnv(TW,TH),g=cn.getContext('2d');
+function backTex(){if(texC.b)return texC.b;const cn=cnvC(),g=cn.getContext('2d');
  g.fillStyle='#fdfdfb';rr(g,0,0,TW,TH,24);g.fill();g.save();rr(g,13,13,TW-26,TH-26,16);g.clip();
  const gr=g.createRadialGradient(TW/2,TH/2,20,TW/2,TH/2,TH*.7);gr.addColorStop(0,'#2c2c2c');gr.addColorStop(1,'#050505');g.fillStyle=gr;g.fillRect(0,0,TW,TH);
  g.save();g.translate(TW/2,TH/2);g.rotate(.45);const rg=g.createLinearGradient(-90,-150,90,150);rg.addColorStop(0,'#ff5a4a');rg.addColorStop(1,'#b3140c');g.fillStyle=rg;g.beginPath();g.ellipse(0,0,90,150,0,0,7);g.fill();g.restore();

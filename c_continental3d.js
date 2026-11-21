@@ -32,10 +32,12 @@ const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStora
 
 // ---------- texturas (dibujadas en canvas) ----------
 function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
+const CS=2;   // cartas: textura 2 veces más grande (dibujo en unidades TWxTH); a 256 se veían borrosas de cerca
+function cnvC(){const c=cnv(TW*CS,TH*CS);c.getContext("2d").scale(CS,CS);return c}
 function tx(c){const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R?Math.min(8,R.capabilities.getMaxAnisotropy()):4;return t}
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
 function backTex(st=sback){const k='b'+st;if(texC[k])return texC[k];
- const c=cnv(TW,TH),g=c.getContext('2d'),col={red:['#c0302f','#7a1316'],blue:['#3a7be0','#163c85'],green:['#2f9e5a','#0f4d2a'],gold:['#e6bd45','#8f6a0c'],black:['#3b3b42','#0b0b0e'],neon:['#00c8e6','#7a00cc']}[st]||['#c0302f','#7a1316'],ln=st=='black'?'230,197,90':'255,255,255';
+ const c=cnvC(),g=c.getContext('2d'),col={red:['#c0302f','#7a1316'],blue:['#3a7be0','#163c85'],green:['#2f9e5a','#0f4d2a'],gold:['#e6bd45','#8f6a0c'],black:['#3b3b42','#0b0b0e'],neon:['#00c8e6','#7a00cc']}[st]||['#c0302f','#7a1316'],ln=st=='black'?'230,197,90':'255,255,255';
  g.fillStyle='#fff';rr(g,0,0,TW,TH,20);g.fill();g.save();rr(g,12,12,TW-24,TH-24,12);g.clip();
  const gr=g.createLinearGradient(0,0,TW,TH);gr.addColorStop(0,col[0]);gr.addColorStop(1,col[1]);g.fillStyle=gr;g.fillRect(0,0,TW,TH);
  g.strokeStyle=`rgba(${ln},.2)`;g.lineWidth=2;for(let i=-TH;i<TW+TH;i+=16){g.beginPath();g.moveTo(i,0);g.lineTo(i+TH,TH);g.stroke();g.beginPath();g.moveTo(i,TH);g.lineTo(i+TH,0);g.stroke()}
@@ -44,7 +46,7 @@ function backTex(st=sback){const k='b'+st;if(texC[k])return texC[k];
  g.fillStyle=`rgba(${ln},.9)`;g.font='bold 80px serif';g.textAlign='center';g.textBaseline='middle';g.fillText('♠',TW/2,TH/2+4);
  return texC[k]=tx(c)}
 function faceTex(id,st=scards){const k='f'+id+st;if(texC[k])return texC[k];
- const c0=C(id),c=cnv(TW,TH),g=c.getContext('2d'),dark=st=='black',retro=st=='retro',big=st=='big',red=!c0.j&&(c0.s==1||c0.s==2);
+ const c0=C(id),c=cnvC(),g=c.getContext('2d'),dark=st=='black',retro=st=='retro',big=st=='big',red=!c0.j&&(c0.s==1||c0.s==2);
  const ink=c0.j?(dark?'#ffd54a':'#6a1b9a'):st=='contrast'?['#111','#d50000','#0050d0','#007a2a'][c0.s]:red?(dark?'#ff6060':'#c62828'):(dark?'#f2f2f2':'#151515');
  const bg=g.createLinearGradient(0,0,TW,TH);
  if(dark){bg.addColorStop(0,'#2e2e2e');bg.addColorStop(1,'#121212')}else if(retro){bg.addColorStop(0,'#f7edd3');bg.addColorStop(1,'#e0cfa3')}else{bg.addColorStop(0,'#ffffff');bg.addColorStop(1,'#e9edf2')}
