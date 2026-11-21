@@ -62,7 +62,7 @@ document.head.appendChild(css);
 const CASA='<path d="M10 22 24 11l14 11v14H10z"/><path d="M20 36v-8h8v8"/>';
 const CARD={ligero:['<rect x="8" y="9" width="15" height="22" rx="3"/><rect x="26" y="9" width="15" height="22" rx="3"/><path d="M15.5 16v8M33.5 16v8"/>','Ligero','2D'],
  medio:[CASA,'Medio','3D'],
- completo:[CASA+'<path d="M38 36h8l-8-7" fill="currentColor" fill-opacity=".3" stroke="none"/><circle cx="41" cy="7" r="3"/><path d="M41 1v1M47 7h-1M45.2 2.8l-.7.7"/>','Completo','3D + luces']};
+ completo:[CASA+'<path d="M38 36h8l-8-7" fill="currentColor" fill-opacity=".3" stroke="none"/><circle cx="41" cy="7" r="3"/><path d="M41 1v1M47 7h-1M45.2 2.8l-.7.7"/>','Completo','3D HD']};
 const I=n=>window.UI&&UI.ico?UI.ico(n):'';
 // retrato del personaje (el mismo de MIPJ y de la mesa 2D)
 let pjGen=0;
