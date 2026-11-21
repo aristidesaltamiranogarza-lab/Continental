@@ -74,5 +74,6 @@ window.LOBBY={home,sala,carga:t=>{on();return `<div class="lb-carga" role="progr
  invita:()=>{if(!V)return;const u=location.origin+'/#'+V.code;if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(V.game)+' conmigo! Código '+V.code,url:u}).catch(()=>{});
   else if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>banner('Enlace copiado ✓'),()=>copyT(u));else copyT(u)},
  salir:()=>{if(!V)return;if(V.host){if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}}else leave()}};
+LOBBY.u={COL,CAS,ico,nom,lista,c2d,b2d,est,avc,ini,es,I,cas:()=>cas};   // para c_lobby_home.js
 window.home=LOBBY.home;   // c_casa3d.js la envuelve (se carga después)
 })();
