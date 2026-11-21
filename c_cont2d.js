@@ -74,13 +74,14 @@ function fin(G){const P=V.players,tot=G.players.map((_,k)=>G.scores.reduce((a,r)
  const bts=fn?`<button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button>`:
   (V.me>=0?(G.rd[V.me]?'<span class="k2-esp">Esperando a los demás</span>':`<button class="ui-btn" onclick="send({t:'ready'})">${G.round>=6?'Ver resultado':'Listo'}</button>`):'')+(V.host?`<button class="ui-btn sec" onclick="send({t:'next'})">Siguiente ronda</button>`:'');
  return M2D.mesa({cls:'k2',der:window.c3dToggle&&!fn?UI.dim(0,'c3dToggle()'):'',
-  capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big'):''}<h2>${fn?(w==V.me?'¡Ganaste la partida!':nm(w)+' gana'):(w==V.me?'¡Te quedaste sin cartas!':nm(w)+' cierra la ronda '+(G.round+1))}</h2>
-  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k)}<b>${nm(k)}</b>${fn?'':`<span class="k2-r${G.rd[k]?' ok':''}">${G.rd[k]?ico('ok'):''}+${ult[k]||0}</span>`}<span>${P[k].out?'fuera':tot[k]+' pts'}</span></div>`).join('')}</div>
+  capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${fn?(w==V.me?'¡Ganaste la partida!':nm(w)+' gana'):(w==V.me?'¡Te quedaste sin cartas!':nm(w)+' cierra la ronda '+(G.round+1))}</h2>
+  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',k==w?'feliz':fn?'triste':'')}<b>${nm(k)}</b>${fn?'':`<span class="k2-r${G.rd[k]?' ok':''}">${G.rd[k]?ico('ok'):''}+${ult[k]||0}</span>`}<span>${P[k].out?'fuera':tot[k]+' pts'}</span></div>`).join('')}</div>
   <details class="k2-tabla"><summary>Puntos por ronda</summary>${table()}</details><div class="m2d-bts">${bts}</div></div>`,rules})}
 GM.continental.body=cuerpo;
 // globitos: lo importante sale del asiento de quien lo hizo (robar y descartar ya se ven en la mesa)
 const ev0=GM.continental.ev;
-GM.continental.ev=e=>{if(ev0)ev0(e);if(!document.querySelector('#app .m2d')||e.k==null)return;const t=e.t;if(/^(robó|descartó|tomó)/.test(t))return;
+GM.continental.ev=e=>{if(ev0)ev0(e);if(!document.querySelector('#app .m2d')||e.k==null)return;const t=e.t;
+ if(/^(se bajó|compró|se quedó un comodín)/.test(t))M2D.reac(e.k,'feliz');if(/^(robó|descartó|tomó)/.test(t))return;
  M2D.bb(e.k,/^quiere/.test(t)?'¡Compro!':/^canceló/.test(t)?'Ya no compro':/^compró/.test(t)?'Compró el descarte':/^se bajó/.test(t)?'¡Me bajo!':t.charAt(0).toUpperCase()+t.slice(1),
   /^(quiere|compró)/.test(t)?'uno':/^se bajó/.test(t)?'bien':'')};
 })();

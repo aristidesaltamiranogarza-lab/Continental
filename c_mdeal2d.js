@@ -125,15 +125,19 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
 function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((a,b)=>(!!P[a].out-!!P[b].out)||mdSets(b)-mdSets(a)||mdBank(b)-mdBank(a));
  M2D.suelta=null;M2D.teclas=null;
  return M2D.mesa({cls:'md2',der:window.md3Toggle?UI.dim(0,'md3Toggle()'):'',
-  capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>${w>=0?`<div class="m2-fs">${metas(w)}</div>`:''}
-  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k)}<b>${nm(k)}</b><span class="m2-fm">${P[k].out?'':metas(k)}</span><span>${P[k].out?'fuera':'$'+mdBank(k)+'M'}</span></div>`).join('')}</div>
+  capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>${w>=0?`<div class="m2-fs">${metas(w)}</div>`:''}
+  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span class="m2-fm">${P[k].out?'':metas(k)}</span><span>${P[k].out?'fuera':'$'+mdBank(k)+'M'}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:MD.rules})}
 MD.body=cuerpo;
 // las cartas que vuelan (game.js fly) llevan las mismas caras
 MD.face=id=>{if(!on2())return face0(id);const u=id<0?src('b'+(-id)):src('c'+id);return {h:u?`<img src="${u}" alt="">`:'',cls:'m2c'}};
 MD.win=(n,fn)=>{const w=n.win;if(!fn||w<0)return;const me=w==V.me;sfx('win');banner(me?'¡Ganaste!':n.players[w].name+' ganó');confetti(me?90:35)};
 // globitos: lo que hizo cada quien sale de su asiento
+// caras: a quien le cobran o le roban se sorprende, el que paga se entristece, al robado le enoja; el que cobra o roba, feliz
+const quien=t=>{const P=V.G.players;let b=-1;P.forEach((p,k)=>{if(t.includes(p.name)&&(b<0||p.name.length>P[b].name.length))b=k});return b};
 MD.ev=e=>{if(ev0)ev0(e);if(!on2()||e.k==null)return;const t=e.t;let m='',c='',a;
+ const pa=V.G.pa;if(/^jugó/.test(t)&&pa&&pa.by==e.k){M2D.reac(e.k,'feliz');pa.tg.forEach(x=>M2D.reac(x.k,'sorpresa',3000))}
+ if(/^jugó Di que no/.test(t))M2D.reac(e.k,'feliz');else if(/^pagó/.test(t))M2D.reac(e.k,'triste');else if(/^le robó/.test(t)){M2D.reac(e.k,'feliz');M2D.reac(quien(t.replace(/^le robó .*? a /,'')),'enojo',3200)}
  if(/^jugó Di que no/.test(t)){m='¡Di que no!';c='malo'}
  else if(/^jugó Cobro/.test(t)){m='Cobro: $5M';c='uno'}
  else if(/^jugó Es mi cumpleaños/.test(t)){m='¡Es mi cumpleaños!';c='uno'}

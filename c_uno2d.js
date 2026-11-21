@@ -38,11 +38,15 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
 function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((a,b)=>(!!P[a].out-!!P[b].out)||hc(a)-hc(b));
  M2D.suelta=null;M2D.teclas=null;
  return M2D.mesa({cls:'u2',estilo:`--uc:${UCH[G.color]||'#c2512a'}`,der:window.u3dToggle?UI.dim(0,'u3dToggle()'):'',
-  capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>
-  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k)}<b>${nm(k)}</b><span>${P[k].out?'expulsado':k==w?'sin cartas':hc(k)+(hc(k)==1?' carta':' cartas')}</span></div>`).join('')}</div>
+  capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>
+  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span>${P[k].out?'expulsado':k==w?'sin cartas':hc(k)+(hc(k)==1?' carta':' cartas')}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:unoRules})}
 GM.uno.body=cuerpo;
 // globitos: lo que hizo cada quien sale de su asiento (los números jugados ya se ven volar al descarte)
-GM.uno.ev=e=>{if(ev0)ev0(e);if(!document.querySelector('#app .m2d')||e.k==null)return;const t=e.t;if(/^jugó \d/.test(t))return;
+// caras: castigo (+2/+4) sorprende o enoja, decir UNO alegra, que te cobren el UNO enoja
+const quien=t=>{const P=V.G.players;let b=-1;P.forEach((p,k)=>{if(t.includes(p.name)&&(b<0||p.name.length>P[b].name.length))b=k});return b};
+GM.uno.ev=e=>{if(ev0)ev0(e);if(!document.querySelector('#app .m2d')||e.k==null)return;const t=e.t;
+ const n=+((t.match(/^robó (\d+) cartas \(castigo\)/)||[])[1]||0);if(n)M2D.reac(e.k,n>=4?'enojo':'sorpresa');else if(/^dijo/.test(t))M2D.reac(e.k,'feliz');
+ else if(/^cobró UNO/.test(t)){M2D.reac(e.k,'feliz');M2D.reac(quien(t.slice(10)),'enojo',3200)}else if(/^jugó (comodín )?\+[24]/.test(t))M2D.reac(e.k,'feliz');if(/^jugó \d/.test(t))return;
  M2D.bb(e.k,t.charAt(0).toUpperCase()+t.slice(1),/castigo|cobr/.test(t)?'malo':/^dijo/.test(t)?'uno':'')};
 })();
