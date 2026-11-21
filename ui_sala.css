@@ -185,3 +185,31 @@ html.sala3d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
 #sala .sl-reglas .box{all:unset;display:block}
 #sala .sl-reglas .box>.top:first-child{margin-top:0}
 @media (pointer:coarse){.sl-tag.ai,.sl-modal{-webkit-backdrop-filter:none;backdrop-filter:none}}
+/* ---- sin casa (c_sala2d.js, Ligero): mesa 2D vista desde arriba en lugar de la casa ---- */
+.sl-f2{display:none}
+#sala.sl2d .sl-f2{display:block;position:absolute;inset:0;background:radial-gradient(120% 75% at 50% 28%,color-mix(in srgb,var(--sl-c) 20%,#F6EBDA),#E2CDAE)}
+html[data-tema=noche] #sala.sl2d .sl-f2{background:radial-gradient(120% 75% at 50% 28%,color-mix(in srgb,var(--sl-c) 28%,#2A1D16),#130C08)}
+.sl-f2a{position:absolute;left:0;right:0;top:env(safe-area-inset-top,0px);bottom:var(--sl-h,50%);display:flex;align-items:center;justify-content:center}
+.sl-f2m{position:relative;width:min(70vw,420px,calc((100dvh - var(--sl-h,50dvh) - env(safe-area-inset-top,0px) - 130px)*1.35));aspect-ratio:1.35}
+.sl-f2p{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+ background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--sl-c) 62%,#fff) 0%,var(--sl-c) 58%,color-mix(in srgb,var(--sl-c) 70%,#000) 100%);
+ box-shadow:0 0 0 11px #6B3F22,0 0 0 14px #3E2312,0 20px 40px rgba(0,0,0,.4),inset 0 6px 24px rgba(0,0,0,.35);transition:background .7s}
+.sl-f2i{width:34%;max-width:110px;aspect-ratio:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.3));animation:slFlota 3.2s ease-in-out infinite}
+.sl-f2i.pop{animation:slPop .5s cubic-bezier(.2,1.4,.4,1) both,slFlota 3.2s ease-in-out .5s infinite}
+.sl-f2i svg,.sl-f2i img{width:100%;height:100%;display:block;object-fit:contain}
+.sl-f2i .sl-emo{font-size:48px;display:flex;align-items:center;justify-content:center;height:100%}
+.sl-f2s{position:absolute;inset:-34px}
+.sl-f2x{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%);animation:slPop .45s cubic-bezier(.2,1.4,.4,1) var(--d) both}
+.sl-f2x i{display:flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:50%;background:var(--c);color:#fff;font:800 21px var(--ui-font);font-style:normal;
+ border:3px solid #FFF8EE;box-shadow:0 6px 14px rgba(0,0,0,.35);animation:slRes 3.4s ease-in-out var(--d) infinite}
+.sl-f2x b{margin-top:-7px;max-width:96px;padding:2px 9px;border-radius:999px;background:rgba(28,18,12,.72);color:#fff;font:700 12px/1.4 var(--ui-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-f2x.yo i{box-shadow:0 0 0 3px var(--ui-accent),0 6px 14px rgba(0,0,0,.35)}
+.sl-f2x.yo b{background:var(--ui-accent);color:var(--ui-on)}
+.sl-f2x.ai i{background:rgba(255,255,255,.35);color:rgba(40,24,14,.6);border:2px dashed rgba(40,24,14,.35);box-shadow:none;font-size:14px;animation:none}
+html[data-tema=noche] .sl-f2x.ai i{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border-color:rgba(255,255,255,.3)}
+.sl-f2x.nuevo i{animation:slSalto .7s cubic-bezier(.2,1.5,.4,1) var(--d) 2}
+html.sala2d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
+@media (min-width:768px){.sl-f2a{right:424px;bottom:0}.sl-f2m{width:min(56vw,520px,calc((100dvh - 160px)*1.35))}html.sala2d #chat{bottom:16px;right:424px}}
+@keyframes slFlota{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
+@keyframes slRes{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes slSalto{0%{transform:scale(1)}40%{transform:scale(1.25) translateY(-8px)}100%{transform:scale(1)}}

@@ -11,7 +11,8 @@ const snd=n=>{if(typeof sfx=='function')try{sfx(n)}catch(e){}};
 const COL={continental:'#1F6B4A',uno:'#B23A2E',monopolydeal:'#2D5D8A',merida:'#3F7D4F',haciendas:'#8A6A2A',rummy:'#24527A',ruleta:'#6A2436'};
 const ORD=['continental','uno','monopolydeal','merida','haciendas','rummy','ruleta'];
 const nom=k=>window.lobbyName?lobbyName(k):(GM[k]||{}).name||k;
-const colOf=n=>{const m=window.CHUD&&CHUD.av?/background:([^;"]+)/.exec(CHUD.av(n)):null;return m?m[1]:'#C2512A'};
+const PAL=['#C2512A','#2D5D8A','#3F7D4F','#8A3F7A','#B8862A','#2E7C83','#7A4A2A','#5A5FA8'];
+const colOf=n=>{const m=window.CHUD&&CHUD.av?/background:([^;"]+)/.exec(CHUD.av(n)):null;if(m)return m[1];let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))|0;return PAL[Math.abs(h)%PAL.length]};
 const ini=n=>es((Array.from(String(n||'?').trim())[0]||'?').toUpperCase());
 // íconos de cada juego (64×64, colores fijos: van sobre la caja del color del juego)
 const HEART='M12 21s-7.5-4.6-9.5-9.2C1 8.3 3.3 5 6.6 5c2.1 0 3.6 1.2 5.4 3.2C13.8 6.2 15.3 5 17.4 5c3.3 0 5.6 3.3 4.1 6.8C19.5 16.4 12 21 12 21z',
@@ -62,9 +63,9 @@ function subPinta(f){if(!sub)return;const k=sub+'|'+(sub==='reglas'?sig.raw:sub=
   b.innerHTML=`<div class="sl-cajas">${L.map(x=>`<button class="sl-caja${x===sig.k?' on':''}" style="--f:${COL[x]||'#C2512A'}" onclick="SALA.juego('${x}')" aria-pressed="${x===sig.k}"><span class="ic">${ico(x)}</span><b>${es(nom(x))}</b></button>`).join('')}</div>`}
  else b.innerHTML=window.musSlider?musSlider():''}
 
-// sync(g): game.js en cada render() de la sala de espera. false = no hay casa (sala de siempre)
-function sync(g){const H=H3(),v=vv();if(!g||!H||!v||v.G)return false;arma();cur=g;
- if(!shown){shown=true;sub=null;vista();sig={};prev=null;hola={};if(H.arranca)H.arranca(v.game);el.classList.remove('sale','open','in');void el.offsetWidth;el.classList.add('in');requestAnimationFrame(paso)}
+// sync(g): game.js en cada render() de la sala de espera. Sin casa la dibuja con la mesa 2D de SL2D (c_sala2d.js); false = sala de siempre (c_lobby.js)
+function sync(g){const H=H3(),v=vv();if(!g||!v||v.G)return false;const d2=!H&&!!window.SL2D&&SL2D.ok();if(!H&&!d2)return false;arma();el.classList.toggle('sl2d',d2);if(d2)SL2D.monta(el);else if(window.SL2D)SL2D.quita();cur=g;
+ if(!shown){shown=true;sub=null;vista();sig={};prev=null;hola={};if(H&&H.arranca)H.arranca(v.game);el.classList.remove('sale','open','in');void el.offsetWidth;el.classList.add('in');requestAnimationFrame(paso)}
  pinta(g,v);return true}
 function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('--sl-c',COL[k]||'#C2512A');el.classList.toggle('host',host);
  if(sig.k!==k){sig.k=k;const ic=$('slIc');ic.innerHTML=ico(k);ic.classList.remove('pop');void ic.offsetWidth;ic.classList.add('pop');$('slName').textContent=nom(k)}
@@ -89,6 +90,7 @@ function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('-
  const names=ps.map(p=>p.name),avs=ps.map(p=>p.av||''),nk=k+'#'+v.me+'#'+names.join('|')+'#'+avs.join('|');
  if(nk!==sig.n){sig.n=nk;const H=H3();if(H)H.sala.gente(k,names,avs,ps.findIndex(p=>p.i===v.me));
   if(prev){const nuevos=names.filter(x=>!prev.includes(x));nuevos.forEach(x=>{hola[x]=performance.now()});if(nuevos.length)snd('tick')}prev=names}
+ if(!H3()&&window.SL2D)SL2D.pinta({k,h:ico(k)},ps,me,libres,hola,colOf);
  const add=host&&sig.add&&!sig.add.dis&&n<max,lk=JSON.stringify([ps.map(p=>[p.name,p.on,p.id,p.i,p.bot]),me,host,libres,add]);
  if(lk!==sig.l){sig.l=lk;const t=performance.now();
   $('slMesa').innerHTML=ps.map(p=>`<div class="sl-seat${t-(hola[p.name]||-1e9)<2500?' nuevo':''}"><i class="sl-av" style="--c:${colOf(p.name)}">${ini(p.name)}${p.bot?'':`<span class="sl-dot${p.on?' on':''}"></span>`}</i><span>${p.i===me?'Tú':es(p.name)}</span>`+
@@ -127,7 +129,7 @@ function tapa(){if(sale)return true;const v=vv();if(!shown||!st()||!v||!v.G)retu
  const RM=window.CCAM&&CCAM.RM,fin=()=>{sale=0;ocultar();if(typeof render=='function')render()};
  setTimeout(()=>{if(window.CCAM)CCAM.fade(1,RM?120:280).then(()=>{fin();setTimeout(()=>CCAM.fade(0,RM?120:520),60)});else fin()},RM?250:1100);return true}
 function ocultar(){shown=false;sale=0;if(!el)return;el.classList.remove('in','sale','open');sub=null;vista();$('slModal').hidden=true;tagEls.forEach(t=>t.style.display='none');
- if(window.CASA3D&&CASA3D.sala)CASA3D.sala.gente(null,null);sig={}}
+ if(window.CASA3D&&CASA3D.sala)CASA3D.sala.gente(null,null);if(window.SL2D)SL2D.quita();sig={}}
 const url=()=>location.origin+'/#'+((vv()||{}).code||'');
 function copiaL(){const u=url();const ok=()=>{if(typeof banner=='function')banner('Enlace copiado ✓')};
  if(navigator.clipboard)navigator.clipboard.writeText(u).then(ok,()=>copyT(u));else copyT(u)}
