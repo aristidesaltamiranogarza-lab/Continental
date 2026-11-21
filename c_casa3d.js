@@ -539,7 +539,8 @@ function sit(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x.g==
 // aparecen sentados (pop). SALA.hueco() dice cuánto tapa el boleto: el encuadre se corre (setViewOffset) para que la mesa quede a la vista.
 let lpM=0,salaT=null,salaA=0,salaT0=0,salaDive=0,salaPs=null;const sD=new THREE.PerspectiveCamera(),sP=v3(0,0,0),sL=v3(0,0,0),sOff={x:0,y:0,t:0};
 // lejos lo justo para que quepa la mesa con sus sillas en lo que deja libre el boleto (sOff), sin pasar de t.r+8 (paredes); d: a la altura de tu silla
-function salaPose(t,a,d){if(!W||!H)layout();let r=t.r+1.25,h=TH+1.05;   // W=0 (back()) daba NaN: la cámara se quedaba en NaN y todo negro
+function salaPose(t,a,d){if(!W||!H)layout();let r=t.r+2.3,h=TH+1.8;   // al bajar quedas detrás y arriba de tu personaje (más cerca quedaba dentro de su cabeza)
+   // W=0 (back()) daba NaN: la cámara se quedaba en NaN y todo negro
  if(!d){const R=t.r+1.2,el=.55,tv=Math.tan(CA.fov*Math.PI/360),fx=Math.max(.3,(W-2*sOff.x)/W),fy=Math.max(.3,(H-2*sOff.y)/H),
   dd=Math.min(t.r+8,Math.max(t.r+4.2,1.05*R/(tv*CA.aspect*fx),(R*Math.sin(el)+1)/(tv*fy)));r=dd*Math.cos(el);h=TH+dd*Math.sin(el)}
  sP.set(t.x+Math.sin(a)*r,h,t.z+Math.cos(a)*r);sL.set(t.x,TH+(d?.15:0),t.z);
