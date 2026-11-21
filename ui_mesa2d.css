@@ -15,7 +15,7 @@ html:has(#app .m2d){overflow:hidden}
 .m2d-seat.on{transform:translate(-50%,-50%) scale(1.1);z-index:4}
 .m2d-seat.out{opacity:.4;filter:grayscale(1)}
 .m2d-av{position:relative;width:var(--sw);height:var(--sw);flex:none}
-.m2d-pt{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;overflow:hidden;
+.m2d-pt{display:flex;align-items:center;justify-content:center;width:100%;height:100%;box-sizing:border-box;border-radius:50%;overflow:hidden;
  background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--c) 55%,#fff),var(--c));border:3px solid var(--c);box-shadow:0 3px 10px rgba(0,0,0,.35)}
 .m2d-pt img{width:100%;height:100%;object-fit:cover;display:block}
 .m2d-pt b{color:#fff;font:800 calc(var(--sw)*.42)/1 var(--ui-font);text-shadow:0 1px 3px rgba(0,0,0,.4)}
