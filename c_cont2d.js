@@ -34,9 +34,9 @@ function bajadas(G,orden,i,pl){const por={};G.melds.forEach((m,k)=>{(por[m.owner
   return `<div class="k2-meld${pl?' m2d-drop go':''}" data-k="${k}"${pl?` onclick="k2tapMeld(${k})"`:''}>${m.cards.map(x=>cc(C(x))).join('')}</div>`}).join('')+'</div>':'';
  return [orden.map(grupo).join(''),i>=0?grupo(i):'']}
 function casillas(pl){const ok=staged.every(okSlot);
- return `<div id="mini" class="k2-arm">`+staged.map((g,k)=>{const v=okSlot(g),n=g.ids.length,ph=Math.max(0,MIN[g.type]-n);
+ return `<div id="mini" class="k2-arm">`+staged.map((g,k)=>{const v=okSlot(g),n=g.ids.length;
   return `<div class="slot k2-slot${v?' ok':n?' no':''}${sel.size?' go':''}" data-k="${k}" onclick="k2put(${k})"><div class="k2-sl"><b>${TN[g.type]}</b><span>${v?ico('ok'):AYU[g.type]}</span></div>
-  <div class="row">${g.ids.map(x=>cc(C(x),{did:x,on:`event.stopPropagation();tapSlot(${x})`})).join('')}${'<i class="k2-ph"></i>'.repeat(ph)}</div></div>`}).join('')+
+  <div class="row" style="--min:${MIN[g.type]}">${g.ids.map(x=>cc(C(x),{did:x,on:`event.stopPropagation();tapSlot(${x})`})).join('')}</div></div>`}).join('')+
   `${pl&&ok?'<button class="ui-btn k2-bajar" onclick="bajar()">Bajarme</button>':''}</div>`}
 function cuerpo(){const G=V.G;if(!G)return b0();
  if(G.phase=='end'||G.phase=='final')return fin(G);if(G.phase!='play')return b0();
