@@ -34,9 +34,9 @@ function bajadas(G,orden,i,pl){const por={};G.melds.forEach((m,k)=>{(por[m.owner
   return `<div class="k2-meld${pl?' m2d-drop go':''}" data-k="${k}"${pl?` onclick="k2tapMeld(${k})"`:''}>${m.cards.map(x=>cc(C(x))).join('')}</div>`}).join('')+'</div>':'';
  return [orden.map(grupo).join(''),i>=0?grupo(i):'']}
 function casillas(pl){const ok=staged.every(okSlot);
- return `<div id="mini" class="k2-arm">`+staged.map((g,k)=>{const v=okSlot(g),n=g.ids.length;
+ return `<div id="mini" class="k2-arm"><div class="k2-desl ui-desl">`+staged.map((g,k)=>{const v=okSlot(g),n=g.ids.length;
   return `<div class="slot k2-slot${v?' ok':n?' no':''}${sel.size?' go':''}" data-k="${k}" onclick="k2put(${k})"><div class="k2-sl"><b>${TN[g.type]}</b><span>${v?ico('ok'):AYU[g.type]}</span></div>
-  <div class="row" style="--min:${MIN[g.type]}">${g.ids.map(x=>cc(C(x),{did:x,on:`event.stopPropagation();tapSlot(${x})`})).join('')}</div></div>`}).join('')+
+  <div class="row" style="--min:${MIN[g.type]}">${g.ids.map(x=>cc(C(x),{did:x,on:`event.stopPropagation();tapSlot(${x})`})).join('')}</div></div>`}).join('')+'</div>'+
   `${pl&&ok?'<button class="ui-btn k2-bajar" onclick="bajar()">Bajarme</button>':''}</div>`}
 function cuerpo(){const G=V.G;if(!G)return b0();
  if(G.phase=='end'||G.phase=='final')return fin(G);if(G.phase!='play')return b0();
@@ -56,14 +56,14 @@ function cuerpo(){const G=V.G;if(!G)return b0();
  if(pl&&sel.size==1)acc+=`<button class="ui-btn" onclick="discard()">Descartar</button>`;
  const mano=(arm?casillas(pl):'')+(i>=0?M2D.abanico(hand.map(c=>({h:cc(c,{did:c.id,sel:sel.has(c.id),nw:prevHand.size&&!prevHand.has(c.id),on:`tog(${c.id})`}),cls:gr.get(c.id)||''}))):'');
  const jk=window.k2jk?`<div class="k2-jk"><div><b>¿Dónde va el comodín?</b><div class="m2d-bts"><button class="ui-btn" onclick="k2jkEnd('start')">Al inicio</button><button class="ui-btn" onclick="k2jkEnd('end')">Al final</button><button class="ui-btn ghost" onclick="k2jkEnd()">Cancelar</button></div></div></div>`:'';
- const v3=window.c3dToggle?`<button class="ui-btn sec" onclick="M2D.menu(0);c3dToggle()">${ico('ojo')}<span class="m2d-sm">Vista 3D</span></button>`:'';
+ const v3=window.c3dToggle?UI.dim(0,'M2D.menu(0);c3dToggle()'):'';
  M2D.suelta=pl?((id,el,e)=>{staged.forEach(g=>{g.ids=g.ids.filter(z=>z!=id)});
   if(el&&el.dataset.k!=null)return pegarEn(+el.dataset.k,id,e&&e.clientX);sel=new Set([id]);discard()}):null;
  M2D.teclas=k=>{if(dr&&(k==' '||k=='r')){draw('deck');return 1}if(dr&&k=='d'){draw('disc');return 1}
   if(pl&&k=='Enter'&&sel.size==1){discard();return 1}if(pl&&k=='b'&&arm&&staged.every(okSlot)){bajar();return 1}
   if(k=='c'&&canBuy){V.claim?send({t:'unbuy'}):comprar();return 1}if(k=='o'){cyc();return 1}if(k=='Escape'&&sel.size){sel=new Set();render();return 1}};
  return M2D.mesa({cls:'k2'+(mine?' tu':''),
-  top:`<div class="ui-pill k2-st"><b>Ronda ${G.round+1}/7</b>${CON[G.round].split('').map(x=>`<span class="k2-ct">${TN[x]}</span>`).join('')}</div>`,der:v3,
+  top:`<div class="ui-pill k2-st"><b><span class="m2d-sm">Ronda </span>${G.round+1}/7</b>${['T','C'].map(x=>{const n=CON[G.round].split(x).length-1;return n?`<span class="k2-ct">${TN[x]}${n>1?' ×'+n:''}</span>`:''}).join('')}</div>`,der:v3,
   seats,centro,capa:jk,hint:st,mine:mine&&!msg,yo:i>=0?M2D.yo(i,{turno:mine}):'',acc,
   ord:i>=0?`<button class="ui-btn ghost m2d-ord" onclick="cyc()">${ico(manual?'libre':sortS?'palo':'numero')}<span class="m2d-sm">${manual?'Mi orden':sortS?'Por palo':'Por número'}</span></button>`:'',mano,
   menu:typeof styleUI=='function'?`<details><summary>Estilo de cartas</summary>${styleUI()}</details>`:'',rules})}
@@ -73,7 +73,7 @@ function fin(G){const P=V.players,tot=G.players.map((_,k)=>G.scores.reduce((a,r)
  M2D.suelta=null;M2D.teclas=null;
  const bts=fn?`<button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button>`:
   (V.me>=0?(G.rd[V.me]?'<span class="k2-esp">Esperando a los demás</span>':`<button class="ui-btn" onclick="send({t:'ready'})">${G.round>=6?'Ver resultado':'Listo'}</button>`):'')+(V.host?`<button class="ui-btn sec" onclick="send({t:'next'})">Siguiente ronda</button>`:'');
- return M2D.mesa({cls:'k2',der:window.c3dToggle&&!fn?`<button class="ui-btn sec" onclick="c3dToggle()">${ico('ojo')}<span class="m2d-sm">Vista 3D</span></button>`:'',
+ return M2D.mesa({cls:'k2',der:window.c3dToggle&&!fn?UI.dim(0,'c3dToggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big'):''}<h2>${fn?(w==V.me?'¡Ganaste la partida!':nm(w)+' gana'):(w==V.me?'¡Te quedaste sin cartas!':nm(w)+' cierra la ronda '+(G.round+1))}</h2>
   <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k)}<b>${nm(k)}</b>${fn?'':`<span class="k2-r${G.rd[k]?' ok':''}">${G.rd[k]?ico('ok'):''}+${ult[k]||0}</span>`}<span>${P[k].out?'fuera':tot[k]+' pts'}</span></div>`).join('')}</div>
   <details class="k2-tabla"><summary>Puntos por ronda</summary>${table()}</details><div class="m2d-bts">${bts}</div></div>`,rules})}

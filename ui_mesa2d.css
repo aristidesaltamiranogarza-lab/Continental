@@ -1,6 +1,6 @@
 /* Mesa 2D compartida (c_mesa2d.js, M2D): mesa de fieltro a pantalla completa. Tokens de ui.css (día y noche) */
 html:has(#app .m2d){overflow:hidden}
-.m2d{position:fixed;inset:0;z-index:5;display:grid;grid-template-rows:auto minmax(0,1fr) auto;font-family:var(--ui-font);color:var(--ui-text);
+.m2d{position:fixed;inset:0;z-index:5;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);font-family:var(--ui-font);color:var(--ui-text);
  background:radial-gradient(ellipse at 50% 42%,transparent 35%,rgba(70,35,12,.22)),var(--ui-sheet);
  --cw:clamp(50px,min(8.6vw,12.5vh),96px);--pw:clamp(54px,min(9vw,13.5vh),104px);--sw:clamp(40px,min(6.5vw,8.5vh),62px);user-select:none;-webkit-user-select:none}
 .m2d-top{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 0;position:relative;z-index:6}
@@ -158,7 +158,8 @@ html[data-game] .k2-meld .c{width:var(--mw);height:calc(var(--mw)*1.4);font-size
 html[data-game] .k2-meld .c+.c{margin-left:calc(var(--mw)*-.45)}
 .k2-meld.over{outline:3px dashed #fff;outline-offset:3px}
 /* casillas del contrato */
-.k2-arm{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;box-sizing:border-box;margin-bottom:-24px;z-index:6;position:relative;align-items:stretch;gap:8px;max-width:calc(100% - 16px);padding:6px;border-radius:18px;background:color-mix(in srgb,var(--ui-sheet) 88%,transparent);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);--mw:clamp(28px,calc(var(--cw)*.55),50px)}
+.k2-desl{display:flex;gap:inherit;overflow-x:auto;overscroll-behavior-x:contain;min-width:0;align-items:stretch}
+.k2-arm{display:flex;box-sizing:border-box;margin-bottom:-24px;z-index:6;position:relative;align-items:stretch;gap:8px;max-width:calc(100% - 16px);padding:6px;border-radius:18px;background:color-mix(in srgb,var(--ui-sheet) 88%,transparent);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);--mw:clamp(28px,calc(var(--cw)*.55),50px)}
 .m2d .k2-slot{margin:0;background:none;display:flex;flex-direction:column;gap:4px;padding:5px 7px;border-radius:12px;border:2px dashed var(--ui-line);min-width:0;transition:border-color .2s,background .2s}
 .m2d .k2-slot.go{cursor:pointer;border-color:var(--ui-accent);background:var(--ui-chip)}
 .m2d .k2-slot.ok{border-style:solid;border-color:#2e9e4a;background:rgba(46,158,74,.12)}
@@ -188,3 +189,5 @@ html[data-game] .k2-slot .row>*+*{margin-left:calc(var(--mw)*-.3)}
 .m2d .k2-slot{flex:none}
 .m2d .k2-slot .row{min-width:calc(var(--mw)*(var(--min)*.7 + .3));border-radius:8px;background:var(--ui-chip)}
 .k2-ph{display:none}
+.m2d-top>.ui-rb,.m2d-top>.ui-dim{flex:none}.m2d-top>.ui-pill{min-width:0;overflow:hidden;white-space:nowrap}
+@media (max-width:560px){.m2d-top{gap:6px;padding-left:10px;padding-right:10px}.k2-st{gap:5px;padding-left:10px;padding-right:10px}.k2-st .k2-ct{padding:2px 6px}.m2d-top .ui-dim b{min-width:30px;padding:0 5px}}

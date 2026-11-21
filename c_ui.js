@@ -55,6 +55,15 @@ chat:'<path d="M5 18.5V7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5v6a2.5 2.5 
  ok:'<path d="M5 12.5l4.5 4.5L19 7"/>',
  pantalla:'<rect x="3" y="4.5" width="18" height="12" rx="2.5"/><path d="M8.5 20h7M12 16.5V20"/>'};
 const ico=(n,c)=>'<svg class="ui-ico'+(c?' '+c:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+(P[n]||'')+'</svg>';
-window.UI={tema:get,setTema,noche,ico,on:f=>subs.push(f)};
+// selector 2D | 3D (marca la vista actual; tocarlo cambia a la otra)
+const dim=(es3,on,cls)=>`<button class="ui-dim${cls?' '+cls:''}" onclick="${on}" aria-label="${es3?'Cambiar a 2D':'Cambiar a 3D'}"><b class="${es3?'':'on'}">2D</b><b class="${es3?'on':''}">3D</b></button>`;
+window.UI={tema:get,setTema,noche,ico,dim,on:f=>subs.push(f)};
+// nunca hay barras de scroll (ui.css las oculta): lo que se desliza (.ui-desl, .ui-bd) se desvanece en el borde donde hay más
+(function(){const SEL='.ui-desl,.ui-bd',T=(e,c,v)=>{if(e.classList.contains(c)!==v)e.classList.toggle(c,v)};
+ function borde(e){const h=e.scrollWidth>e.clientWidth+2,v=e.scrollHeight>e.clientHeight+2;
+  T(e,'ui-fl',h&&e.scrollLeft>2);T(e,'ui-fr',h&&e.scrollLeft+e.clientWidth<e.scrollWidth-2);T(e,'ui-ft',v&&e.scrollTop>2);T(e,'ui-fb',v&&e.scrollTop+e.clientHeight<e.scrollHeight-2)}
+ let q=0;const todos=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;document.querySelectorAll(SEL).forEach(borde)})};
+ addEventListener('scroll',e=>{const t=e.target;if(t&&t.matches&&t.matches(SEL))borde(t)},true);addEventListener('resize',todos);
+ const go=()=>{new MutationObserver(todos).observe(document.body,{childList:true,subtree:true});todos()};document.body?go():addEventListener('DOMContentLoaded',go)})();
 aplica();
 })();

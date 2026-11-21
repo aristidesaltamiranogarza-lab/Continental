@@ -25,7 +25,7 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
  if(my1||said)acc+=`<button class="u2-uno${said?' ok':''}" ${said?'disabled':''} onclick="uuno()">¡UNO!</button>`;
  const mano=i>=0?M2D.abanico(udisp().map(c=>({h:ucard(c,{did:c.id,nw:prevHand.size&&!prevHand.has(c.id),on:`uplay(${c.id})`}),cls:mine?(uok(c.id)?'ok':'no'):''}))):'';
  const capa=upick!=null?`<div class="u2-pick"><div class="u2-rueda">${UCH.map((c,k)=>`<button style="background:${c}" data-l="${'RAVZ'[k]}" aria-label="${UCN[k]}" onclick="ucol(${k})"></button>`).join('')}<button class="u2-x" onclick="upick=null;render()">Cancelar</button></div></div>`:'';
- const v3=window.u3dToggle?`<button class="ui-btn sec" onclick="M2D.menu(0);u3dToggle()">${UI.ico('ojo')}<span class="m2d-sm">Vista 3D</span></button>`:'';
+ const v3=window.u3dToggle?UI.dim(0,'M2D.menu(0);u3dToggle()'):'';
  M2D.suelta=mine?(id=>uplay(id)):null;
  M2D.teclas=k=>{if(upick!=null&&'1234'.includes(k)){ucol(+k-1);return 1}if(k=='Escape'&&upick!=null){upick=null;render();return 1}
   if(k=='u'&&my1){uuno();return 1}if(k=='c'&&vk>=0){ucatch();return 1}
@@ -37,7 +37,7 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
   menu:`<div class="ui-row"><span>Letra del color en las cartas</span><label class="ui-sw"><input type="checkbox" ${cbl?'checked':''} onchange="setCb(this.checked)"><i></i></label></div>`,rules:unoRules})}
 function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((a,b)=>(!!P[a].out-!!P[b].out)||hc(a)-hc(b));
  M2D.suelta=null;M2D.teclas=null;
- return M2D.mesa({cls:'u2',estilo:`--uc:${UCH[G.color]||'#c2512a'}`,der:window.u3dToggle?`<button class="ui-btn sec" onclick="u3dToggle()">${UI.ico('ojo')}<span class="m2d-sm">Vista 3D</span></button>`:'',
+ return M2D.mesa({cls:'u2',estilo:`--uc:${UCH[G.color]||'#c2512a'}`,der:window.u3dToggle?UI.dim(0,'u3dToggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>
   <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k)}<b>${nm(k)}</b><span>${P[k].out?'expulsado':k==w?'sin cartas':hc(k)+(hc(k)==1?' carta':' cartas')}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:unoRules})}

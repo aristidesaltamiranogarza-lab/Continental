@@ -114,3 +114,14 @@ html[data-tema=noche] .ui-sw i::after{background:var(--ui-sub)}
 .ui-vol input:focus-visible::-webkit-slider-thumb{outline:3px solid var(--ui-accent);outline-offset:2px}
 .ui-vol b{min-width:2.2em;text-align:right;font:800 14px var(--ui-font);font-variant-numeric:tabular-nums;color:var(--ui-sub)}
 .ui-musrow{display:block;min-width:220px;max-width:340px}
+
+/* Nunca se ven barras de scroll en el juego. Para indicar que algo se desliza: clase .ui-desl (o .ui-bd), que se desvanece en el borde donde hay más (c_ui.js) */
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}
+.ui-desl,.ui-bd{--fl:#000;--fr:#000;--ft:#000;--fb:#000;
+ -webkit-mask:linear-gradient(90deg,var(--fl),#000 30px,#000 calc(100% - 30px),var(--fr)),linear-gradient(var(--ft),#000 26px,#000 calc(100% - 26px),var(--fb));-webkit-mask-composite:source-in;
+ mask:linear-gradient(90deg,var(--fl),#000 30px,#000 calc(100% - 30px),var(--fr)),linear-gradient(var(--ft),#000 26px,#000 calc(100% - 26px),var(--fb));mask-composite:intersect}
+.ui-fl{--fl:transparent}.ui-fr{--fr:transparent}.ui-ft{--ft:transparent}.ui-fb{--fb:transparent}
+/* selector 2D | 3D */
+.ui-dim{display:inline-flex;align-items:stretch;gap:2px;min-height:44px;padding:4px;box-sizing:border-box;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-panel);box-shadow:var(--ui-shadow);cursor:pointer;font:800 14px/1 var(--ui-font)}
+.ui-dim b{display:flex;align-items:center;justify-content:center;min-width:38px;padding:0 8px;border-radius:999px;color:var(--ui-sub);transition:background .2s,color .2s}
+.ui-dim b.on{background:var(--ui-accent);color:var(--ui-on)}
