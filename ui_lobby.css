@@ -247,3 +247,14 @@ html.lbon #app:has(.lbh){padding-bottom:env(safe-area-inset-bottom,0px)}
 .lbh-sheet .lb-seg{display:grid;grid-template-columns:repeat(3,1fr);border-radius:18px}
 /* el inicio queda fijo a la pantalla: nunca se desliza ni se mete bajo la barra de estado */
 .lbh{position:fixed;inset:0;z-index:1;height:auto;min-height:0;max-width:640px;margin:0 auto;padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px);box-sizing:border-box}
+/* retrato de tu personaje (inicio y Ajustes) */
+.lbh-pj{overflow:hidden}
+.lbh-pj img{width:118%;height:118%;margin-top:14%;object-fit:cover;display:block;pointer-events:none}
+.lbh-x.yo .lbh-pj{width:52px;height:52px}
+.lbh-pjb{position:relative;flex:none;padding:0;border:0;background:none;cursor:pointer;border-radius:50%}
+.lbh-pjb .lbh-pj{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:var(--c);color:#fff;font:800 22px var(--ui-font);font-style:normal;box-shadow:0 0 0 3px var(--ui-sheet),0 0 0 5px var(--ui-accent)}
+.lbh-ed{position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--ui-accent);color:var(--ui-on);box-shadow:0 0 0 3px var(--ui-sheet)}
+.lbh-ed .ui-ico{width:15px;height:15px}
+.lbh-pjb:active{transform:scale(.95)}
+/* sillas: el centrado va en `translate` para que la animación (transform) no lo borre */
+.lbh-x{transform:none;translate:-50% -50%}

@@ -220,3 +220,17 @@ html.sala2d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
 .sl-f2s.muchos .sl-f2x i{width:40px;height:40px;font-size:17px;border-width:2px}
 .sl-f2s.muchos .sl-f2x b{font-size:11px;max-width:74px;padding:1px 7px}
 @media (min-width:768px){.sl-f2m{width:min(100cqw - 160px,(100cqh - 170px)*1.35,520px)}}
+.sl-f2x{transform:none;translate:-50% -50%}
+/* botón "Estilo" de la sala 2D con la mesita de muestra */
+.sl-est{padding-left:5px}
+.sl-estv{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;overflow:hidden;background:var(--ui-chip)}
+.sl-estv .lbh-prev{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+.sl-estv .lbh-pc,.sl-estv .lbh-pk{top:7px;width:12px;height:18px;border-radius:2px;border-width:1px;padding:1px;font-size:6px}
+.sl-estv .lbh-pc{left:6px}.sl-estv .lbh-pc em{font-size:8px;margin:0}
+.sl-estv .lbh-pk{right:6px}
+.sl-est2 .lbh-vista{display:flex;justify-content:center;margin:2px 0 8px}
+.sl-est2 .ui-lbl{display:block;margin:14px 0 8px}
+.sl-est2 .lb-sws{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0 4px 4px}
+.sl-est2 .lb-seg{display:grid;grid-template-columns:repeat(3,1fr);border-radius:18px}
+.sl-f2x b{position:absolute;left:50%;top:100%;translate:-50% 0;margin-top:-7px}
+#sala.sl2d .sl-f2a{transition:opacity .3s}#sala.sl2d.sub .sl-f2a{opacity:0}

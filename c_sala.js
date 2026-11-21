@@ -21,7 +21,7 @@ const HEART='M12 21s-7.5-4.6-9.5-9.2C1 8.3 3.3 5 6.6 5c2.1 0 3.6 1.2 5.4 3.2C13.
  UC=c=>`<rect x="20" y="10" width="24" height="38" rx="4" fill="${c}" stroke="#FFF8EE" stroke-width="2.5"/>`,
  SV=b=>`<svg viewBox="0 0 64 64" aria-hidden="true">${b}</svg>`;
 const IC={
- continental:SV(`<g transform="rotate(-18 32 60)"><rect x="18" y="8" ${CARD}/><path transform="translate(20.5 11) scale(.45)" d="${HEART}" fill="#C8352B"/></g><g transform="rotate(18 32 60)"><rect x="18" y="8" ${CARD}/><path transform="translate(32.5 11) scale(.45)" d="${SPADE}" fill="#2A1A10"/></g><rect x="18" y="8" ${CARD}/><text x="21.5" y="17" font-family="Georgia,serif" font-weight="700" font-size="8" fill="#C8352B">A</text><path d="M32 19l7 9-7 9-7-9z" fill="#C8352B"/><text x="42.5" y="42" font-family="Georgia,serif" font-weight="700" font-size="8" fill="#C8352B" transform="rotate(180 40.5 39.5)">A</text>`),
+ continental:SV(`<g transform="rotate(-18 32 60)"><rect x="18" y="8" ${CARD}/><path transform="translate(20.5 11) scale(.45)" d="${HEART}" fill="#C8352B"/></g><g transform="rotate(18 32 60)"><rect x="18" y="8" ${CARD}/><path transform="translate(32.5 11) scale(.45)" d="${SPADE}" fill="#2A1A10"/></g><rect x="18" y="8" ${CARD}/><text x="21.5" y="17" font-family="Georgia,serif" font-weight="700" font-size="8" fill="#C8352B">A</text><path d="M32 19l7 9-7 9-7-9z" fill="#C8352B"/><text x="21.5" y="17" font-family="Georgia,serif" font-weight="700" font-size="8" fill="#C8352B" transform="rotate(180 32 28)">A</text>`),
  uno:SV(`<g transform="rotate(-20 32 62)">${UC('#2F7DD1')}</g><g transform="rotate(-7 32 62)">${UC('#2EAD6B')}</g><g transform="rotate(7 32 62)">${UC('#F2C230')}</g><g transform="rotate(20 32 62)">${UC('#D93A2E')}<ellipse cx="32" cy="29" rx="8" ry="13" transform="rotate(28 32 29)" fill="#FFF8EE"/><text x="32" y="34.5" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="15" fill="#D93A2E">7</text></g>`),
  c4:SV(`<rect x="7" y="20" width="50" height="36" rx="7" fill="#2F7DD1"/><g fill="#1F5FA8"><circle cx="17" cy="30" r="4.6"/><circle cx="27.7" cy="30" r="4.6"/><circle cx="38.3" cy="30" r="4.6"/><circle cx="49" cy="30" r="4.6"/><circle cx="17" cy="45" r="4.6"/></g><g fill="#D93A2E"><circle cx="27.7" cy="45" r="4.6"/><circle cx="38.3" cy="30" r="4.6"/></g><g fill="#F2C230"><circle cx="38.3" cy="45" r="4.6"/></g><circle cx="49" cy="45" r="4.6" fill="#D93A2E"/><circle cx="49" cy="9" r="5.5" fill="#F2C230"/><path d="M49 15.5v2.5" stroke="#F2C230" stroke-width="2" stroke-linecap="round" opacity=".6"/>`),
  bg:SV(`<rect x="5" y="9" width="54" height="46" rx="6" fill="#8E5A30"/><rect x="9" y="13" width="46" height="38" rx="2" fill="#F2DFB8"/><path d="M9.5 13h7l-3.5 16z" fill="#C8352B"/><path d="M9.5 51h7l-3.5-16z" fill="#3A2416"/><path d="M16.5 13h7l-3.5 16z" fill="#3A2416"/><path d="M16.5 51h7l-3.5-16z" fill="#C8352B"/><path d="M23.5 13h7l-3.5 16z" fill="#C8352B"/><path d="M23.5 51h7l-3.5-16z" fill="#3A2416"/><path d="M34.5 13h7l-3.5 16z" fill="#3A2416"/><path d="M34.5 51h7l-3.5-16z" fill="#C8352B"/><path d="M41.5 13h7l-3.5 16z" fill="#C8352B"/><path d="M41.5 51h7l-3.5-16z" fill="#3A2416"/><path d="M48.5 13h7l-3.5 16z" fill="#3A2416"/><path d="M48.5 51h7l-3.5-16z" fill="#C8352B"/><rect x="30.5" y="13" width="3" height="38" fill="#8E5A30"/><circle cx="20" cy="45" r="5" fill="#FFF8EE" stroke="#3A2416" stroke-opacity=".35"/><circle cx="45" cy="19" r="5" fill="#2A1A10"/>`),
@@ -46,7 +46,7 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
    <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala"><b id="slCode"></b>${I('compartir')}</button></header>
   <div class="sl-bd" id="slBd">
    <div class="sl-v1" id="slV1"><div class="sl-mesa" id="slMesa"></div><p class="ui-sub sl-mira" id="slMira"></p>
-    <nav class="sl-acc"><button class="sl-p" id="slRegB" onclick="SALA.ver('reglas')">${I('ajustes')}Reglas</button><button class="sl-p" onclick="SALA.reglas()">${I('ayuda')}Cómo jugar</button>
+    <nav class="sl-acc"><button class="sl-p" id="slRegB" onclick="SALA.ver('reglas')">${I('ajustes')}Reglas</button><button class="sl-p sl-est" id="slEstB" hidden onclick="SALA.ver('est')"><span class="sl-estv" id="slEstV"></span>Estilo</button><button class="sl-p sl-i" onclick="SALA.reglas()" aria-label="Cómo jugar" title="Cómo jugar">${I('ayuda')}</button>
      <button class="sl-p sl-i" onclick="SALA.ver('mus')" aria-label="Música">${I('musica')}</button><button class="sl-p sl-i sl-peligro" id="slSalir" onclick="SALA.salir()">${I('salir')}</button></nav></div>
    <div class="sl-v2" id="slV2" hidden><button class="sl-back" onclick="SALA.ver(null)">${I('atras')}<b id="slSubT"></b></button><div id="slSubB"></div></div>
   </div>
@@ -55,13 +55,17 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
  document.body.appendChild(el);if(window.MORPH)['slMesa','slFt'].forEach(i=>MORPH.auto($(i)))}
 function vista(){const a=$('slV1'),b=$('slV2');if(!a)return;a.hidden=!!sub;b.hidden=!sub;el.classList.toggle('sub',!!sub)}
 function ver(n){if(!el||!shown)return;const v=vv();if(n==='juego'&&!(v&&v.host))return;if(n===sub)n=null;sub=n;snd('tick');vista();$('slBd').scrollTop=0;
- if(sub){$('slSubT').textContent={reglas:'Reglas',juego:'Juego',mus:'Música'}[sub]||'';subPinta(true)}
+ if(sub){$('slSubT').textContent={reglas:'Reglas',juego:'Juego',mus:'Música',est:'Mesa y cartas'}[sub]||'';subPinta(true)}
  const a=sub?$('slV2'):$('slV1');a.classList.remove('ent');void a.offsetWidth;a.classList.add('ent')}
-function subPinta(f){if(!sub)return;const k=sub+'|'+(sub==='reglas'?sig.raw:sub==='juego'?sig.k:'');if(!f&&k===sig.sb)return;sig.sb=k;const b=$('slSubB');
+function subPinta(f){if(!sub)return;const k=sub+'|'+(sub==='reglas'?sig.raw:sub==='juego'?sig.k:sub==='est'?sig.k+estK():'');if(!f&&k===sig.sb)return;sig.sb=k;const b=$('slSubB');
  if(sub==='reglas')b.innerHTML=`<div class="sl-reglas">${sig.reglas||''}</div>`;
  else if(sub==='juego'){const L=ORD.filter(x=>GM[x]).concat(Object.keys(GM).filter(x=>!ORD.includes(x)));
   b.innerHTML=`<div class="sl-cajas">${L.map(x=>`<button class="sl-caja${x===sig.k?' on':''}" style="--f:${COL[x]||'#C2512A'}" onclick="SALA.juego('${x}')" aria-pressed="${x===sig.k}"><span class="ic">${ico(x)}</span><b>${es(nom(x))}</b></button>`).join('')}</div>`}
+ else if(sub==='est')b.innerHTML=`<div class="sl-est2">${sig.k==='uno'||!LOBBY.vista?'':`<div class="lbh-vista">${LOBBY.vista()}</div>`}${LOBBY.u.est(sig.k)}</div>`;
  else b.innerHTML=window.musSlider?musSlider():''}
+// estilo de la mesa 2D (solo sin casa, en Continental y Uno): fondo, cartas y reverso de c_lobby.js
+const estOk=k=>!H3()&&(k==='continental'||k==='uno')&&!!(window.LOBBY&&LOBBY.u&&LOBBY.u.est);
+const estK=()=>{try{return [sbg,scards,sback,cbl].join()}catch(e){return ''}};
 
 // sync(g): game.js en cada render() de la sala de espera. Sin casa la dibuja con la mesa 2D de SL2D (c_sala2d.js); false = sala de siempre (c_lobby.js)
 function sync(g){const H=H3(),v=vv();if(!g||!v||v.G)return false;const d2=!H&&!!window.SL2D&&SL2D.ok();if(!H&&!d2)return false;arma();el.classList.toggle('sl2d',d2);if(d2)SL2D.monta(el);else if(window.SL2D)SL2D.quita();cur=g;
@@ -69,7 +73,7 @@ function sync(g){const H=H3(),v=vv();if(!g||!v||v.G)return false;const d2=!H&&!!
  pinta(g,v);return true}
 function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('--sl-c',COL[k]||'#C2512A');el.classList.toggle('host',host);
  if(sig.k!==k){sig.k=k;const ic=$('slIc');ic.innerHTML=ico(k);ic.classList.remove('pop');void ic.offsetWidth;ic.classList.add('pop');$('slName').textContent=nom(k)}
- $('slCode').textContent=v.code||'';if(!host&&sub==='juego')ver(null);
+ $('slCode').textContent=v.code||'';{const eo=estOk(k),eb=$('slEstB');eb.hidden=!eo;if(eo){const ek=k+estK();if(eb.dataset.k!==ek){eb.dataset.k=ek;$('slEstV').innerHTML=k==='uno'?I('pincel'):LOBBY.vista?LOBBY.vista():''}}else if(sub==='est')ver(null)}if(!host&&sub==='juego')ver(null);
  // reglas del juego (su lobby de siempre): Empezar va abajo, "Agregar bot" es un asiento con +, los Sí/No son interruptores
  let raw='';try{raw=g.lobby(host?1:0)||''}catch(e){}
  if(raw!==sig.raw){sig.raw=raw;const d=document.createElement('div');d.innerHTML=raw;const bt=r=>[...d.querySelectorAll('button')].find(x=>r.test(x.getAttribute('onclick')||''));

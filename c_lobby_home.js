@@ -4,11 +4,16 @@
 (function(){
 if(!window.LOBBY||!LOBBY.u)return;
 const U=LOBBY.u,{COL,CAS,ico,nom,lista,c2d,b2d,est,avc,ini,es,I}=U;
-let pan='';   // '' | 'aj' (ajustes) | 'reg' (cómo se juega)
+let pan='';
+// retrato de tu personaje (AV2D.retrato, solo donde está cargado); se guarda como imagen para no redibujarlo en cada render
+let pjUrl='',pjCod='',pjPide=0;
+function pj(){const cod=window.AV&&AV.mio?AV.mio():'';if(!cod||!window.AV2D)return '';
+ if(cod!==pjCod&&!pjPide){pjPide=1;(async()=>{try{await AV.listo();const cv=await AV2D.retrato(cod,{tam:160,plano:'busto',giro:.35,fondo:null});pjUrl=cv.toDataURL();pjCod=cod;document.querySelectorAll('.lbh-pj').forEach(e=>{e.classList.add('img');e.innerHTML=`<img src="${pjUrl}" alt="">`})}catch(e){}pjPide=0})()}
+ return pjUrl&&pjCod===cod?`<img src="${pjUrl}" alt="">`:''}   // '' | 'aj' (ajustes) | 'reg' (cómo se juega)
 const gk=()=>{const c=U.cas();return c&&c2d()?c:(GM[pgame]?pgame:'continental')};
 function mesa(k,g){const n=CAS[k]?4:Math.min(g.max||6,6),yo=String(pname||'').trim()||'Tú';
  const s=Array.from({length:n},(_,j)=>{const a=Math.PI/2+j*2*Math.PI/n,st=`left:${(50+Math.cos(a)*50).toFixed(1)}%;top:${(50+Math.sin(a)*50).toFixed(1)}%;--d:${(j*.07).toFixed(2)}s`;
-  return j?`<div class="lbh-x ai" style="${st}"><i></i></div>`:`<div class="lbh-x yo" style="${st}"><i style="--c:${avc(yo)}">${ini(yo)}</i></div>`}).join('');
+  return j?`<div class="lbh-x ai" style="${st}"><i></i></div>`:`<div class="lbh-x yo" style="${st}"><i class="lbh-pj" style="--c:${avc(yo)}">${pj()||ini(yo)}</i></div>`}).join('');
  return `<div class="lbh-mesa" aria-hidden="true"><div class="lbh-m"><div class="lbh-p"><span class="lbh-ic" data-k="${k}">${ico(k)}</span></div><div class="lbh-s">${s}</div></div></div>`}
 function juegos(k){return `<div class="lbh-js" role="radiogroup" aria-label="Juego">${lista().concat(c2d()?Object.keys(CAS):[]).map(x=>`<button class="lbh-j${x===k?' on':''}" style="--f:${COL[x]||'#C2512A'}" role="radio" aria-checked="${x===k}" aria-label="${es(nom(x))}" title="${es(nom(x))}" onclick="LOBBY.elige('${x}')"><span>${ico(x)}</span></button>`).join('')}</div>`}
 function go(k){const c=CAS[k];if(k==='billar')return b2d()?`<button class="ui-btn full lbh-go" onclick="B2D.abre()">${I('jugar')}Ir a la mesa</button>`:'<button class="ui-btn full lbh-go" disabled>No disponible</button>';
@@ -26,11 +31,10 @@ function hoja(k,g){if(!pan)return '';const x=`<button class="ui-x" onclick="LOBB
  else if(pan==='est'){h='Mesa y cartas';hd=`<button class="ui-x" onclick="LOBBY.pan('aj')" aria-label="Volver">${I('atras')}</button><h2 class="ui-h lbh-ht">${h}</h2>${x}`;
   b=(k==='uno'?'':`<div class="lbh-vista">${vista()}</div>`)+est(k)}
  else{h='Ajustes';const n=window.UI&&UI.noche(),nm=String(pname||'').trim();
-  b=`<div class="lbh-perfil"><i style="--c:${avc(nm||'Tú')}">${ini(nm||'?')}</i><input id="lbNom" class="ui-in" placeholder="Tu nombre" maxlength="14" value="${es(pname)}" oninput="pname=this.value" aria-label="Tu nombre" autocomplete="nickname"></div>
+  b=`<div class="lbh-perfil">${window.MIPJ&&window.AV?`<button class="lbh-pjb" onclick="LOBBY.pj()" aria-label="Mi personaje" title="Mi personaje"><i class="lbh-pj" style="--c:${avc(nm||'Tú')}">${pj()||ini(nm||'?')}</i><span class="lbh-ed">${I('persona')}</span></button>`:`<i class="lbh-pj" style="--c:${avc(nm||'Tú')}">${ini(nm||'?')}</i>`}<input id="lbNom" class="ui-in" placeholder="Tu nombre" maxlength="14" value="${es(pname)}" oninput="pname=this.value" aria-label="Tu nombre" autocomplete="nickname"></div>
   ${window.BIEN?cal():''}
   ${fila(n?'luna':'sol','Tema',`<div class="lbh-tema" role="radiogroup" aria-label="Tema"><button class="${n?'':'on'}" role="radio" aria-checked="${!n}" aria-label="Día" onclick="LOBBY.tema1('dia')">${I('sol')}</button><button class="${n?'on':''}" role="radio" aria-checked="${!!n}" aria-label="Noche" onclick="LOBBY.tema1('noche')">${I('luna')}</button></div>`)}
   ${window.musSlider?`<div class="lbh-mus">${musSlider()}</div>`:''}
-  ${est2?`<button class="lbh-ir" onclick="LOBBY.pan('est')">${k==='uno'?`<span class="lbh-prev uno">${I('pincel')}</span>`:vista()}<span class="lbh-irt"><b>Mesa y cartas</b><small>${k==='uno'?'Ayuda con los colores':'Fondo, cartas y reverso'}</small></span>${I('sig')}</button>`:''}
   ${window.casaToggle?`<button class="ui-btn sec full lbh-casa" onclick="casaToggle()">${I('casa')}Entrar a la casa 3D</button>`:''}`}
  if(!hd)hd=`<h2 class="ui-h">${h}</h2>${x}`;
  return `<div class="ui-scrim" onclick="LOBBY.pan('')"></div><section class="ui-sheet lbh-sheet mid" role="dialog" aria-label="${h}"><div class="ui-hd">${hd}</div><div class="ui-bd">${b}</div></section>`}
@@ -38,7 +42,7 @@ function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM
  const nm=String(pname||'').trim();
  return `<div class="ui lbh" style="--lb-c:${COL[k]||'#C2512A'}">
  <header class="lbh-top"><span class="lb-logo">${I('casa')}</span><b class="lbh-marca">gamemash</b>
-  <button class="lbh-yo" onclick="LOBBY.pan('aj')" aria-label="Cambiar tu nombre"><i style="--c:${avc(nm||'Tú')}">${ini(nm||'?')}</i><span>${es(nm||'Tu nombre')}</span></button>
+  <button class="lbh-yo" onclick="LOBBY.pan('aj')" aria-label="Ajustes y personaje"><i class="lbh-pj" style="--c:${avc(nm||'Tú')}">${pj()||ini(nm||'?')}</i><span>${es(nm||'Tu nombre')}</span></button>
   <button class="ui-rb" onclick="LOBBY.pan('aj')" aria-label="Menú">${I('menu')}</button></header>
  ${mesa(k,g)}
  ${juegos(k)}
@@ -52,6 +56,9 @@ function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM
 const v0=LOBBY.home;
 LOBBY.home=function(){return (window.BIEN&&BIEN.pend&&BIEN.pend())?v0():home()};
 LOBBY.pan=x=>{pan=x;render()};
+LOBBY.vista=vista;
+// Mi personaje (c_mipj.js) desde Ajustes; al cerrarlo se vuelve a dibujar el retrato
+LOBBY.pj=()=>{if(!window.MIPJ)return;pan='';render();MIPJ.abrir();const w=setInterval(()=>{if(!MIPJ.abierto()){clearInterval(w);pjCod='';render()}},400)};
 LOBBY.tema1=t=>{if(window.UI)UI.setTema(t);render()};
 window.home=LOBBY.home;
 })();
