@@ -144,5 +144,3 @@ html body .lb-reglas details[open]{padding-bottom:16px}
  .lb-cajas{flex-wrap:wrap;overflow:visible;margin:6px 0 0;padding:10px 0 4px}
  .lb-caja{flex:0 0 calc((100% - 30px)/4)}
 }
-html.lbon::after{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:#F8EBD6;z-index:9999;pointer-events:none}
-html.lbon[data-tema=noche]::after{background:#2E2017}
