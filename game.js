@@ -35,7 +35,7 @@ function onNew(o,n){if(!n){dealKey=-1;lastN=-1;return}
  evs(n);
  const g=GM[V.game];if(g&&g.win){if(n.phase=='end'&&(!o||o.phase!='end'||o.round!==n.round))g.win(n,0);
  if(n.phase=='final'&&(!o||o.phase!='final'))g.win(n,1)}}
-function bad(t){msg='✋ No puedes hacer eso. '+t;sfx('bad');render();document.querySelectorAll('.c.s').forEach(e=>e.classList.add('bad'));if(navigator.vibrate)navigator.vibrate(120)}
+function bad(t){msg='No puedes hacer eso. '+t;sfx('bad');render();document.querySelectorAll('.c.s').forEach(e=>e.classList.add('bad'));if(navigator.vibrate)navigator.vibrate(120)}
 const BGS={green:'#1f8a5a',blue:'#2a6db0',red:'#a4303a',orange:'#c8731d',purple:'#6b3fa3',graphite:'#3d434b'};
 const BKS={red:'#8e1b1b',blue:'#1e4fa3',green:'#1e7a45',gold:'#c9a227',black:'#26262b',neon:'linear-gradient(45deg,#00e5ff,#a100ff)'},CARDS=['classic','big','black','retro','contrast'];
 let sbg='green',scards='classic',sback='red',lastN=-1;

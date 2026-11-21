@@ -124,3 +124,63 @@ html[data-cb="on"] .u2-rueda button::after{content:attr(data-l)}
 /* celular parado: cartas más grandes y la mano libre del botón de chat */
 @media (orientation:portrait){.m2d{--cw:clamp(52px,min(15vw,11vh),92px);--pw:clamp(60px,min(20vw,13vh),110px);--sw:clamp(42px,min(12vw,7.5vh),62px)}}
 @media (max-width:700px){.m2d-mano{padding-right:58px;--ov:min(-6px,calc((100vw - 96px - var(--n)*var(--cw)) / var(--n1)))}}
+
+/* ---------- Continental (c_cont2d.js) ---------- */
+.k2-st{gap:8px;font-size:15px}
+.k2-ct{padding:3px 10px;border-radius:999px;background:var(--ui-chip);font-weight:800}
+html[data-game] .k2 .c{flex-direction:column;align-items:center;justify-content:center;gap:0;position:relative;font:800 calc(var(--cw)*.36)/1 var(--ui-font);border:1px solid rgba(0,0,0,.15)}
+html[data-game] .k2 .c small{font-size:.8em;line-height:1}
+html[data-game] .k2 .c.jk{color:#b8860b}html[data-game] .k2 .c.jk small{font-size:.42em;letter-spacing:.06em}
+html[data-game] .k2 .c.bk{font-size:0}
+html[data-game] .k2 #hand .c.s{transform:translateY(-22px);box-shadow:0 0 0 3px var(--ui-accent),0 10px 18px rgba(0,0,0,.45)}
+/* rayita debajo de las cartas que ya forman trío (ámbar) o corrida (turquesa) */
+.k2 .m2d-ca.gt::after,.k2 .m2d-ca.gc::after{content:"";position:absolute;left:18%;right:18%;bottom:-7px;height:4px;border-radius:4px;background:#ffc94a;box-shadow:0 0 6px #ffc94a}
+.k2 .m2d-ca.gc::after{background:#4fd1c5;box-shadow:0 0 6px #4fd1c5}
+/* la mesa en flujo: bajadas de rivales, mazo y descarte, tus bajadas (acostado: en fila) */
+.k2-mesa{position:absolute;inset:7% 11%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqh;--mw:clamp(22px,min(5.4cqw,7.5cqh),44px)}
+.k2-ri,.k2-mi{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:5px 8px;min-height:0}
+.k2-mi:empty,.k2-ri:empty{display:none}
+@container (min-aspect-ratio:1.5){.k2-mesa{flex-direction:row;inset:9% 9%;gap:3cqw;--mw:clamp(22px,min(3.4cqw,13cqh),44px)}.k2-ri,.k2-mi{flex:1;max-height:100%}}
+.k2-piles{display:flex;align-items:flex-start;gap:calc(var(--cw)*.5);flex:none;--cw:min(var(--pw),30cqh,22cqw)}
+.k2-pila{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.k2-pila>small{font:800 13px var(--ui-font);color:#fff;background:rgba(0,0,0,.35);padding:2px 9px;border-radius:999px}
+html[data-game] .k2-pila .c.bk{box-shadow:2px 2px 0 #fffdf4,3px 3px 0 rgba(0,0,0,.4),5px 5px 0 #fffdf4,6px 6px 0 rgba(0,0,0,.4),8px 10px 14px rgba(0,0,0,.5)}
+html[data-game] .k2 .c.go{cursor:pointer;animation:k2glow 1.3s ease-in-out infinite}
+.k2-desc{position:relative;width:var(--cw);height:calc(var(--cw)*1.45);border-radius:calc(var(--cw)*.13);background:rgba(0,0,0,.18)}
+.k2-d{position:absolute;inset:0;transform:translate(var(--x),var(--y)) rotate(var(--r))}
+html[data-game] .k2-d .c.nw{animation:u2slam .38s cubic-bezier(.3,1.4,.5,1)}
+.k2-buy{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:3;min-height:44px;padding:0 14px;border-radius:999px;border:2px solid #fff;background:#ffd23f;color:#3a2416;font:900 14px var(--ui-font);cursor:pointer;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.k2-buy.on{background:var(--ui-sheet);color:var(--ui-text)}
+.k2-baj{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:3px;border-radius:12px;background:color-mix(in srgb,var(--c) 22%,transparent)}
+.k2-meld{display:flex;padding:3px 5px;border-radius:9px;background:rgba(0,0,0,.2);border:2px solid color-mix(in srgb,var(--c) 75%,transparent)}
+.k2-meld.go{cursor:pointer}
+html[data-game] .k2-meld .c{width:var(--mw);height:calc(var(--mw)*1.4);font-size:calc(var(--mw)*.4);border-radius:5px}
+html[data-game] .k2-meld .c+.c{margin-left:calc(var(--mw)*-.45)}
+.k2-meld.over{outline:3px dashed #fff;outline-offset:3px}
+/* casillas del contrato */
+.k2-arm{display:flex;margin-bottom:-24px;z-index:6;position:relative;align-items:stretch;gap:8px;max-width:calc(100% - 16px);padding:6px;border-radius:18px;background:color-mix(in srgb,var(--ui-sheet) 88%,transparent);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);--mw:clamp(28px,calc(var(--cw)*.55),50px)}
+.m2d .k2-slot{margin:0;background:none;display:flex;flex-direction:column;gap:4px;padding:5px 7px;border-radius:12px;border:2px dashed var(--ui-line);min-width:0;transition:border-color .2s,background .2s}
+.m2d .k2-slot.go{cursor:pointer;border-color:var(--ui-accent);background:var(--ui-chip)}
+.m2d .k2-slot.ok{border-style:solid;border-color:#2e9e4a;background:rgba(46,158,74,.12)}
+.m2d .k2-slot.no{border-color:#d9822b}
+.m2d .k2-slot.over{border-color:var(--ui-accent);background:var(--ui-chip)}
+.k2-sl{display:flex;align-items:center;gap:6px;font:800 12px/1.1 var(--ui-font);white-space:nowrap}.k2-sl span{color:var(--ui-sub);font-weight:700;display:flex}
+.k2-slot.ok .k2-sl span{color:#2e9e4a}.k2-sl svg{width:16px;height:16px}
+.m2d .k2-slot .row{flex-wrap:nowrap;display:flex;align-items:center;min-height:calc(var(--mw)*1.4)}
+html[data-game] .m2d #mini .c{margin:0;width:var(--mw);height:calc(var(--mw)*1.4);font-size:calc(var(--mw)*.4);border-radius:5px;cursor:pointer}
+html[data-game] .k2-slot .row>*+*{margin-left:calc(var(--mw)*-.3)}
+.k2-ph{width:var(--mw);height:calc(var(--mw)*1.4);border-radius:5px;border:2px dashed var(--ui-line);box-sizing:border-box;background:var(--ui-chip)}
+.k2-bajar{align-self:center;animation:m2pop 1.2s ease-in-out infinite}
+/* comodín: inicio o final */
+.k2-jk{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:var(--ui-scrim)}
+.k2-jk>div{padding:16px 18px;border-radius:var(--ui-r);background:var(--ui-sheet);box-shadow:var(--ui-shadow);text-align:center}
+/* final de ronda */
+.k2-r{display:flex;align-items:center;gap:2px}.k2-r.ok{color:#2e9e4a!important}.k2-r svg{width:15px;height:15px}
+.k2-esp{font-weight:800;color:var(--ui-sub);align-self:center}
+.k2-tabla{margin-top:10px;text-align:left}.k2-tabla summary{cursor:pointer;font-weight:800}
+.k2-tabla table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}.k2-tabla td,.k2-tabla th{padding:3px 4px;text-align:center;border-bottom:1px solid var(--ui-line)}
+.m2d-bb.bien{background:#2e9e4a;color:#fff;border-color:transparent}
+@keyframes k2glow{50%{box-shadow:0 0 0 4px #ffe27a,0 0 24px 6px #ffe27a}}
+@media (max-width:560px){.k2-sl span{display:none}.k2-arm{gap:4px;padding:4px}.k2-slot{padding:4px}.k2-st .k2-ct{padding:2px 7px;font-size:13px}}
+.m2d .k2-slot .row>*{flex:none}
+@media (max-height:460px) and (orientation:landscape){.k2-arm{position:absolute;left:10px;bottom:calc(100% - 30px);margin:0;--mw:26px;padding:4px;gap:4px}.k2-sl span{display:none}.m2d .k2-slot{padding:3px 5px}.k2-bajar{min-height:40px}}
