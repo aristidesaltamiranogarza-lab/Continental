@@ -128,7 +128,7 @@ function start(id){if(cur&&cur.id===id)return;const now=ctx.currentTime;
  if(!id){cur=null;return}const g=ctx.createGain();g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+1.6);g.connect(bus);
  cur={id,g,i:0,next:now+.1};if(!timer)timer=setInterval(tick,30)}
 function want(){if(!vol||document.hidden)return null;if(typeof S=='undefined'||!S||!V||!V.G)return 'menu';return SONGS[V.game]?V.game:'menu'}
-window.musSync=function(){if(!init())return;let w=want();if(window.MP3)try{if(MP3.sync(w==='menu',ctx,master))w=null}catch(e){}start(w)};   // MP3: canciones mp3 de la casa (music_mp3.js)
+window.musSync=function(){if(!init())return;let w=want();if(window.MP3)try{if(MP3.sync(w!==null,ctx,master))w=null}catch(e){}start(w)};   // MP3: las canciones mp3 (music_mp3.js) suenan en la casa y en todos los juegos; la sintetizada solo si ninguna carga
 // musVol(v): sin render() (si no, el slider se rehace a media arrastrada); los sliders .ui-vol se ponen al día solos
 window.musVol=function(v){v=Math.max(0,Math.min(1,+v||0));const was=vol>0;vol=v;if(v>0)volU=v;try{localStorage.setItem('cont_musv',v)}catch(e){}
  if(init()){master.gain.setTargetAtTime(gainOf(v),ctx.currentTime,.04);if(was!==(v>0))musSync()}

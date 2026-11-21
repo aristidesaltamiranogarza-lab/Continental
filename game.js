@@ -79,7 +79,7 @@ function chatUp(){const ch=(V&&V.chat)||[],l=document.getElementById('cl');CH.st
  l.innerHTML=ch.map(m=>`<div>${m.k>=0?chip(m.k):''}<b>${esc(m.name)}:</b> ${esc(m.t)}</div>`).join('');
  const nw=ch.length?ch[ch.length-1].ts:0;if(lastTs>=0&&nw>lastTs&&ch[ch.length-1].k!==V.me)sfx('tick');lastTs=nw;
  if(chatOpen){seenTs=nw;l.scrollTop=l.scrollHeight}
- const u=ch.filter(m=>m.ts>seenTs&&m.k!==V.me).length;document.getElementById('cn').textContent=u?' '+u:''}
+ const u=ch.filter(m=>m.ts>seenTs&&m.k!==V.me).length;document.getElementById('cn').textContent=u?' '+u:'';document.querySelectorAll('.m2d-cn').forEach(e=>e.textContent=u||'')}
 function chatSend(){const i=document.getElementById('ci'),t=i.value.trim();if(!t||!S)return;i.value='';i.focus();api('act',{c:S.c,t:S.t,m:{t:'chat',text:t}}).then(d=>{if(d&&d.err){i.value=t;bad(d.err==='Acción desconocida.'?'El servidor no tiene el chat: reinícialo (Ctrl+C y node server.js).':d.err)}}).catch(()=>{i.value=t;bad('Sin conexión.')})}
 const oi=c=>{const k=myOrder.indexOf(c.id);return k<0?1e6+c.id:k};
 function cyc(){if(!manual&&!sortS)sortS=true;else if(sortS){sortS=false;manual=true}else manual=false;render()}
@@ -87,7 +87,7 @@ document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.c
 document.addEventListener('pointermove',e=>{if(!dg)return;
  if(!dg.on&&Math.hypot(e.clientX-dg.x,e.clientY-dg.y)>10){dg.on=1;const r=dg.el.getBoundingClientRect();dg.g=dg.el.cloneNode(true);dg.g.className+=' fly';dg.g.removeAttribute('onclick');dg.g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transition:none;z-index:90`;FX.appendChild(dg.g);dg.el.style.opacity=.3}
  if(dg.on){dg.g.style.transform=`translate(${e.clientX-dg.x}px,${e.clientY-dg.y}px)`;const t=document.elementFromPoint(e.clientX,e.clientY),sl=t&&t.closest&&t.closest('.slot');document.querySelectorAll('.slot.over').forEach(x=>x.classList.remove('over'));if(armando&&sl)sl.classList.add('over')}});
-document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d.on)return;d.g.remove();noClick=Date.now();
+document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d.on)return;d.g.remove();d.el.style.opacity='';noClick=Date.now();
  const tt=document.elementFromPoint(e.clientX,e.clientY),sl=tt&&tt.closest&&tt.closest('.slot');
  if(armando&&sl)return dropSlot(d.id,+sl.dataset.k,e.clientX,e.clientY);
  if(d.from=='slot')return unslot(d.id);

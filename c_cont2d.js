@@ -38,6 +38,7 @@ function casillas(pl){const ok=staged.every(okSlot);
   return `<div class="slot k2-slot${v?' ok':n?' no':''}${sel.size?' go':''}" data-k="${k}" onclick="k2put(${k})"><div class="k2-sl"><b>${TN[g.type]}</b><span>${v?ico('ok'):AYU[g.type]}</span></div>
   <div class="row" style="--min:${MIN[g.type]}">${g.ids.map(x=>cc(C(x),{did:x,on:`event.stopPropagation();tapSlot(${x})`})).join('')}</div></div>`}).join('')+'</div>'+
   `${pl&&ok?'<button class="ui-btn k2-bajar" onclick="bajar()">Bajarme</button>':''}</div>`}
+const HINT_MS=9000;let hK='',hT=0,hTo=0;
 function cuerpo(){const G=V.G;if(!G)return b0();
  if(G.phase=='end'||G.phase=='final')return fin(G);if(G.phase!='play')return b0();
  const i=V.me,t=G.turn,mine=i>=0&&i==t,dn=i>=0&&G.down[i],pl=mine&&G.step=='play',dr=mine&&G.step=='draw';
@@ -51,7 +52,8 @@ function cuerpo(){const G=V.G;if(!G)return b0();
  <div class="k2-pila"><div class="k2-desc${pl?' m2d-drop':''}" data-d="disc">${pila}</div>${canBuy?`<button class="k2-buy${V.claim?' on':''}" onclick="${V.claim?"send({t:'unbuy'})":'comprar()'}">${V.claim?'Cancelar compra':'Comprar +1'}</button>`:''}</div></div><div class="k2-mi">${bM}</div></div>`;
  let st=i<0?mirTxt():!mine?'Turno de <b>'+nm(t)+'</b>'+(canBuy&&!V.claim?' · puedes comprar el descarte':V.claim?' · pediste el descarte':''):dr?'Roba del mazo o toma el descarte':
   dn?'Pega cartas en la mesa o suelta una en el descarte':staged.every(okSlot)?'Contrato listo: bájate o descarta':'Llena tu contrato o descarta una carta';
- if(G.note)st='<b>'+esc(G.note)+'</b> · '+st;if(msg)st=esc(msg);
+ if(i>=0){const tk=G.round+'-'+t+'-'+G.step;if(tk!==hK){hK=tk;hT=Date.now();clearTimeout(hTo);if(mine)hTo=setTimeout(()=>{if(document.querySelector('#app .k2'))render()},HINT_MS)}
+  if(!mine||Date.now()-hT<HINT_MS)st=''}if(msg)st=esc(msg);   // la sugerencia sale solo si tardas; lo que hicieron los demás ya sale en su globito
  let acc='';if(pl&&V.pend)acc+=`<button class="ui-btn sec" onclick="send({t:'undoswap'})">Deshacer</button>`;
  if(pl&&sel.size==1)acc+=`<button class="ui-btn" onclick="discard()">Descartar</button>`;
  const mano=(arm?casillas(pl):'')+(i>=0?M2D.abanico(hand.map(c=>({h:cc(c,{did:c.id,sel:sel.has(c.id),nw:prevHand.size&&!prevHand.has(c.id),on:`tog(${c.id})`}),cls:gr.get(c.id)||''}))):'');

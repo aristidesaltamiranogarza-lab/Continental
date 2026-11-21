@@ -60,7 +60,7 @@ function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M
 // o: {cls,estilo,top,der,seats,centro,capa,hint,mine,yo,acc,ord,mano,menu,rules}
 function mesa(o){emotes();const g=V.me>=0&&V.G&&V.G.phase!='final';if(!g)emAb=false;
  return `<div class="m2d ${o.cls||''}" style="${o.estilo||''}">
- <div class="m2d-top"><button class="ui-rb" onclick="M2D.menu()" aria-label="Menú">${ico('menu')}</button>${o.top||''}<span class="m2d-sp"></span>${g?`<button class="ui-rb m2d-gb${emAb?' on':''}" onclick="M2D.gestos()" aria-label="Gestos" aria-expanded="${emAb}">${ico('gesto')}</button>`:''}${o.der||''}
+ <div class="m2d-top"><button class="ui-rb" onclick="M2D.menu()" aria-label="Menú">${ico('menu')}</button>${o.top||''}<span class="m2d-sp"></span>${g?`<button class="ui-rb m2d-gb${emAb?' on':''}" onclick="M2D.gestos()" aria-label="Gestos" aria-expanded="${emAb}">${ico('gesto')}</button>`:''}${g?`<button class="ui-rb m2d-cb" onclick="chatTog()" aria-label="Chat">${ico('chat')}<span class="m2d-cn">${(document.getElementById('cn')||{}).textContent||''}</span></button>`:''}${o.der||''}
  ${emAb?`<div class="m2d-gestos" role="menu">${EMS.map((e,i)=>`<button role="menuitem" onclick="M2D.gesto(${i})" aria-label="Gesto ${i+1}">${e}</button>`).join('')}</div>`:''}</div>
  <div class="m2d-zona"><div class="m2d-felt">${o.centro||''}</div>${(o.seats||[]).join('')}${o.capa||''}</div>
  <div class="m2d-yo">${o.hint!=null?`<div class="m2d-bar">${o.yo||''}<div class="m2d-hint${o.mine?' mine':''}">${o.hint}</div>${o.acc||''}${o.ord||''}</div>`:''}${o.mano||''}</div>

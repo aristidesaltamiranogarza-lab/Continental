@@ -379,8 +379,8 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   <div class="gj-btns"><button class="ui-btn sec full" onclick="upick=null;render()">Cancelar</button></div></div></div>`}
  // menú ☰: un solo panel con pestañas (ajustes, jugadores, historial y reglas)
  if(menu){const rg=String(GM.uno.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
-  const aj=GHUD.ajustes(GHUD.row('','Letra del color en las cartas',GHUD.sw(cbl,'setCb(this.checked)','Letra del color en las cartas'))+GHUD.row('','Ayuda arriba',GHUD.sw(!mini,'u3dMini()','Ayuda arriba')),
-   `<button class="ui-btn sec full" onclick="u3dToggle()">${uic('pantalla')}Vista clásica 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${uic('x')}Cerrar sala</button>`:''}`);
+  const aj=GHUD.ajustes(GHUD.row('','Vista',UI.dim(1,'u3dToggle()'))+GHUD.row('','Letra del color en las cartas',GHUD.sw(cbl,'setCb(this.checked)','Letra del color en las cartas'))+GHUD.row('','Ayuda arriba',GHUD.sw(!mini,'u3dMini()','Ayuda arriba')),
+   `${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${uic('x')}Cerrar sala</button>`:''}`);
   o+=GHUD.sheet('Uno',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<p class="gj-rt">${rg}</p>`]],'u3dMenu()')}
  return o}
 function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
@@ -403,7 +403,9 @@ function dpv(){if(!dpvEl)return;const G=V&&V.G,id=G&&G.disc.length?G.disc[G.disc
  if(dpvEl.classList.contains('on')!==show)dpvEl.classList.toggle('on',show)}
 
 // ---------- engancharse a la vista de siempre ----------
-function active(){return on&&!!S&&!!V&&V.game==='uno'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final')}
+const lig=()=>{try{return localStorage.getItem('casa_3d')==='0'||window.CALIDAD==='ligero'}catch(e){return false}};let sala0=null;   // en Ligero (menú 2D) cada sala nueva empieza en 2D
+function sala(k){const c=typeof V!='undefined'&&V&&V.code;if(!c||c===sala0)return;sala0=c;if(lig())on=false;else try{on=localStorage.getItem(k)!=='0'}catch(e){}}
+function active(){sala('uno_3d');return on&&!!S&&!!V&&V.game==='uno'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final')}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('u3on',a);
  if(!a){first=true;if(dpvEl)dpvEl.classList.remove('on');document.documentElement.classList.remove('u3mini');home();VW.x=VW.z=0;VW.k=1;return}

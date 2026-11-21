@@ -707,8 +707,8 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  h+=c4UI();h+=bgUI(V.me>=0&&(c4found||c4g())?126:72);
  // menú ☰: un solo panel con pestañas (ajustes, jugadores, historial y reglas)
  if(menu){const rg=String(GM.continental.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
-  const aj=GHUD.ajustes(GHUD.row('','Última jugada',GHUD.sw(!mini,'c3dMini()','Última jugada')),
-   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Apariencia</button>${V.me>=0&&(c4found||c4g())?`<button class="ui-btn sec full" onclick="c4go()">${C4IC}Conecta 4</button>`:''}${V.me>=0&&(bgfound||bgg())?`<button class="ui-btn sec full" onclick="bggo()">${BGIC}Backgammon</button>`:''}<button class="ui-btn sec full" onclick="c3dToggle()">${ic('pantalla')}Vista 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
+  const aj=GHUD.ajustes(GHUD.row('','Vista',UI.dim(1,'c3dToggle()'))+GHUD.row('','Última jugada',GHUD.sw(!mini,'c3dMini()','Última jugada')),
+   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Apariencia</button>${V.me>=0&&(c4found||c4g())?`<button class="ui-btn sec full" onclick="c4go()">${C4IC}Conecta 4</button>`:''}${V.me>=0&&(bgfound||bgg())?`<button class="ui-btn sec full" onclick="bggo()">${BGIC}Backgammon</button>`:''}${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
   h+=GHUD.sheet('Continental',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'c3dMenu()')}
  return h}
 // ---------- Conecta 4 entre dos jugadores (se juega durante la partida; las reglas están en el servidor) ----------
@@ -794,7 +794,9 @@ function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEac
 // ---------- engancharse a la vista de siempre ----------
 // al cerrar la ronda la mesa se queda 3 s más: el ganador baila y los demás se llevan la mano a la cabeza (c_mesa_pj.js)
 let finT=0,finPh='',finCut=-1;
-function active(){if(!(on&&!!S&&!!V&&V.game==='continental'&&!!V.G))return false;const G=V.G;
+const lig=()=>{try{return localStorage.getItem('casa_3d')==='0'||window.CALIDAD==='ligero'}catch(e){return false}};let sala0=null;   // en Ligero (menú 2D) cada sala nueva empieza en 2D
+function sala(k){const c=typeof V!='undefined'&&V&&V.code;if(!c||c===sala0)return;sala0=c;if(lig())on=false;else try{on=localStorage.getItem(k)!=='0'}catch(e){}}
+function active(){sala('cont_3d');if(!(on&&!!S&&!!V&&V.game==='continental'&&!!V.G))return false;const G=V.G;
  if(G.phase!==finPh){if(finPh==='play'&&G.phase==='end'&&window.MPJ&&MPJ.on&&!RM)finT=performance.now()+3200;finPh=G.phase}
  return G.phase==='play'||(G.phase==='end'&&performance.now()<finT)}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;

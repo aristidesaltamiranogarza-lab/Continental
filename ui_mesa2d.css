@@ -123,7 +123,7 @@ html[data-cb="on"] .u2-rueda button::after{content:attr(data-l)}
 @media (prefers-reduced-motion:reduce){.m2d *,.m2d *::before{animation:none!important;transition:none!important}}
 /* celular parado: cartas más grandes y la mano libre del botón de chat */
 @media (orientation:portrait){.m2d{--cw:clamp(52px,min(15vw,11vh),92px);--pw:clamp(60px,min(20vw,13vh),110px);--sw:clamp(42px,min(12vw,7.5vh),62px)}}
-@media (max-width:700px){.m2d-mano{padding-right:58px;--ov:min(-6px,calc((100vw - 96px - var(--n)*var(--cw)) / var(--n1)))}}
+@media (max-width:700px){.m2d-mano{--ov:min(-6px,calc((100vw - 40px - var(--n)*var(--cw)) / var(--n1)))}}
 
 /* ---------- Continental (c_cont2d.js) ---------- */
 .k2-st{gap:8px;font-size:15px}
@@ -159,7 +159,7 @@ html[data-game] .k2-meld .c+.c{margin-left:calc(var(--mw)*-.45)}
 .k2-meld.over{outline:3px dashed #fff;outline-offset:3px}
 /* casillas del contrato */
 .k2-desl{display:flex;gap:inherit;overflow-x:auto;overscroll-behavior-x:contain;min-width:0;align-items:stretch}
-.k2-arm{display:flex;box-sizing:border-box;margin-bottom:-24px;z-index:6;position:relative;align-items:stretch;gap:8px;max-width:calc(100% - 16px);padding:6px;border-radius:18px;background:color-mix(in srgb,var(--ui-sheet) 88%,transparent);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);--mw:clamp(28px,calc(var(--cw)*.55),50px)}
+.k2-arm{display:flex;box-sizing:border-box;margin-bottom:-4px;z-index:6;position:relative;align-items:stretch;gap:8px;max-width:calc(100% - 16px);padding:6px;border-radius:18px;background:color-mix(in srgb,var(--ui-sheet) 88%,transparent);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);--mw:clamp(28px,calc(var(--cw)*.55),50px)}
 .m2d .k2-slot{margin:0;background:none;display:flex;flex-direction:column;gap:4px;padding:5px 7px;border-radius:12px;border:2px dashed var(--ui-line);min-width:0;transition:border-color .2s,background .2s}
 .m2d .k2-slot.go{cursor:pointer;border-color:var(--ui-accent);background:var(--ui-chip)}
 .m2d .k2-slot.ok{border-style:solid;border-color:#2e9e4a;background:rgba(46,158,74,.12)}
@@ -215,3 +215,9 @@ html[data-game] .k2-slot .row>*+*{margin-left:calc(var(--mw)*-.3)}
 @media (prefers-reduced-motion:reduce){.m2d-seat.on .m2d-pt img,.m2d-me.on .m2d-pt img,.m2d-pt[class*="r-"]{animation:none}}
 .m2d-top:has(.m2d-gestos){z-index:10}
 .m2d-seat .m2d-nm,.m2d-n{position:relative;z-index:3}.m2d-n{position:absolute}
+/* chat: botón arriba junto a los gestos (el redondo de abajo tapaba la mano); el panel baja desde ahí */
+body:has(#app .m2d) #chat #cb{display:none}
+body:has(#app .m2d) #chat{top:calc(env(safe-area-inset-top,0px) + 64px);bottom:auto;right:14px}
+.m2d-cb{position:relative}.m2d-cn{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font:800 11px/18px var(--ui-font);text-align:center;pointer-events:none}
+.m2d-cn:empty{display:none}
+.m2d-hint:empty{display:none}

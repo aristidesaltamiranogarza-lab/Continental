@@ -325,7 +325,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   b+=`<button class="ui-btn sec md3mine" onclick="md3Look(${i})" title="Ver mi mesa de cerca" aria-label="Mi mesa">${uic('ojo')}<span>Mi mesa</span></button>`}
  o+=GHUD.bar(b);
  if(menu){const rg=String(G0.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
-  const aj=GHUD.ajustes('',`<button class="ui-btn sec full" onclick="md3Toggle()">${uic('pantalla')}Vista clásica 2D</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${uic('x')}Cerrar sala</button>`:''}<button class="ui-btn sec full" onclick="leave()">${uic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`);
+  const aj=GHUD.ajustes(GHUD.row('','Vista',UI.dim(1,'md3Toggle()')),`${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${uic('x')}Cerrar sala</button>`:''}<button class="ui-btn sec full" onclick="leave()">${uic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`);
   o+=GHUD.sheet('Monopoly Deal',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'md3Menu()')}
  return o}
 function labels(){if(!L||!mesa)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'),bot('md3pa'))+2;
@@ -337,7 +337,9 @@ function viewBtn(){const el=document.getElementById('gjView');if(!el)return;cons
  document.querySelectorAll('#app .md3seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 
 // ---------- engancharse a la vista de siempre ----------
-function active(){return on&&typeof S!='undefined'&&!!S&&typeof V!='undefined'&&!!V&&V.game==='monopolydeal'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final')}
+const lig=()=>{try{return localStorage.getItem('casa_3d')==='0'||window.CALIDAD==='ligero'}catch(e){return false}};let sala0=null;   // en Ligero (menú 2D) cada sala nueva empieza en 2D
+function sala(k){const c=typeof V!='undefined'&&V&&V.code;if(!c||c===sala0)return;sala0=c;if(lig())on=false;else try{on=localStorage.getItem(k)!=='0'}catch(e){}}
+function active(){sala('md_3d');return on&&typeof S!='undefined'&&!!S&&typeof V!='undefined'&&!!V&&V.game==='monopolydeal'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final')}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('md3on',a);
  if(!a){first=true;home();VW.x=VW.z=0;VW.k=1;return}
