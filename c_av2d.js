@@ -32,7 +32,8 @@ const PLANO={cara:.43,busto:.6,cuerpo:1};
 async function retrato(cod,o={}){const T=THREE;o={tam:256,plano:'busto',giro:.3,pose:'Reposo',t:0,fondo:null,borde:.022,linea:.006,...o};
  const p=await AV.crear(cod);const u=p.userData.av,R=motor();
  p.rotation.y=o.giro;ponPose(p,o.pose,o.t);u.mixer.update(0);p.updateMatrixWorld(true);if(o.extra){o.extra(p,T);p.updateMatrixWorld(true)}
- const box=new T.Box3().setFromObject(p,true),alto=box.max.y-box.min.y,fr=PLANO[o.plano]||.6;
+ const box=new T.Box3(),vis=x=>{for(;x;x=x.parent)if(!x.visible)return false;return true};p.traverse(m=>{if(m.isMesh&&vis(m))box.expandByObject(m,true)});   // solo lo visible (los peinados y prendas ocultos no cuentan)
+ const alto=box.max.y-box.min.y,fr=PLANO[o.plano]||.6;
  let y1=box.max.y+alto*.02,y0=box.max.y-alto*fr-(fr>=1?alto*.02:0);if(o.marco)[y0,y1]=typeof o.marco=="function"?o.marco(box):o.marco;const lado=(y1-y0)*(1+o.borde*4),cx=o.marco?0:(box.min.x+box.max.x)/2,cy=(y0+y1)/2;
  const c=R.cam;c.left=cx-lado/2;c.right=cx+lado/2;c.top=cy+lado/2;c.bottom=cy-lado/2;c.position.set(0,0,box.max.z+10);c.near=.01;c.far=box.max.z-box.min.z+20;c.updateProjectionMatrix();
  R.esc.add(p);const big=o.tam*S;R.ren.setSize(big,big,false);const mt=materiales(p);
