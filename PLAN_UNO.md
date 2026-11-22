@@ -13,7 +13,7 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 |---|------|----------|--------|----------------------|-------|
 | 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [x] |
 | 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [x] |
-| 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [ ] |
+| 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [x] |
 | 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [ ] |
 | 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [ ] |
 | 6 | Paisaje, tablet y de 2 a 8 jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [ ] |
@@ -151,6 +151,9 @@ Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una 
 5. Mismo diseño que el anillo 2D (paso 1B).
 
 **Notas:**
+- Centro siempre lado a lado (`L.ctr` z=-.3); escalas propias `L.sk=1.3` (mazo) y `L.sd=1.7` (descarte) en lugar de `L.ps*1.1`; `L.ps` queda para `sep` y la carta que sale de una mano. Pila: solo las 4 últimas; la de arriba casi derecha y .03 más alta. Nombres de pilas abajo de cada una.
+- Anillo: `ringTex(d)` = 4 arcos (r=440, grueso 58, halo con shadowBlur) con punta hacia `d`; plano `L.rs=7.2` (r≈3.1 mundo, la mesa más chica tiene r=3.9). Opacidad .8. Al invertir: giro rápido (`ringBoost²`), rebote de escala y `MFX.destello` en el centro.
+- Había en el árbol un cambio sin subir: `ps` .95/.85, inclinación sentada .62/.6 y clampV .4. Con .62 el centro quedaba detrás de tu mano: se regresó la inclinación a .8/.76; ps y clampV se quedaron. Con eso en 390x844 a veces asoma piso bajo la mano (revisar en el paso 4/6).
 
 ## Paso 4: 3D, rivales de frente e interfaz ligera (high)
 

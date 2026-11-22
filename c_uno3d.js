@@ -75,9 +75,10 @@ const FELT={green:['#2f9a62','#0f4a2d'],red:['#c0393f','#5e1218'],blue:['#3d84cc
 (window.MESA_J=window.MESA_J||{}).uno={col:()=>FELT[sbg]||FELT.green,logo:null};   // la casa pone esta misma mesa (c_mesa3d.js)
 // anillo de flechas alrededor del centro: gira en el sentido del juego y se pinta del color actual
 function ringTex(d){const k='ring'+d;if(texC[k])return texC[k];const S=1024,cn=cnv(S,S),g=cn.getContext('2d'),c=S/2,r=440;
- g.strokeStyle='rgba(255,255,255,.4)';g.lineWidth=6;[r-50,r+50].forEach(q=>{g.beginPath();g.arc(c,c,q,0,7);g.stroke()});
- g.strokeStyle='#fff';g.lineWidth=24;g.lineCap='round';g.lineJoin='round';
- for(let i=0;i<20;i++){const a=i/20*Math.PI*2;g.save();g.translate(c+Math.cos(a)*r,c+Math.sin(a)*r);g.rotate(a+d*Math.PI/2);g.beginPath();g.moveTo(-18,-30);g.lineTo(18,0);g.lineTo(-18,30);g.stroke();g.restore()}
+ // 4 arcos gruesos con punta en el sentido del juego (como el anillo 2D); el halo da el brillo suave
+ g.fillStyle=g.strokeStyle='#fff';g.lineCap='round';g.shadowColor='rgba(255,255,255,.75)';g.shadowBlur=36;
+ for(let i=0;i<4;i++){const a0=i*Math.PI/2+.2,a1=a0+1.02,e=d>0?a1:a0,t=e+d*Math.PI/2;g.lineWidth=58;g.beginPath();g.arc(c,c,r,a0+(d>0?0:.16),a1-(d>0?.16:0));g.stroke();
+  const x=c+Math.cos(e)*r,y=c+Math.sin(e)*r,ux=Math.cos(t),uy=Math.sin(t),nx=Math.cos(e),ny=Math.sin(e);g.beginPath();g.moveTo(x+ux*70,y+uy*70);g.lineTo(x+nx*66-ux*22,y+ny*66-uy*22);g.lineTo(x-nx*66-ux*22,y-ny*66-uy*22);g.closePath();g.fill()}
  return texC[k]=tx(cn)}
 
 // ---------- cartas 3D ----------
@@ -142,19 +143,19 @@ function init(){if(ready)return;ready=true;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js), la misma de Continental: crece con los jugadores; los personajes en sus sillas (c_mesa_pj.js)
- const ps=por?1.5:1.3,np=V&&V.G?V.G.players.length:4;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:np,r:MESA.radio(np)-1.8,col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
+ const ps=por?.95:.85,np=V&&V.G?V.G.players.length:4;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:np,r:MESA.radio(np)-1.8,col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
  const rx=mesa.r,rz=mesa.r;L=Object.assign(L||{},{por,rx,rz,ps,edge:null});
- // al centro de la mesa: mazo a la izquierda y descarte a la derecha (en celular parado, uno arriba del otro
- // para que no los tapen los nombres de los lados); el anillo de flechas los rodea
- L.ctr=v3(0,0,por?-.5:-.15);if(por){L.deck=v3(0,0,L.ctr.z-1.0*ps);L.disc=v3(0,0,L.ctr.z+1.0*ps)}else{L.deck=v3(-1.15*ps,0,L.ctr.z);L.disc=v3(1.15*ps,0,L.ctr.z)}
- ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.5,depthWrite:false}));
- ringM.rotation.x=-Math.PI/2;const rr2=por?3.4:3.1;ringM.scale.set(rr2*2.3,rr2*2.3,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
+ // al centro de la mesa: mazo a la izquierda y descarte a la derecha, más grandes que la carta real (se leen sin acercar);
+ // sk/sd = escala del mazo y del descarte; el anillo de arcos los rodea
+ const sk=1.3,sd=1.7,gp=.5;L.sk=sk;L.sd=sd;L.ctr=v3(0,0,-.3);L.deck=v3(-(gp+CW*sk)/2-.1,0,L.ctr.z);L.disc=v3((gp+CW*sd)/2-.1,0,L.ctr.z);
+ ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.8,depthWrite:false}));
+ ringM.rotation.x=-Math.PI/2;L.rs=7.2;ringM.scale.set(L.rs,L.rs,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
  if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=mesa.pie}
 function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
- if(G.dir!==ringDir){ringDir=G.dir;ringM.material.map=ringTex(ringDir);ringM.material.needsUpdate=true;if(!first)ringBoost=1}
- ringBoost=Math.max(0,ringBoost-dt/900);ringG.rotation.y-=ringDir*dt*(.00025+ringBoost*.006);
+ if(G.dir!==ringDir){ringDir=G.dir;ringM.material.map=ringTex(ringDir);ringM.material.needsUpdate=true;if(!first){ringBoost=1;if(window.MFX)MFX.destello(SC,L.ctr,L.rs*.8,L.rs*.8,UC[G.color]||'#fff')}}
+ ringBoost=Math.max(0,ringBoost-dt/900);ringG.rotation.y-=ringDir*dt*(.00025+ringBoost*ringBoost*.009);const b=1+.07*Math.sin(ringBoost*Math.PI*2)*ringBoost;ringM.scale.set(L.rs*b,L.rs*b,1);
  // color actual: el anillo y el filo de la mesa cambian suave
- const tc=new THREE.Color(UC[G.color]||'#ffffff');ringM.material.color.lerp(tc.clone().lerp(WH3,.55),.08);ringM.material.opacity=.72+.1*Math.sin(now/400)+ringBoost*.2;
+ const tc=new THREE.Color(UC[G.color]||'#ffffff');ringM.material.color.lerp(tc.clone().lerp(WH3,.55),.08);ringM.material.opacity=.8+.08*Math.sin(now/500)+ringBoost*.12;
  if(L.edge){L.edge.material.color.lerp(tc,.08);L.edge.material.emissive.lerp(tc,.08)}}
 
 // ---------- cámara (tu mano es hija de la cámara, así que se queda quieta) ----------
@@ -205,7 +206,7 @@ function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.
 function corte(k,ms){if(!mc||!mesa||k===V.me||drag)return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms)}
 function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  // inclinación: de ~30° hasta la vista desde arriba; sentado, el giro es poco (los cortes de MCAM sí voltean de frente al jugador)
- VT.t=Math.max(.52-L.el,Math.min(1.45-L.el,VT.t));if(!VT.top&&!(mc&&mc.cortando))VT.a=Math.max(-.61,Math.min(.61,VT.a));
+ VT.t=Math.max(.4-L.el,Math.min(1.45-L.el,VT.t));if(!VT.top&&!(mc&&mc.cortando))VT.a=Math.max(-.61,Math.min(.61,VT.a));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
  if(L.S){const e=L.el+VT.t;VT.k=Math.min(VT.k,Math.max(1,Math.sin(e)*lente(e).d/3.6))}}
 const VK=['x','z','k','a','t'];
@@ -275,14 +276,14 @@ function sync(){if(!ready||!L||!active())return;
  // mazo: pila con grosor según las cartas que quedan
  const nv=G.deck?Math.min(12,Math.ceil(G.deck/6)):0;
  for(let i=0;i<nv;i++){const key='dk'+i,m=ens(key,null);live.add(key);m.userData.hit={t:'deck'};hits.push(m);m.userData.nw=0;
-  target(m,SC,v3(L.deck.x+(i%2)*.006,.012+i*CT*L.ps*1.5,L.deck.z),Qe(0,(i%3-1)*.012,Math.PI),L.ps*1.1,{ms:250})}
+  target(m,SC,v3(L.deck.x+(i%2)*.006,.012+i*CT*L.sk*1.5,L.deck.z),Qe(0,(i%3-1)*.012,Math.PI),L.sk,{ms:250})}
  const hand=me>=0&&Array.isArray(G.hands[me])?G.hands[me]:[],canD=mine&&G.step=='play'&&!G.ad,play=new Set(mine&&!G.ad?hand.filter(uok):[]);
- glow('deck',v3(L.deck.x,.004,L.deck.z),CW*L.ps*1.4,CH*L.ps*1.3,0xffd54a,canD?(play.size?.25:.7):0,{t:'deck'});
+ glow('deck',v3(L.deck.x,.004,L.deck.z),CW*L.sk*1.3,CH*L.sk*1.2,0xffd54a,canD?(play.size?.25:.7):0,{t:'deck'});
  // descarte: las últimas cartas que han caído, un poco desordenadas
- if(top!=null&&pile[pile.length-1]!==top){pile=pile.filter(x=>x!==top);pile.push(top);if(pile.length>7)pile.shift()}
+ if(top!=null&&pile[pile.length-1]!==top){pile=pile.filter(x=>x!==top);pile.push(top);if(pile.length>4)pile.shift()}
  pile.forEach((id,i)=>{const key='c'+id,h=hh(id),fk=from[id],m=ens(key,id,fk!=null&&fk!==me?seatW(fk):null);live.add(key);m.userData.hit={t:'disc'};hits.push(m);
-  go(m,SC,v3(L.disc.x+((h%13)-6)*.022,.012+i*CT*L.ps*1.6,L.disc.z+(((h>>5)%11)-5)*.022),Qe(0,((h>>9)%41-20)*.02,0),L.ps*1.1,{spin:fk!=null?Math.PI*2:0})});
- glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.55,CH*L.ps*1.45,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
+  const tp=i===pile.length-1,j=tp?.3:1;go(m,SC,v3(L.disc.x+((h%13)-6)*.03*j,.012+i*CT*L.sd*1.6+(tp?.03:0),L.disc.z+(((h>>5)%11)-5)*.03*j),Qe(0,((h>>9)%41-20)*.022*j,0),L.sd,{spin:fk!=null?Math.PI*2:0})});
+ glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.sd*1.4,CH*L.sd*1.3,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
  for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);
@@ -405,9 +406,9 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
 function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
  document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(pa||seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
   const X=Math.max(hw,Math.min(W-hw,x)),Y=GHUD.dodge(X,Math.max(hh2+y0,Math.min(H-hh2,y)),hw,hh2,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
- // nombres de las pilas: abajo de cada una (en celular parado, el del mazo va arriba de él)
+ // nombres de las pilas: abajo de cada una
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
- const dz=CH*L.ps*1.1/2+.12;if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+(L.por?-dz:dz)),L.por);pl('t3pds',v3(L.disc.x,0,L.disc.z+dz))}}
+ if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+CH*L.sk/2+.12));pl('t3pds',v3(L.disc.x,0,L.disc.z+CH*L.sd/2+.12))}}
 // botón Cuadrar y clases de la página
 function viewBtn(){const r=document.documentElement;if(window.UI)dark=UI.noche();r.classList.toggle('c3dark',dark);r.classList.toggle('u3mini',mini);
  const el=document.getElementById('gjView');if(!el)return;const k=viewed()?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
