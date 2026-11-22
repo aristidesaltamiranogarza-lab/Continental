@@ -48,12 +48,19 @@ function ringTex(d){const k='ring'+d;if(texC[k])return texC[k];const S=1024,cn=c
 
 // ---------- cartas 3D ----------
 let GEO=null;
-function mkCard(id){GEO=GEO||new THREE.BoxGeometry(CW,CT,CH);const ed=new THREE.MeshStandardMaterial({color:0xf2f0ea,roughness:.6});
+// carta con esquinas redondeadas como el dibujo (una caja dejaba ver sus aristas rectas): grupos 2 = cara, 3 = dorso, 0 = canto
+function cardGeo(){const r=CW*26/256,w=CW/2,h=CH/2,sh=new THREE.Shape();sh.moveTo(-w+r,-h);sh.lineTo(w-r,-h);sh.quadraticCurveTo(w,-h,w,-h+r);sh.lineTo(w,h-r);sh.quadraticCurveTo(w,h,w-r,h);
+ sh.lineTo(-w+r,h);sh.quadraticCurveTo(-w,h,-w,h-r);sh.lineTo(-w,-h+r);sh.quadraticCurveTo(-w,-h,-w+r,-h);
+ const g=new THREE.ExtrudeGeometry(sh,{depth:CT,bevelEnabled:false,curveSegments:5}),p=g.attributes.position,uv=g.attributes.uv,g0=g.groups[0],half=g0.count/2;
+ for(let i=g0.start;i<g0.start+g0.count;i++){const x=p.getX(i),y=p.getY(i),v=(y+h)/CH;uv.setXY(i,(x+w)/CW,i<g0.start+half?1-v:v)}
+ g.clearGroups();g.addGroup(g0.start,half,3);g.addGroup(g0.start+half,half,2);g.addGroup(g0.count,p.count-g0.count,0);
+ g.rotateX(-Math.PI/2);g.translate(0,-CT/2,0);g.computeVertexNormals();return g}
+function mkCard(id){GEO=GEO||cardGeo();const ed=new THREE.MeshStandardMaterial({color:0xf2f0ea,roughness:.6});
  const top=new THREE.MeshStandardMaterial({map:id==null?backTex():faceTex(id),roughness:.85,alphaTest:.5});
  const bot=new THREE.MeshStandardMaterial({map:backTex(),roughness:.85,alphaTest:.5});
  const m=new THREE.Mesh(GEO,[ed,ed,top,bot,ed,ed]);m.castShadow=true;m.receiveShadow=true;m.userData={id};return m}
 function setFace(m,id){const t=id==null?backTex():faceTex(id);m.userData.id=id;if(m.material[2].map!==t){m.material[2].map=t;m.material[2].needsUpdate=true}}
-function tint(m,v){const c=m.material[2].color;if(Math.abs(c.r-v)>.01)c.setScalar(v)}   // cartas que no puedes jugar: más oscuras
+function tint(m,v){const c=m.material[2].color;if(Math.abs(c.r-v)>.01)c.setScalar(v)}   // brillo de las cartas de tu mano (las jugables suben, las demás no se apagan)
 function drop(key){const m=meshes.get(key);if(!m)return;m.parent&&m.parent.remove(m);m.material.forEach(x=>x.dispose());if(m.userData.sg){m.userData.sg.geometry.dispose();m.userData.sg.material.dispose()}meshes.delete(key)}
 // Destino de una carta: padre (mesa o cámara), posición, giro y escala. Si cambia, se mueve suave desde donde está.
 function target(m,par,pos,q,s,o={}){const T=m.userData.T;
@@ -269,7 +276,7 @@ function sync(){if(!ready||!L||!active())return;
  // tu mano en abanico (la luz de la mano es fuerte: sin bajar el tono, los colores se ven deslavados)
  if(me>=0&&Array.isArray(G.hands[me])){const dr=mine&&G.step=='drawn'?G.drawn:null,F=fan(udisp().map(c=>c.id),play,dr);L.hand=F;
   F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,f.id),dg=drag&&drag.m===m;live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
-   m.renderOrder=dg?999:10+i;tint(m,mine&&!G.ad&&!f.ok?.22:.62);selGlow(m,f.ok||dg,f.id===dr?0xffe27a:0x7fd8ff);if(m.userData.sg)m.userData.sg.renderOrder=dg?998:5;if(dg)return;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
+   m.renderOrder=dg?999:10+i;tint(m,.62);selGlow(m,f.ok||dg,f.id===dr?0xffe27a:0x7fd8ff);if(m.userData.sg)m.userData.sg.renderOrder=dg?998:5;if(dg)return;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
  // lo que ya no está, desaparece (las cartas jugadas ya están en el descarte)
  meshes.forEach((m,key)=>{if(!live.has(key))drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
