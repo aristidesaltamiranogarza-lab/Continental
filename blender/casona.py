@@ -3,7 +3,9 @@
 # En three: X = x-18, Z = 17-z (la fachada mira a +Z, hacia la camara). Cada nivel se arma a su altura real y
 # se exporta en su propio GLB con el piso en y=0: modelos/casona/{nm1,n0,n1,n2}.glb.
 # Muros y barandales llevan extras {tipo, seg:[ax,az,bx,bz] en coords de three, r} para los choques; empties:
-# mesa_<juego> (extras juego, libre), escalera_sube_<n>/escalera_baja_<n>, llegada_<n>, puerta_<x>, maniqui.
+# mesa_<juego> (extras juego, fam c/t/k/f, libre, r), escalera_sube_<n>/escalera_baja_<n> (extras to = nivel destino,
+# r, pie = [dx,dz] del punto al que caminas), llegada_<n>, puerta_<x>_<n>, maniqui. Escalones: extra escalera sube/baja.
+# c_casa_marcas.js (MARC) lee todo eso; tests/casona_marcas.js lo revisa en los GLB.
 # Uso (MCP): m=types.ModuleType('casona'); exec(open(RUTA).read(), m.__dict__); m.armar(); m.exportar()
 import bpy, math, os
 
@@ -11,6 +13,8 @@ RAIZ = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() els
 SALIDA = os.path.join(os.path.dirname(RAIZ), 'modelos', 'casona')
 K = dict(t=.3, puerta=3.6, losa=.3, barandal=2.0, barda=2.4, pretil=2.0, ante=1.4, vent=4.0, esc=.35)
 
+ORDEN = ['nm1', 'n0', 'n1', 'n2']   # de abajo hacia arriba: la escalera sube al siguiente y baja al anterior
+FAM = dict(continental='c', monopolydeal='c', uno='c', rummy='c', merida='t', haciendas='t', backgammon='t', conecta4='t')  # el resto: casino 'k'
 COLS = [(12,14),(16,14),(20,14),(24,14),(12,18),(12,22),(12,26),(12,30),(24,18),(24,22),(24,26),(24,30),(16,30),(20,30)]
 
 # areas: (x, z, ancho, fondo, clase, tinte, nombre). clase: None = cuarto con muros; open; void; earth; street
@@ -22,7 +26,7 @@ NIV = {
   gaps=[(14,2.5,14,7.5,'casino'),(8,10.8,8,13.4,'escalera'),(9.5,10,12.5,10,'cantina'),(18,10,21,10,'casino2'),
         (8.6,14,11.4,14,None),(8.6,17,11.4,17,'billar'),(28,10.8,28,13.2,'cava'),(30.5,20,32.5,20,'ruleta')],
   mesas=[('cubilete',10.6,4.4,.8,0),('poker',20,5.2,2,0),('blackjack',30,3.4,2.3,0),('billar',6,23.4,1.6,0),('ruleta',32,25,1.3,0)],
-  deco=[('caja','barra',5,1,8.4,.8,1.2),('caja','rockola',.4,7.6,1,1.5,1.8)]+[('cil','barrica',x,z,.75,1.4) for x in (30.2,32.2,34.2) for z in (15.4,17.6)]),
+  deco=[('caja','barra',5,1,8.4,.8,1.2),('caja','rockola',.4,7.6,1,1.5,1.8)]+[('cil','barrica%d%d'%(x,z),x,z,.75,1.4) for x in (30.2,32.2,34.2) for z in (15.4,17.6)]),
  'n0': dict(elev=0, H=5.5, per=(0,0,36,34), sube=True, baja=True,
   areas=[(0,-3,36,3,'street','calle','calle'),(0,0,16,10,None,'tc','salon'),(16,0,5,10,None,'th','zaguan'),(21,0,15,10,None,'tc','comedor'),
          (8,10,20,4,'open','tg','corredor'),(8,14,4,16,'open','tg','corredor_o'),(24,14,4,16,'open','tg','corredor_e'),(8,30,20,4,'open','tg','corredor_n'),
@@ -35,7 +39,7 @@ NIV = {
   wins=[(2,0,5.5,0),(9,0,12.5,0),(24.5,0,28,0),(31.5,0,35,0)], cols=True,
   mesas=[('continental',6.5,5.4,1.9,0),('monopolydeal',28.5,5.4,1.9,0),('uno',16.6,20,1.9,0),('domino',4,28.3,1.5,1)],
   deco=[('arbol','arbol',20.8,25.6,3.4),('arbol','mamey',6,41,3.2),('caja','mecedora',11.6,6.6,1.3,1.3,1.4),('caja','mecedora2',13.6,6.6,1.3,1.3,1.4),
-        ('caja','lavadero',31,35.4,3,1.4,1.2),('cil','pozo',14,44.6,.9,1.0),('caja','hamaca',8.2,21.7,3.6,.6,1.6)]),
+        ('caja','lavadero',31,35.4,3,1.4,1.2),('cil','pozo_agua',14,44.6,.9,1.0),('caja','hamaca',8.2,21.7,3.6,.6,1.6)]),
  'n1': dict(elev=5.8, H=4.2, per=(0,0,36,30), sube=True, baja=True, abajo=-5.8,
   areas=[(0,0,16,10,None,'tt','biblioteca'),(16,0,5,10,None,'th','antesala'),(21,0,15,10,None,'tt','tableros'),
          (8,10,20,4,'open','tg','corredor'),(8,14,4,16,'open','tg','corredor_o'),(24,14,4,16,'open','tg','corredor_e'),
@@ -189,20 +193,20 @@ def nivel(nid, N):
         for j, (cx, cz) in enumerate(COLS): C(caja(col, pre+'columna_%d' % j, X(cx)-.26, X(cx)+.26, 0, H, Z(cz)-.26, Z(cz)+.26, 'columna', tipo='columna', r=.45))
         for e, l, i0, i1 in tramos(rect(12, 14, 12, 16) - W): i += 1; C(tramo_caja(col, pre+'dintel_%d' % i, e, l, i0, i1, H-.6, H, 'dintel', .5))
     # escalera: sube (hacia -x, el primer escalon junto a la puerta) y baja (hueco)
-    n_esc = 8
+    n_esc = 8; io = ORDEN.index(nid)
     if N['sube']:
         for s in range(n_esc):
-            xa = 6.5 - .5*(s+1); C(caja(col, pre+'escalon_s%d' % s, X(xa), X(xa+.5), 0, K['esc']*(s+1), Z(14), Z(12.2), 'escalon'))
-        C(vacio(col, 'escalera_sube_' + nid, X(6.7), 0, Z(13.1), r=1.0))
+            xa = 6.5 - .5*(s+1); C(caja(col, pre+'escalon_s%d' % s, X(xa), X(xa+.5), 0, K['esc']*(s+1), Z(14), Z(12.2), 'escalon', escalera='sube'))
+        C(vacio(col, 'escalera_sube_' + nid, X(6.7), 0, Z(13.1), r=1.0, to=ORDEN[io+1], pie=[.7, 0]))
     if N['baja']:
         for s in range(n_esc):
-            xa = 6.5 - .5*(s+1); C(caja(col, pre+'escalon_b%d' % s, X(xa), X(xa+.5), -3, -K['esc']*(s+1), Z(15.8), Z(14), 'escalon'))
+            xa = 6.5 - .5*(s+1); C(caja(col, pre+'escalon_b%d' % s, X(xa), X(xa+.5), -3, -K['esc']*(s+1), Z(15.8), Z(14), 'escalon', escalera='baja'))
         C(caja(col, pre+'pozo', X(1), X(2.5), -3.1, -3, Z(15.8), Z(14), 'losa'))
-        C(vacio(col, 'escalera_baja_' + nid, X(6.7), 0, Z(14.9), r=1.0))
+        C(vacio(col, 'escalera_baja_' + nid, X(6.7), 0, Z(14.9), r=1.0, to=ORDEN[io-1], pie=[.7, 0]))
     C(vacio(col, 'llegada_' + nid, X(4), 0, Z(11.1)))
     # mesas (marcadores; el juego pone la mesa real)
     for g, mx, mz, r, libre in N['mesas']:
-        C(vacio(col, 'mesa_' + g, X(mx), 1.55, Z(mz), juego=g, libre=libre, r=r))
+        C(vacio(col, 'mesa_' + g, X(mx), 1.55, Z(mz), juego=g, fam='f' if libre else FAM.get(g, 'k'), libre=libre, r=r))
     # decoracion de bulto
     for d in N.get('deco', []):
         k, n = d[0], d[1]
