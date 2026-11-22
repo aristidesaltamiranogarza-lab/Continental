@@ -58,11 +58,11 @@ function kitMuros(e,H){const {SC,hits,std,box,cyl,ctex}=e;
    if(h.arco)sh.absarc(hh.c,tp,h.w/2,0,Math.PI,false);else sh.lineTo(l,tp);sh.lineTo(l,0);sh.closePath();
    const ge=new THREE.ExtrudeGeometry(sh,{depth:T+.1,bevelEnabled:false,curveSegments:20});ge.translate(0,0,-T-.05);   // sale más que el lambrín (.02) y su moldura (.035): sin parpadeo
    const G=grp(ia.p.x,ia.p.z,ia.g.rotation.y);G.add(new THREE.Mesh(ge,MARCO));RG.push({g:G,a:CORTE.indexOf(ia),b:CORTE.indexOf(ib)})});return {fa,fb}}
- function techo(x0,x1,z0,z1,vx){const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),TECHO);c.rotation.x=Math.PI/2;c.position.set((x0+x1)/2,H,(z0+z1)/2);SC.add(c);
+ function techo(x0,x1,z0,z1,vx){const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),TECHO);c.rotation.x=Math.PI/2;c.position.set((x0+x1)/2,H,(z0+z1)/2);SC.add(c);techo.ult=c;
   // vigas a lo largo de x (vx) o de z
   if(vx)for(let z=z0+1.2;z<z1-.6;z+=2.4)B(x1-x0,.42,.32,VIGA,(x0+x1)/2,H-.21,z,VIG).castShadow=false;
   else for(let x=x0+1.25;x<x1-.6;x+=2.5)B(.32,.42,z1-z0,VIGA,x,H-.21,(z0+z1)/2,VIG).castShadow=false}
- function suelo(x0,x1,z0,z1,map){const f=new THREE.Mesh(pm(x1-x0,z1-z0),std(0xffffff,.6,{map}));f.rotation.x=-Math.PI/2;f.position.set((x0+x1)/2,0,(z0+z1)/2);f.receiveShadow=true;SC.add(f)}
+ function suelo(x0,x1,z0,z1,map){const f=new THREE.Mesh(pm(x1-x0,z1-z0),std(0xffffff,.6,{map}));f.rotation.x=-Math.PI/2;f.position.set((x0+x1)/2,0,(z0+z1)/2);f.receiveShadow=true;SC.add(f);return f}
  return {SC,B,C,grp,pm,tap,WL,CORTE,RG,VIG,H,T,cal,pasta,cara,segs,cap,pt,nv,ext,tabique,techo,suelo,MARCO,CAP,TECHO,VIGA}}
 
 function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H);KP=KM;CORTE=KM.CORTE;RG=KM.RG;VIG=KM.VIG;
@@ -93,10 +93,10 @@ function build(e){const {SC,OB,hits,std,box,cyl,ctex,PB}=e;const KM=kitMuros(e,H
  tabique('z',-1,-1,[[-25,-15.3,CO]],[[-25,-15.3,K]],[{at:-19.5,w:2.2,h:3.6}]);
  tabique('z',12.15,-1,[[-25,-19.35,K]],[[-25,-19.65,BA]]);   // la cara de la cocina llega a la del muro del baño: sin rendija en la esquina
  tabique('x',-19.5,1,[[12,17,K]],[[12.3,17,BA]],[{at:14.6,w:2,h:3.6}]);
- techo(-17,17,-15,11);techo(-4.5,4.5,11.3,19,1);techo(-17,-1.15,-25,-15.3);techo(-.85,12,-25,-15.3);techo(12,17,-19.35,-15.3,1);techo(12.3,17,-25,-19.65,1);
+ techo(-17,17,-15,11);KM.salTecho=techo.ult;techo(-4.5,4.5,11.3,19,1);techo(-17,-1.15,-25,-15.3);techo(-.85,12,-25,-15.3);techo(12,17,-19.35,-15.3,1);techo(12.3,17,-25,-19.65,1);
  // (los pisos llegan hasta la mitad de cada muro: desde arriba no queda hueco entre las dos caras)
  suelo(-4.5,4.5,11,19,pasta('zag','#e8dcc4','#b5473a','#2f6b4a'));suelo(-17,-1,-25,-15,pasta('com','#efe3c8','#c48a2a','#1f4f6a'));
- const pk=pasta('coc','#e9e2d0','#2f6b5a','#b5473a');suelo(-17,17,-15,11,pk);   // salón con el mismo piso de pasta que la cocina
+ const pk=pasta('coc','#e9e2d0','#2f6b5a','#b5473a');KM.salPiso=suelo(-17,17,-15,11,pk);   // salón con el mismo piso de pasta que la cocina
  suelo(-1,12.15,-25,-15,pk);suelo(12.15,17,-19.5,-15,pk);suelo(12.15,17,-25,-19.5,tab);
  // umbrales bajo cada vano entre cuartos (tapan la junta de los pisos)
  const um=std(0x8a8077,.85);[[-9.5,-15.15,4,T+.1],[6,-15.15,2.2,T+.1],[0,11.15,4.2,T+.1],[14.6,-19.5,2,T+.1]].forEach(([x,z,w,d])=>B(w,.02,d,um,x,.01,z).castShadow=false);B(T+.1,.02,2.2,um,-1,.01,-19.5).castShadow=false;
@@ -239,5 +239,5 @@ function corte(K,cp,av){if(!K||!av)return;const H=K.H;tv.set(av.x,1,av.z);
   if(hid!==w.hid){w.hid=hid;w.g.visible=!hid}}
  for(const r of K.RG){const v=!((K.CORTE[r.a]||{}).hid||(K.CORTE[r.b]||{}).hid);if(r.g.visible!==v)r.g.visible=v}}
 
-window.CPB={build,cadena,kit:kitMuros,corte};
+window.CPB={build,cadena,kit:kitMuros,corte,kp:()=>KP};
 })();

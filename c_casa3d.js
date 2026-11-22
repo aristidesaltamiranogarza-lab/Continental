@@ -17,7 +17,7 @@ let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-c
 // cada pestaña es una persona distinta en la casa (sessionStorage: sobrevive a recargar, no se comparte entre pestañas)
 const myId=(()=>{let v=null;try{v=sessionStorage.getItem('casa_id')}catch(e){}if(!v){v=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('casa_id',v)}catch(e){}}return v})();
 // la casa: paredes en x = ±HX, de z = ZB (fondo) a ZF (enfrente)
-const HX=17,ZB=-15,ZF=11,TH=1.5;         // TH: altura de las mesas (la de los Miis sentados)
+const HX=17,ZB=-15,ZF=11,TH=1.5,SALG=()=>!!(window.SALON&&SALON.on);         // TH: altura de las mesas (la de los Miis sentados)
 let TB=[{g:'continental',x:-8.5,z:-4,felt:['#2f9a62','#0f4a2d']},{g:'uno',x:0,z:-9,felt:['#c0393f','#5e1218']},{g:'monopolydeal',x:8.5,z:-4,felt:['#3d84cc','#123a68']},{g:'ruleta',x:HX-.2,z:-8,door:1,to:'sot'}].filter(t=>GM[t.g]);
 TB.forEach(t=>t.r=t.door?1:2.2);         // door: en vez de mesa es una puerta en la pared derecha (la Ruleta Rusa, al sótano). Monopoly, YuCATÁN y Backgammon: planta alta; Rummy y Conecta 4: terraza
 let OB=[];                               // obstáculos redondos (sillas, muebles): {x,z,r}
@@ -142,7 +142,7 @@ function buildHouse(){
  // tapete grande al centro
  const rug=ctex('rug',512,512,(g,w,h)=>{g.fillStyle='#5a1a1e';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=12;g.strokeRect(20,20,w-40,h-40);g.lineWidth=4;g.strokeRect(46,46,w-92,h-92);
   g.fillStyle='rgba(201,162,74,.35)';for(let i=0;i<6;i++)for(let j=0;j<6;j++){g.beginPath();g.arc(100+i*62,100+j*62,8,0,7);g.fill()}});
- const rg=new THREE.Mesh(new THREE.PlaneGeometry(20,13),std(0xffffff,.95,{map:rug}));rg.rotation.x=-Math.PI/2;rg.position.set(0,.01,-4);rg.receiveShadow=true;SC.add(rg);
+ const rg=new THREE.Mesh(new THREE.PlaneGeometry(20,13),std(0xffffff,.95,{map:rug}));rg.rotation.x=-Math.PI/2;rg.position.set(0,.01,-4);rg.receiveShadow=true;if(!SALG())SC.add(rg);   // ?casa=glb: tapetes por mesa (c_casa_salon.js)
  // paredes con arcos y puertas, techo, zaguán, comedor, cocina y baño (c_casa_pb.js)
  if(window.CPB)CPB.build({SC,OB,hits,std,box,cyl,ctex,HX,ZB,ZF,PB});
  // letrero de la casa en la pared del fondo
@@ -160,11 +160,12 @@ function buildHouse(){
  const lf=std(0x2e7d32,.8);[[-HX+1.3,ZB+1.3],[HX-1.3,ZB+1.3],[-HX+1.3,ZF-1.5]].forEach(([px,pz])=>{cyl(.5,.38,1,std(0xb5643c,.7),px,.5,pz);
   for(let i=0;i<9;i++){const a=i/9*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.2,1.8,6),lf);l.position.set(px+Math.cos(a)*.28,1.8,pz+Math.sin(a)*.28);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);l.castShadow=true;SC.add(l)}OB.push({x:px,z:pz,r:.9})});
  // chimenea en la pared izquierda, con fuego que parpadea
+if(!SALG()){   // en Mérida no hay chimenea: con ?casa=glb van ventanales
  const fx=-HX+.75,fz=-9,stone=std(0x8a8077,.9),ch=new THREE.Group();ch.position.set(fx,0,fz);ch.rotation.y=Math.PI/2;SC.add(ch);
  box(3.6,3.2,1.3,stone,0,1.6,0,ch);box(4.2,.3,1.6,std(0x4a2c18,.5),0,3.3,.1,ch);box(2.2,1.7,.2,std(0x120a06,.95),0,1.15,.6,ch);box(2.2,6,1,stone,0,6,-.1,ch);
  [-.35,.35].forEach((d,i)=>{const l=cyl(.13,.13,1.5,std(0x5a3418,.8),d*.4,.45,.75,ch,10);l.rotation.z=Math.PI/2;l.rotation.y=d})
  const flames=[[0,.75,.45,1.1,0xff7a1a],[-.3,.7,.3,.8,0xffb02e],[.32,.7,.3,.75,0xffb02e],[0,.7,.22,.55,0xfff1a8]].map(([x,y,r,h,c])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,12),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.9}));m.position.set(x,y+h/2,.75);ch.add(m);return m});
- const fl2=new THREE.PointLight(0xff8a2a,18,14,1.6);fl2.position.set(0,1.4,1.6);ch.add(fl2);fire={flames,light:fl2};OB.push({x:fx+.5,z:fz,r:2.1});
+ const fl2=new THREE.PointLight(0xff8a2a,18,14,1.6);fl2.position.set(0,1.4,1.6);ch.add(fl2);fire={flames,light:fl2};OB.push({x:fx+.5,z:fz,r:2.1})}
  // bola disco sobre el tapete: gira siempre; sus luces de colores se prenden cuando alguien baila
  const mir=ctex('mirror',256,128,(g,w,h)=>{for(let y=0;y<h;y+=8)for(let x=0;x<w;x+=8){const v=150+Math.random()*105|0;g.fillStyle=`rgb(${v},${v},${v+10})`;g.fillRect(x,y,7,7)}});
  const ball=new THREE.Mesh(new THREE.SphereGeometry(.6,24,16),std(0xffffff,.25,{map:mir,metalness:.9,emissive:0x222233}));ball.position.set(0,7.6,-4);SC.add(ball);
@@ -173,9 +174,11 @@ function buildHouse(){
  // mesas de juego
  TB.forEach(t=>buildTable(t));   // el Cubilete está en el sótano (c_sotano.js); Conecta 4 y Backgammon arriba (c_casa_terraza.js, c_casa_alta.js)
  // escalera a la planta alta contra la pared derecha y un plano junto a cada escalera (c_casa_esc.js)
- if(window.ESC){PB.links=[ESC.up({S:SC,hits,OB,x:HX-8.4,z:2.8,dir:[1,0],to:'alta',key:'pb-alta',sign:['Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070],n:10,land:2.2,rail:[-1,1]})];LK=PB.links;
+if(SALG()){PB.links=[SALON.link()];LK=PB.links;if(window.ESC)ESC.plano({S:SC,hits,OB,x:HX-1.2,z:-5.6,ry:-.6,here:'pb'})}
+ else if(window.ESC){PB.links=[ESC.up({S:SC,hits,OB,x:HX-8.4,z:2.8,dir:[1,0],to:'alta',key:'pb-alta',sign:['Planta alta','#2a1a10','#c9a24a','#f4d58a',0xffc070],n:10,land:2.2,rail:[-1,1]})];LK=PB.links;
   ESC.plano({S:SC,hits,OB,x:HX-9.2,z:.6,ry:.3,here:'pb'});ESC.plano({S:SC,hits,OB,x:HX-1.2,z:-5.6,ry:-.6,here:'pb'})}
  if(window.CAMB)CAMB.build({THREE,SC,OB,hits,std,box,cyl,ctex,TB,TH,HX,ZB,ZF});   // lámparas, ventiladores, reloj, hamaca y gato (c_casa_amb.js)
+ if(SALG())SALON.build({THREE,SC,OB,hits,PB,TB,ctex});
  // marca donde tocaste el piso
  mark=new THREE.Mesh(new THREE.RingGeometry(.25,.4,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.position.y=.03;SC.add(mark)}
 // puerta al sótano (pared derecha): marco como el de las ventanas, letrero como el de la casa y un foquito rojo encima
