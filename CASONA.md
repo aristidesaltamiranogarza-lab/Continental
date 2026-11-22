@@ -37,14 +37,14 @@ Crujía del frente z 0–10, crujía izq x 0–8, corredores de 4 alrededor del 
 | N+2 | Azotea 16,0 20×10 | Conecta 4; tinacos, tendedero |
 | N+2 | Mirador 0,17 | (libre: lotería) |
 
-## Por decidir (antes del paso 1)
-- Uno en el patio o en el salón.
-- Lote de 36 (hoy 34).
-- Tu cuarto y sala de música: sí o no.
-- Dominó y lotería como siguientes juegos.
+## Decidido (22 nov 2026, según el anteproyecto)
+- Uno en el patio, bajo el árbol.
+- Lote de 36.
+- Tu cuarto y sala de música: sí.
+- Dominó (cuarto libre PB) y lotería (mirador) como siguientes juegos.
 
 ## Pasos (una sesión cada uno; esfuerzo sugerido)
-Al empezar una sesión: "Sigue CASONA.md, paso N". Leer solo este archivo y la sección de `CASA_BLENDER.md` que haga falta.
+Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre el anteproyecto** (enlace arriba, con Artifact read: coordenadas de mesas, vanos y decoración salen de ahí) y la sección de `CASA_BLENDER.md` que haga falta.
 
 - [ ] **1. Maqueta de cajas** — esfuerzo **high**. `blender/casona.py` con muros, losas, vanos y la escalera de los 4 niveles, sin texturas ni horneado. Empties: `mesa_<juego>`, `escalera`, `puerta_<x>`, `maniqui`. Exportar un GLB por nivel y verlo en el juego con `?casa=caja` (mesas reales puestas desde los empties). Probar 840×360 y 360×840.
 - [ ] **2. Lectura de marcadores y choques** — esfuerzo **high**. Módulo nuevo que lee los empties del GLB (mesas, escalera, puertas) y los choques (segmentos exportados desde Blender) en vez de coordenadas a mano.
