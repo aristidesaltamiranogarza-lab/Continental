@@ -4,7 +4,7 @@
 # se exporta en su propio GLB con el piso en y=0: modelos/casona/{nm1,n0,n1,n2}.glb.
 # Muros y barandales llevan extras {tipo, seg:[ax,az,bx,bz] en coords de three, r} para los choques; empties:
 # mesa_<juego> (extras juego, fam c/t/k/f, libre, r), escalera_sube_<n>/escalera_baja_<n> (extras to = nivel destino,
-# r, pie = [dx,dz] del punto al que caminas), llegada_<n>, puerta_<x>_<n>, maniqui. Escalones: extra escalera sube/baja.
+# r, pie = [dx,dz] del punto al que caminas), llegada_<n>, llegada_escalera_<n>, plano_<lugar>_<n> (ry), puerta_<x>_<n>, maniqui. Escalones: extra escalera sube/baja.
 # c_casa_marcas.js (MARC) lee todo eso; tests/casona_marcas.js lo revisa en los GLB.
 # Uso (MCP): m=types.ModuleType('casona'); exec(open(RUTA).read(), m.__dict__); m.armar(); m.exportar()
 import bpy, math, os
@@ -204,6 +204,10 @@ def nivel(nid, N):
         C(caja(col, pre+'pozo', X(1), X(2.5), -3.1, -3, Z(15.8), Z(14), 'losa'))
         C(vacio(col, 'escalera_baja_' + nid, X(6.7), 0, Z(14.9), r=1.0, to=ORDEN[io-1], pie=[.7, 0]))
     C(vacio(col, 'llegada_' + nid, X(4), 0, Z(11.1)))
+    # paso 4: al llegar por la escalera apareces aqui (el mismo punto en los 4 niveles); plano enmarcado en el muro del fondo
+    C(vacio(col, 'llegada_escalera_' + nid, X(4), 0, Z(11.1)))
+    C(vacio(col, 'plano_escalera_' + nid, X(6.6), 2.7, Z(16.8), ry=0.0))
+    if nid == 'n0': C(vacio(col, 'plano_zaguan_n0', X(20.8), 2.7, Z(8.6), ry=round(-math.pi/2, 4)))
     # mesas (marcadores; el juego pone la mesa real)
     for g, mx, mz, r, libre in N['mesas']:
         C(vacio(col, 'mesa_' + g, X(mx), 1.55, Z(mz), juego=g, fam='f' if libre else FAM.get(g, 'k'), libre=libre, r=r))

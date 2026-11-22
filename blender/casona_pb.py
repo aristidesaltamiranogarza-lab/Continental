@@ -374,6 +374,9 @@ def marcas():
     for g, mx, mz, r, libre in N['mesas']:
         vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r)
     vacio('llegada_n0', LLEGADA[0], 0, LLEGADA[1])
+    vacio('llegada_escalera_n0', 4, 0, 11.1)                       # paso 4: llegada desde otro nivel y planos "Ir a"
+    vacio('plano_escalera_n0', 6.6, 2.7, 16.8, ry=0.0)
+    vacio('plano_zaguan_n0', 20.8, 2.7, 8.6, ry=round(-math.pi / 2, 4))
     vacio('gata_n0', GATA[0], 0, GATA[1], ry=round(GATA[2], 4))
 
 # arbotantes: (x, z, normal hacia el cuarto); se cuelgan de su línea de muro para que el corte los esconda con ella

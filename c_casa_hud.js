@@ -5,7 +5,7 @@
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const I=(n,c)=>UI.ico(n,c),$=id=>document.getElementById(id);
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const PISO={pb:'Planta baja',sot:'Sótano',alta:'Planta alta',ter:'Terraza'};
+const PISO={pb:'Planta baja',sot:'Sótano',alta:'Planta alta',ter:'Terraza',cm1:'Sótano',c0:'Planta baja',c1:'Planta alta',c2:'Azotea'};
 const RUEDA=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕'],BAILES=[['💃','Twerk','Twerk'],['🕺','Disco','Capoeira'],['🌀','Breakdance','Footwork'],['🎧','House','House'],['👟','Hip hop','HipHop'],['👯','Macarena','Macarena'],['🤸','Breakdown','Freezes'],['🎮','Default','Clasico']];
 const QH={ligero:'Pantalla 2D clásica. Para celulares sencillos.',medio:'Casa 3D sin sombras. Va bien en casi todo.',completo:'Casa 3D con sombras y todas las luces.'};
 const COL=['#B5482A','#2F6FB0','#2E7D4F','#8E4FB0','#9A6A1E','#22807F','#B03A6A'];

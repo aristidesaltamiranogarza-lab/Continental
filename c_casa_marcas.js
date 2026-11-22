@@ -1,16 +1,16 @@
 // c_casa_marcas.js — MARC: lee de un GLB de Blender los marcadores (empties) y los choques (extras), sin coordenadas a mano.
 // Convención (blender/casona.py): mesa_<juego> {juego,fam,libre,r} · escalera_sube_<n>/escalera_baja_<n> {to,r,pie:[dx,dz]}
-// · llegada_<n> · puerta_<x>_<n> · mallas con {seg:[ax,az,bx,bz],r} o {segs:[ax,az,bx,bz,...],r} (muros, barandales, muebles),
+// · llegada_<n> · llegada_escalera_<n> (donde apareces al subir o bajar) · plano_<lugar>_<n> {ry} (plano "Ir a" en el muro) · puerta_<x>_<n> · mallas con {seg:[ax,az,bx,bz],r} o {segs:[ax,az,bx,bz,...],r} (muros, barandales, muebles),
 // {obs:[x,z,r,...]} o {tipo:'columna'|'obst',r} · escalones con {escalera:'sube'|'baja'} · muros/dinteles/antepechos se agrupan
 // en líneas para el corte (por el extra linea si lo traen; si no, por su eje) · pisos dan los límites.
-// MARC.leer(root) → {mesas,escaleras,puertas,llegada,WL,OB,lineas,escalones,caja}. MARC.corte(lineas,cam,yo) esconde muros.
+// MARC.leer(root) → {mesas,escaleras,puertas,llegada,llegadaEsc,planos,WL,OB,lineas,escalones,caja}. MARC.corte(lineas,cam,yo) esconde muros.
 (function(){
 if(typeof THREE==='undefined')return;
 const w=new THREE.Vector3(),bb=new THREE.Box3();
 const pos=o=>(o.getWorldPosition(w),{x:+w.x.toFixed(3),y:+w.y.toFixed(3),z:+w.z.toFixed(3)});
 
 function leer(root){root.updateMatrixWorld(true);
- const R={mesas:[],escaleras:{},puertas:{},llegada:null,WL:[],OB:[],lineas:[],escalones:{sube:[],baja:[]},caja:null};
+ const R={mesas:[],escaleras:{},puertas:{},llegada:null,llegadaEsc:null,planos:[],WL:[],OB:[],lineas:[],escalones:{sube:[],baja:[]},caja:null};
  const lin={},cj=new THREE.Box3();let m;
  root.traverse(o=>{const u=o.userData||{},n=o.name||'';
   if(o.isMesh){
@@ -26,7 +26,9 @@ function leer(root){root.updateMatrixWorld(true);
    return}
   if(/^mesa_/.test(n)){const p=pos(o);R.mesas.push({g:u.juego||n.slice(5),x:p.x,y:p.y,z:p.z,r:u.r||2.2,fam:u.fam||(u.libre?'f':'k'),libre:!!u.libre,o})}
   else if((m=n.match(/^escalera_(sube|baja)_/))){const p=pos(o),d=u.pie||[0,0];R.escaleras[m[1]]={x:p.x,z:p.z,r:u.r||1,ax:p.x+d[0],az:p.z+d[1],to:u.to||null}}
+  else if(/^llegada_escalera_/.test(n))R.llegadaEsc=pos(o);
   else if(/^llegada_/.test(n))R.llegada=pos(o);
+  else if((m=n.match(/^plano_(.+)_[^_]+$/))){const p=pos(o);R.planos.push({k:m[1],x:p.x,y:p.y,z:p.z,ry:+(u.ry||0)})}
   else if((m=n.match(/^puerta_(.+)_[^_]+$/)))R.puertas[m[1]]=pos(o)});
  // cada línea: eje y centro del cuerpo del muro (el que choca), largo de todo lo que cuelga de ella
  R.lineas=Object.values(lin).map(g=>{const b=g.cu||g.u,h=b.max.x-b.min.x>b.max.z-b.min.z;

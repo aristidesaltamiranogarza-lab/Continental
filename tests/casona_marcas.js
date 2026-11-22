@@ -10,6 +10,7 @@ const FAM='ctkf';
 function gltf(f){const b=fs.readFileSync(f);assert.strictEqual(b.readUInt32LE(0),0x46546c67,'no es GLB');
  const n=b.readUInt32LE(12);return JSON.parse(b.slice(20,20+n).toString('utf8'))}
 let fallas=0;
+const PUNTO={},cerca=(p,q)=>Math.abs(p[0]-q[0])<.01&&Math.abs(p[2]-q[2])<.01;
 for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0']]){const J=gltf(path.join(DIR,arch+'.glb')),N=J.nodes||[],by={};N.forEach(o=>by[o.name]=o);const ex=o=>o.extras||{};
  const t=(ok,msg)=>{if(!ok){fallas++;console.log('FALLA',arch,msg)}};
  t(!N.some(o=>/\.\d{3}$/.test(o.name||'')),'nombres con .001');
@@ -26,6 +27,11 @@ for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0']]){const J=gltf(path.j
   t(ex(o).to===to&&ex(o).r>0&&Array.isArray(ex(o).pie),'extras de escalera_'+k);
   t(N.some(e=>ex(e).escalera===k),'escalones '+k)}
  t(by['llegada_'+nv],'llegada');
+ // paso 4: una sola escalera; llegada y portales en el mismo punto en todos los niveles; planos "Ir a"
+ const le=by['llegada_escalera_'+nv];t(le,'llegada_escalera');if(le){PUNTO.le=PUNTO.le||le.translation;t(cerca(le.translation,PUNTO.le),'llegada_escalera fuera del punto común')}
+ for(const k of ['sube','baja']){const o=by['escalera_'+k+'_'+nv];if(!o)continue;PUNTO[k]=PUNTO[k]||o.translation;t(cerca(o.translation,PUNTO[k]),'escalera_'+k+' fuera del punto común')}
+ const pl=N.filter(o=>/^plano_.+_/.test(o.name));t(by['plano_escalera_'+nv]&&pl.every(o=>typeof ex(o).ry==='number'),'plano_escalera con ry');
+ if(nv==='n0')t(by.plano_zaguan_n0,'plano_zaguan_n0');
  t(N.filter(o=>/^puerta_.+_/.test(o.name)).length>0,'puertas');
  // choques: seg (uno por malla) o segs (varios, de 4 en 4); obs de 3 en 3
  let nseg=0;N.forEach(o=>{const e=ex(o);if(Array.isArray(e.seg)){nseg++;t(e.seg.length===4&&e.r>0,'seg de '+o.name)}
