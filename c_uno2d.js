@@ -54,8 +54,14 @@ GM.uno.body=cuerpo;
 // globitos: lo que hizo cada quien sale de su asiento (los números jugados ya se ven volar al descarte)
 // caras: castigo (+2/+4) sorprende o enoja, decir UNO alegra, que te cobren el UNO enoja
 const quien=t=>{const P=V.G.players;let b=-1;P.forEach((p,k)=>{if(t.includes(p.name)&&(b<0||p.name.length>P[b].name.length))b=k});return b};
+// anuncios nuevos (UANU, los mismos de 3D): la especial jugada salta sobre el descarte y "¡UNO!" sale junto al retrato
+const centro=s=>{const el=document.querySelector(s);if(!el)return null;const r=el.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]};
+function anuncio(e){if(!window.UANU)return false;const t=e.t,G=V.G;
+ if(/^dijo/.test(t)){const p=centro(`#app .m2d [data-seat="${e.k}"] .m2d-av`);if(!p)return false;UANU.pop(p[0],p[1]-30,'¡UNO!','#fdd835');return true}
+ if(e.c==null||!/^jugó/.test(t))return false;const c=U(e.c);if(c.t=='n')return false;const p=centro('#app .u2-desc');if(!p)return false;const w=c.c==4;
+ UANU.carta(c,w?G.color:c.c,p[0],p[1],w?UCN[G.color]:c.t=='s'?'¡Salto!':c.t=='r'?'¡Reversa!':'');return true}
 GM.uno.ev=e=>{if(ev0)ev0(e);if(!document.querySelector('#app .m2d')||e.k==null)return;const t=e.t;
  const n=+((t.match(/^robó (\d+) cartas \(castigo\)/)||[])[1]||0);if(n)M2D.reac(e.k,n>=4?'enojo':'sorpresa');else if(/^dijo/.test(t))M2D.reac(e.k,'feliz');
- else if(/^cobró UNO/.test(t)){M2D.reac(e.k,'feliz');M2D.reac(quien(t.slice(10)),'enojo',3200)}else if(/^jugó (comodín )?\+[24]/.test(t))M2D.reac(e.k,'feliz');if(/^jugó \d/.test(t))return;
+ else if(/^cobró UNO/.test(t)){M2D.reac(e.k,'feliz');M2D.reac(quien(t.slice(10)),'enojo',3200)}else if(/^jugó (comodín )?\+[24]/.test(t))M2D.reac(e.k,'feliz');if(/^jugó \d/.test(t)||anuncio(e))return;
  M2D.bb(e.k,t.charAt(0).toUpperCase()+t.slice(1),/castigo|cobr/.test(t)?'malo':/^dijo/.test(t)?'uno':'')};
 })();
