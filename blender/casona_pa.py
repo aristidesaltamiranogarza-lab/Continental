@@ -9,10 +9,14 @@
 import bpy, bmesh, math, os, sys, types
 from mathutils import Vector
 
-DIR = r'C:\Users\aris1\code\Continental'
+def _raiz():   # carpeta del repo: junto a este archivo, o la carpeta actual (blender.exe se corre desde el repo)
+    for d in ([os.path.dirname(os.path.dirname(os.path.abspath(__file__)))] if '__file__' in globals() else []) + [os.getcwd()]:
+        if os.path.isfile(os.path.join(d, 'blender', 'casona.py')): return d
+    raise SystemExit('correr blender.exe desde la carpeta del repo')
+DIR = _raiz()
 src = open(os.path.join(DIR, 'blender', 'casona_pb.py'), encoding='utf-8').read()
 src = src.replace("'pb_", "'pa_").replace("'pb.glb'", "'pa.glb'").replace("'casona_pb.blend'", "'casona_pa.blend'")
-P = types.ModuleType('casona_pb_lib'); exec(src, P.__dict__)
+P = types.ModuleType('casona_pb_lib'); P.__file__ = os.path.join(DIR, 'blender', 'casona_pb.py'); exec(src, P.__dict__)
 C = P.C
 N = dict(C.NIV['n1']); N['wins'] = []; N['barda'] = (0, 0, 0, 0); P.N = N
 K = P.K; K.update(H=N['H'], SPRING=2.9, RES=2048, SAMPLES=320)

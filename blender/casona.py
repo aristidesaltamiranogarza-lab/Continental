@@ -9,8 +9,8 @@
 # Uso (MCP): m=types.ModuleType('casona'); exec(open(RUTA).read(), m.__dict__); m.armar(); m.exportar()
 import bpy, math, os
 
-RAIZ = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else r'C:\Users\aris1\code\Continental\blender'
-if os.path.basename(RAIZ) != 'blender': RAIZ = r'C:\Users\aris1\code\Continental\blender'   # con --python-expr __file__ no es este archivo
+RAIZ = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else ''
+if os.path.basename(RAIZ) != 'blender': RAIZ = os.path.join(os.getcwd(), 'blender')   # con --python-expr: la carpeta actual es el repo
 SALIDA = os.path.join(os.path.dirname(RAIZ), 'modelos', 'casona')
 K = dict(t=.3, puerta=3.6, losa=.3, barandal=2.0, barda=2.4, pretil=2.0, ante=1.4, vent=4.0, esc=.35)
 

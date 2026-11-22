@@ -11,11 +11,15 @@
 import bpy, bmesh, math, os, sys, types
 from mathutils import Vector, Matrix
 
-DIR = r'C:\Users\aris1\code\Continental'
-C = types.ModuleType('casona'); exec(open(os.path.join(DIR, 'blender', 'casona.py'), encoding='utf-8').read(), C.__dict__)
+def _raiz():   # carpeta del repo: junto a este archivo, o la carpeta actual (blender.exe se corre desde el repo)
+    for d in ([os.path.dirname(os.path.dirname(os.path.abspath(__file__)))] if '__file__' in globals() else []) + [os.getcwd()]:
+        if os.path.isfile(os.path.join(d, 'blender', 'casona.py')): return d
+    raise SystemExit('correr blender.exe desde la carpeta del repo')
+DIR = _raiz()
+C = types.ModuleType('casona'); C.__file__ = os.path.join(DIR, 'blender', 'casona.py'); exec(open(os.path.join(DIR, 'blender', 'casona.py'), encoding='utf-8').read(), C.__dict__)
 N = C.NIV['n0']
 SAL = os.path.join(DIR, 'modelos', 'casona')
-K = dict(H=N['H'], t=C.K['t'], LAM=1.3, ROD=.1, PUERTA=C.K['puerta'], SILL=.5, TOP=4.2, SPRING=3.1, COL=.52, RES=2048, SAMPLES=384)
+K = dict(H=N['H'], t=C.K['t'], LAM=1.3, ROD=.1, PUERTA=C.K['puerta'], SILL=.5, TOP=4.2, SPRING=3.1, COL=.52, RES=2048, SAMPLES=1000)
 ARCOS = dict(zaguan=4.6, patio=4.6, salon=4.8, comedor=4.8)      # vanos con arco: altura de la clave
 LLEGADA = (18.5, 3.5)                                             # llegas por el zaguán
 GATA = (10.2, 23.8, math.pi / 2)                                  # junto a la hamaca, mirando al patio
@@ -28,6 +32,10 @@ COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), c
              barda=(.78, .7, .58), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08))
 EMITE = dict(arbotante=6, farol=8)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)
+# por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
+# vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
+PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=.5)
+FUERA = .1
 
 def V(x, y, z): return Vector((x - 18, z - 17, y))        # plano (x, alto, z) -> Blender
 def VB(v): return Vector((v[0], v[2], v[1]))               # vector del plano -> Blender
@@ -411,13 +419,18 @@ def mat(n):
     if n in EMITE: b.inputs['Emission Color'].default_value = (*c, 1); b.inputs['Emission Strength'].default_value = EMITE[n]
     return m
 
-def uv_metros(bm):
+def uv_metros(bm, veta=False):
+    """UV0 en metros por la cara dominante. veta: la v (dirección de la veta en CMAT) va a lo largo de cada cara."""
     uv = bm.loops.layers.uv.verify()
     for f in bm.faces:
         n = f.normal
         for lp in f.loops:
             c = lp.vert.co
             lp[uv].uv = (c.x, c.y) if abs(n.z) > .7 else (c.y, c.z) if abs(n.x) > .7 else (c.x, c.z)
+        if veta:
+            us = [lp[uv].uv[0] for lp in f.loops]; vs = [lp[uv].uv[1] for lp in f.loops]
+            if max(us) - min(us) > max(vs) - min(vs):
+                for lp in f.loops: lp[uv].uv = (lp[uv].uv[1], lp[uv].uv[0])
 
 def coleccion(n):
     c = bpy.data.collections.get(n)
@@ -433,7 +446,7 @@ def crear(col):
         if not bm.faces: bm.free(); continue
         if d['recalc']: bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
         bm.normal_update()
-        if d['uv']: uv_metros(bm)
+        if d['uv']: uv_metros(bm, d['mat'] == 'madera')
         me = bpy.data.meshes.new(n); bm.to_mesh(me); bm.free(); me.materials.append(mat(d['mat']))
         o = bpy.data.objects.new(n, me); col.objects.link(o)
         for k, v in d['ex'].items(): o[k] = [round(q, 3) for q in v] if isinstance(v, list) else v
@@ -483,14 +496,14 @@ def armar():
     return sc, col, obs
 
 # ---------- revisión, horneado y exportación ----------
-def vista(sc, ruta, cam, mira, ocultar=(), res=(960, 540), muestras=48):
+def vista(sc, ruta, cam, mira, ocultar=(), res=(960, 540), muestras=48, den=True):
     cd = bpy.data.cameras.new('cam'); cd.sensor_fit = 'VERTICAL'; cd.angle_y = math.radians(46)
     co = bpy.data.objects.new('cam', cd); sc.collection.objects.link(co); co.location = V(*cam)
     co.rotation_euler = (V(*mira) - V(*cam)).to_track_quat('-Z', 'Y').to_euler(); sc.camera = co
     esc = [o for o in bpy.data.objects if any(o.name.startswith(p) for p in ocultar)]
     for o in esc: o.visible_camera = False
     sc.render.resolution_x, sc.render.resolution_y = res; sc.render.resolution_percentage = 100
-    sc.cycles.samples = muestras; sc.cycles.use_denoising = True; sc.render.filepath = ruta
+    sc.cycles.samples = muestras; sc.cycles.use_denoising = den; sc.render.filepath = ruta
     bpy.ops.render.render(write_still=True)
     for o in esc: o.visible_camera = True
     bpy.data.objects.remove(co, do_unlink=True)
@@ -512,40 +525,86 @@ def uv_luz(obs):
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0, area_weight=0, scale_to_bounds=False)
     bpy.ops.object.mode_set(mode='OBJECT')
     for o in obs:
-        s = PRIO.get(o.name, 1)
-        if s != 1:
-            ly = o.data.uv_layers['luz'].data
-            for d in ly: d.uv = d.uv * s
+        s = PRIO.get(o.name, 1) * PRIO_MAT.get(o.data.materials[0].name if o.data.materials else '', 1)
+        ly = o.data.uv_layers['luz'].data
+        for p in o.data.polygons:
+            c = o.matrix_world @ p.center; n = p.normal; x, z = c.x + 18, c.y + 17
+            f = FUERA if (x < .05 and n.x < -.7) or (x > 35.95 and n.x > .7) or (z > 47.95 and n.y > .7) else 1
+            if s * f != 1:
+                for i in p.loop_indices: ly[i].uv = ly[i].uv * (s * f)
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.pack_islands(margin=.003, rotate=True)
+    bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=.002, shape_method='CONCAVE')
     bpy.ops.object.mode_set(mode='OBJECT')
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
 
-def hornear(sc, obs, res, muestras):
-    img = bpy.data.images.new('pb_luz', res, res, float_buffer=True)
-    for o in obs:
-        o.data.uv_layers.active = o.data.uv_layers['luz']
+def _img(o_img, nodo_img):
+    for o in o_img:
         for m in o.data.materials:
-            nt = m.node_tree; t = nt.nodes.get('bake') or nt.nodes.new('ShaderNodeTexImage'); t.name = 'bake'; t.image = img; nt.nodes.active = t
-    sc.cycles.samples = muestras; sc.cycles.use_denoising = False
-    bk = sc.render.bake; bk.use_pass_direct = True; bk.use_pass_indirect = True; bk.use_pass_color = False; bk.margin = 6; bk.target = 'IMAGE_TEXTURES'
+            nt = m.node_tree; t = nt.nodes.get('bake') or nt.nodes.new('ShaderNodeTexImage'); t.name = 'bake'; t.image = nodo_img; nt.nodes.active = t
+
+def _sel(obs):
     bpy.ops.object.select_all(action='DESELECT')
     for o in obs: o.select_set(True)
     bpy.context.view_layer.objects.active = obs[0]
-    bpy.ops.object.bake(type='DIFFUSE')
+
+def hornear(sc, obs, res, muestras, solo=None, limpio=True):
+    """Hornea la luz (directa + indirecta, sin color) en UV 'luz'. solo: hornear solo esas mallas (prueba rápida).
+    limpio: quita el ruido con OpenImageDenoise guiado por normales (sin guía borraba el detalle de los muros)."""
+    img = bpy.data.images.new('pb_luz', res, res, float_buffer=True)
+    for o in obs: o.data.uv_layers.active = o.data.uv_layers['luz']
+    _img(obs, img)
+    sc.cycles.samples = muestras; sc.cycles.use_denoising = False
+    bk = sc.render.bake; bk.use_pass_direct = True; bk.use_pass_indirect = True; bk.use_pass_color = False; bk.margin = 2; bk.target = 'IMAGE_TEXTURES'
+    sc.cycles.sample_clamp_indirect = 2     # sin destellos del rebote (dejaban manchas al quitar el ruido)
+    _sel(solo or obs); bpy.ops.object.bake(type='DIFFUSE')
+    if limpio:
+        nrm = bpy.data.images.new('pb_nrm', res, res, float_buffer=True); _img(obs, nrm)
+        sc.cycles.samples = 1; _sel(solo or obs); bpy.ops.object.bake(type='NORMAL', normal_space='OBJECT')
+        _img(obs, img); img = oidn(sc, img, nrm)
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
     img.filepath_raw = os.path.join(DIR, 'blender', 'pb_luz.exr'); img.file_format = 'OPEN_EXR'; img.save()
     return img
 
-def guardar(img, escala=.25):
+def oidn(sc, img, nrm):
+    """OpenImageDenoise del compositor sobre el mapa de luz, con normales horneadas y albedo blanco (es luz sola)."""
+    import numpy as np, tempfile
+    w, h = img.size; tmp = tempfile.mkdtemp()
+    def pix(i): a = np.empty(w * h * 4, dtype=np.float32); i.pixels.foreach_get(a); return a.reshape(h, w, 4)
+    def exr(a, n):
+        i = bpy.data.images.new(n, w, h, float_buffer=True); i.pixels.foreach_set(a.ravel())
+        i.filepath_raw = os.path.join(tmp, n + '.exr'); i.file_format = 'OPEN_EXR'; i.save(); return i
+    n = pix(nrm); vac = n[:, :, :3].sum(2) < 1e-4; n[:, :, :3] = n[:, :, :3] * 2 - 1; n[vac, :3] = (0, 0, 1)
+    al = np.ones((h, w, 4), dtype=np.float32)
+    i_c, i_n, i_a = exr(pix(img), 'c'), exr(n, 'n'), exr(al, 'a')
+    t = bpy.data.node_groups.new('oidn', 'CompositorNodeTree'); sc.compositing_node_group = t
+    t.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+    out = t.nodes.new('NodeGroupOutput'); d = t.nodes.new('CompositorNodeDenoise')
+    for k, im in (('Image', i_c), ('Normal', i_n), ('Albedo', i_a)):
+        nd = t.nodes.new('CompositorNodeImage'); nd.image = im; t.links.new(nd.outputs['Image'], d.inputs[k])
+    d.inputs['HDR'].default_value = True
+    try: d.inputs['Quality'].default_value = 'High'
+    except Exception as e: print('oidn calidad', e)
+    t.links.new(d.outputs['Image'], out.inputs[0])
+    r = sc.render; r.resolution_x, r.resolution_y, r.resolution_percentage = w, h, 100
+    r.image_settings.file_format = 'OPEN_EXR'; r.image_settings.color_depth = '32'; r.filepath = os.path.join(tmp, 'den.exr')
+    sc.cycles.samples = 1; vis = [o for o in sc.objects if not o.hide_render]
+    for o in vis: o.hide_render = True             # el compositor solo usa imágenes: que no renderice la escena
+    bpy.ops.render.render(write_still=True)
+    for o in vis: o.hide_render = False
+    sc.compositing_node_group = None; r.image_settings.file_format = 'PNG'; r.image_settings.color_depth = '8'
+    den = bpy.data.images.load(r.filepath); a = pix(den); a[:, :, 3] = 1
+    print('oidn: listo', w, h)
+    out_i = bpy.data.images.new('pb_luz_den', w, h, float_buffer=True); out_i.pixels.foreach_set(a.ravel()); return out_i
+
+def guardar(img, escala=.25, ruta=None, grano=False):
     import numpy as np
     w, h = img.size; px = np.empty(w * h * 4, dtype=np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)
     c = px[:, :, :3]
-    c = (c + np.roll(c, 1, 0) * .5 + np.roll(c, -1, 0) * .5 + np.roll(c, 1, 1) * .5 + np.roll(c, -1, 1) * .5) / 3   # quita el grano fino
+    if grano: c = (c + np.roll(c, 1, 0) * .5 + np.roll(c, -1, 0) * .5 + np.roll(c, 1, 1) * .5 + np.roll(c, -1, 1) * .5) / 3   # quita el grano fino
     print('luz: media %.3f p50 %.3f p95 %.3f p99 %.3f' % (c.mean(), *np.percentile(c, [50, 95, 99])))
     px[:, :, :3] = np.clip(c * escala, 0, 1) ** (1 / 2.2); px[:, :, 3] = 1
     out = bpy.data.images.new('pb_luz_jpg', w, h); out.colorspace_settings.name = 'Non-Color'
-    out.pixels.foreach_set(px.ravel()); out.filepath_raw = os.path.join(SAL, 'pb_luz.jpg'); out.file_format = 'JPEG'
+    out.pixels.foreach_set(px.ravel()); out.filepath_raw = ruta or os.path.join(SAL, 'pb_luz.jpg'); out.file_format = 'JPEG'
     try: out.save(quality=84)
     except TypeError: out.save()
 
@@ -560,9 +619,58 @@ def exportar(col):
                               export_materials='EXPORT', export_texcoords=True, export_normals=True, export_yup=True)
     print('pb.glb', os.path.getsize(f), 'bytes')
 
+# ---------- prueba rápida de la luz: zaguán y salón, antes y después con las mismas cámaras ----------
+CAM_PRUEBA = [((17, 9.5, -4), (10, 1.5, 6), ('pb_muro_h0_', 'pb_techo')), ((20.3, 4.2, 1.2), (16, 2.6, 6.5), ('pb_techo',))]
+
+def region(obs, x0=0, x1=21, z0=0, z1=10):
+    out = []
+    for o in obs:
+        if 'techo' in o.name or '_muro_h0_' in o.name: continue
+        bb = [o.matrix_world @ Vector(c) for c in o.bound_box]; xs = [v.x + 18 for v in bb]; zs = [v.y + 17 for v in bb]
+        if min(xs) < x1 and max(xs) > x0 and min(zs) < z1 and max(zs) > z0: out.append(o)
+    return out
+
+def previa(sc, solo, luz, carpeta, pre):
+    """Render como en el juego: color base por la luz horneada (jpg, sRGB, x4) como emisión, en las mallas de 'solo'."""
+    li = bpy.data.images.load(luz, check_existing=False); li.colorspace_settings.name = 'sRGB'; PM, orig = {}, {}
+    for o in solo:
+        m0 = o.data.materials[0]; n = m0.name
+        if n not in PM:
+            m = bpy.data.materials.new('prev_' + n); m.use_nodes = True; nt = m.node_tree
+            for x in list(nt.nodes): nt.nodes.remove(x)
+            uv = nt.nodes.new('ShaderNodeUVMap'); uv.uv_map = 'luz'; tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = li
+            mu = nt.nodes.new('ShaderNodeVectorMath'); mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = [4 * q for q in COLOR.get(n, (.7, .7, .7))]
+            em = nt.nodes.new('ShaderNodeEmission'); ou = nt.nodes.new('ShaderNodeOutputMaterial')
+            nt.links.new(uv.outputs[0], tx.inputs[0]); nt.links.new(tx.outputs[0], mu.inputs[0]); nt.links.new(mu.outputs[0], em.inputs[0]); nt.links.new(em.outputs[0], ou.inputs[0])
+            PM[n] = m
+        orig[o] = m0; o.data.materials[0] = PM[n]
+    rs = []
+    for i, (cam, mira, ocu) in enumerate(CAM_PRUEBA):
+        r = os.path.join(carpeta, '%s_%d.png' % (pre, i)); vista(sc, r, cam, mira, tuple(ocu) + ('px_',), muestras=384, den=False); rs.append(r)
+    for o, m in orig.items(): o.data.materials[0] = m
+    return rs
+
+def comparar(carpeta):
+    """Une antes (izquierda) y después (derecha) de cada cámara en prueba_luz.png."""
+    import numpy as np
+    filas = []
+    for i in range(len(CAM_PRUEBA)):
+        par = []
+        for pre in ('antes', 'despues'):
+            im = bpy.data.images.load(os.path.join(carpeta, '%s_%d.png' % (pre, i))); w, h = im.size
+            a = np.empty(w * h * 4, dtype=np.float32); im.pixels.foreach_get(a); par.append(a.reshape(h, w, 4))
+        par.insert(1, np.ones((h, 6, 4), dtype=np.float32)); filas.append(np.concatenate(par, 1))
+    filas = filas[::-1]; t = np.concatenate([x for f in filas for x in (f, np.ones((6, f.shape[1], 4), dtype=np.float32))][:-1], 0)
+    H, W = t.shape[:2]; o = bpy.data.images.new('cmp', W, H); o.pixels.foreach_set(t.ravel())
+    o.filepath_raw = os.path.join(carpeta, 'prueba_luz.png'); o.file_format = 'PNG'; o.save(); print('comparar:', o.filepath_raw)
+
 if __name__ == '__main__':
     arg = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     acc = arg[0] if arg else 'vista'
+    if acc == 'antes':        # con blender/casona_pb.blend abierto: la luz que hoy usa el juego
+        sc = bpy.context.scene; motor(sc); car = arg[1]
+        obs = [o for o in bpy.data.collections['pb'].objects if o.type == 'MESH' and 'luz' in o.data.uv_layers]
+        previa(sc, region(obs), os.path.join(SAL, 'pb_luz.jpg'), car, 'antes'); sys.exit(0)
     sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))
@@ -570,5 +678,10 @@ if __name__ == '__main__':
         res = int(arg[1]) if len(arg) > 1 else K['RES']; mu = int(arg[2]) if len(arg) > 2 else K['SAMPLES']
         uv_luz(obs); img = hornear(sc, obs, res, mu); guardar(img); exportar(col)
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(DIR, 'blender', 'casona_pb.blend'))
+    elif acc == 'prueba':     # hornea solo zaguán y salón con los ajustes nuevos y los compara con 'antes'
+        car = arg[1]; res = int(arg[2]) if len(arg) > 2 else K['RES']; mu = int(arg[3]) if len(arg) > 3 else K['SAMPLES']
+        uv_luz(obs); solo = region(obs); print('prueba:', len(solo), 'mallas')
+        img = hornear(sc, obs, res, mu, solo=solo); luz = os.path.join(car, 'luz_nueva.jpg'); guardar(img, ruta=luz)
+        previa(sc, solo, luz, car, 'despues'); comparar(car)
     elif acc == 'exportar':
         exportar(col)

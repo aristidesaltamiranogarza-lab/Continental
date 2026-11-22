@@ -41,9 +41,15 @@ function texturas(ctex){if(TX)return TX;
   g.fillStyle='rgba(50,28,12,.35)';g.fillRect(0,j*s,w,1.5);g.fillRect(((j*.37)%1)*w,j*s,2,s)}};
  const libros=(g,w,h)=>{g.fillStyle='#3a2416';g.fillRect(0,0,w,h);const c=['#8a3b2e','#2f5d4a','#b88a3a','#3d4f7a','#6e2f3f','#c9b48a','#4f6b3a','#7a4a2a'];let x=0;
   while(x<w){const lw=6+rnd()*9,lh=h*(.62+rnd()*.3);g.fillStyle=c[(rnd()*c.length)|0];g.fillRect(x,h-lh,lw-1,lh);g.fillStyle='rgba(255,240,210,.25)';g.fillRect(x,h-lh+lh*.15,lw-1,2);x+=lw}};
+ // cal: pintura de cal, grano fino y nubes claras/oscuras muy tenues que se repiten sin costura (azar propio: no mueve las demás)
+ const cal=(g,w,h)=>{const r2=(s=>()=>(s=(s*9301+49297)%233280)/233280)(7);g.fillStyle='#ddb395';g.fillRect(0,0,w,h);
+  for(let i=0;i<46;i++){const x=r2()*w,y=r2()*h,r=40+r2()*90,cl=i%2?'255,244,228':'150,95,60',a=i%2?.07:.045;
+   for(const dx of [-w,0,w])for(const dy of [-h,0,h]){const X=x+dx,Y=y+dy;if(X+r<0||X-r>w||Y+r<0||Y-r>h)continue;
+    const gr=g.createRadialGradient(X,Y,0,X,Y,r);gr.addColorStop(0,`rgba(${cl},${a})`);gr.addColorStop(1,`rgba(${cl},0)`);g.fillStyle=gr;g.fillRect(X-r,Y-r,2*r,2*r)}}
+  for(let i=0;i<3600;i++){g.fillStyle=i%2?'rgba(255,240,220,.05)':'rgba(120,70,40,.04)';g.fillRect(r2()*w,r2()*h,1+r2()*1.5,1+r2()*1.5)}};
  const copa=ruido('#86aa76','rgba(60,95,50,.35)','rgba(190,220,160,.25)',140,4,10);
  TX={
-  muro:{map:T('muro',256,256,ruido('#ddb395','rgba(255,240,220,.05)','rgba(120,70,40,.04)',900,1,1.5),1/2)},   // pintura lisa: solo grano fino, sin manchas
+  muro:{map:T('muro',512,512,cal,1/4)},   // cal: grano fino y nubes muy suaves
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.1)','rgba(120,100,70,.08)',80,8,34),1/4)},
   cantera:{map:T('cantera',256,256,ruido('#e7dac4','rgba(120,95,60,.12)','rgba(255,248,232,.2)',400,1,2),1/2)},
   pasta:{map:T('pasta',256,256,roseta('#ece5d4','#bccab2','#d9ad94','#bccab2'),1/1.2)},
