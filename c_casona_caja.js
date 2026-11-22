@@ -7,7 +7,7 @@
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=/[?&]casa=caja\b/.test(location.search),V='3',BASE='modelos/casona/',VP='3',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={c0:Q('pb')?null:['pb',VP],c1:Q('pa')?null:['pa','1']};
+const ON=/[?&]casa=caja\b/.test(location.search),V='3',BASE='modelos/casona/',VP='4',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','2','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
@@ -24,7 +24,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);
  CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V))).then(gl=>{const R=gl.scene;S.add(R);
-  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.jpg?v='+hb[1]);F.copas=CMAT.copas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
+  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1]);F.copas=CMAT.copas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   const D=MARC.leer(R);
   WL.push(...D.WL);OB.push(...D.OB);LIN.push(...D.lineas);
   if(D.llegada){sp.x=D.llegada.x;sp.z=D.llegada.z}

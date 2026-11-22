@@ -679,6 +679,7 @@ def oidn(sc, img, nrm):
     print('oidn: listo', w, h)
     out_i = bpy.data.images.new('pb_luz_den', w, h, float_buffer=True); out_i.pixels.foreach_set(a.ravel()); return out_i
 
+NOM = 'pb'   # nombre de salida (casona_pa.py lo cambia a 'pa')
 def guardar(img, escala=.25, ruta=None, grano=False):
     import numpy as np
     w, h = img.size; px = np.empty(w * h * 4, dtype=np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)
@@ -690,7 +691,7 @@ def guardar(img, escala=.25, ruta=None, grano=False):
     out = bpy.data.images.new('pb_luz_webp', w, h); out.colorspace_settings.name = 'Non-Color'; out.pixels.foreach_set(px.ravel())
     sc = bpy.context.scene; s = sc.render.image_settings; prev = (s.file_format, s.color_mode, s.quality)
     s.file_format = 'WEBP'; s.color_mode = 'RGB'; s.quality = 100
-    p = ruta or os.path.join(SAL, 'pb_luz.webp'); out.save_render(p, scene=sc); print('luz:', p, os.path.getsize(p) // 1024, 'KB')
+    p = ruta or os.path.join(SAL, NOM + '_luz.webp'); out.save_render(p, scene=sc); print('luz:', p, os.path.getsize(p) // 1024, 'KB')
     s.file_format, s.color_mode, s.quality = prev
 
 def exportar(col):
@@ -699,10 +700,10 @@ def exportar(col):
     bpy.ops.object.select_all(action='DESELECT')
     for o in col.objects: o.select_set(True)
     bpy.context.view_layer.objects.active = next(o for o in col.objects if o.type == 'MESH')
-    f = os.path.join(SAL, 'pb.glb')
+    f = os.path.join(SAL, NOM + '.glb')
     bpy.ops.export_scene.gltf(filepath=f, export_format='GLB', use_selection=True, export_extras=True, export_apply=True,
                               export_materials='EXPORT', export_texcoords=True, export_normals=True, export_yup=True)
-    print('pb.glb', os.path.getsize(f), 'bytes')
+    print(NOM + '.glb', os.path.getsize(f), 'bytes')
 
 # ---------- prueba rápida de la luz: zaguán y salón, antes y después con las mismas cámaras ----------
 CAM_PRUEBA = [((17, 9.5, -4), (10, 1.5, 6), ('pb_muro_h0_', 'pb_techo')), ((20.3, 4.2, 1.2), (16, 2.6, 6.5), ('pb_techo',))]

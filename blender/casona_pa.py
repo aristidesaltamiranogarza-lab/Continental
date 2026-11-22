@@ -3,7 +3,7 @@
 # NIV['n1'] de blender/casona.py; los nombres salen con prefijo pa_. Biblioteca (Mérida en Venta) con libreros, sala de tableros
 # (YuCATÁN) con aparador y mecedoras, antesala, balcones a la calle con herrería, corredor alto con arcos rebajados sobre las
 # columnas y barandal de 2.0 al vacío; abajo, por el vacío, una copia ligera del patio (laja, árbol, arriate, macetas y arquería).
-# Tu cuarto y sala de música quedan lisos (paso 9). Exporta modelos/casona/pa.glb y pa_luz.jpg (CMAT los arma). Sin tocar el archivo abierto:
+# Tu cuarto y sala de música quedan lisos (paso 9). Exporta modelos/casona/pa.glb y pa_luz.webp (CMAT los arma). Sin tocar el archivo abierto:
 #   blender -b --factory-startup --python blender/casona_pa.py -- vista [carpeta]
 #   blender -b --factory-startup --python blender/casona_pa.py -- hornear [res] [muestras]
 import bpy, bmesh, math, os, sys, types
@@ -21,6 +21,7 @@ C = P.C
 N = dict(C.NIV['n1']); N['wins'] = []; N['barda'] = (0, 0, 0, 0); P.N = N
 K = P.K; K.update(H=N['H'], SPRING=2.9, RES=2048, SAMPLES=320)
 P.ARCOS = dict(biblioteca=3.9, tableros=3.9)
+P.NOM = 'pa'   # guardar/exportar escriben pa.glb y pa_luz.webp
 P.COLOR.update(duela=(.48, .3, .18), libros=(.5, .32, .26), cajas=(.55, .26, .2), losa=(.7, .66, .6))
 ABAJO = -C.NIV['n1']['elev']          # el piso del patio visto desde arriba
 ARBOL = P.ARBOL
