@@ -72,7 +72,7 @@ function backTex(){if(texC.b)return texC.b;const cn=cnvC(),g=cn.getContext('2d')
 function glowTex(){if(texC.glow)return texC.glow;const c=cnv(256,256),g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';rr(g,52,52,152,152,16);g.fill();g.fill();return texC.glow=tx(c)}
 const GI=152/256;                        // parte "sólida" de la textura de brillo
 const FELT={green:['#2f9a62','#0f4a2d'],red:['#c0393f','#5e1218'],blue:['#3d84cc','#123a68'],orange:['#d98a35','#74400c'],purple:['#8457c0','#2e1452'],graphite:['#5d656f','#1d2126']};
-(window.MESA_J=window.MESA_J||{}).uno={col:()=>FELT[sbg]||FELT.green,logo:null};   // la casa pone esta misma mesa (c_mesa3d.js)
+(window.MESA_J=window.MESA_J||{}).uno={col:()=>FELT[sbg]||FELT.green,logo:null,r:n=>MESA.radio(n)-1.8};   // la casa pone esta misma mesa (c_mesa3d.js)
 // anillo de flechas alrededor del centro: gira en el sentido del juego y se pinta del color actual
 function ringTex(d){const k='ring'+d;if(texC[k])return texC[k];const S=1024,cn=cnv(S,S),g=cn.getContext('2d'),c=S/2,r=440;
  // 4 arcos gruesos con punta en el sentido del juego (como el anillo 2D); el halo da el brillo suave
@@ -143,7 +143,8 @@ function init(){if(ready)return;ready=true;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  // la mesa redonda (c_mesa3d.js), la misma de Continental: crece con los jugadores; los personajes en sus sillas (c_mesa_pj.js)
- const ps=por?.95:.85,np=V&&V.G?V.G.players.length:4;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:np,r:MESA.radio(np)-1.8,col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
+ const ps=por?.95:.85,np=V&&V.G?V.G.players.length:4;tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:np,r:MESA_J.uno.r(np),col:FELT[sbg]||FELT.green,logo:null,sep:3*ps});
+ mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));   // personajes del tamaño de la casa, con o sin la casa de fondo
  const rx=mesa.r,rz=mesa.r;L=Object.assign(L||{},{por,rx,rz,ps,edge:null});
  // al centro de la mesa: mazo a la izquierda y descarte a la derecha, más grandes que la carta real (se leen sin acercar);
  // sk/sd = escala del mazo y del descarte; el anillo de arcos los rodea
@@ -440,7 +441,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // sin su cuarto en la casa: los Miis a tamaño de casa
-function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;W=0}   // las sillas cambian de lugar: se vuelve a encuadrar (layout y sync)
+function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));mesa.sillas[0].visible=true;W=0}   // las sillas cambian de lugar: se vuelve a encuadrar (layout y sync)
 function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0')}catch(e){}render()}
 GM.uno.body=function(){
  if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?UI.dim(on?1:0,'u3dToggle()'):'')+orig()}
