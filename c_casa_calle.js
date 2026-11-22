@@ -11,6 +11,8 @@
 if(typeof THREE==='undefined')return;
 const FZ=19.3,ZB=23.3,ZA=33.3,ZE=37.3,YA=-.35,CR=0xefe6d2,PI=0xd9ccb2,HI=0x1c1c1e,LAU=[-14,22.4],POS=[13.8,22.85];
 let EXT=null,REG=false,rs=11;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280,pick=a=>a[(rnd()*a.length)|0];
+// medidas del exterior: la casa vieja (fachada en 19.3, lote ±17.3) o la casona (?casa=caja: fachada en 17, lote ±18, banqueta de 1.6 como la del GLB, vecinos más bajos S)
+let E=null;const EE=()=>E||(E=window.CAJA&&CAJA.on?{fz:17,zb:18.6,za:28.6,ze:32.6,lx:18,lau:null,pos:[11.8,18.3],aco:[13.2,9.4,17.06],S:.68,zt:-31.4}:{fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:17.3,lau:LAU,pos:POS,aco:[15.4,8.1,FZ+.06],S:1,zt:-42.4});
 const dk=(c,k)=>new THREE.Color(c).multiplyScalar(k||.72).getHex();
 const ZON=[],TIN=[],VID=[],LUZ=[],NOC=new THREE.Color(0x6c7898),DIA=new THREE.Color(0xffffff);
 
@@ -37,7 +39,7 @@ const cP=new THREE.Vector3(),tA=new THREE.Vector3();
 function fondo(R,cam,SC,p){if(!EXT||!window.CIELO||!CIELO.fondo)return false;if(SC.background)SC.background=null;p=p||'pb';const y0=(CIELO.ALT&&CIELO.ALT[p])||0;
  cam.getWorldPosition(cP);const H3=window.CASA3D,av=H3&&H3.yo&&H3.yo();if(av)tA.set(av.x,1.6,av.z);else cam.getWorldDirection(tA).multiplyScalar(14).add(cP);
  cP.y+=y0;tA.y+=y0;   // las zonas van en coordenadas de la casa (planta baja en 0)
- const lj=CIELO.lejos||[],fuera=cP.z<-42.4||cP.z>ZE;
+ const lj=CIELO.lejos||[],fuera=cP.z<EE().zt||cP.z>EE().ze;
  for(const z of ZON)if(cruza(cP,tA,z.b))z.o.forEach(o=>o.visible=false);if(fuera)lj.forEach(o=>o.visible=false);
  CIELO.fondo(R,cam,p);
  for(const z of ZON)z.o.forEach(o=>o.visible=true);lj.forEach(o=>o.visible=true);return true}
@@ -93,7 +95,7 @@ function fachada(Q,k){const {std,ctex}=k,L=LOTE(),V=LOTE(),VL=LOTE(),b=(w,h,d,c,
  Q.add(M,vidrio(V.mesh(new THREE.MeshBasicMaterial()),0x2c3640),vidrio(VL.mesh(new THREE.MeshBasicMaterial()),0xd8d2c0))}
 
 // ---------- afuera (CIELO.mundo): calle, banquetas, postes, laurel, vocho y los vecinos ----------
-function calle(k){const {ctex}=k,RT=new THREE.Group();RT.name='calle';CIELO.mundo.add(RT);
+function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=EE(),dz=ZB-23.3;const {ctex}=k,RT=new THREE.Group();RT.name='calle';CIELO.mundo.add(RT);
  const tx=(key,rep,draw)=>{const t=ctex(key,256,256,draw,1);t.repeat.set(1/rep,1/rep);return t},sr=s=>()=>(s=(s*9301+49297)%233280)/233280;
  const asf=tx('asfalto',12,(g,w,h)=>{const r=sr(3);g.fillStyle='#55555a';g.fillRect(0,0,w,h);
   for(let i=0;i<5;i++){const v=r()<.5?40:105;g.fillStyle=`rgba(${v},${v},${v+3},.16)`;g.fillRect(r()*w,r()*h,30+r()*90,20+r()*60)}
@@ -117,7 +119,7 @@ function calle(k){const {ctex}=k,RT=new THREE.Group();RT.name='calle';CIELO.mund
   L.box(.3,.34,ZB+75,0xaaa498,xc,YA+.165,(ZB-75)/2);L.box(.3,.34,100-ZA,0xaaa498,xc,YA+.165,(ZA+100)/2)});
  // tope pintado y registros
  for(let j=0;j<10;j++)L.geo(new THREE.CylinderGeometry(.5,.5,1,12).scale(1,1,.38),j%2?0x1c1c1c:0xf2c230,-36,YA,ZB+.5+j,0,Math.PI/2,0);
- [[-8,28.6],[24,26.4],[-52,30.1],[60,27.2]].forEach(([x,z])=>{L.cyl(.75,.75,.05,0x3c3c3e,x,YA+.02,z,16);L.cyl(.6,.6,.06,0x2c2c2e,x,YA+.025,z,16)});
+ [[-8,28.6],[24,26.4],[-52,30.1],[60,27.2]].forEach(([x,z])=>{z+=dz;L.cyl(.75,.75,.05,0x3c3c3e,x,YA+.02,z,16);L.cyl(.6,.6,.06,0x2c2c2e,x,YA+.025,z,16)});
  // postes de concreto con cruceta, aisladores y lámpara; cables entre ellos (y la acometida a la casa)
  const PO=[[-75,1],[-44,1],[POS[0],1],[44,1],[75,1],[-60,-1],[-29,-1],[0,-1],[30,-1],[61,-1]],zp=s=>s>0?POS[1]:ZA+.45;
  PO.forEach(([x,s])=>{const z=zp(s);L.cyl(.17,.26,12.2,0x9c978c,x,6.1,z,8);L.box(.16,.16,3,0x8a7a64,x,11.3,z);
@@ -126,26 +128,26 @@ function calle(k){const {ctex}=k,RT=new THREE.Group();RT.name='calle';CIELO.mund
  const P=[],cat=(a,c,sag)=>{const f=t=>[a[0]+(c[0]-a[0])*t,a[1]+(c[1]-a[1])*t-sag*4*t*(1-t),a[2]+(c[2]-a[2])*t];for(let i=0;i<10;i++)P.push(...f(i/10),...f((i+1)/10))};
  [1,-1].forEach(s=>{const z=zp(s),xs=[-215,...PO.filter(p=>p[1]===s).map(p=>p[0]).sort((a,c)=>a-c),215];
   for(let i=0;i<xs.length-1;i++){[-1.3,0,1.3].forEach(dz=>cat([xs[i],11.62,z+dz],[xs[i+1],11.62,z+dz],.7));cat([xs[i],8.6,z],[xs[i+1],8.6,z],1)}});
- cat([POS[0],8.6,POS[1]],[15.4,8.1,FZ+.06],.35);
+ cat([POS[0],8.6,POS[1]],ACO,.35);
  const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(P,3));RT.add(new THREE.LineSegments(cg,new THREE.LineBasicMaterial({color:0x161616})));
  // laurel en su cazuela, con el tronco encalado
- {const [x,z]=LAU;L.box(1.9,.2,1.9,0xe8e2d4,x,.1,z);L.box(1.55,.02,1.55,0x4a3626,x,.205,z);
+ if(LAU){const [x,z]=LAU;L.box(1.9,.2,1.9,0xe8e2d4,x,.1,z);L.box(1.55,.02,1.55,0x4a3626,x,.205,z);
   L.cyl(.32,.46,6.2,0x7a6a58,x,3.3,z,10);L.cyl(.48,.48,1.5,0xf4f1ea,x,.95,z,10);
   for(let i=0;i<4;i++)L.rama(0x6a5a48,x,5.6,z,3.2,.22,.12,i/4*Math.PI*2+.4,.75);
-  for(let i=0;i<18;i++)LF.bola(1.3+rnd()*.8,1.15,.85,1.15,pick([0x2f5a2a,0x3a6b32,0x2a4f25,0x447a38]),x+(rnd()-.5)*7,8.4+rnd()*3.6,Math.min(25.4,Math.max(21.6,z+.8+(rnd()-.5)*4.4)))}
+  for(let i=0;i<18;i++)LF.bola(1.3+rnd()*.8,1.15,.85,1.15,pick([0x2f5a2a,0x3a6b32,0x2a4f25,0x447a38]),x+(rnd()-.5)*7,8.4+rnd()*3.6,Math.min(ZB+2.1,Math.max(ZB-1.7,z+.8+(rnd()-.5)*4.4)))}
  // vocho estacionado junto a la banqueta (c_casa_vocho.js)
- if(window.VOCHO){const V=VOCHO.hazlo(0xf5c518);V.position.set(7.5,YA,25.2);RT.add(V)}
+ if(window.VOCHO){const V=VOCHO.hazlo(0xf5c518);V.position.set(7.5,YA,ZB+1.9);RT.add(V)}
  // luces de noche: el poste de la casa y los faroles del portón
  const lp=new THREE.PointLight(0xffd9a0,0,34,1.2);lp.position.set(POS[0],10.1,POS[1]+2.6);RT.add(lp);luz(lp,70);
  const lz=new THREE.PointLight(0xffc98a,0,16,1.5);lz.position.set(0,6.2,FZ+1.4);RT.add(lz);luz(lz,24);
- const cop=LF.mesh(new THREE.MeshLambertMaterial({flatShading:true}));zona([cop],[LAU[0]-5.2,LAU[0]+5.2,6.6,13.8,19.2,27.8]);   // la copa del laurel se esconde si tapa a tu Mii
+ const cop=LF.mesh(new THREE.MeshLambertMaterial({flatShading:true}));if(LAU)zona([cop],[LAU[0]-5.2,LAU[0]+5.2,6.6,13.8,LAU[1]-3.2,LAU[1]+5.4]);   // la copa del laurel se esconde si tapa a tu Mii
  RT.add(LA.mesh(new THREE.MeshLambertMaterial({map:asf})),LB.mesh(new THREE.MeshLambertMaterial({map:ban})),L.mesh(new THREE.MeshLambertMaterial()),cop,vidrio(VL.mesh(new THREE.MeshBasicMaterial()),0xd8d2c0));
  // los vecinos: de este lado (con árboles en sus patios) y enfrente; cada bloque se esconde si tapa a tu Mii
  const mC=new THREE.MeshLambertMaterial({map:pat}),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
  const lado=(xs,s,arb,b)=>{const Lc=LOTE(),Lv=LOTE(),Lf=LOTE();xs.forEach(([a,c])=>fila(Lc,Lv,Lf,a,c,s,arb));const G=new THREE.Group();
-  G.add(Lc.mesh(mC));if(Lv.n())G.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));RT.add(G);zona([G],b)};
- lado([[17.3,80],[90,215]],1,true,[17.35,400,-2,80,-90,FZ-.05]);
- lado([[-17.3,-80],[-90,-215]],1,true,[-400,-17.35,-2,80,-90,FZ-.05]);
+  const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));RT.add(G);zona([G],b)};   // la casona: vecinos más bajos (S), los árboles no
+ lado([[LX,80],[90,215]],1,true,[LX+.05,400,-2,80,-90,FZ-.05]);
+ lado([[-LX,-80],[-90,-215]],1,true,[-400,-LX-.05,-2,80,-90,FZ-.05]);
  lado([[-215,-90],[-80,80],[90,215]],-1,false,[-400,400,-2,80,ZE+.05,200]);
  return RT}
 
@@ -154,7 +156,7 @@ const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c4
  AZO=[0xb5473a,0xd9d4c7,0x9a9890,0xc9764a],VERD=[0x3f7a35,0x4b8a3c,0x356b2e,0x2f5f2a];
 function fila(L,V,F,xa,xb,s,arb){const dir=xb>xa?1:-1;let x=xa;
  while(Math.abs(xb-x)>1){let w=7+rnd()*6;const rest=Math.abs(xb-x);if(rest-w<5)w=rest;casa(L,V,F,Math.min(x,x+dir*w),Math.max(x,x+dir*w),s,arb);x+=dir*w}}
-function casa(L,V,F,x0,x1,s,arb){const zf=s>0?FZ:ZE,w=x1-x0,cx=(x0+x1)/2,o=k=>zf+s*k,r=rnd(),dos=r<.2,hr=dos?14.6+rnd()*2.4:(r<.34?7.2+rnd()*.8:8.4+rnd()*1.8),
+function casa(L,V,F,x0,x1,s,arb){const zf=s>0?E.fz:E.ze,w=x1-x0,cx=(x0+x1)/2,o=k=>zf+s*k,r=rnd(),dos=r<.2,hr=dos?14.6+rnd()*2.4:(r<.34?7.2+rnd()*.8:8.4+rnd()*1.8),
   dd=14+rnd()*12,c=pick(PAL),cr=rnd()<.7?CR:0xf7f2e6,mad=pick(MADS),lejos=Math.abs(cx)>95;
  L.box(w,hr,dd,c,cx,hr/2,o(-dd/2));L.box(w,.12,dd-.3,pick(AZO),cx,hr+.06,o(-dd/2-.15));          // la casa y su azotea
  L.box(w,1,.3,c,cx,hr+.5,o(-.15));L.box(w+.04,.14,.44,cr,cx,hr+1.07,o(-.1));                     // pretil
@@ -166,7 +168,7 @@ function casa(L,V,F,x0,x1,s,arb){const zf=s>0?FZ:ZE,w=x1-x0,cx=(x0+x1)/2,o=k=>zf
   if(dos){L.box(2.7,.2,.95,cr,px,9.7,o(.47));if(!lejos){for(let j=0;j<9;j++)L.box(.04,1.1,.04,HI,px-1.28+j*.32,10.35,o(.9));L.box(2.7,.06,.06,HI,px,10.92,o(.9))}
    ventana(L,V,px,o,mad,cr,lejos,9.9,Math.min(hr-11.4,3.6))}}
  (dr?[[x0,dr[0]],[dr[1],x1]]:[[x0,x1]]).forEach(([a,b])=>{if(b-a>.02)L.box(b-a,1,.1,dk(c),(a+b)/2,.5,o(.05))});   // zócalo
- if(arb&&rnd()<.6){const tz=Math.max(-40,zf-dd-3-rnd()*9),tx=cx+(rnd()-.5)*(w-3),h=4.5+rnd()*3,fl=rnd()<.25;L.cyl(.24,.34,h,0x6b5a48,tx,h/2,tz,7);
+ if(arb&&rnd()<.6){const tz=Math.max(E.zt+2.4,zf-dd-3-rnd()*9),tx=cx+(rnd()-.5)*(w-3),h=4.5+rnd()*3,fl=rnd()<.25;F.cyl(.24,.34,h,0x6b5a48,tx,h/2,tz,7);
   for(let i=0;i<6;i++)F.bola(1.5+rnd()*.9,1.2,.9,1.2,fl&&i%2?pick([0xe8401c,0xf2562a]):pick(VERD),tx+(rnd()-.5)*3.2,h+rnd()*2.4,tz+(rnd()-.5)*3.2)}}
 function puerta(L,px,o,mad,cr){const dw=2+rnd()*.5,dh=4.6+rnd()*.5;
  L.box(dw,dh,.02,0x120e0a,px,dh/2,o(.01));L.box(dw-.08,dh-.06,.06,mad,px,dh/2,o(.04));

@@ -455,7 +455,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  if(window.SOT)o+=SOT.seatHud();
  return o}
 // letreros: siguen a su mesa en la pantalla
-function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0,afuera=FL===PB&&!!window.CASCO&&CASCO.fuera();   // afuera la casa tiene techo: sin letreros de mesas
+function labels(){const tb=$id('uiTop'),y0=tb?tb.getBoundingClientRect().bottom+4:0,afuera=FL===PB&&!!window.CASCO&&CASCO.fuera()||!!(FL.casco&&FL.casco.M.visible);   // afuera la casa tiene techo: sin letreros de mesas
  const L=[],E=[];document.querySelectorAll('#app .h3sign').forEach(el=>{const t=TB.find(x=>x.g===el.dataset.g);if(!t)return;const [x,y,vis]=toPx(v3(t.x,TH+2.5,t.z)),ok=vis&&!afuera;
   if(el.style.display!=='none'){el._w=el.offsetWidth;el._h=el.offsetHeight}const hw=(el._w||0)/2+4,h=el._h||0;E.push([el,ok]);   // medidas: solo lecturas aquí
   if(ok)L.push({el,x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(y0+h,y),hw,h:h+4})});

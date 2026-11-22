@@ -7,7 +7,7 @@
 // es el fondo de la casa (CIELO.fondo: se dibuja primero y la casa encima, compartiendo la profundidad).
 (function(){
 if(typeof THREE==='undefined')return;
-const ALT={sot:-4,pb:0,alta:9.6,ter:19.2};
+const ALT={sot:-4,pb:0,alta:9.6,ter:19.2,cm1:-3.5,c0:0,c1:5.8,c2:10.3};   // c*: la casona (?casa=caja)
 const C=h=>new THREE.Color(h);
 // dir = hacia dónde viaja la luz (del sol al suelo): tarde, el sol entra por el poniente (-X)
 const TEMAS={

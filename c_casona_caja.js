@@ -20,7 +20,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  const sp={x:0,z:0},se={x:0,z:0,ok:0},bx=[-17.6,17.6,-12.6,16.6];
  const hb=!!(HB[id]&&window.CMAT)&&HB[id];
  const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();MARC.corte(LIN,c,p);
-  if(F.copas)CMAT.paso(F.copas,p,c);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
+  if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);
@@ -39,7 +39,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   D.mesas.forEach(m=>{const fe=FEL[m.fam]||FEL.k;if(F.sot&&F.sot.hechas[m.g])return;
    if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe};TB.push(t);H.mesa(t,S,hits,OB)}
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
-  if(hb&&id==='c0')gata(H,S,hits,R,D,F);
+  if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D)}
   F.marcas=D;CAJA.listos[id]=true;ok()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}
 
@@ -68,6 +68,15 @@ function juntas(R){const W=[];
   for(let i=0;i<P.count;i++){const t=mv.get(P.getComponent(i,ia).toFixed(3));if(t!=null)P.setComponent(i,ia,t);
    if(w.b&&!w.s&&Math.abs(N.getComponent(i,ic))>.99)P.setComponent(i,ic,P.getComponent(i,ic)-N.getComponent(i,ic)*.006)}   // la barda, 6 mm más delgada que el muro que la sigue
   P.needsUpdate=true;g.computeBoundingSphere()})}
+
+// paso 8, la calle: CCALLE ya arma el exterior a la medida de la casona (fachada en 17, banqueta de 1.6, arroyo más abajo), así que la tira de
+// arroyo del GLB se esconde; se camina hasta la orilla de la banqueta y el poste choca. El patio de la casa vieja (CPAT) no se ve en la casona.
+// Con tu Mii en la banqueta se prende el casco (CCAS: planta alta, azotea, pérgola y tinacos).
+function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle');if(ar)ar.visible=false;
+ F.bx[3]=Math.min(F.bx[3],18.25);F.OB.push({x:11.8,z:18.3,r:.3});
+ if(window.CCAS)try{F.casco=CCAS.pon(F)}catch(er){console.error('[CCAS]',er)}
+ if(window.CIELO&&CIELO.pisos)CIELO.mundo.children.forEach(o=>{if((o.name==='patio'||o.name==='tras')&&!o.userData.casona){o.userData.casona=1;CIELO.pisos(o,p=>!(p in PISO_ID))}})}
+const PISO_ID={cm1:1,c0:1,c1:1,c2:1};
 
 // la gata de la casona: sale del empty gata_n0 (ry en extras) y pasea por el patio (el piso de laja) sin chocar con columnas ni mesas
 function gata(H,S,hits,R,D,F){const g=R.getObjectByName('gata_n0'),pl=R.getObjectByName('pb_piso_laja');if(!g||!pl||!window.GATA||!GATA.nueva)return;
