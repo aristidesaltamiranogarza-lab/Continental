@@ -16,7 +16,7 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 | 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [x] |
 | 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [x] |
 | 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [x] |
-| 6 | Paisaje, tablet y de 2 a 8 jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [ ] |
+| 6 | Paisaje, tablet y de 2 a 8 jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [x] |
 
 Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high / xhigh / max). Riesgo = qué tan probable es romper algo fuera del paso (código compartido con otros juegos) o tener que rehacerlo. Orden: 1 → 6; el 1 es independiente y puede ir en cualquier momento. Continental va después, en un plan aparte (PLAN_CONTINENTAL.md), reusando lo hecho aquí.
 
@@ -209,3 +209,7 @@ Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una 
 4. Una captura por tamaño crítico solo si la consola/medidas no bastan.
 
 **Notas:**
+- Acostado en celular (`L.ls` = no parado y alto <500): botones en columna en la esquina izquierda (ui_juegos.css, `html.u3on`), la mano pegada abajo (`L.y0 = h-4-.42ch`, se corta un poco) y su ancho sin pisar esa columna (`L.side`). `--t3fan` sale de `L.y0`. Se dejó fov 66° (horizontal ≈109° en 844×390, ya ve a los de los lados).
+- Tablet/escritorio acostado (alto ≥500): fov 56° y el centro a la mitad entre la barra y la mano: se ven las cabezas y nombres de enfrente con 8 y el centro es más grande. Parado no cambió.
+- 2D acostado (alto ≤460): mesa de `100cqh+60px` (se mete detrás de tu mano, como en 3D) y rivales abiertos a los lados (`kx=1.7`, `e=0` en c_mesa2d.js). 1280×800: mesa 420 px, se dejó.
+- /prueba?g=uno&n=2…8 (antes máximo 5).

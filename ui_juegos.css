@@ -87,6 +87,8 @@ html:has(.gj-sheet,#u3pick) #chat{display:none!important}   /* el botón del cha
 .u3tt small{display:block;font-size:11px;font-weight:700;opacity:.85}
 .u3tt small[hidden]{display:none}
 .gj-bar .ui-btn.u3ok[disabled]{opacity:1}
+/* Uno 3D acostado en celular: botones en columna en la esquina izquierda para que la mano baje hasta la orilla */
+@media (orientation:landscape) and (max-height:499px){html.u3on .gj-bar{right:auto;justify-content:flex-start}html.u3on .gj-bb{flex-direction:column;align-items:flex-start;flex-wrap:nowrap}}
 .gj-seat .u3b{display:block;width:max-content;margin:4px auto 0;padding:2px 9px;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font-style:normal;font-weight:800;animation:gjPop .8s ease-in-out infinite alternate}
 .u3tro{font-size:44px;line-height:1;animation:gjPop .9s ease-in-out infinite alternate}
 .u3wn{font-size:1.2em;font-weight:800;margin-bottom:4px}

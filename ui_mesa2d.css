@@ -79,7 +79,7 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 @keyframes m2in{from{transform:translateY(-90px) scale(.6);opacity:0}}
 @keyframes m2bb{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0;margin-top:-8px}}
 @media (max-width:560px){.m2d-sm{display:none}.m2d-hint{font-size:13px;padding:7px 12px}.m2d-nm{font-size:11px;padding:2px 7px}.m2d-fan{display:none}}
-@media (max-height:460px){.m2d-ronda{--d:min(100cqw - 2*var(--sw),100cqh - .7*var(--sw) + 40px);top:calc((100cqh - var(--d))/2 + .35*var(--sw) + 20px)}}   /* acostado: la mesa se mete detrás de la pista */
+@media (max-height:460px){.m2d-ronda{--d:min(100cqw - 2*var(--sw),100cqh + 60px);top:calc((100cqh - var(--d))/2 + .35*var(--sw) + 20px)}}   /* acostado: la mesa se mete detrás de la pista y de tu mano; los rivales se abren a los lados (c_mesa2d.js kx) */
 @media (max-height:460px){.m2d-top{padding-top:6px}.m2d-top .ui-rb,.m2d-top .ui-btn,.m2d-top .ui-pill{min-height:38px;height:38px}.m2d-top .ui-rb{width:38px}
  .m2d-bar{min-height:40px}.m2d-yo{margin-top:-34px}.m2d-me b{display:none}.m2d-hint{padding:6px 12px;font-size:13px}.m2d-fan{display:none}.m2d-felt{top:16%}}
 

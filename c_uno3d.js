@@ -166,8 +166,10 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95,tk=(por?'p':'l')+(V&&V.G?V.G.players.length:4);if(tk!==tableKey){tableKey=tk;buildTable(por)}
  const wide=w/h>1.6,tb=$(wide?'#gjTop':'#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  // tu mano: en celular parado grande (~24% del alto) mientras 7 cartas se asomen 30 px cada una
- const ch=por?Math.max(64,Math.min(h*.24,(w-204)/.967,230)):Math.max(64,Math.min(h*.19,w*.26,165));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
- document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.15)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
+ const ch=por?Math.max(64,Math.min(h*.24,(w-204)/.967,230)):Math.max(64,Math.min(h*.19,w*.26,165)),ls=!por&&h<500,
+  side=ls&&bb?bb.getBoundingClientRect().right+8:0,y0=ls?h-4-ch*.42:h-Math.max(bar,72)-8-ch/2;   // acostado en celular: botones en la esquina (ui_juegos.css) y la mano pegada abajo
+ Object.assign(L,{top,bar,ch,ls,side,y0,barTop:bb?bb.getBoundingClientRect().top:0});
+ document.documentElement.style.setProperty('--t3fan',Math.round(h-y0+ch*.65-8)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
  // vista desde arriba (Arriba / doble toque): la de antes, casi cenital con toda la mesa
  const rb=h-bar-ch*(wide?1.12:.62),rh=Math.max(120,rb-top),el=por?1.28:1.16;
  CA.clearViewOffset();CA.fov=40;CA.aspect=w/rh;
@@ -184,8 +186,8 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
 // primera persona como la Ruleta Rusa: el ojo es el de tu personaje (aunque no se dibuja) y mira al centro de la mesa
 // (fov 80°/66° como la Ruleta; el centro de la mesa queda al 40% entre la barra de arriba y tu mano)
 function sentado(por){const c=mesa.sillas[0];c.updateMatrixWorld();const K=(window.AV&&AV.K)||1,E=c.localToWorld(v3(0,2.02*K-.3,-.05)),   // un poco arriba de sus ojos para ver el centro
-  e=Math.atan2(E.y,E.z),d=Math.hypot(E.y,E.z),s=Math.tan((por?40:33)*Math.PI/180)/(H/2),nearY=H-Math.max(L.bar,72)-8-L.ch*(por?.55:.2);
- return {e,d,s,ax:W/2,ay:L.top+(nearY-L.top)*.4}}
+  e=Math.atan2(E.y,E.z),d=Math.hypot(E.y,E.z),big=!por&&!L.ls,s=Math.tan((por?40:big?28:33)*Math.PI/180)/(H/2),nearY=L.y0+L.ch*(por?-.05:.3);
+ return {e,d,s,ax:W/2,ay:L.top+(nearY-L.top)*(big?.5:.4)}}   // tablet/escritorio acostado: 56° y el centro a la mitad para que se vean las cabezas de enfrente
 // la lámpara cuelga justo arriba de lo que se ve desde tu silla
 function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4;
  if(p.set(0,lo,mesa.sr).project(CA).y<1.03)for(let i=0;i<20;i++){const m=(lo+hi)/2;p.set(0,m,mesa.sr).project(CA).y>1.03?hi=m:lo=m}else hi=lo;mesa.lampara(hi)}
@@ -242,8 +244,8 @@ function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*
 // abanico de tu mano: las que puedes jugar se asoman un poco, la que robaste se asoma más
 // av: ancho para la mano; se le resta lo que las cartas de las orillas sobresalen al girar (en celular parado se salían por la izquierda)
 // arco como si las sostuvieras (las de las orillas giradas y más abajo); con muchas: dos filas y, si aún no se asoman 30 px, un poco más chicas (hasta 80%)
-function fan(ids,play,drawn){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,cx=W/2,out=[],y0=H-Math.max(L.bar,72)-8-L.ch/2;
- const sp=(c,k)=>k>1?Math.min(c/CH*CW*.62,(W-24-c*.3-c/CH*CW)/(k-1)):0;let ch=L.ch,rows=1,per=n,stp=sp(ch,n);
+function fan(ids,play,drawn){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,cx=W/2,out=[],y0=L.y0,fw=W-2*L.side;
+ const sp=(c,k)=>k>1?Math.min(c/CH*CW*.62,(fw-24-c*.3-c/CH*CW)/(k-1)):0;let ch=L.ch,rows=1,per=n,stp=sp(ch,n);
  if(n>7&&stp<30){rows=2;per=Math.ceil(n/2);stp=sp(ch,per)}while(stp<30&&ch>L.ch*.8){ch*=.96;stp=sp(ch,per)}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=rn>1?off/((rn-1)/2):0,g=Math.min(1,(rn-1)/6),ok=play.has(id);
   let y=y0+u*u*ch*.1*g-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;

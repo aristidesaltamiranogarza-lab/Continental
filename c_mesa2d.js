@@ -34,7 +34,7 @@ function gesto(i){const em=EMS[i];if(!em||V.me<0)return;emAb=false;emPropio=Date
 // ---------- asientos: los rivales en arco por arriba de la mesa; el siguiente en turno queda a tu izquierda ----------
 function rivales(red){const G=V.G,n=G.players.length,me=V.me,ks=[];
  if(me>=0)for(let j=1;j<n;j++)ks.push((me+j)%n);else for(let k=0;k<n;k++)ks.push(k);
- const m=ks.length,e=innerHeight>innerWidth*1.1?.32:red&&innerWidth>innerHeight*1.3?.6:0;return ks.map((k,j)=>{const a=Math.PI+e-(j+1)/(m+1)*(Math.PI+2*e);return red?[k,50+50*Math.cos(a),50-50*Math.sin(a)]:[k,50+43*Math.cos(a),55-44*Math.sin(a)]})}   // red: mesa redonda (.m2d-ronda), sobre la madera; acostado bajan por los lados para no encimarse
+ const m=ks.length,ac=red&&innerHeight<=460&&innerWidth>innerHeight*1.3,kx=ac?1.7:1,e=innerHeight>innerWidth*1.1?.32:ac?0:red&&innerWidth>innerHeight*1.3?.6:0;return ks.map((k,j)=>{const a=Math.PI+e-(j+1)/(m+1)*(Math.PI+2*e);return red?[k,50+50*kx*Math.cos(a),50-50*Math.sin(a)]:[k,50+43*Math.cos(a),55-44*Math.sin(a)]})}   // red: mesa redonda (.m2d-ronda), sobre la madera; acostado bajan por los lados para no encimarse
 // o: {x,y,turno,cuenta,fan,tag,alerta,extra}
 function asiento(k,o){const p=(V.players||[])[k]||{};
  return `<div class="m2d-seat${o.turno?' on':''}${p.out?' out':''}" data-seat="${k}" style="--c:${COL[k%10]};left:${o.x}%;top:${o.y}%">
