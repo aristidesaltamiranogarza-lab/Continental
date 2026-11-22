@@ -4,7 +4,10 @@ const U=id=>{if(id>=100)return{id,c:4,t:id<104?'w':'f',n:-1};const c=Math.floor(
  if(k==0)return{id,c,t:'n',n:0};if(k<=18)return{id,c,t:'n',n:Math.ceil(k/2)};return{id,c,t:k<=20?'s':k<=22?'r':'d',n:-1}};
 const usym=c=>c.t=='n'?c.n:c.t=='s'?'⊘':c.t=='r'?'⇄':c.t=='d'?'+2':c.t=='w'?'★':'+4';
 const uval=c=>c.t=='n'?c.n:{s:10,r:11,d:12,w:13,f:14}[c.t];
-function ucard(c,o={}){const s=usym(c);return `<div class="c u${c.c}${o.sm?' sm':''}${o.nw?' nw':''}${o.dim?' dim':''}${String(s).length>1?' l2':''}"${c.c<4?` data-cl="${'RAVZ'[c.c]}"`:''}${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}><span>${s}</span><i class="k1">${s}</i><i class="k2">${s}</i></div>`}
+// la cara la dibuja c_uno_cartas.js (igual que en 3D); mientras no está lista se ve la carta de CSS
+const uimg=c=>{const u=window.UCART&&UCART.url(c,{cbl:typeof cbl!='undefined'&&cbl});return u?` ucv" style="--ui:url(${u})`:''};
+if(window.UCART)UCART.alUrl(()=>{if(typeof render=='function'&&document.querySelector('.c.u0,.c.u1,.c.u2,.c.u3,.c.u4,#deck'))render()});
+function ucard(c,o={}){const s=usym(c);return `<div class="c u${c.c}${o.sm?' sm':''}${o.nw?' nw':''}${o.dim?' dim':''}${String(s).length>1?' l2':''}${uimg(c)}"${c.c<4?` data-cl="${'RAVZ'[c.c]}"`:''}${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}><span>${s}</span><i class="k1">${s}</i><i class="k2">${s}</i></div>`}
 // ¿Se puede jugar? (misma regla que el servidor; el servidor es quien valida)
 function uok(id){const G=V.G,h=G.hands[V.me],c=U(id);
  if(G.step=='drawn'&&id!=G.drawn)return false;

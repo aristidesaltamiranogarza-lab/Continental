@@ -242,3 +242,8 @@ body:has(#app .m2d) #chat{top:calc(env(safe-area-inset-top,0px) + 64px);bottom:a
 .m2d-cb{position:relative}.m2d-cn{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font:800 11px/18px var(--ui-font);text-align:center;pointer-events:none}
 .m2d-cn:empty{display:none}
 .m2d-hint:empty{display:none}
+/* Uno: la cara es la imagen de c_uno_cartas.js (la misma que en 3D); las que no se pueden jugar no se apagan, las jugables suben */
+html[data-game] .c.ucv{background:var(--ui) center/100% 100% no-repeat !important;border:0 !important;border-radius:calc(var(--cw,60px)*.1) !important;color:transparent !important;text-shadow:none !important}
+html[data-game] .c.ucv::before,html[data-game] .c.ucv::after{content:none !important}
+html[data-game] .c.ucv>*{visibility:hidden !important}
+html[data-game="uno"] .m2d-ca.no .c{filter:none}

@@ -24,51 +24,16 @@ let mini=lsGet('cont_mini')=='1';
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
 const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
 // colores de las cartas (más vivos que en la vista 2D) y su sombra
-const UC=['#e53935','#fbc02d','#43a047','#1e88e5'],UCD=['#9e1b1b','#c47f00','#1b6b2a','#0d4a9c'];
+const UC=window.UCART?UCART.COL:['#e53935','#fbc02d','#43a047','#1e88e5'];
 
 // ---------- texturas (dibujadas en canvas) ----------
 function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
-const CS=2;   // cartas: textura 2 veces más grande (dibujo en unidades TWxTH); a 256 se veían borrosas de cerca
-function cnvC(){const c=cnv(TW*CS,TH*CS);c.getContext("2d").scale(CS,CS);return c}
 function tx(c){const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R?Math.min(8,R.capabilities.getMaxAnisotropy()):4;return t}
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
-// símbolo de la carta (número, salto, reversa, +2, +4) con contorno; s = tamaño
-function sym(g,c,x,y,s,fill,line){g.save();g.translate(x,y);g.lineJoin='round';g.lineCap='round';
- const ink=w=>{g.lineWidth=w+s*.09;g.strokeStyle=line;g.stroke();g.lineWidth=w;g.strokeStyle=fill;g.stroke()};
- if(c.t=='s'){g.beginPath();g.arc(0,0,s*.32,0,7);ink(s*.11);g.beginPath();g.moveTo(-s*.22,s*.22);g.lineTo(s*.22,-s*.22);ink(s*.11)}
- else if(c.t=='r'){g.rotate(-Math.PI/4);[1,-1].forEach(d=>{g.save();g.scale(d,d);g.beginPath();g.moveTo(-s*.32,-s*.14);g.lineTo(s*.1,-s*.14);ink(s*.1);
-   g.beginPath();g.moveTo(s*.08,-s*.32);g.lineTo(s*.36,-s*.14);g.lineTo(s*.08,s*.04);g.closePath();g.lineWidth=s*.09;g.strokeStyle=line;g.stroke();g.fillStyle=fill;g.fill();g.restore()})}
- else{const t=c.t=='n'?String(c.n):c.t=='d'?'+2':'+4';g.font=`italic 900 ${Math.round(t.length>1?s*.74:s)}px "Arial Black","Segoe UI",Arial,sans-serif`;g.textAlign='center';g.textBaseline='middle';
-  g.lineWidth=s*.1;g.strokeStyle=line;g.strokeText(t,0,s*.04);g.fillStyle=fill;g.fillText(t,0,s*.04);
-  if(c.t=='n'&&(c.n==6||c.n==9)){g.beginPath();g.moveTo(-s*.2,s*.46);g.lineTo(s*.2,s*.46);ink(s*.07)}}   // 6 y 9 subrayados
- g.restore()}
-// óvalo de 4 colores de los comodines
-function wildOval(g,x,y,rx,ry,a){g.save();g.translate(x,y);g.rotate(a);
- [0,3,1,2].forEach((col,q)=>{g.beginPath();g.moveTo(0,0);g.ellipse(0,0,rx,ry,0,(q-1)*Math.PI/2,q*Math.PI/2);g.closePath();g.fillStyle=UC[col];g.fill()});
- g.lineWidth=Math.max(2,rx*.07);g.strokeStyle='#fff';g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.stroke();g.restore()}
-function shine(g){const sh=g.createLinearGradient(0,0,TW*.7,TH);sh.addColorStop(0,'rgba(255,255,255,.3)');sh.addColorStop(.42,'rgba(255,255,255,.06)');sh.addColorStop(.47,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(0,0,TW,TH)}
-function faceTex(id){const k='f'+id+(cbl?'c':'');if(texC[k])return texC[k];
- const c=U(id),cn=cnvC(),g=cn.getContext('2d'),wild=c.c==4,col=wild?'#1c1c1c':UC[c.c];
- g.fillStyle='#fdfdfb';rr(g,0,0,TW,TH,24);g.fill();g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;rr(g,1,1,TW-2,TH-2,23);g.stroke();
- g.save();rr(g,13,13,TW-26,TH-26,16);g.clip();
- const gr=g.createLinearGradient(0,0,TW,TH);gr.addColorStop(0,wild?'#3a3a3a':col);gr.addColorStop(1,wild?'#050505':UCD[c.c]);g.fillStyle=gr;g.fillRect(0,0,TW,TH);
- if(wild)wildOval(g,TW/2,TH/2,90,150,.45);
- else{g.save();g.translate(TW/2,TH/2);g.rotate(.45);g.fillStyle='#fff';g.beginPath();g.ellipse(0,0,88,150,0,0,7);g.fill();g.restore()}
- shine(g);g.restore();
- if(c.t=='f')sym(g,c,TW/2,TH/2,124,'#fff','#111');else if(!wild)sym(g,c,TW/2,TH/2,c.t=='n'?150:132,col,'#111');
- // esquinas en blanco (la de abajo, de cabeza)
- const cs=rot=>{g.save();if(rot){g.translate(TW,TH);g.rotate(Math.PI)}if(c.t=='w')wildOval(g,42,54,15,24,.45);else sym(g,c,44,54,50,'#fff','rgba(0,0,0,.6)');g.restore()};cs(0);cs(1);
- // letra del color (opción de la vista 2D, ayuda si confundes colores)
- if(cbl&&!wild){g.font='800 30px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=6;g.strokeStyle='rgba(0,0,0,.6)';
-  [[TW-40,44,0],[40,TH-44,1]].forEach(([x,y,r])=>{g.save();g.translate(x,y);if(r)g.rotate(Math.PI);g.strokeText('RAVZ'[c.c],0,0);g.fillStyle='#fff';g.fillText('RAVZ'[c.c],0,0);g.restore()})}
- return texC[k]=tx(cn)}
-function backTex(){if(texC.b)return texC.b;const cn=cnvC(),g=cn.getContext('2d');
- g.fillStyle='#fdfdfb';rr(g,0,0,TW,TH,24);g.fill();g.save();rr(g,13,13,TW-26,TH-26,16);g.clip();
- const gr=g.createRadialGradient(TW/2,TH/2,20,TW/2,TH/2,TH*.7);gr.addColorStop(0,'#2c2c2c');gr.addColorStop(1,'#050505');g.fillStyle=gr;g.fillRect(0,0,TW,TH);
- g.save();g.translate(TW/2,TH/2);g.rotate(.45);const rg=g.createLinearGradient(-90,-150,90,150);rg.addColorStop(0,'#ff5a4a');rg.addColorStop(1,'#b3140c');g.fillStyle=rg;g.beginPath();g.ellipse(0,0,90,150,0,0,7);g.fill();g.restore();
- g.save();g.translate(TW/2,TH/2+4);g.rotate(-.35);g.font='italic 900 80px "Arial Black","Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
- g.lineWidth=16;g.strokeStyle='#111';g.strokeText('UNO',0,0);g.fillStyle='#fdd835';g.fillText('UNO',0,0);g.restore();
- shine(g);g.restore();return texC.b=tx(cn)}
+// caras y dorso: los dibuja c_uno_cartas.js (UCART), igual que en la vista 2D; si la fuente llega tarde, UCART redibuja y aquí se refresca
+function faceTex(id){const k='f'+id+(cbl?'c':'');return texC[k]||(texC[k]=tx(UCART.cara(U(id),{cbl})))}
+function backTex(){return texC.b||(texC.b=tx(UCART.dorso()))}
+if(window.UCART)UCART.alListo(()=>{for(const k in texC)if(k=='b'||k[0]=='f')texC[k].needsUpdate=true});
 function glowTex(){if(texC.glow)return texC.glow;const c=cnv(256,256),g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';rr(g,52,52,152,152,16);g.fill();g.fill();return texC.glow=tx(c)}
 const GI=152/256;                        // parte "sólida" de la textura de brillo
 const FELT={green:['#2f9a62','#0f4a2d'],red:['#c0393f','#5e1218'],blue:['#3d84cc','#123a68'],orange:['#d98a35','#74400c'],purple:['#8457c0','#2e1452'],graphite:['#5d656f','#1d2126']};
@@ -84,8 +49,8 @@ function ringTex(d){const k='ring'+d;if(texC[k])return texC[k];const S=1024,cn=c
 // ---------- cartas 3D ----------
 let GEO=null;
 function mkCard(id){GEO=GEO||new THREE.BoxGeometry(CW,CT,CH);const ed=new THREE.MeshStandardMaterial({color:0xf2f0ea,roughness:.6});
- const top=new THREE.MeshStandardMaterial({map:id==null?backTex():faceTex(id),roughness:.55,alphaTest:.5});
- const bot=new THREE.MeshStandardMaterial({map:backTex(),roughness:.55,alphaTest:.5});
+ const top=new THREE.MeshStandardMaterial({map:id==null?backTex():faceTex(id),roughness:.85,alphaTest:.5});
+ const bot=new THREE.MeshStandardMaterial({map:backTex(),roughness:.85,alphaTest:.5});
  const m=new THREE.Mesh(GEO,[ed,ed,top,bot,ed,ed]);m.castShadow=true;m.receiveShadow=true;m.userData={id};return m}
 function setFace(m,id){const t=id==null?backTex():faceTex(id);m.userData.id=id;if(m.material[2].map!==t){m.material[2].map=t;m.material[2].needsUpdate=true}}
 function tint(m,v){const c=m.material[2].color;if(Math.abs(c.r-v)>.01)c.setScalar(v)}   // cartas que no puedes jugar: más oscuras
@@ -287,7 +252,7 @@ function sync(){if(!ready||!L||!active())return;
  // mazo: pila con grosor según las cartas que quedan
  const nv=G.deck?Math.min(12,Math.ceil(G.deck/6)):0;
  for(let i=0;i<nv;i++){const key='dk'+i,m=ens(key,null);live.add(key);m.userData.hit={t:'deck'};hits.push(m);m.userData.nw=0;
-  target(m,SC,v3(L.deck.x+(i%2)*.006,.012+i*CT*L.sk*1.5,L.deck.z),Qe(0,(i%3-1)*.012,Math.PI),L.sk,{ms:250})}
+  target(m,SC,v3(L.deck.x+(i%2)*.006,.012+i*CT*L.sk*1.5,L.deck.z),Qe(0,Math.PI+(i%3-1)*.012,Math.PI),L.sk,{ms:250})}
  const hand=me>=0&&Array.isArray(G.hands[me])?G.hands[me]:[],canD=mine&&G.step=='play'&&!G.ad,play=new Set(mine&&!G.ad?hand.filter(uok):[]);
  glow('deck',v3(L.deck.x,.004,L.deck.z),CW*L.sk*1.3,CH*L.sk*1.2,0xffd54a,canD?(play.size?.25:.7):0,{t:'deck'});
  // descarte: las últimas cartas que han caído, un poco desordenadas

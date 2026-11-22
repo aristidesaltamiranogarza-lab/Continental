@@ -25,7 +25,7 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
   return `<div class="u2-d" style="--r:${q.r*m/2+(last?0:q.r>0?8:-8)}deg;--x:${q.x*m}px;--y:${q.y*m}px">${ucard(U(id),last?{id:'disc',nw:id!==prevTop}:{})}</div>`}).join('');
  if(dirV&&dirV!=G.dir)dirT=Date.now();dirV=G.dir;
  const centro=`<div class="u2-orbit${Date.now()-dirT<700?' gira':''}"><div class="u2-rot${G.dir<0?' rev':''}">${ARC}</div></div>
- <div class="u2-piles"><div class="u2-pila u2-mazo"><div class="c bk${canD?' go':''}${G.deck?'':' empty'}" id="deck"${canD?' onclick="udraw()"':''}></div><small>${G.deck}</small></div>
+ <div class="u2-piles"><div class="u2-pila u2-mazo"><div class="c bk${canD?' go':''}${G.deck?'':' empty'}${(u=>u?` ucv" style="--ui:url(${u})`:'')(window.UCART&&UCART.url(null))}" id="deck"${canD?' onclick="udraw()"':''}></div><small>${G.deck}</small></div>
  <div class="u2-pila u2-desc m2d-drop">${pila}${pend?`<b class="u2-pend">+${G.pend}</b>`:''}</div></div>`;
  let acc='';
  if(mine&&G.step=='play'&&pend&&!G.ad)acc+=`<button class="ui-btn" onclick="udraw()">Robar ${G.pend}</button>`;
