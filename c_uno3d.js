@@ -161,35 +161,53 @@ function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
 function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95,tk=(por?'p':'l')+(V&&V.G?V.G.players.length:4);if(tk!==tableKey){tableKey=tk;buildTable(por)}
  const wide=w/h>1.6,tb=$(wide?'#gjTop':'#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
- const ch=Math.max(64,Math.min(h*.19,w*.26,165));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
+ // tu mano: en celular parado grande (~24% del alto) mientras 7 cartas se asomen 30 px cada una
+ const ch=por?Math.max(64,Math.min(h*.24,(w-204)/.967,230)):Math.max(64,Math.min(h*.19,w*.26,165));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.15)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
+ // vista desde arriba (Arriba / doble toque): la de antes, casi cenital con toda la mesa
  const rb=h-bar-ch*(wide?1.12:.62),rh=Math.max(120,rb-top),el=por?1.28:1.16;
- CA.clearViewOffset();CA.aspect=w/rh;
+ CA.clearViewOffset();CA.fov=40;CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.4])pts.push(v3(Math.cos(a)*(L.rx+.75),y,Math.sin(a)*(L.rz+.75)))}
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
   let a=1e9,b=-1e9,c=1e9,e=-1e9;pts.forEach(p=>{const q=p.clone().project(CA);a=Math.min(a,q.x);b=Math.max(b,q.x);c=Math.min(c,q.y);e=Math.max(e,q.y)});return [a,b,c,e]};
  let lo=3,hi=120;for(let i=0;i<32;i++){const m=(lo+hi)/2,x=ext(m);((x[1]-x[0])/2<.98&&(x[3]-x[2])/2<.97)?hi=m:lo=m}
  const x=ext(hi),cx=(x[0]+x[1])/2,cy=(x[2]+x[3])/2;
- L.el=el;L.d=hi;L.kTop=.8;CA.setViewOffset(w,rh,cx*w/2,-top-cy*rh/2,w,h);CA.updateProjectionMatrix();lampY();clampV();cam()}
+ // lentes: d distancia, s tangente por píxel, (ax,ay) dónde cae el eje de la cámara en la pantalla
+ L.T={e:1.45,d:hi/.8,s:Math.tan(Math.PI/9)/(rh/2),ax:(1-cx)*w/2,ay:top+(1+cy)*rh/2};
+ L.S=sentado(por);L.el=L.S.e;L.d=L.S.d;L.kTop=1;
+ // la lámpara cuelga fuera de la vista sentada de inicio
+ const vw=Object.assign({},VW),h0=hdNow;Object.assign(VW,{x:0,z:0,k:1,a:0,t:0});hdNow=0;cam();lampY();Object.assign(VW,vw);hdNow=h0;clampV();cam()}
+// vista sentada: desde atrás de tu silla, inclinada ~45°. La orilla de tu lado queda a media mano (detrás de tus cartas
+// no se ve el piso) y la mesa llena el ancho a la altura del centro (en celular parado ~110%); la cabeza de los demás nunca bajo la barra
+function sentado(por){const e=por?.8:.76,se=Math.sin(e),ce=Math.cos(e),s=Math.tan((por?29:19)*Math.PI/180)/(H/2),R=mesa.R,hd=[];
+ for(let i=1;i<mesa.n;i++){const c=mesa.sillas[i];c.updateMatrixWorld();hd.push(c.localToWorld(v3(0,1.32,-.25)))}   // donde va su nombre
+ const P=(p,d)=>{const vy=p.y-se*d,vz=p.z-ce*d,zc=-vy*se-vz*ce;return [p.x/(zc*s),(vz*se-vy*ce)/(zc*s)]},NR=v3(0,0,R),SD=v3(R,0,0),
+  topY=L.top+26,nearY=H-Math.max(L.bar,72)-8-L.ch*(por?.55:.2),alto=d=>P(NR,d)[1]-Math.min(...hd.map(q=>P(q,d)[1]));
+ let lo=2,hi=300;for(let i=0;i<36;i++){const m=(lo+hi)/2;(P(SD,m)[0]<=(por?.55:.5)*W&&alto(m)<=nearY-topY)?hi=m:lo=m}
+ return {e,d:hi,s,ax:W/2,ay:nearY-P(NR,hi)[1]}}
 // la lámpara cuelga justo arriba de lo que se ve desde tu silla
 function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4;
  if(p.set(0,lo,mesa.sr).project(CA).y<1.03)for(let i=0;i<20;i++){const m=(lo+hi)/2;p.set(0,m,mesa.sr).project(CA).y>1.03?hi=m:lo=m}else hi=lo;mesa.lampara(hi)}
-// la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k
-function cam(){if(!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
- CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow)CA.rotateOnWorldAxis(YA,hdNow);CA.updateMatrixWorld()}
+// la cámara gira (a) e inclina (t) alrededor del punto (x,z) y se acerca según k. VW parte de la vista sentada (t=0);
+// al inclinar hacia arriba la lente pasa poco a poco a la de arriba (t = 1.45-el es la vista desde arriba de antes)
+function lente(e){const S=L.S,T=L.T,u=Math.max(0,Math.min(1,(e-S.e)/(T.e-S.e))),q=u*u*(3-2*u),m=(a,b)=>a+(b-a)*q;return {d:m(S.d,T.d),s:m(S.s,T.s),ax:m(S.ax,T.ax),ay:m(S.ay,T.ay)}}
+function cam(){if(!L||!L.S)return;const e=L.el+VW.t,o=lente(e),d=o.d/VW.k;
+ CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow)CA.rotateOnWorldAxis(YA,hdNow);
+ CA.fov=2*Math.atan(o.s*H/2)*180/Math.PI;CA.aspect=W/H;CA.setViewOffset(W,H,W/2-o.ax,H/2-o.ay,W,H);CA.updateProjectionMatrix();CA.updateMatrixWorld()}
 const WH3=new THREE.Color(1,1,1),YA=v3(0,1,0),MLT=v3(0,0,0);
 // cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno y regresa sola; la luz de la lámpara se va despacio a su lugar
 function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.asiento(rel(t)).mano:null;
  if(mesa){MLT.set(tp?tp.x*.7:0,0,tp?tp.z*.7:0);mesa.luzHacia(MLT,1-Math.exp(-dt/900));mesa.pantalla(L.el+VW.t<1.2)}
- if(!mc||!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k;
+ if(!mc||!L||!L.S)return;const e=L.el+VW.t,d=lente(e).d/VW.k;
  const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t!==V.me?tp:null,quieto:!!(drag||st||pin)});
  if(h!==hdNow){hdNow=h;cam()}}
 // corte breve de frente a un jugador (al que le cae un +4)
 function corte(k,ms){if(!mc||!mesa||k===V.me||drag)return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms)}
 function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
- VT.t=Math.max(.3-L.el,Math.min(1.5-L.el,VT.t));
+ // inclinación: de ~30° hasta la vista desde arriba; sentado, el giro es poco (los cortes de MCAM sí voltean de frente al jugador)
+ VT.t=Math.max(.52-L.el,Math.min(1.45-L.el,VT.t));if(!VT.top&&!(mc&&mc.cortando))VT.a=Math.max(-.61,Math.min(.61,VT.a));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
- if(L.d)VT.k=Math.min(VT.k,Math.max(1,Math.sin(L.el+VT.t)*L.d/3.6))}
+ if(L.S){const e=L.el+VT.t;VT.k=Math.min(VT.k,Math.max(1,Math.sin(e)*lente(e).d/3.6))}}
 const VK=['x','z','k','a','t'];
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);cam()}
 function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
@@ -213,17 +231,19 @@ function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+(
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 // abanico de tu mano: las que puedes jugar se asoman un poco, la que robaste se asoma más
 // av: ancho para la mano; se le resta lo que las cartas de las orillas sobresalen al girar (en celular parado se salían por la izquierda)
-function fan(ids,play,drawn){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=W-24-ch*.3,cx=W/2,out=[];
- let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>10&&stp<cw*.26){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
- ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/(W/2),ok=play.has(id);
-  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.18-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;
-  const ang=Math.max(-.3,Math.min(.3,-u*.22)),d=D-i*.004-(r?.03:0);
+// arco como si las sostuvieras (las de las orillas giradas y más abajo); con muchas: dos filas y, si aún no se asoman 30 px, un poco más chicas (hasta 80%)
+function fan(ids,play,drawn){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,cx=W/2,out=[],y0=H-Math.max(L.bar,72)-8-L.ch/2;
+ const sp=(c,k)=>k>1?Math.min(c/CH*CW*.62,(W-24-c*.3-c/CH*CW)/(k-1)):0;let ch=L.ch,rows=1,per=n,stp=sp(ch,n);
+ if(n>7&&stp<30){rows=2;per=Math.ceil(n/2);stp=sp(ch,per)}while(stp<30&&ch>L.ch*.8){ch*=.96;stp=sp(ch,per)}
+ ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=rn>1?off/((rn-1)/2):0,g=Math.min(1,(rn-1)/6),ok=play.has(id);
+  let y=y0+u*u*ch*.1*g-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;
+  const ang=-u*.24*g,d=D-i*.004-(r?.03:0);
   out.push({id,ok,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
  return out}
 
 // ---------- personajes (c_mesa_pj.js): sentados en su silla con sus cartas en las manos ----------
 function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
- if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
+ if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)&&!(V.me>=0&&!x.i)),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
 function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G){const G=V.G;MPJ.paso(now,G.phase=='play'&&G.turn>=0?rel(G.turn):-1);MPJ.fin(G.phase=='final'&&G.win>=0?rel(G.win):-1)}}
 // qué hacen los personajes según el historial: jugar estira la mano al descarte, robar vuela la carta a sus manos,
 // ¡UNO! levanta los brazos, robar de castigo se lleva la mano a la cabeza (y con 4 o más la cámara voltea a verlo)
@@ -265,7 +285,6 @@ function sync(){if(!ready||!L||!active())return;
  glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.ps*1.55,CH*L.ps*1.45,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
- if(me>=0&&window.MPJ&&MPJ.on)MPJ.cartas(0,hc(me)||0);   // tu personaje trae tus cartas (boca abajo)
  for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);
   if(!pj)for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.22).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
@@ -417,7 +436,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
 // sin su cuarto en la casa: los Miis a tamaño de casa
-function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;if(V&&V.G)sync()}
+function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;W=0}   // las sillas cambian de lugar: se vuelve a encuadrar (layout y sync)
 function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0')}catch(e){}render()}
 GM.uno.body=function(){
  if(!active()){const G=V&&V.G;return (G&&(G.phase=='play'||G.phase=='final')?UI.dim(on?1:0,'u3dToggle()'):'')+orig()}

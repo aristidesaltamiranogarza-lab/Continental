@@ -11,8 +11,8 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 
 | # | Paso | Esfuerzo | Riesgo | Archivos principales | Hecho |
 |---|------|----------|--------|----------------------|-------|
-| 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [[x] |
-| 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [ ] |
+| 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [x] |
+| 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [x] |
 | 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [ ] |
 | 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [ ] |
 | 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [ ] |
@@ -123,6 +123,15 @@ Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una 
 **Hecho cuando:** en 390×844 con 7 y con 15 cartas, la mano se ve encima de la mesa, se pueden tocar todas y el piso no aparece detrás de ella.
 
 **Notas:**
+- El ojo a la altura de la cabeza no sirve: desde la silla (≈6 del centro, ojo ≈1.3 sobre la mesa) el centro queda a ≈10° bajo el horizonte. La cámara va atrás y arriba de tu silla, en su eje (parado ≈(0,13,14)), inclinada .8 rad parado / .76 acostado.
+- Dos lentes en `layout()`: `L.S = sentado(por)` (fov 58°/38° sobre el alto completo; distancia por bisección: ancho en el centro ≤1.1·W parado / 1·W acostado y alto de las cabezas de los demás a tu orilla ≤ espacio libre; la orilla cercana cae a media mano parado y a .2·ch del pie acostado) y `L.T` = la vista de arriba de antes (e 1.45, d=hi/.8, fov 40 sobre rh). `lente(e)` mezcla por inclinación; `cam()` pone fov + `setViewOffset(W,H,W/2-ax,H/2-ay)`. VW sigue siendo órbita alrededor de (x,z); `L.el=S.e`, `L.kTop=1`; c_mesa_cam.js no cambió.
+- clampV: inclinación de .52 a 1.45 rad (inclinar hacia arriba llega a la vista de arriba), giro ±.61 salvo Arriba y cortes, altura mínima con `lente(e).d`.
+- Parado: manda el ancho, así que la cabeza de enfrente queda ≈270 px y arriba se ve la casa; con 4–5 jugadores los de los lados quedan fuera de la pantalla (su nombre se pega a la orilla) → paso 4. Acostado (840×360) manda el alto: mesa de ≈280 px de ancho, chica como antes → paso 6.
+- Tu personaje no se crea (filtro en `avSync`, solo si `V.me>=0`); se quitó `MPJ.cartas(0,…)`. `casaModo()` pone `W=0` para volver a encuadrar (las sillas cambian con `escala`).
+- c_mesa_pj.js: `cabeza(i,out)` quedaba tapada por la reacción `cabeza(i,ms)` (mismo nombre): el del turno se quedaba con la mano en la cabeza y las cabezas no seguían el turno. Ahora `cabezaEn`. Afecta a todas las mesas (es lo que se quería).
+- Mano: parado `ch=min(.24h,(w-204)/.967,230)` (7 cartas asoman ≥30 px); desde 8 cartas dos filas si asoman <30 px y luego hasta 80% del tamaño (15 cartas en 390: ch≈157, 31 px). Arco relativo al abanico, más marcado con más cartas.
+- B5: "Por color" ya va bajo la mano sin tapar cartas; se dejó. B6: arrastrar al descarte ya existía (`pMove`/`pUp`, `d.tgt`). Luz `pt` sin cambios (se ve bien).
+- En /prueba el Uno estaba en 2D (`uno_3d=0` del paso 1): `u3dToggle()`. Picking de mano, mazo y descarte comprobado con eventos de puntero; Arriba va y regresa igual.
 
 ## Paso 3: 3D, centro grande y anillo de dirección nuevo (medium)
 

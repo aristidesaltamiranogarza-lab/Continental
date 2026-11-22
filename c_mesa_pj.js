@@ -41,7 +41,7 @@ function abanico(s){const n=Math.max(0,s.n-s.pend);while(s.cs.length<n){const m=
 function entreManos(s,out){const c=silla(s.i);if(!s.mi||!s.md||!c)return out.set(0,.9,.35);s.mi.getWorldPosition(P);s.md.getWorldPosition(Q);const g=s.g;out.copy(P).lerp(Q,.5*Math.max(0,1-Math.min(1,g.est+g.mano+g.arr)));c.worldToLocal(out);return out.add(Q.set(0,.02,.03))}
 function mano(i){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;c.updateMatrixWorld();return c.localToWorld(entreManos(s,v3(0,0,0)))}
 function arriba(i){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(v3(s.baila?.85:0,s.baila?1.65:1.65*AV.K,s.baila?-.65:SEAT.z))}
-function cabeza(i,out){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(out.copy(OJO).multiplyScalar(AV.K).add(SEAT))}
+function cabezaEn(i,out){const s=PJ.get(i),c=silla(i);if(!s||!c)return null;return c.localToWorld(out.copy(OJO).multiplyScalar(AV.K).add(SEAT))}
 const vis=s=>{const c=silla(s.i);return !!(c&&c.visible)};
 // reacciones
 function roba(i,de,w){const s=PJ.get(i);if(!s||!vis(s)||!mesa)return;estira(i,de);if(RMo())return;
@@ -57,7 +57,7 @@ function fin(g){if(g===finI)return;finI=g;PJ.forEach((s,i)=>{const c=silla(i);
 // cabeza(i,ms): se lleva la mano a la cabeza un rato (Uno: robar de castigo)
 function cabeza(i,ms){const s=PJ.get(i);if(!s||s.baila||finI>=0)return;s.perd=true;s.perdH=performance.now()+(ms||2500);AV.pose(s.p,'ManoCabeza')}
 // cada cuadro: cabezas al turno, brazos según las reacciones, cartas en las manos y las que vuelan
-function paso(now,turno){const dt=Math.min(100,now-(tl||now)),f=1-Math.exp(-dt/140);tl=now;const tc=turno>=0&&PJ.has(turno)?cabeza(turno,v3(0,0,0)):null;
+function paso(now,turno){const dt=Math.min(100,now-(tl||now)),f=1-Math.exp(-dt/140);tl=now;const tc=turno>=0&&PJ.has(turno)?cabezaEn(turno,v3(0,0,0)):null;
  PJ.forEach((s,i)=>{if(s.perdH&&now>s.perdH){s.perdH=0;if(finI<0){s.perd=false;AV.pose(s.p,'AgarreFrente')}}if(!vis(s)||s.baila)return;const c=silla(i);
   // a quién mira: lo que le pidieron, a sus cartas si es su turno, si no al que tiene el turno
   let a=s.miraT>now?s.mira:null,cx=.06,cy=0;if(s.est&&now-s.est.t<700&&s.est.a)a=s.est.a;
