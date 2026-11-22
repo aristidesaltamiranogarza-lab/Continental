@@ -55,7 +55,8 @@ function cardSfx(k){if(k=='splat'){nz(.22,320,.6,1.8);nz(.14,1300,1,.9,.03);nz(.
 function fly(a,b,id){if(RM||!a||!b)return;const r=a.getBoundingClientRect(),q=b.getBoundingClientRect(),W=46,H=64;
  const e=document.createElement('div');e.className='c fly'+(id==null?' bk':'');
  if(id!=null){const f=(GM[V.game]||GM.continental).face(id);e.innerHTML=f.h;if(f.cls)e.className+=' '+f.cls}
- e.style.cssText=`left:${r.left+r.width/2-W/2}px;top:${r.top+r.height/2-H/2}px;width:${W}px;height:${H}px`;FX.appendChild(e);
+ const gm=GM[V.game]||{},ui=id!=null?gm.face&&gm.face(id).ui:gm.back&&gm.back();
+ e.style.cssText=`left:${r.left+r.width/2-W/2}px;top:${r.top+r.height/2-H/2}px;width:${W}px;height:${H}px`;if(ui){e.className+=' ucv';e.style.setProperty('--ui',`url(${ui})`)}FX.appendChild(e);
  requestAnimationFrame(()=>requestAnimationFrame(()=>{e.style.transform=`translate(${q.left+q.width/2-r.left-r.width/2}px,${q.top+q.height/2-r.top-r.height/2}px)`}));
  setTimeout(()=>e.remove(),700)}
 function flyEv(e){const $=s=>document.querySelector(s),dk=()=>$('#deck2')&&Math.random()<.5?$('#deck2'):$('#deck'),seat=k=>$(`[data-seat="${k}"]`),t=e.t;
@@ -85,7 +86,7 @@ const oi=c=>{const k=myOrder.indexOf(c.id);return k<0?1e6+c.id:k};
 function cyc(){if(!manual&&!sortS)sortS=true;else if(sortS){sortS=false;manual=true}else manual=false;render()}
 document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('#hand .c, #mini .c');if(!c)return;dg={id:+c.dataset.id,x:e.clientX,y:e.clientY,on:0,el:c,from:c.closest('#mini')?'slot':'hand'}});
 document.addEventListener('pointermove',e=>{if(!dg)return;
- if(!dg.on&&Math.hypot(e.clientX-dg.x,e.clientY-dg.y)>10){dg.on=1;const r=dg.el.getBoundingClientRect();dg.g=dg.el.cloneNode(true);dg.g.className+=' fly';dg.g.removeAttribute('onclick');dg.g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transition:none;z-index:90`;FX.appendChild(dg.g);dg.el.style.opacity=.3}
+ if(!dg.on&&Math.hypot(e.clientX-dg.x,e.clientY-dg.y)>10){dg.on=1;const r=dg.el.getBoundingClientRect();dg.g=dg.el.cloneNode(true);dg.g.className+=' fly';dg.g.removeAttribute('onclick');dg.g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transition:none;z-index:90`+(dg.el.style.getPropertyValue("--ui")?`;--ui:${dg.el.style.getPropertyValue("--ui")}`:"");FX.appendChild(dg.g);dg.el.style.opacity=.3}
  if(dg.on){dg.g.style.transform=`translate(${e.clientX-dg.x}px,${e.clientY-dg.y}px)`;const t=document.elementFromPoint(e.clientX,e.clientY),sl=t&&t.closest&&t.closest('.slot');document.querySelectorAll('.slot.over').forEach(x=>x.classList.remove('over'));if(armando&&sl)sl.classList.add('over')}});
 document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d.on)return;d.g.remove();d.el.style.opacity='';noClick=Date.now();
  const tt=document.elementFromPoint(e.clientX,e.clientY),sl=tt&&tt.closest&&tt.closest('.slot');

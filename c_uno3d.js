@@ -283,12 +283,9 @@ function sync(){if(!ready||!L||!active())return;
  if(mesa)mesa.fieltro(FELT[sbg]||FELT.green,null);
  first=false}
 // efectos de las cartas especiales: el símbolo salta sobre el descarte
-function fxPlay(e){const c=U(e.c);if(c.t=='n')return;const G=V.G;
- if(c.c==4)popAt(-1,c.t=='f'?'+4':'★',UC[G.color],UCN[G.color]);
- else popAt(-1,usym(c),UC[c.c],c.t=='s'?'¡Salto!':c.t=='r'?'¡Reversa!':'')}
-function popAt(k,t,col,sub){if(!L)return;const pa=k>=0&&window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),p=k<0?L.disc.clone().setY(.4):pa?pa.clone():seatP(k,1).setY(.6),[x,y]=toPx(p);
- const el=document.createElement('div');el.className='u3fx'+(k<0?' big':'');el.style.cssText=`left:${Math.max(40,Math.min(W-40,x))}px;top:${Math.max(70,Math.min(H-40,y))}px;--c:${col}`;
- el.innerHTML=`<b>${esc(t)}</b>${sub?`<small>${esc(sub)}</small>`:''}`;document.body.appendChild(el);setTimeout(()=>el.remove(),1500)}
+function fxPlay(e){const c=U(e.c);if(c.t=="n"||!L||!window.UANU)return;const G=V.G,w=c.c==4,[x,y]=toPx(L.disc.clone().setY(.4));
+ UANU.carta(c,w?G.color:c.c,x,y,w?UCN[G.color]:c.t=="s"?"¡Salto!":c.t=="r"?"¡Reversa!":"")}
+function popAt(k,t,col){if(!L||!window.UANU)return;const pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(pa?pa.clone():seatP(k,1).setY(.6));UANU.pop(x,y,t,col)}
 
 // ---------- tocar y arrastrar ----------
 function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);

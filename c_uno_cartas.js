@@ -84,5 +84,5 @@ function url(c,o){const k=kde(c,o);if(urls[k])return urls[k];
 const listo=()=>fuente||!document.fonts||!document.fonts.load?Promise.resolve():document.fonts.load('800 100px Nunito').then(()=>{if(fuente)return;fuente=true;
  redib.forEach((f,cn)=>{const g=cn.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cn.width,cn.height);g.setTransform(CS,0,0,CS,0,0);f(g)});for(const k in urls){if(urls[k].startsWith('blob:'))URL.revokeObjectURL(urls[k]);delete urls[k]}avisa.concat(avU).forEach(f=>{try{f()}catch(e){}})}).catch(()=>{});
 listo();
-window.UCART={W:TW*CS,H:TH*CS,TW,TH,COL,OSC,cara,dorso,url,listo,alListo:f=>avisa.push(f),alUrl:f=>avU.push(f)};
+window.UCART={W:TW*CS,H:TH*CS,TW,TH,COL,OSC,CLA,INK,PAP,sym,ovalo4,cara,dorso,url,listo,alListo:f=>avisa.push(f),alUrl:f=>avU.push(f)};
 })();
