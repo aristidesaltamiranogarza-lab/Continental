@@ -24,7 +24,7 @@ let OB=[];                               // obstáculos redondos (sillas, mueble
 // pisos (c_sotano.js, c_casa_alta.js, c_casa_terraza.js): cada piso trae su escena (SC), mesas (TB), obstáculos (OB), cosas que se tocan (hits), límites para caminar (bx) y para la cámara (cb)
 // y escaleras (links). Solo se dibuja el piso donde estás; el sótano se arma la primera vez que bajas. to: la puerta te lleva a ese piso
 const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:f=>f==='alta'||f==='ter'?{x:HX-11.4,z:2.8,yaw:-Math.PI/2}:{x:HX-2.6,z:-8,yaw:-Math.PI/2}};let FL=PB,LK=[],fBusy=false;
-const FM={sot:'SOT',alta:'ALTA',ter:'TERR'},fmod=id=>window[FM[id]],FLS={pb:PB};   // módulo de cada piso y los que ya se armaron
+const FM={sot:'SOT',alta:'ALTA',ter:'TERR'},fmod=id=>window[FM[id]]||(window.CAJA&&CAJA.M[id]),FLS={pb:PB};   // módulo de cada piso y los que ya se armaron
 const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&CAV.on());
 // sube a la GPU las texturas del piso mientras la pantalla está en negro (si no, se suben al primer cuadro y se traba)
 function subeTex(s){const v=new Set();s.traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture&&!v.has(t)){v.add(t);R.initTexture(t)}}})})}

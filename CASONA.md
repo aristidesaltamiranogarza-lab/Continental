@@ -46,7 +46,7 @@ Crujía del frente z 0–10, crujía izq x 0–8, corredores de 4 alrededor del 
 ## Pasos (una sesión cada uno; esfuerzo sugerido)
 Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre el anteproyecto** (enlace arriba, con Artifact read: coordenadas de mesas, vanos y decoración salen de ahí) y la sección de `CASA_BLENDER.md` que haga falta.
 
-- [ ] **1. Maqueta de cajas** — esfuerzo **high**. `blender/casona.py` con muros, losas, vanos y la escalera de los 4 niveles, sin texturas ni horneado. Empties: `mesa_<juego>`, `escalera`, `puerta_<x>`, `maniqui`. Exportar un GLB por nivel y verlo en el juego con `?casa=caja` (mesas reales puestas desde los empties). Probar 840×360 y 360×840.
+- [x] **1. Maqueta de cajas** (hecho: `blender/casona.py` → `modelos/casona/{nm1,n0,n1,n2}.glb`; `c_casona_caja.js` los arma como pisos `cm1/c0/c1/c2`; probar con `/?casa=caja`; escalera de maqueta: mitad sube, mitad baja) — — esfuerzo **high**. `blender/casona.py` con muros, losas, vanos y la escalera de los 4 niveles, sin texturas ni horneado. Empties: `mesa_<juego>`, `escalera`, `puerta_<x>`, `maniqui`. Exportar un GLB por nivel y verlo en el juego con `?casa=caja` (mesas reales puestas desde los empties). Probar 840×360 y 360×840.
 - [ ] **2. Lectura de marcadores y choques** — esfuerzo **high**. Módulo nuevo que lee los empties del GLB (mesas, escalera, puertas) y los choques (segmentos exportados desde Blender) en vez de coordenadas a mano.
 - [ ] **3a. Planta baja: salón, zaguán y comedor** — esfuerzo **xhigh**. Rehacer el salón de la prueba a 5.5, con luz horneada; mesas de Continental y Monopoly Deal en sus cuartos.
 - [ ] **3b. Planta baja: patio y corredores** — esfuerzo **high**. Patio sin techo, arcos, árbol, hamaca y gata; mesa de Uno.
