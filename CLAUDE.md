@@ -18,6 +18,14 @@ Servidor Node sin dependencias + cliente JS puro. Arranque: `npm start`.
 - Nunca barras de scroll visibles (ui.css las oculta en todo el juego). Para indicar que algo se desliza: clase `ui-desl` (o `.ui-bd`), que desvanece el borde donde hay más (c_ui.js). El cambio de vista 2D/3D es `UI.dim(es3d,onclick)`, nunca un ojo.
 - Cambios visuales: usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).
 
+## Gustos del usuario
+- Poco texto en pantalla: tarjetas y paneles solo con pregunta, botones y aviso de tiempo; nada de registros de jugadas ni textos de riesgo que estorben.
+- Celular primero (amigos con Android débiles; el usuario juega en teléfono 21:9, casi siempre horizontal). Probar 840x360 y 360x840 además de vertical.
+- Rendimiento en todos los juegos: 60 FPS al tocar, 30 en reposo, muy parejos; densidad máx. 1.25 (mesas 1.5). Nunca quitar antialiasing; ahorrar quitando modelos pesados, dibujos o materiales. Topes solo en c_movil.js (MAX) y c_fps.js, no por juego. Las cartas siempre nítidas.
+- Personaje: serio, nada tierno (ojos óvalos oscuros sin brillo, sin chapitas, pelo mate), cabeza grande, cuerpo sin esquinas filosas (el pelo sí puede tener picos). Cara en geometría, no textura. Diseño propio, no copia.
+- Cartas ilustradas minimalistas: personaje en panel redondeado y 1–2 objetos; sin rayos, confeti ni adornos. Mostrar preview y no hacer commit de arte nuevo hasta que el usuario lo apruebe.
+- Los juegos se juegan en su mesa dentro de la casa (no en un cuarto aparte); la casa es decoración, los juegos son lo importante.
+
 ## Mapa
 - GRANDES (tocar con cuidado): c_continental3d.js, c_monopolydeal.js, c_uno3d.js, style.css, c_casa3d.js, continental3d.html.
 - Servidor: server.js (salas, polling, bots), server3d.js (sirve 3D), srv_modelos.js (modelos por partes y caché). Reglas: g_continental.js, g_uno.js, g_monopolydeal.js (bot: g_monopolydeal_bot.js), g_merida.js (bot: g_merida_bot.js; pruebas tests/merida_bots.js).
