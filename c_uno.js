@@ -5,9 +5,13 @@ const U=id=>{if(id>=100)return{id,c:4,t:id<104?'w':'f',n:-1};const c=Math.floor(
 const usym=c=>c.t=='n'?c.n:c.t=='s'?'⊘':c.t=='r'?'⇄':c.t=='d'?'+2':c.t=='w'?'★':'+4';
 const uval=c=>c.t=='n'?c.n:{s:10,r:11,d:12,w:13,f:14}[c.t];
 // la cara la dibuja c_uno_cartas.js (igual que en 3D); mientras no está lista se ve la carta de CSS
-// imagen para la carta que vuela: si la url aún no está lista, una copia chica del canvas
-const uimgS=c=>{if(!window.UCART)return null;const o={cbl:typeof cbl!='undefined'&&cbl},u=UCART.url(c,o);if(u)return u;const k=document.createElement('canvas');k.width=92;k.height=138;k.getContext('2d').drawImage(UCART.cara(c,o),0,0,92,138);return k.toDataURL()};
-const uimg=c=>{const u=window.UCART&&UCART.url(c,{cbl:typeof cbl!='undefined'&&cbl});return u?` ucv" style="--ui:url(${u})`:''};
+// imagen de la carta (null = dorso): la url del blob; si aún no está lista, una copia chica del canvas (nunca el diseño viejo de CSS)
+const uchica={},uimgS=c=>{if(!window.UCART)return null;const o={cbl:typeof cbl!='undefined'&&cbl},u=UCART.url(c,o);if(u)return u;const key=c?c.c+c.t+c.n+o.cbl:'b';
+ if(!uchica[key]){const k=document.createElement('canvas');k.width=128;k.height=192;k.getContext('2d').drawImage(c?UCART.cara(c,o):UCART.dorso(),0,0,128,192);uchica[key]=k.toDataURL()}return uchica[key]};
+const uimg=c=>{const u=uimgS(c);return u?` ucv" style="--ui:url(${u})`:''};
+// prepara de una en una todas las caras y el dorso para que la primera mano ya tenga sus imágenes
+if(window.UCART){const ids=[null,100,104];for(let c=0;c<4;c++)[0,1,3,5,7,9,11,13,15,17,19,21,23].forEach(k=>ids.push(c*25+k));
+ const sig=()=>{if(!ids.length)return;const id=ids.shift();UCART.url(id==null?null:U(id),{cbl:typeof cbl!='undefined'&&cbl});(window.requestIdleCallback||setTimeout)(sig)};setTimeout(sig,300)}
 if(window.UCART)UCART.alUrl(()=>{if(typeof render=='function'&&document.querySelector('.c.u0,.c.u1,.c.u2,.c.u3,.c.u4,#deck'))render()});
 function ucard(c,o={}){const s=usym(c);return `<div class="c u${c.c}${o.sm?' sm':''}${o.nw?' nw':''}${o.dim?' dim':''}${String(s).length>1?' l2':''}${uimg(c)}"${c.c<4?` data-cl="${'RAVZ'[c.c]}"`:''}${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}><span>${s}</span><i class="k1">${s}</i><i class="k2">${s}</i></div>`}
 // ¿Se puede jugar? (misma regla que el servidor; el servidor es quien valida)
@@ -50,7 +54,7 @@ function uvozTts(t){if(mute||!window.speechSynthesis)return;try{const u=new Spee
  u.lang=v?v.lang:'es-MX';if(v)u.voice=v;u.rate=1.05;u.pitch=1.2;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 if(window.speechSynthesis)try{speechSynthesis.getVoices()}catch(e){}   // algunas compus cargan las voces hasta que se piden
 GM.uno={name:'Uno',emoji:'🎴',max:10,rules:unoRules,lobby:ulobby,body:ubody,
- face:id=>{const c=U(id);return {h:`<span>${usym(c)}</span>`,cls:'u'+c.c,ui:uimgS(c)}},back:()=>window.UCART&&UCART.url(null),
+ face:id=>{const c=U(id);return {h:`<span>${usym(c)}</span>`,cls:'u'+c.c,ui:uimgS(c)}},back:()=>uimgS(null),
  win:(n,fin)=>{const w=n.win;if(!fin||w<0)return;const me=w==V.me;sfx('win');banner(me?'¡Ganaste!':n.players[w].name+' ganó');confetti(me?90:35)},
  ev:e=>{if(e.t.startsWith('dijo'))uvoz('¡UNO!');if(e.t.startsWith('dijo')||e.t.startsWith('cobró'))banner(e.t.startsWith('dijo')?'¡UNO! '+V.G.players[e.k].name:V.G.players[e.k].name+' '+e.t)},
  after:()=>{const G=V.G;if(G&&G.phase=='play'){prevHand=new Set(Array.isArray(G.hands[V.me])?G.hands[V.me]:[]);prevTop=G.disc[G.disc.length-1]}}};
