@@ -8,7 +8,7 @@ description: Reglas del estilo "Cálida" (día y noche) de la interfaz de la Cas
 El estilo Windows 7 / Aero (degradados grises, vidrio azul, clases `w7…`) ya no se usa. Todo lo nuevo va con los tokens y componentes de `ui.css`.
 
 ## Archivos
-- `ui.css`: tokens (variables CSS) de día y noche, componentes base y los alias de `.w7`, `.w7g`, `.w7b`, `.w7win` (solo para que los juegos viejos no se rompan; no usarlos en código nuevo).
+- `ui.css`: tokens (variables CSS) de día y noche, componentes base. Las clases `w7…` ya no existen (se borraron en nov 2026).
 - `c_ui.js` (se carga en `<head>`): `UI.tema()` / `UI.setTema('auto'|'dia'|'noche')` (localStorage `casa_tema`), `UI.noche()`, `UI.on(fn)` e iconos `UI.ico(nombre)`. Pone `html[data-tema=dia|noche]` y mantiene en sintonía `cont_dark` y la clase `c3dark` de los juegos viejos.
 - `ui_casa.css`: HUD de la casa y reestilo de avisos, letreros de mesas, nombres y globitos.
 - `c_casa_hud.js` (CHUD): pastilla del piso, gente, ajustes, controles, chat y rueda de gestos.
@@ -50,8 +50,8 @@ Radios: paneles `var(--ui-r)` (22px); botones y pastillas 999px. Letra: `var(--u
 5. Ajustes vive en un solo panel (CHUD): nombre, calidad, tema, música, sonidos, primera persona, "Cómo se juega", "Salir de la casa". No agregar más barras.
 6. Teclas de la casa: W A S D caminar, V primera persona, Enter chat, G gestos, 1–8 gestos directos, E abrir la mesa, Esc cerrar. La lista de gestos (`EMO`) está en `c_casa3d.js` y en `server.js`: cambiar ambas.
 7. Revisar en celular (375×812) y en compu antes de dar algo por terminado.
-8. No tocar el modo 2D Ligero (`continental.html`, `style.css`, la pantalla 2D clásica). Los estilos de `ui.css` no deben afectar fuera de `.ui…`, `.w7…` y los elementos de la casa.
+8. No tocar el modo 2D Ligero (`continental.html`, `style.css`, la pantalla 2D clásica). Excepción: el inicio y la sala de espera sin casa los dibuja `c_lobby.js` (LOBBY) con `ui_lobby.css` bajo `html.lbon`. Los estilos de `ui.css` no deben afectar fuera de `.ui…`, `.w7…` y los elementos de la casa.
 9. Código nuevo en módulos pequeños (como `c_casa_hud.js`), no en los archivos grandes.
 
 ## Pendiente
-Pasar las pantallas de dentro de cada juego (menús, ventanas `w7win`, barras `#t3…`) al estilo Cálida con GHUD, una por una. Hecho: Uno 3D. Faltan: Continental 3D, Conecta 4, Backgammon, Cubilete, Mérida, YuCATÁN, Rummy 3D, Ruleta y sobras (c_casa_ir.js, c_bienvenida.js, camUI/IC en c_casa3d.js).
+Todas las pantallas de los juegos 3D ya van en Cálida: Uno 3D, Continental 3D, Rummy y Ruleta con GHUD; Conecta 4, Backgammon, Cubilete e "Ir a…" con `GHUD.win`; Mérida y YuCATÁN mapean sus variables `--mu-…` a los tokens y siguen el tema de la casa (en c_meridaui.js hay un `UI` local: usar `window.UI`); bienvenida con tokens; sobras w7 de la casa con `.ui-glass`. Monopoly Deal: c_mdeal_hud.js envuelve su pantalla (☰ con GHUD.sheet) y ui_juegos.css la reestiliza bajo `html.mdui`, sin tocar c_monopolydeal.js ni style.css (los comparte el 2D Ligero).
