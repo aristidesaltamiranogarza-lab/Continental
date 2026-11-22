@@ -482,6 +482,7 @@ def motor(sc):
     try:
         p = bpy.context.preferences.addons['cycles'].preferences; p.compute_device_type = 'HIP'; p.get_devices()
         for d in p.devices: d.use = d.type == 'HIP'
+        print('GPU:', [d.name for d in p.devices if d.use] or 'ninguna')
         sc.cycles.device = 'GPU'
     except Exception as e: print('sin GPU', e)
     try: sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
@@ -547,6 +548,19 @@ def _sel(obs):
     for o in obs: o.select_set(True)
     bpy.context.view_layer.objects.active = obs[0]
 
+def _pasadas(sc, img, muestras, sel, n=5):
+    """Hornea en n pasadas con semilla distinta y las promedia (igual a una sola de 'muestras'); imprime el avance."""
+    import numpy as np, time
+    n = max(1, min(n, muestras)); acc = None; t0 = time.time()
+    for k in range(n):
+        sc.cycles.seed = k; sc.cycles.samples = muestras // n + (k < muestras % n)
+        _sel(sel); bpy.ops.object.bake(type='DIFFUSE')
+        a = np.empty(len(img.pixels), np.float32); img.pixels.foreach_get(a)
+        acc = a if acc is None else acc + a
+        t = time.time() - t0
+        print('Horneado: %d%% (faltan ~%.1f min)' % (100 * (k + 1) // n, t / (k + 1) * (n - k - 1) / 60), flush=True)
+    img.pixels.foreach_set(acc / n); img.update()
+
 def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     """Hornea la luz (directa + indirecta, sin color) en UV 'luz'. solo: hornear solo esas mallas (prueba rápida).
     limpio: quita el ruido con OpenImageDenoise guiado por normales (sin guía borraba el detalle de los muros)."""
@@ -556,7 +570,7 @@ def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     sc.cycles.samples = muestras; sc.cycles.use_denoising = False
     bk = sc.render.bake; bk.use_pass_direct = True; bk.use_pass_indirect = True; bk.use_pass_color = False; bk.margin = 2; bk.target = 'IMAGE_TEXTURES'
     sc.cycles.sample_clamp_indirect = 2     # sin destellos del rebote (dejaban manchas al quitar el ruido)
-    _sel(solo or obs); bpy.ops.object.bake(type='DIFFUSE')
+    _pasadas(sc, img, muestras, solo or obs)
     if limpio:
         nrm = bpy.data.images.new('pb_nrm', res, res, float_buffer=True); _img(obs, nrm)
         sc.cycles.samples = 1; _sel(solo or obs); bpy.ops.object.bake(type='NORMAL', normal_space='OBJECT')

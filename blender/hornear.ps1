@@ -1,0 +1,11 @@
+# Corre casona_pb.py (o casona_pa.py con "pa" primero) en Blender y muestra solo el avance.
+# Ej.: .\blender\hornear.ps1 prueba C:\tmp\luz    |    .\blender\hornear.ps1 hornear    |    .\blender\hornear.ps1 pa hornear
+$a = @($args)
+$py = 'casona_pb.py'
+if ($a.Count -and $a[0] -eq 'pa') { $py = 'casona_pa.py'; $a = @($a | Select-Object -Skip 1) }
+$b = (Get-Command blender -ErrorAction SilentlyContinue).Source
+if (-not $b) { $b = Get-ChildItem 'C:\Program Files\Blender Foundation\*\blender.exe' | Sort-Object FullName | Select-Object -Last 1 -ExpandProperty FullName }
+$t = Get-Date
+& $b -b --factory-startup --python (Join-Path $PSScriptRoot $py) -- @a 2>&1 | ForEach-Object { "$_" } |
+    Where-Object { $_ -cmatch 'GPU:|sin GPU|Horneado|prueba:|comparar|Error:|Traceback' }
+'Listo en {0:n1} min' -f ((Get-Date) - $t).TotalMinutes
