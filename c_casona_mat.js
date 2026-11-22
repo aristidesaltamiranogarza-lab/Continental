@@ -1,5 +1,5 @@
 // c_casona_mat.js — CMAT: materiales de los niveles horneados de la casona (blender/casona_pb.py → pb.glb + pb_luz.jpg, planta baja;
-// blender/casona_pa.py → pa.glb + pa_luz.jpg, planta alta).
+// blender/casona_pa.py → pa.glb + pa_luz.webp, planta alta; blender/casona_sm.py → sm.glb + sm_luz.webp, sótano).
 // Cada material del GLB se vuelve MeshBasicMaterial con una textura de canvas que se repite (UV0 en metros) por la luz horneada (UV1):
 // nada de luces en tiempo real para el cascarón. Los colores base son los de Blender pasados a sRGB, para que se vea como el horneado.
 // CMAT.aplicar(root,urlDeLaLuz) arma los materiales; CMAT.copas(root) junta las copas de los árboles y CMAT.paso(C,yo) las desvanece
@@ -48,6 +48,25 @@ function texturas(ctex){if(TX)return TX;
     const gr=g.createRadialGradient(X,Y,0,X,Y,r);gr.addColorStop(0,`rgba(${cl},${a})`);gr.addColorStop(1,`rgba(${cl},0)`);g.fillStyle=gr;g.fillRect(X-r,Y-r,2*r,2*r)}}
   for(let i=0;i<3600;i++){g.fillStyle=i%2?'rgba(255,240,220,.05)':'rgba(120,70,40,.04)';g.fillRect(r2()*w,r2()*h,1+r2()*1.5,1+r2()*1.5)}};
  const copa=ruido('#86aa76','rgba(60,95,50,.35)','rgba(190,220,160,.25)',140,4,10);
+ // sótano (paso 6): mampostería de piedra, damasco vino y verde (como el sótano de hoy), alfombra del casino, barro, losas, botellas y duelas de barrica
+ const piedra=(g,w,h)=>{const r3=(s=>()=>(s=(s*9301+49297)%233280)/233280)(5);g.fillStyle='#8f877b';g.fillRect(0,0,w,h);const c=['#bdb5a8','#b3aa9c','#c6beb1','#aca395','#b9ae9d'];
+  for(let j=0;j<6;j++){const y=j*h/6;let x=-r3()*40;while(x<w){const lw=44+r3()*60,o=4;g.fillStyle=c[(r3()*c.length)|0];g.beginPath();
+   g.moveTo(x+o+r3()*6,y+o+r3()*5);g.lineTo(x+lw-o-r3()*6,y+o+r3()*5);g.lineTo(x+lw-o-r3()*4,y+h/6-o-r3()*5);g.lineTo(x+o+r3()*4,y+h/6-o-r3()*5);g.closePath();g.fill();
+   for(const dx of [-w,w])if(x+dx<w&&x+lw+dx>0){g.save();g.translate(dx,0);g.fill();g.restore()}x+=lw}}
+  for(let i=0;i<2400;i++){g.fillStyle=i%2?'rgba(255,250,240,.06)':'rgba(60,45,30,.07)';g.fillRect(r3()*w,r3()*h,1+r3()*2,1+r3()*2)}};
+ const dam=(a,b,c)=>(g,w,h)=>{g.fillStyle=a;g.fillRect(0,0,w,h);g.fillStyle=b;for(let x=0;x<w;x+=32)g.fillRect(x,0,2,h);
+  const med=(cx,cy)=>{g.save();g.translate(cx,cy);g.fillStyle=c;g.beginPath();g.ellipse(0,0,26,40,0,0,7);g.fill();g.fillStyle=a;g.beginPath();g.ellipse(0,0,19,31,0,0,7);g.fill();
+   g.fillStyle=c;for(let i=0;i<4;i++){g.rotate(Math.PI/2);g.beginPath();g.ellipse(0,-13,5,10,0,0,7);g.fill()}g.beginPath();g.arc(0,0,5,0,7);g.fill();g.restore()};
+  g.filter='blur(2px)';med(64,64);med(192,192);med(-64,192);med(320,64);g.filter='none'};
+ const alfombra=(g,w,h)=>{g.fillStyle='#7a2430';g.fillRect(0,0,w,h);for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*128+64,y=j*128+64;g.strokeStyle='#d6ae5a';g.lineWidth=5;g.beginPath();g.arc(x,y,40,0,7);g.stroke();
+   g.fillStyle='#3a5a7a';g.beginPath();g.moveTo(x,y-28);g.lineTo(x+28,y);g.lineTo(x,y+28);g.lineTo(x-28,y);g.closePath();g.fill();g.fillStyle='#e8c46e';g.beginPath();g.arc(x,y,8,0,7);g.fill()}
+  for(let j=0;j<=2;j++)for(let i=0;i<=2;i++){const x=i*128,y=j*128;g.fillStyle='#e0904a';g.beginPath();for(let k=0;k<8;k++){const q=k*Math.PI/4,r=k%2?6:17;g.lineTo(x+Math.cos(q)*r,y+Math.sin(q)*r)}g.closePath();g.fill()}};
+ const ladrillo=(g,w,h)=>{const n=4,s=w/n;for(let j=0;j<n;j++)for(let i=0;i<n;i++){g.fillStyle=['#c58e72','#bd8468','#cb977b','#b98066'][(i*3+j*5)%4];g.fillRect(i*s,j*s,s,s)}
+  g.strokeStyle='rgba(70,40,25,.35)';g.lineWidth=2;for(let i=0;i<=n;i++){g.beginPath();g.moveTo(i*s,0);g.lineTo(i*s,h);g.moveTo(0,i*s);g.lineTo(w,i*s);g.stroke()}};
+ const botellas=(g,w,h)=>{g.fillStyle='#2a1c12';g.fillRect(0,0,w,h);const c=['#3f6a3a','#6a3a22','#c9b070','#2f4a5a','#7a2a2a','#d8d0b0'];let x=2;
+  while(x<w){const bw=9+rnd()*5,bh=h*(.7+rnd()*.22);g.fillStyle=c[(rnd()*c.length)|0];g.fillRect(x,h-bh*.62,bw,bh*.62);g.fillRect(x+bw*.35,h-bh,bw*.3,bh*.4);
+   g.fillStyle='rgba(255,255,255,.22)';g.fillRect(x+1.5,h-bh*.58,2,bh*.5);x+=bw+3}};
+ const barrica=(g,w,h)=>{g.fillStyle='#a88565';g.fillRect(0,0,w,h);for(let i=0;i<8;i++){g.fillStyle=i%2?'rgba(60,35,18,.12)':'rgba(255,230,190,.08)';g.fillRect(i*w/8,0,w/8,h);g.fillStyle='rgba(50,28,12,.45)';g.fillRect(i*w/8,0,1.5,h)}};
  TX={
   muro:{map:T('muro',512,512,cal,1/4)},   // cal: grano fino y nubes muy suaves
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.1)','rgba(120,100,70,.08)',80,8,34),1/4)},
@@ -64,7 +83,12 @@ function texturas(ctex){if(TX)return TX;
   porton:{map:T('porton',128,128,porton,1/1.4)},tapete:{map:T('tapete',512,512,tapete,1)},hamaca:{map:T('hamaca',256,16,hamaca,1/1.4,1)},
   copa:{map:T('copa',128,128,copa,1/1.5)},tronco:{map:T('tronco',64,64,madera('#a08976','rgba(70,50,35,.35)'),1/.8)},
   duela:{map:T('duela',256,256,duela,1/1.2)},libros:{map:T('libros',256,64,libros,1/1.6,1/.4)},
-  lambrin:{color:0x618c79},rod:{color:0xede7d7},techo:{color:0xe7dfce},barro:{color:0xcb997c},escalon:{color:0xcea286}};
+  lambrin:{color:0x618c79},rod:{color:0xede7d7},techo:{color:0xe7dfce},barro:{color:0xcb997c},escalon:{color:0xcea286},
+  piedra:{map:T('piedra',512,512,piedra,1/2.2)},tapiz_vino:{map:T('tapiz-vino',256,256,dam('#8a2f3a','rgba(255,210,150,.05)','rgba(230,180,100,.22)'),1/1.1)},
+  tapiz_verde:{map:T('tapiz-verde',256,256,dam('#3d6e55','rgba(255,240,200,.05)','rgba(230,200,130,.26)'),1/1.1)},alfombra:{map:T('alfombra',256,256,alfombra,1/1.6)},
+  ladrillo:{map:T('ladrillo',256,256,ladrillo,1/1.4)},losa_s:{map:T('losa-s',256,256,laja,1/2.6)},cemento:{map:T('cemento',128,128,ruido('#8d8a85','rgba(50,48,45,.12)','rgba(220,215,205,.1)',160,2,6),1/2)},
+  botellas:{map:T('botellas',256,64,botellas,1/1.4,1/.4)},barrica:{map:T('barrica',128,64,barrica,1/.6,1)},madera_osc:{map:T('madera-osc',128,128,madera('#6e5242','rgba(30,18,10,.35)'),1)},
+  lambrin_s:{map:T('lambrin-s',128,128,madera('#7a5a44','rgba(35,20,10,.3)'),1)},zoclo:{color:0x8a837b},tierra:{color:0x5a5148},cuero:{color:0x94554c}};
  return TX}
 
 // materiales: con luz horneada (UV1) si la malla la trae; los que brillan y el hierro, sin ella
@@ -78,7 +102,7 @@ function aplicar(root,luzUrl){const H=window.CASA3D;if(!H||!H.ctex)return;const 
    s.fragmentShader.replace('texture2D( lightMap, vLightMapUv )','lmC( lightMap, vLightMapUv )')}};
  const material=(m,luz)=>{const n=(m&&m.name)||'x',k=n+(luz?'+':'');if(MAT[k])return MAT[k];let r;
   if(n==='arbotante')r=new THREE.MeshBasicMaterial({color:0xffe2b0,toneMapped:false});
-  else if(n==='farol')r=new THREE.MeshBasicMaterial({color:0xffd08a,toneMapped:false});
+  else if(n==='farol'||n==='foco')r=new THREE.MeshBasicMaterial({color:0xffd08a,toneMapped:false});
   else if(n==='hierro')r=new THREE.MeshBasicMaterial({color:0x1d1814});
   else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=new THREE.MeshBasicMaterial(o);if(luz)cubica(r)}
   if(n==='hamaca'||n==='persiana')r.side=THREE.DoubleSide;

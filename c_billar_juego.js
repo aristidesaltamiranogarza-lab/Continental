@@ -22,7 +22,7 @@ let G=null,M0=null,ln=null,ring=null,lo=null,lb=null,taco=null,cp=null,cq=null,f
 const enJuego=()=>!!(V&&V.yo&&(V.fase==='juego'||V.fase==='fin'));
 const miTurno=()=>!!(V&&V.fase==='juego'&&V.yo&&V.turno===V.yo[0]&&V.ti&&V.ti[V.turno]===V.yo[1]);
 const puedo=()=>miTurno()&&!jug&&!pend&&!!M0;
-const enSot=()=>!!(H()&&H().piso&&H().piso()==='sot');
+const enSot=()=>!!(H()&&H().piso&&/^(sot|cm1)$/.test(H().piso()));
 function E(){const e=(V&&V.E||[]).map(b=>b&&b.slice());if(V&&V.mano)e[0]=[bx,bz];return e}
 function lugar(Es,coc){if(Es[0]&&BFIS.libre(Es,Es[0][0],Es[0][1],coc))return Es[0].slice();const [x0,z0]=FM.cabeza;
  for(let r=0;r<40;r++)for(let k=0;k<8;k++){const x=r4(x0+Math.cos(k*PI/4)*r*R*.7),z=r4(z0+Math.sin(k*PI/4)*r*R*.7);if(BFIS.libre(Es,x,z,coc))return [x,z]}return [x0,z0]}

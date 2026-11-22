@@ -159,7 +159,7 @@ addEventListener('keydown',e=>{if(!sentadoYa()||e.ctrlKey||e.metaKey||e.altKey||
  if(TK[k]){e.stopPropagation();e.preventDefault();teclas.add(TK[k])}else if(k==='+'||k==='='||k==='-'){e.stopPropagation();look.z*=k==='-'?.8:1.25;clampL();rr()}},true);
 addEventListener('keyup',e=>{const k=TK[e.key.toLowerCase()];if(k&&teclas.delete(k))rr()},true);
 addEventListener('blur',()=>teclas.clear());
-function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&!(window.PK3&&PK3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca&&!((x=>x&&Math.hypot(me.pos.x-x.x,me.pos.z-x.z)<Math.hypot(me.pos.x-P.x,me.pos.z-P.z))(SAL.P.poker)))}
+function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.blackjack;return !!(me&&P&&!(window.PK3&&PK3.yo()>=0)&&/^(sot|cm1)$/.test(H().piso())&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca&&!((x=>x&&Math.hypot(me.pos.x-x.x,me.pos.z-x.z)<Math.hypot(me.pos.x-P.x,me.pos.z-P.z))(SAL.P.poker)))}
 
 // ---------- jugadas ----------
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}
@@ -187,7 +187,7 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(window.BJH)BJH.paso(V,s,now)}
 
 // ---------- aviso de la mesa (al centro abajo, como CMESA) ----------
-function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s=yo(),I=n=>window.UI?UI.ico(n):'';
+function hud(busy){if(busy||!ini||!V||!H()||!/^(sot|cm1)$/.test(H().piso()))return '';const s=yo(),I=n=>window.UI?UI.ico(n):'';
  if(s>=0&&window.BJH)return BJH.hud(V,s);
  if(s>=0)return `<button class="ui uh-aviso" onclick="BJ3.levantarse()" aria-label="Levantarse de la mesa de Blackjack"><span class="uh-ai" aria-hidden="true">${I('salir')}</span>
   <span class="uh-at"><b>Blackjack · ${mon(V.as[s].f)} en fichas</b><small>Levantarse</small></span>${touchy?'':'<kbd>Esc</kbd>'}</button>`;
@@ -206,5 +206,5 @@ function crT(){let t=0,as=0,n=0;CAR.forEach(x=>{if(x.s>=0||x.c<0||x.pend||x.volt
  return n?(as&&t+10<=21?t+10:t):null}
 const BJ3=window.BJ3={A,v:null,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},
  cerca,pt,crT,kit:{caraMat,llena,dorso:()=>(ini0(),{ED,DOR})},   // PK3 (Póker) usa las mismas caras, reverso y fichas
- sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
+ sentado:id=>!!(mpjOk&&V&&H()&&/^(sot|cm1)$/.test(H().piso())&&V.as.some(a=>a&&a.id===id))};
 })();

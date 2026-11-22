@@ -450,7 +450,7 @@ function hud(){const g=sel&&GM[sel],n=others.size+1;
  // te invitaron con un enlace: unirte sin tener que caminar
  if(!g&&!S&&casaInv.length==5)o+=`<div id="h3inv" class="ui ui-fx ui-glass"><span>Te invitaron a la sala <b>${esc(casaInv)}</b></span><i><button class="ui-btn" onclick="casaInvSi()">Unirme</button><button class="ui-btn sec" onclick="casaInvNo()">No, gracias</button></i></div>`;
  o+=mh;
- {const bb=busy||!!(window.BIJ&&BIJ.jugando());if(window.CUB3&&FL.id==='sot')o+=CUB3.hud(bb);if(window.BJ3&&FL.id==='sot')o+=BJ3.hud(bb);if(window.PK3&&FL.id==='sot')o+=PK3.hud(bb)}if(window.BIJ&&FL.id==='sot')o+=BIJ.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
+ {const bb=busy||!!(window.BIJ&&BIJ.jugando());if(window.CUB3&&/^(sot|cm1)$/.test(FL.id))o+=CUB3.hud(bb);if(window.BJ3&&/^(sot|cm1)$/.test(FL.id))o+=BJ3.hud(bb);if(window.PK3&&/^(sot|cm1)$/.test(FL.id))o+=PK3.hud(bb)}if(window.BIJ&&/^(sot|cm1)$/.test(FL.id))o+=BIJ.hud(busy);if(window.JG3)o+=JG3.hud(busy);   // el cubilete en el sótano; Conecta 4 en la terraza y Backgammon en la planta alta
  if(window.CIR)o+=CIR.hud(busy);
  if(window.SOT)o+=SOT.seatHud();
  return o}
@@ -484,7 +484,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,FL.id==='sot');if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();subeGeo()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
+ try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,/^(sot|cm1)$/.test(FL.id));if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();subeGeo()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};

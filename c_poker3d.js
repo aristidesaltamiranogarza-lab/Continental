@@ -170,7 +170,7 @@ addEventListener('keydown',e=>{if(!sentadoYa()||e.ctrlKey||e.metaKey||e.altKey||
  if(TK[k]){e.stopPropagation();e.preventDefault();teclas.add(TK[k])}else if(k==='+'||k==='='||k==='-'){e.stopPropagation();look.z*=k==='-'?.8:1.25;clampL();rr()}},true);
 addEventListener('keyup',e=>{const k=TK[e.key.toLowerCase()];if(k&&teclas.delete(k))rr()},true);
 addEventListener('blur',()=>teclas.clear());
-function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.poker;return !!(me&&P&&!(window.BJ3&&BJ3.yo()>=0)&&H().piso()==='sot'&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca&&!((x=>x&&Math.hypot(me.pos.x-x.x,me.pos.z-x.z)<Math.hypot(me.pos.x-P.x,me.pos.z-P.z))(SAL.P.blackjack)))}
+function cerca(){const me=quien(yoId()),P=window.SAL&&SAL.P.poker;return !!(me&&P&&!(window.BJ3&&BJ3.yo()>=0)&&/^(sot|cm1)$/.test(H().piso())&&Math.hypot(me.pos.x-P.x,me.pos.z-P.z)<A.cerca&&!((x=>x&&Math.hypot(me.pos.x-x.x,me.pos.z-x.z)<Math.hypot(me.pos.x-P.x,me.pos.z-P.z))(SAL.P.blackjack)))}
 
 // ---------- jugadas ----------
 function act(op,x){if(cola.length<8)cola.push(Object.assign({op},x||{}))}
@@ -196,7 +196,7 @@ function paso(){const now=performance.now(),dt=Math.min(.1,(now-(tP||now))/1000)
  if(window.PKH)PKH.paso(V,s,now)}
 
 // ---------- aviso de la mesa (al centro abajo, como CMESA); sentado, la interfaz es PKH ----------
-function hud(busy){if(busy||!ini||!V||!H()||H().piso()!=='sot')return '';const s=yo(),I=n=>window.UI?UI.ico(n):'';
+function hud(busy){if(busy||!ini||!V||!H()||!/^(sot|cm1)$/.test(H().piso()))return '';const s=yo(),I=n=>window.UI?UI.ico(n):'';
  if(window.PKH&&s>=0)return PKH.hud(V,s);
  if(s>=0)return `<button class="ui uh-aviso" onclick="PK3.levantarse()" aria-label="Levantarse de la mesa de Póker"><span class="uh-ai" aria-hidden="true">${I('salir')}</span>
   <span class="uh-at"><b>Póker · ${mon(V.as[s].f)} en fichas</b><small>Levantarse</small></span>${touchy?'':'<kbd>Esc</kbd>'}</button>`;
@@ -207,5 +207,5 @@ function key(k){if(k==='escape'&&yo()>=0){levantarse();return true}if(k==='e'&&y
 
 const PK3=window.PK3={A,v:null,verTus,veo:()=>vis||abierta(),tusVis:()=>vis,estado,paso,hud,key,act,sentar,levantarse,yo,ver,recentra,mirando,vista:()=>vista,out:()=>cola.shift()||null,tap:()=>{if(yo()<0)sentar()},cerca,
  arriba:i=>PJ&&mpjOk?PJ.arriba(i):null,ptAsiento:s=>R?mundo(enMesa(ov(A.rCarta+.02,s),.02)):null,ptBote:(k,n)=>R?mundo(botePos(k,n).setY(TH+.05)):null,   // PKH: globitos
- sentado:id=>!!(mpjOk&&V&&H()&&H().piso()==='sot'&&V.as.some(a=>a&&a.id===id))};
+ sentado:id=>!!(mpjOk&&V&&H()&&/^(sot|cm1)$/.test(H().piso())&&V.as.some(a=>a&&a.id===id))};
 })();
