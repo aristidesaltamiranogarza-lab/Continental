@@ -82,6 +82,10 @@ html:has(.gj-sheet,#u3pick) #chat{display:none!important}   /* el botón del cha
 .u3s .u3n{min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ui-text);color:var(--ui-panel);font-size:11px;line-height:20px}
 .u3s .u3b{margin:0}
 .gj-seat.u3one{border-color:var(--ui-accent)}
+/* Uno 3D: letrero corto de tu turno, sobre tu mano */
+.u3tt{position:fixed;left:50%;bottom:calc(var(--t3fan,200px) + 6px);transform:translateX(-50%);z-index:11;pointer-events:none;padding:5px 14px;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font-weight:800;font-size:14px;line-height:1.25;box-shadow:var(--ui-shadow);text-align:center;white-space:nowrap}
+.u3tt small{display:block;font-size:11px;font-weight:700;opacity:.85}
+.u3tt small[hidden]{display:none}
 .gj-bar .ui-btn.u3ok[disabled]{opacity:1}
 .gj-seat .u3b{display:block;width:max-content;margin:4px auto 0;padding:2px 9px;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font-style:normal;font-weight:800;animation:gjPop .8s ease-in-out infinite alternate}
 .u3tro{font-size:44px;line-height:1;animation:gjPop .9s ease-in-out infinite alternate}

@@ -150,6 +150,8 @@ function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.t
  const sk=1.3,sd=1.7,gp=.5;L.sk=sk;L.sd=sd;L.ctr=v3(0,0,-.3);L.deck=v3(-(gp+CW*sk)/2-.1,0,L.ctr.z);L.disc=v3((gp+CW*sd)/2-.1,0,L.ctr.z);
  ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.8,depthWrite:false}));
  ringM.rotation.x=-Math.PI/2;L.rs=7.2;ringM.scale.set(L.rs,L.rs,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
+ const ag=1.6,ac=getComputedStyle(document.documentElement).getPropertyValue('--ui-accent').trim()||'#C2512A',eg=new THREE.Mesh(new THREE.TorusGeometry(mesa.r+.33,.07,8,64,ag),new THREE.MeshBasicMaterial({color:ac,transparent:true,opacity:0,depthWrite:false}));
+ eg.rotation.set(Math.PI/2,0,Math.PI/2-ag/2);eg.position.y=.2;eg.renderOrder=2;eg.visible=false;tbl.add(eg);L.myE=eg;   // tu orilla: se marca en tu turno
  if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=mesa.pie}
 function ringStep(dt,now){if(!ringG||!V||!V.G)return;const G=V.G;
  if(G.dir!==ringDir){ringDir=G.dir;ringM.material.map=ringTex(ringDir);ringM.material.needsUpdate=true;if(!first){ringBoost=1;if(window.MFX)MFX.destello(SC,L.ctr,L.rs*.8,L.rs*.8,UC[G.color]||'#fff')}}
@@ -361,22 +363,26 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
 
 // ---------- capa de controles (HTML encima del 3D) ----------
 const chipC=k=>`<i class="u3chip" style="--c:${UC[k]}"></i>`,uic=n=>UI.ico(n);   // piezas de la interfaz: c_juegos_hud.js (GHUD)
+let mineT=0,wasMine=false,finSeen=false,guiaN=0;try{guiaN=+localStorage.getItem('uno_guia')||0}catch(e){}
+// tu turno: la orilla de tu lado se marca (sin brillo) y la ayuda aparece si tardas
+function turnoUi(){const G=V&&V.G,on=!!G&&G.phase=='play'&&V.me>=0&&G.turn==V.me&&!G.ad;
+ if(L&&L.myE){const m=L.myE.material;m.opacity+=((on?.95:0)-m.opacity)*.12;L.myE.visible=m.opacity>.01}
+ const g=on&&document.getElementById('u3gu');if(g&&g.hidden&&Date.now()-mineT>8000)g.hidden=false}
 function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fin&&i==t,drawn=mine&&G.step=='drawn',pend=!fin&&G.pend>0,h=i>=0&&Array.isArray(G.hands[i])?G.hands[i]:[];
  if(!mine)upick=null;if(!fin)winHide=false;
- const hint=fin?(w>=0&&w==i?'¡Te quedaste sin cartas!':'Se quedó sin cartas. ¿Otra partida?'):G.ad>0?(mine?'Robando… ':esc(G.players[t].name)+' está robando… ')+'('+G.ad+')':i<0?mirTxt():!mine?'Esperando a '+nm(t)+'…':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con un ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:((G.log||[]).filter(e=>e.k==i).length<2?'Toca una carta para jugarla, o el mazo para robar':'');
- // arriba: estado (color y sentido) y turno a la izquierda; cámara y ☰ a la derecha; abajo de ellas la ayuda o la última jugada
- const inf=fin?`<b>${w>=0?nm(w):'—'}</b> gana`:pend?`<b class="gj-tag">+${G.pend}</b>`:'';
- const trn=fin?'Fin de la partida':G.ad>0?(mine?'Robando…':nm(t)+' roba…'):mine?'¡Tu turno!':'Turno de '+nm(t);
- const lg=(G.log||[]).slice(-1)[0],lgT=lg?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
- let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'u3dMenu()',right:(window.MCAM?MCAM.boton(VT.top,'u3dArriba()'):'')+GHUD.view('u3dHome()')});
- const ht=mine||fin||!lgT?hint:lgT;if(!mini&&ht)o+=GHUD.hint(ht);
+ if(mine&&!wasMine)mineT=Date.now();wasMine=mine;if(fin&&!finSeen){finSeen=true;guiaN++;try{localStorage.setItem('uno_guia',guiaN)}catch(e){}}if(!fin)finSeen=false;
+ // arriba solo cámara y menú; el turno de los demás se ve en su nombre y el tuyo en la orilla de tu lado y en un letrero corto sobre tu mano
+ let o=GHUD.top({open:menu,menu:'u3dMenu()',right:(window.MCAM?MCAM.boton(VT.top,'u3dArriba()'):'')+GHUD.view('u3dHome()')});
+ if(mine){const lib=!drawn&&!pend&&!G.ad,tt=G.ad>0?'Robando…':drawn?'Juega la que robaste o pasa':pend?`Acumula con ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:'Tu turno';
+  // la ayuda solo las primeras 2 partidas o si tardas más de 8 s (turnoUi la muestra)
+  o+=`<div class="ui u3tt">${tt}${lib?`<small id="u3gu"${guiaN<2?'':' hidden'}>Toca una carta o el mazo</small>`:''}</div>`}
  // aviso (error o nota) que se desvanece solo
  const mk=(msg||'')+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=msg||G.note;
  if(mt&&age<4500)o+=GHUD.toast(msg?esc(msg):'<b>'+esc(G.note)+'</b>',age,mini);
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const pl=V.players[k],on=!fin&&G.turn==k,n=hc(k),u1=fin?w==k:G.uno[k]&&n==1;
   o+=`<div class="ui gj-seat u3s${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}"><b>${esc(p.name)}</b>${pl.on?'':'<i class="dot"></i>'}${pl.out?'<small>expulsado</small>':`<span class="u3n" aria-label="${n} ${n==1?'carta':'cartas'}">${n}</span>`}${u1?`<em class="u3b">${fin?'¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
- o+=`<div class="ui gj-pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;
+ if(G.disc.length&&U(G.disc[G.disc.length-1]).c>=4)o+=`<div class="ui gj-pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;   // solo si lo eligió un comodín
  // botones de abajo: robar el acumulado, pasar, ¡UNO!, cobrar UNO y ordenar
  let b='';
  if(fin){b=`<button class="ui-btn" onclick="send({t:'reset'})">${uic('nuevo')}Nueva partida</button><button class="ui-btn sec" onclick="leave()">${uic('salir')}Salir</button>`;
@@ -404,8 +410,9 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   o+=GHUD.sheet('Uno',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<p class="gj-rt">${rg}</p>`]],'u3dMenu()')}
  return o}
 function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
- document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),[x,y]=toPx(pa||seatP(k,1).setY(.3)),hw=el.offsetWidth/2+4,hh2=el.offsetHeight/2+4;
-  const X=Math.max(hw,Math.min(W-hw,x)),Y=GHUD.dodge(X,Math.max(hh2+y0,Math.min(H-hh2,y)),hw,hh2,y0);el.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`});   // nunca encima de la barra de arriba ni de la última jugada
+ // el nombre va pegado arriba de la cabeza de cada personaje; si no está en pantalla no se ve (para verlo, mueve la cámara)
+ document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),q=(pa||seatP(k,1).setY(.3)).clone().project(CA),x=(q.x+1)/2*W,y=(1-q.y)/2*H,hw=el.offsetWidth/2;
+  const ve=q.z<1&&x>hw&&x<W-hw&&y-el.offsetHeight>y0&&y<H;el.style.visibility=ve?'':'hidden';if(ve)el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
  // nombres de las pilas: abajo de cada una
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
  if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+CH*L.sk/2+.12));pl('t3pds',v3(L.disc.x,0,L.disc.z+CH*L.sd/2+.12))}}
@@ -431,7 +438,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(!a){first=true;if(dpvEl)dpvEl.classList.remove('on');document.documentElement.classList.remove('u3mini');home();VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root&&!(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
- viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);ringStep(dt,now);avStep(now);pulse(now);labels();viewBtn();dpv();
+ viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);ringStep(dt,now);avStep(now);pulse(now);labels();turnoUi();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
  const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}

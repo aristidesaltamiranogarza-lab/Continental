@@ -14,7 +14,7 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 | 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [x] |
 | 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [x] |
 | 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [x] |
-| 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [ ] |
+| 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [x] |
 | 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [ ] |
 | 6 | Paisaje, tablet y de 2 a 8 jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [ ] |
 
@@ -171,6 +171,10 @@ Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una 
 4. Ojo: `layout()` mide `#gjTop`, `#gjHint` y `#gjBar`; si se quitan, ajustar esas medidas.
 
 **Notas:**
+- Los rivales se quedan alrededor de la mesa (el usuario no quiere que se junten enfrente). En parado con 4–5 los de los lados quedan fuera: no se ven y su nombre tampoco (para verlos, mover la cámara).
+- Nombres como en Minecraft: `labels()` los pone pegados arriba de la cabeza (`MPJ.arriba`, `translate(-50%,-100%)`), sin pegarse a la orilla ni esquivarse; `visibility:hidden` si salen de la pantalla o quedan bajo la barra de arriba. `.on` (turno) y `.u3b` (UNO, parpadea) ya existían.
+- Arriba solo Arriba/Cuadrar/menú (`GHUD.top` sin st/turn); se quitó `GHUD.hint` (ni turno ajeno ni última jugada). Tu turno: letrero `.u3tt` sobre la mano (bottom = `--t3fan`) con "Tu turno" o la acción pendiente; la ayuda `#u3gu` solo las 2 primeras partidas (localStorage `uno_guia`, cuenta finales) o tras 8 s (`turnoUi`). La orilla de tu lado: franja `L.myE` color `--ui-accent`, sin brillo aditivo (el usuario no quiere glow en mesas). Chip del color solo si la carta de arriba es comodín.
+- El ajuste "Ayuda arriba" (`mini`) ya casi no hace nada: revisar en el paso 5/6 si se quita. Tope de cartas en la mano de los rivales: 14 (MPJ.cartas, compartido), se dejó.
 
 ## Paso 5: Mirada viva y transición del lobby a tu silla (xhigh)
 
