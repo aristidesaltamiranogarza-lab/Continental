@@ -18,7 +18,7 @@ const FD=Qe(0,0,Math.PI);                // boca abajo sobre la mesa
 const $=s=>document.querySelector(s),lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},touchy=matchMedia('(pointer:coarse)').matches;
 const hh=n=>(Math.imul(n+7,2654435761)>>>0);   // "azar" fijo por carta (cómo cae en el descarte)
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
-const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
+const VW={x:0,z:0,k:1,a:0,t:0,ly:0,lp:0},VT={x:0,z:0,k:1,a:0,t:0,ly:0,lp:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
 // mismas preferencias que el Continental 3D (barra de arriba, modo oscuro)
 let mini=lsGet('cont_mini')=='1';
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
@@ -147,9 +147,9 @@ function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.t
  const rx=mesa.r,rz=mesa.r;L=Object.assign(L||{},{por,rx,rz,ps,edge:null});
  // al centro de la mesa: mazo a la izquierda y descarte a la derecha, más grandes que la carta real (se leen sin acercar);
  // sk/sd = escala del mazo y del descarte; el anillo de arcos los rodea
- const sk=1.3,sd=1.7,gp=.5;L.sk=sk;L.sd=sd;L.ctr=v3(0,0,-.3);L.deck=v3(-(gp+CW*sk)/2-.1,0,L.ctr.z);L.disc=v3((gp+CW*sd)/2-.1,0,L.ctr.z);
+ const sk=1.05,sd=1.35,gp=.45;L.sk=sk;L.sd=sd;L.ctr=v3(0,0,-.3);L.deck=v3(-(gp+CW*sk)/2-.1,0,L.ctr.z);L.disc=v3((gp+CW*sd)/2-.1,0,L.ctr.z);
  ringG=new THREE.Group();ringG.position.copy(L.ctr).setY(.004);ringM=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:ringTex(1),transparent:true,opacity:.8,depthWrite:false}));
- ringM.rotation.x=-Math.PI/2;L.rs=7.2;ringM.scale.set(L.rs,L.rs,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
+ ringM.rotation.x=-Math.PI/2;L.rs=6.2;ringM.scale.set(L.rs,L.rs,1);ringM.renderOrder=1;ringG.add(ringM);tbl.add(ringG);
  const ag=1.6,ac=getComputedStyle(document.documentElement).getPropertyValue('--ui-accent').trim()||'#C2512A',eg=new THREE.Mesh(new THREE.TorusGeometry(mesa.r+.33,.07,8,64,ag),new THREE.MeshBasicMaterial({color:ac,transparent:true,opacity:0,depthWrite:false}));
  eg.rotation.set(Math.PI/2,0,Math.PI/2-ag/2);eg.position.y=.2;eg.renderOrder=2;eg.visible=false;tbl.add(eg);L.myE=eg;   // tu orilla: se marca en tu turno
  if(K3){const room=K3.buildRoom(por,rx,rz);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=mesa.pie}
@@ -182,7 +182,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const vw=Object.assign({},VW),h0=hdNow;Object.assign(VW,{x:0,z:0,k:1,a:0,t:0});hdNow=0;cam();lampY();Object.assign(VW,vw);hdNow=h0;clampV();cam()}
 // primera persona como la Ruleta Rusa: el ojo es el de tu personaje (aunque no se dibuja) y mira al centro de la mesa
 // (fov 80°/66° como la Ruleta; el centro de la mesa queda al 40% entre la barra de arriba y tu mano)
-function sentado(por){const c=mesa.sillas[0];c.updateMatrixWorld();const K=(window.AV&&AV.K)||1,E=c.localToWorld(v3(0,2.02*K-.67,-.05)),   // un poco arriba de sus ojos para ver el centro
+function sentado(por){const c=mesa.sillas[0];c.updateMatrixWorld();const K=(window.AV&&AV.K)||1,E=c.localToWorld(v3(0,2.02*K-.3,-.05)),   // un poco arriba de sus ojos para ver el centro
   e=Math.atan2(E.y,E.z),d=Math.hypot(E.y,E.z),s=Math.tan((por?40:33)*Math.PI/180)/(H/2),nearY=H-Math.max(L.bar,72)-8-L.ch*(por?.55:.2);
  return {e,d,s,ax:W/2,ay:L.top+(nearY-L.top)*.4}}
 // la lámpara cuelga justo arriba de lo que se ve desde tu silla
@@ -192,7 +192,7 @@ function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4
 // al inclinar hacia arriba la lente pasa poco a poco a la de arriba (t = 1.45-el es la vista desde arriba de antes)
 function lente(e){const S=L.S,T=L.T,u=Math.max(0,Math.min(1,(e-S.e)/(T.e-S.e))),q=u*u*(3-2*u),m=(a,b)=>a+(b-a)*q;return {d:m(S.d,T.d),s:m(S.s,T.s),ax:m(S.ax,T.ax),ay:m(S.ay,T.ay)}}
 function cam(){if(!L||!L.S)return;const e=L.el+VW.t,o=lente(e),d=o.d/VW.k;
- CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow)CA.rotateOnWorldAxis(YA,hdNow);
+ CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow||VW.ly)CA.rotateOnWorldAxis(YA,hdNow+VW.ly);if(VW.lp)CA.rotateX(VW.lp);   // ly/lp: mirar alrededor sin moverte
  CA.fov=2*Math.atan(o.s*H/2)*180/Math.PI;CA.aspect=W/H;CA.setViewOffset(W,H,W/2-o.ax,H/2-o.ay,W,H);CA.updateProjectionMatrix();CA.updateMatrixWorld()}
 const WH3=new THREE.Color(1,1,1),YA=v3(0,1,0),MLT=v3(0,0,0);
 // cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno y regresa sola; la luz de la lámpara se va despacio a su lugar
@@ -205,16 +205,17 @@ function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.
 function corte(k,ms){if(!mc||!mesa||k===V.me||drag)return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms)}
 function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  // inclinación: de ~30° hasta la vista desde arriba; sentado, el giro es poco (los cortes de MCAM sí voltean de frente al jugador)
+ if(VT.top||VT.who>=0)VT.ly=VT.lp=0;VT.ly=Math.max(-.9,Math.min(.9,VT.ly));VT.lp=Math.max(-.45,Math.min(.35,VT.lp));
  VT.t=Math.max(Math.min(.4,L.el)-L.el,Math.min(1.45-L.el,VT.t));if(!VT.top&&!(mc&&mc.cortando))VT.a=Math.max(-.61,Math.min(.61,VT.a));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
  if(L.S){const e=L.el+VT.t;VT.k=Math.min(VT.k,Math.max(1,Math.sin(e)*lente(e).d/3.6))}}
-const VK=['x','z','k','a','t'];
+const VK=['x','z','k','a','t','ly','lp'];
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);cam()}
 function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
  VK.forEach(q=>{const d=VT[q]-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=VT[q];ch=1}});if(ch)cam()}
-const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
+const viewed=()=>Math.abs(VT.ly)>.01||Math.abs(VT.lp)>.01||VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
-function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,top:false})}
+function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,ly:0,lp:0,who:-1,top:false})}
 function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:[0,-1],dn:[0,1],lf:[-1,0],rt:[1,0]}[c];
  if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;
  else if(mv){VT.x+=(mv[0]*ca+mv[1]*sa)*f;VT.z+=(-mv[0]*sa+mv[1]*ca)*f}else return;VT.who=-1;clampV()}
@@ -314,26 +315,24 @@ function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.lef
 function pDown(e){if(!active()||upick!=null)return;if(mc)mc.toca();if(menu){menu=false;render();return}
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(tch.size==2){if(drag)pCancel();st=null;const [a,b]=[...tch.values()];VK.forEach(q=>VT[q]=VW[q]);VT.who=-1;
-   pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.t,mode:null};return}
+   pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VW.k,g:ground((a[0]+b[0])/2,(a[1]+b[1])/2),ang:Math.atan2(b[1]-a[1],b[0]-a[0]),acc:0,rot:false,my:(a[1]+b[1])/2,mx:(a[0]+b[0])/2,t:VW.lp,mode:null};return}
   if(tch.size>2)return}
  if(e.button==1)e.preventDefault();
  const rot=e.button==1||(e.button==2&&e.shiftKey),pan=e.button==2&&!rot;if(pan||rot)cv.style.cursor=rot?'move':'grabbing';
- st={x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.a,t0:VW.t,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
+ st={x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.ly,t0:VW.lp,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
 function pMove(e){if(!active())return;
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
    if(!pin.mode){const dy=my-pin.my,dx=mx-pin.mx;if(Math.abs(dy)>16&&Math.abs(dd)<Math.abs(dy)*.35&&Math.abs(dx)<Math.abs(dy)*.6&&Math.abs(pin.acc+da)<.1)pin.mode='tilt';else if(Math.abs(dd)>14||Math.abs(dx)>16||Math.abs(pin.acc+da)>.12)pin.mode='free'}
-   if(pin.mode=='tilt'){VT.t=pin.t+(my-pin.my)*.006;VT.who=-1;snap();return}
+   if(pin.mode=='tilt'){VT.lp=pin.t+(my-pin.my)*Math.tan(CA.fov*Math.PI/360)*2/H;VT.who=-1;snap();return}
    if(!pin.mode)return;
-   pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
-   const p=ground(mx,my);if(p&&pin.g){VT.x+=pin.g.x-p.x;VT.z+=pin.g.z-p.z;snap()}return}}
+   return}}
  if(!st){if(e.pointerType==='mouse'){const h=pick(e),id=h&&h.t=='hand'?h.id:null;cv.style.cursor=h?'pointer':'default';if(id!==hov){hov=id;sync()}}return}
  if(e.pointerId!==st.pid)return;const h=st.hit;
- if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;VT.who=-1;snap();return}
- // arrastrar la mesa: el punto que agarraste se queda bajo el dedo
- if(!drag&&(st.g||((st.pan||!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10))){if(!st.g){st.g=ground(st.x,st.y);VT.who=-1;if(!st.pan)cv.style.cursor='grabbing'}
-  const p=ground(e.clientX,e.clientY);if(st.g&&p){VT.x=VW.x+st.g.x-p.x;VT.z=VW.z+st.g.z-p.z;VT.k=VW.k;snap()}return}
+ // arrastrar (fuera de tu mano): mirar alrededor desde tu silla, sin moverte; regresa sola (MCAM)
+ if(!drag&&(st.g||((st.pan||st.rot||!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10))){if(!st.g){st.g=1;VT.who=-1;cv.style.cursor='grabbing'}
+  const f=Math.tan(CA.fov*Math.PI/360)*2/H;VT.ly=st.a0+(e.clientX-st.x)*f;VT.lp=st.t0+(e.clientY-st.y)*f;snap();return}
  if(!drag&&h&&h.t=='hand'&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){const m=meshes.get('c'+h.id);if(m){drag={id:h.id,m,tgt:null};hov=null;sync()}}
  if(!drag)return;const m=drag.m;m.position.copy(loc(e.clientX,e.clientY-L.ch*.15,D-.5));m.quaternion.setFromAxisAngle(X,Math.PI/2-.1);m.scale.setScalar(m.userData.T.s*1.08);
  // ¿encima del descarte?
