@@ -180,14 +180,11 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  L.S=sentado(por);L.el=L.S.e;L.d=L.S.d;L.kTop=1;
  // la lámpara cuelga fuera de la vista sentada de inicio
  const vw=Object.assign({},VW),h0=hdNow;Object.assign(VW,{x:0,z:0,k:1,a:0,t:0});hdNow=0;cam();lampY();Object.assign(VW,vw);hdNow=h0;clampV();cam()}
-// vista sentada: desde atrás de tu silla, inclinada ~45°. La orilla de tu lado queda a media mano (detrás de tus cartas
-// no se ve el piso) y la mesa llena el ancho a la altura del centro (en celular parado ~110%); la cabeza de los demás nunca bajo la barra
-function sentado(por){const e=por?.8:.76,se=Math.sin(e),ce=Math.cos(e),s=Math.tan((por?29:19)*Math.PI/180)/(H/2),R=mesa.R,hd=[];
- for(let i=1;i<mesa.n;i++){const c=mesa.sillas[i];c.updateMatrixWorld();hd.push(c.localToWorld(v3(0,1.32,-.25)))}   // donde va su nombre
- const P=(p,d)=>{const vy=p.y-se*d,vz=p.z-ce*d,zc=-vy*se-vz*ce;return [p.x/(zc*s),(vz*se-vy*ce)/(zc*s)]},NR=v3(0,0,R),SD=v3(R,0,0),
-  topY=L.top+26,nearY=H-Math.max(L.bar,72)-8-L.ch*(por?.55:.2),alto=d=>P(NR,d)[1]-Math.min(...hd.map(q=>P(q,d)[1]));
- let lo=2,hi=300;for(let i=0;i<36;i++){const m=(lo+hi)/2;(P(SD,m)[0]<=(por?.55:.5)*W&&alto(m)<=nearY-topY)?hi=m:lo=m}
- return {e,d:hi,s,ax:W/2,ay:nearY-P(NR,hi)[1]}}
+// primera persona como la Ruleta Rusa: el ojo es el de tu personaje (aunque no se dibuja) y mira al centro de la mesa
+// (fov 80°/66° como la Ruleta; el centro de la mesa queda al 40% entre la barra de arriba y tu mano)
+function sentado(por){const c=mesa.sillas[0];c.updateMatrixWorld();const K=(window.AV&&AV.K)||1,E=c.localToWorld(v3(0,2.02*K-.67,-.05)),   // un poco arriba de sus ojos para ver el centro
+  e=Math.atan2(E.y,E.z),d=Math.hypot(E.y,E.z),s=Math.tan((por?40:33)*Math.PI/180)/(H/2),nearY=H-Math.max(L.bar,72)-8-L.ch*(por?.55:.2);
+ return {e,d,s,ax:W/2,ay:L.top+(nearY-L.top)*.4}}
 // la lámpara cuelga justo arriba de lo que se ve desde tu silla
 function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4;
  if(p.set(0,lo,mesa.sr).project(CA).y<1.03)for(let i=0;i<20;i++){const m=(lo+hi)/2;p.set(0,m,mesa.sr).project(CA).y>1.03?hi=m:lo=m}else hi=lo;mesa.lampara(hi)}
@@ -208,7 +205,7 @@ function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.
 function corte(k,ms){if(!mc||!mesa||k===V.me||drag)return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms)}
 function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  // inclinación: de ~30° hasta la vista desde arriba; sentado, el giro es poco (los cortes de MCAM sí voltean de frente al jugador)
- VT.t=Math.max(.4-L.el,Math.min(1.45-L.el,VT.t));if(!VT.top&&!(mc&&mc.cortando))VT.a=Math.max(-.61,Math.min(.61,VT.a));
+ VT.t=Math.max(Math.min(.4,L.el)-L.el,Math.min(1.45-L.el,VT.t));if(!VT.top&&!(mc&&mc.cortando))VT.a=Math.max(-.61,Math.min(.61,VT.a));
  // altura mínima de la cámara: si baja de más, tu mano (que va pegada a la cámara) se mete en la mesa
  if(L.S){const e=L.el+VT.t;VT.k=Math.min(VT.k,Math.max(1,Math.sin(e)*lente(e).d/3.6))}}
 const VK=['x','z','k','a','t'];
@@ -409,10 +406,10 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
    `${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${uic('x')}Cerrar sala</button>`:''}`);
   o+=GHUD.sheet('Uno',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<p class="gj-rt">${rg}</p>`]],'u3dMenu()')}
  return o}
-function labels(){if(!L)return;const bot=id=>{const e=document.getElementById(id),r=e&&e.getBoundingClientRect();return r&&r.height?r.bottom:0},y0=Math.max(bot('gjTop'),bot('gjHint'))+2;
+function labels(){if(!L)return;const tr=document.querySelector('#gjTop .gj-tr'),tb=tr?tr.getBoundingClientRect():null;   // los botones de arriba a la derecha
  // el nombre va pegado arriba de la cabeza de cada personaje; si no está en pantalla no se ve (para verlo, mueve la cámara)
  document.querySelectorAll('#app .gj-seat').forEach(el=>{const k=+el.dataset.seat,pa=window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)),q=(pa||seatP(k,1).setY(.3)).clone().project(CA),x=(q.x+1)/2*W,y=(1-q.y)/2*H,hw=el.offsetWidth/2;
-  const ve=q.z<1&&x>hw&&x<W-hw&&y-el.offsetHeight>y0&&y<H;el.style.visibility=ve?'':'hidden';if(ve)el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`});
+  const ve=q.z<1&&x>0&&x<W&&y>-60&&y<H;el.style.visibility=ve?'':'hidden';const X=Math.max(hw+4,Math.min(W-hw-4,x)),y1=el.offsetHeight+6+(tb&&X+hw>tb.left-4?tb.bottom:0);if(ve)el.style.transform=`translate(${X}px,${Math.max(y,y1)}px) translate(-50%,-100%)`});
  // nombres de las pilas: abajo de cada una
  const pl=(id,p,up)=>{const el=document.getElementById(id);if(!el)return;const [x,y]=toPx(p);el.style.transform=`translate(${x}px,${y}px) translate(-50%,${up?'-100%':'0'})`};
  if(L.deck){pl('t3pdk',v3(L.deck.x,0,L.deck.z+CH*L.sk/2+.12));pl('t3pds',v3(L.disc.x,0,L.disc.z+CH*L.sd/2+.12))}}
