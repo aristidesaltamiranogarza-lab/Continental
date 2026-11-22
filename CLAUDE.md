@@ -11,6 +11,7 @@ Servidor Node sin dependencias + cliente JS puro. Arranque: `npm start`.
 
 ## Flujo
 - No pedir confirmación del plan: implementar, verificar y subir. Preguntar solo si algo es ambiguo.
+- Rama de trabajo: `gamemash-casona` (todo el proyecto de la casona). Commit y push solo ahí; nunca a main ni a otra rama. Si no estás en ella, `git switch gamemash-casona` antes de tocar nada.
 - Al terminar: commit y push sin preguntar. Agregar solo los archivos tocados (nunca .claude/ ni prompt_*.md).
 - `git status` corto; no mostrar diffs completos.
 - Un archivo de cliente nuevo se registra en el mapa estático de server.js (~línea 14) y en la línea de scripts de continental3d.html (antes de c_casa3d.js).

@@ -2,6 +2,7 @@
 
 Anteproyecto (planos, corte y tabla): https://claude.ai/artifact/PX1g934RWSsWF4VdTB7Doa
 Cómo se trabaja en Blender, errores y flujo: `CASA_BLENDER.md`.
+Rama: `gamemash-casona` (commit y push solo ahí, nunca a main).
 Este archivo es el plan. Al terminar un paso, marcarlo `[x]` con el commit.
 
 ## Idea
