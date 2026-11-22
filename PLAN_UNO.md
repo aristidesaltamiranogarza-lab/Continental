@@ -15,7 +15,7 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 | 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [x] |
 | 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [x] |
 | 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [x] |
-| 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [ ] |
+| 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [x] |
 | 6 | Paisaje, tablet y de 2 a 8 jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [ ] |
 
 Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high / xhigh / max). Riesgo = qué tan probable es romper algo fuera del paso (código compartido con otros juegos) o tener que rehacerlo. Orden: 1 → 6; el 1 es independiente y puede ir en cualquier momento. Continental va después, en un plan aparte (PLAN_CONTINENTAL.md), reusando lo hecho aquí.
@@ -195,6 +195,12 @@ Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una 
 4. Si son lienzos distintos, hacer la transición falsa: congelar la última vista del lobby y empezar la cámara del juego desde una pose equivalente.
 
 **Notas:**
+- Mirada: `mirada()` en c_uno3d.js (la llama `vivo`) mueve el punto de mira de `cam()` (`GZ.p`, peso `GZ.w`): 12% hacia las manos del rival mientras piensa, 30% 1 s cuando juega o roba (`mira(k,1000,.3)` en el historial de `sync`), 75% a su cabeza (`MPJ.arriba`) con el +4 (`corte` ya no usa `mc.corte`). Se apaga con RM, arrastre, Arriba, mirar a alguien, `viewed()` o el viaje. A MCAM se le pasa `turno:null` (su giro de cabeza ya no se usa en Uno; Continental sigue igual).
+- Arrastrar para mirar ya estaba del paso 4 (±.9 / -.45…35): se dejó así.
+- La Uno 3D usa el mismo lienzo y WebGL que la casa (FONDO), así que el viaje es real: `SALA.tapa` con Uno en 3D (`u3dVa`) no baja la cámara ni funde a negro; a los 160 ms guarda la cámara de la casa (`u3dDesde`) y la Uno la pasa a sus coordenadas con `CASA3D.ancla('uno')` y s = `mesa.R/rtU()` (`entIni`). `entStep`: 1.35 s inOut de posición, giro, fov y view offset; tu personaje se ve hasta el 82%.
+- loop3: el juego no se activa mientras `SALA.on()` (antes, durante la espera de tapa, la Uno y la casa dibujaban en el mismo lienzo); toma el lienzo solo si no hay `h3on`.
+- Salida: `FONDO.pinta(...,{viaje:1})` guarda tus ojos en la casa cada cuadro; `FONDO.ult()` (una vez, <1.2 s) lo usa `deJuego(m)` en c_casa3d.js al cambiar de modo: la cámara arranca ahí (alejada lo que pide su fov para que la mesa se vea igual) y vuelve sola (sala: salaPaso; casa: `CCAM.blendIn` 1.3 s). Otros juegos pueden activarlo con `viaje:1`.
+- Con reducir movimiento: corte directo (tapa usa el fundido de antes).
 
 ## Paso 6: Paisaje, tablet y de 2 a 8 jugadores (medium)
 1. Acostado (844×390): misma vista sentada con FOV más ancho; la mano baja más y es más pequeña; el centro sigue grande.

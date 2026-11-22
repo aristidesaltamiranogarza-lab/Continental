@@ -128,9 +128,10 @@ function hueco(){if(!el||!shown||sale)return {x:0,y:0};const r=$('slSh').getBoun
  return innerWidth>=768?{x:Math.max(0,innerWidth-r.left)/2,y:0}:{x:0,y:Math.max(0,innerHeight-r.top)*.45}}
 // empezó la partida: el boleto se va, la cámara baja a tu silla, "¡A jugar!" y fundido al juego
 function tapa(){if(sale)return true;const v=vv();if(!shown||!st()||!v||!v.G)return false;
- sale=performance.now();el.classList.add('sale');el.classList.remove('in','open');$('slModal').hidden=true;const H=H3();if(H)H.sala.baja();snd('card');
+ sale=performance.now();el.classList.add('sale');el.classList.remove('in','open');$('slModal').hidden=true;const H=H3(),RM=window.CCAM&&CCAM.RM,va=!RM&&v.game==='uno'&&window.u3dVa&&u3dVa();if(H&&!va)H.sala.baja();snd('card');
  const s=$('slSello');s.classList.remove('on');void s.offsetWidth;s.classList.add('on');
- const RM=window.CCAM&&CCAM.RM,fin=()=>{sale=0;ocultar();if(typeof render=='function')render()};
+ const fin=()=>{if(va&&window.u3dDesde)u3dDesde();sale=0;ocultar();if(typeof render=='function')render()};
+ if(va){setTimeout(fin,160);return true}   // Uno en 3D: sin bajar ni fundir; su cámara sale de la de la casa y viaja a tu silla (c_uno3d.js)
  setTimeout(()=>{if(window.CCAM)CCAM.fade(1,RM?120:280).then(()=>{fin();setTimeout(()=>CCAM.fade(0,RM?120:520),60)});else fin()},RM?250:1100);return true}
 function ocultar(){shown=false;sale=0;if(!el)return;el.classList.remove('in','sale','open');sub=null;vista();$('slModal').hidden=true;tagEls.forEach(t=>t.style.display='none');
  if(window.CASA3D&&CASA3D.sala)CASA3D.sala.gente(null,null);if(window.SL2D)SL2D.quita();sig={}}

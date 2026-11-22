@@ -470,7 +470,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  // un juego (Continental, Uno, Ruleta…) pudo quedarse con el lienzo compartido: la casa o la sala lo recuperan (si no, pantalla negra)
  if(m&&m===lpM&&cv.parentNode!==root)back();
  if(root.style.display!==(m?'block':'none')||m!==lpM){const m0=lpM;lpM=m;shFL=null;root.style.display=m?'block':'none';lay.style.display=a?'block':'none';if(m)back();if(m0===2&&m!==2)salaFin(a);   // lb: sala de espera (c_sala.js) con la casa detrás
-  if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni()}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
+  if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni();if(!m0&&m)deJuego(m)}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
  // en una partida del sótano la escena es la misma: los Miis que caminan se esconden (la Ruleta pone a los suyos en las sillas)
  document.documentElement.classList.toggle('h3lock',a&&document.pointerLockElement===cv);
  if(!a){keys.clear();if(document.pointerLockElement===cv)document.exitPointerLock();if(lb)return salaPaso(now,dt);if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
@@ -549,6 +549,11 @@ function sitSala(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x
  const m0=msg;salaPose(t,Math.atan2(CA.position.x-t.x,CA.position.z-t.z),0);CCAM.fly(CA,[CCAM.at(sP.clone(),sL.clone())],1050);
  setTimeout(()=>{go();const t0=performance.now(),w=()=>{if(!active())CCAM.release(CA,0);else if(msg!==m0||performance.now()-t0>2500)CCAM.release(CA,700);else setTimeout(w,80)};w()},850)}
 function salaIni(){salaT=null;salaDive=0;sOff.x=sOff.y=0;sitP=null;if(window.CCAM)CCAM.release(CA,0);const g=SALA.g();if(g&&!TB.find(x=>x.g===g&&!x.door))arranca(g)}
+// saliste de una partida con viaje (Uno; FONDO.ult): la cámara arranca en tus ojos, un poco atrás para que la mesa se vea del mismo tamaño con la lente
+// de la casa, y regresa sola (en la sala la lleva salaPaso; caminando, CCAM.blendIn)
+function deJuego(m){const u=window.FONDO&&FONDO.ult&&FONDO.ult();if(!u||!window.CCAM||CCAM.RM)return;
+ const fc=m===2&&innerWidth/innerHeight<.95?62:CA.fov,k=Math.tan(u.fov*Math.PI/360)/Math.tan(fc*Math.PI/360);
+ CA.position.copy(u.p).sub(u.a).multiplyScalar(k).add(u.a);CA.up.set(0,1,0);CA.lookAt(u.a);CA.updateMatrixWorld();if(m===1)CCAM.blendIn(CA,CCAM.pose(CA),1300)}
 function salaFin(a){CA.clearViewOffset();layout();salaT=null;salaDive=0;salaPs=null;seatSync();if(a&&window.CCAM)CCAM.blendIn(CA,CCAM.pose(CA),1100)}
 function salaPaso(now,dt){if(innerWidth!==IW||innerHeight!==IH)layout();if(W/H<.95&&CA.fov!==62){CA.fov=62;CA.updateProjectionMatrix()}const g=SALA.g();   // celular parado: más ángulo para que quepa la mesa
  if(!salaT||salaT.g!==g){salaT=TB.find(x=>x.g===g&&!x.door)||null;salaT0=now;if(salaT)salaA=Math.atan2(CA.position.x-salaT.x,CA.position.z-salaT.z);else if(!fBusy&&now-sOff.t>2000){sOff.t=now;arranca(g)}}   // cambiaron de juego: su mesa puede estar en otro piso

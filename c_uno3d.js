@@ -117,7 +117,7 @@ function selGlow(m,onn,col){let g=m.userData.sg;if(!g&&!onn)return;
 
 // ---------- escena y mesa ----------
 // shR: dibuja con el WebGL de la casa · fz: escala de la casa de fondo (0: con su propio cuarto); c_casa_fondo.js
-let shR=false,fz=0;
+let shR=false,fz=0,ent=null,entP=null;
 function init(){if(ready)return;ready=true;
  shR=!!(window.FONDO&&FONDO.R('uno'));R=shR?FONDO.R():new THREE.WebGLRenderer({antialias:true,alpha:true});if(!shR){R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap}
  SC=new THREE.Scene();CA=new THREE.PerspectiveCamera(40,1,.1,200);SC.add(CA);
@@ -180,7 +180,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  L.T={e:1.45,d:hi/.8,s:Math.tan(Math.PI/9)/(rh/2),ax:(1-cx)*w/2,ay:top+(1+cy)*rh/2};
  L.S=sentado(por);L.el=L.S.e;L.d=L.S.d;L.kTop=1;
  // la lámpara cuelga fuera de la vista sentada de inicio
- const vw=Object.assign({},VW),h0=hdNow;Object.assign(VW,{x:0,z:0,k:1,a:0,t:0});hdNow=0;cam();lampY();Object.assign(VW,vw);hdNow=h0;clampV();cam()}
+ const vw=Object.assign({},VW),h0=hdNow;Object.assign(VW,{x:0,z:0,k:1,a:0,t:0});hdNow=0;const g0=GZ.w;GZ.w=0;cam();lampY();Object.assign(VW,vw);hdNow=h0;GZ.w=g0;clampV();cam()}
 // primera persona como la Ruleta Rusa: el ojo es el de tu personaje (aunque no se dibuja) y mira al centro de la mesa
 // (fov 80°/66° como la Ruleta; el centro de la mesa queda al 40% entre la barra de arriba y tu mano)
 function sentado(por){const c=mesa.sillas[0];c.updateMatrixWorld();const K=(window.AV&&AV.K)||1,E=c.localToWorld(v3(0,2.02*K-.3,-.05)),   // un poco arriba de sus ojos para ver el centro
@@ -193,17 +193,25 @@ function lampY(){if(!mesa)return;const p=v3(0,0,0);let lo=mesa.r*1.1,hi=mesa.r*4
 // al inclinar hacia arriba la lente pasa poco a poco a la de arriba (t = 1.45-el es la vista desde arriba de antes)
 function lente(e){const S=L.S,T=L.T,u=Math.max(0,Math.min(1,(e-S.e)/(T.e-S.e))),q=u*u*(3-2*u),m=(a,b)=>a+(b-a)*q;return {d:m(S.d,T.d),s:m(S.s,T.s),ax:m(S.ax,T.ax),ay:m(S.ay,T.ay)}}
 function cam(){if(!L||!L.S)return;const e=L.el+VW.t,o=lente(e),d=o.d/VW.k;
- CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);CA.lookAt(VW.x,0,VW.z);if(hdNow||VW.ly)CA.rotateOnWorldAxis(YA,hdNow+VW.ly);if(VW.lp)CA.rotateX(VW.lp);   // ly/lp: mirar alrededor sin moverte
+ CA.position.set(VW.x+Math.sin(VW.a)*Math.cos(e)*d,Math.sin(e)*d,VW.z+Math.cos(VW.a)*Math.cos(e)*d);if(GZ.w>1e-4)CA.lookAt(MLK.set(VW.x,0,VW.z).lerp(GZ.p,GZ.w));else CA.lookAt(VW.x,0,VW.z);if(hdNow||VW.ly)CA.rotateOnWorldAxis(YA,hdNow+VW.ly);if(VW.lp)CA.rotateX(VW.lp);   // ly/lp: mirar alrededor sin moverte
  CA.fov=2*Math.atan(o.s*H/2)*180/Math.PI;CA.aspect=W/H;CA.setViewOffset(W,H,W/2-o.ax,H/2-o.ay,W,H);CA.updateProjectionMatrix();CA.updateMatrixWorld()}
-const WH3=new THREE.Color(1,1,1),YA=v3(0,1,0),MLT=v3(0,0,0);
-// cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno y regresa sola; la luz de la lámpara se va despacio a su lugar
+const WH3=new THREE.Color(1,1,1),YA=v3(0,1,0),MLT=v3(0,0,0),MLK=v3(0,0,0),GZ={p:v3(0,0,0),w:0,to:0,k:-1,hasta:0,cara:false},TP=v3(0,0,0),TQ=new THREE.Quaternion();
+// cámara viva (c_mesa_cam.js): regresa sola a tu vista; la mirada la lleva mirada(); la luz de la lámpara se va despacio a su lugar
 function vivo(now,dt){const G=V.G,t=G.turn,tp=t>=0&&G.phase==='play'&&mesa?mesa.asiento(rel(t)).mano:null;
  if(mesa){MLT.set(tp?tp.x*.7:0,0,tp?tp.z*.7:0);mesa.luzHacia(MLT,1-Math.exp(-dt/900));mesa.pantalla(L.el+VW.t<1.2)}
  if(!mc||!L||!L.S)return;const e=L.el+VW.t,d=lente(e).d/VW.k;
- const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t!==V.me?tp:null,quieto:!!(drag||st||pin)});
- if(h!==hdNow){hdNow=h;cam()}}
-// corte breve de frente a un jugador (al que le cae un +4)
-function corte(k,ms){if(!mc||!mesa||k===V.me||drag)return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;mc.corte({x:c*R,z:s*R,a:Math.atan2(-c,-s),k:2.3,t:-.28},ms)}
+ const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:null,quieto:!!(drag||st||pin)});
+ const gm=mirada(now,dt,t);if(h!==hdNow||gm){hdNow=h;cam()}}
+// mirada viva (como la Ruleta): cuando un rival juega o roba, la mirada se va ~30% hacia sus manos y regresa al centro; mientras piensa, apenas (12%).
+// Al que le cae un +4 lo volteas a ver a la cara. Te toca, mueves la cámara, miras a alguien o ves desde arriba: al centro. Con reducir movimiento, quieta
+function mira(k,ms,w,cara){const now=performance.now();if(k==null||k<0||k===V.me||(now<GZ.hasta&&GZ.to>w))return;Object.assign(GZ,{k,to:w,cara:!!cara,hasta:now+ms})}
+function mirada(now,dt,t){const G=V.G,act=now<GZ.hasta&&(GZ.cara||t!==V.me),k=act?GZ.k:G.phase==='play'&&t>=0&&t!==V.me?t:-1;let w=act?GZ.to:k>=0?.12:0;
+ if(RM||drag||st||pin||VT.top||VT.who>=0||ent||viewed()||(mc&&mc.cortando))w=0;
+ const w0=GZ.w,f=RM?1:1-Math.exp(-dt/(w>GZ.w?320:650));
+ if(w>0){const q=(act&&GZ.cara&&window.MPJ&&MPJ.on&&MPJ.arriba(rel(k)))||seatW(k);if(w0<1e-3)GZ.p.copy(q);else GZ.p.lerp(q,f)}
+ GZ.w+=(w-GZ.w)*f;if(Math.abs(GZ.w-w)<1e-4)GZ.w=w;return GZ.w!==w0||GZ.w>1e-4}
+// al que le cae un +4: volteas a verlo (primera persona, sin corte de plano)
+function corte(k,ms){if(!mesa||k===V.me||drag)return;mira(k,ms,.75,true)}
 function clampV(){if(!L)return;VT.k=Math.max(VT.top?.7:1,Math.min(KMAX,VT.k));const Q=L.room||{X:L.rx+2,ZB:-L.rz-6,ZF:L.rz+2};VT.x=Math.max(-Q.X+1,Math.min(Q.X-1,VT.x));VT.z=Math.max(Q.ZB-2,Math.min(Q.ZF+1,VT.z));
  // inclinación: de ~30° hasta la vista desde arriba; sentado, el giro es poco (los cortes de MCAM sí voltean de frente al jugador)
  if(VT.top||VT.who>=0)VT.ly=VT.lp=0;VT.ly=Math.max(-.9,Math.min(.9,VT.ly));VT.lp=Math.max(-.45,Math.min(.35,VT.lp));
@@ -245,7 +253,7 @@ function fan(ids,play,drawn){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/
 
 // ---------- personajes (c_mesa_pj.js): sentados en su silla con sus cartas en las manos ----------
 function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
- if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)&&!(V.me>=0&&!x.i)),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
+ if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)&&!(V.me>=0&&!x.i&&!(ent&&ent.yo))),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
 function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G){const G=V.G;MPJ.paso(now,G.phase=='play'&&G.turn>=0?rel(G.turn):-1);MPJ.fin(G.phase=='final'&&G.win>=0?rel(G.win):-1)}}
 // qué hacen los personajes según el historial: jugar estira la mano al descarte, robar vuela la carta a sus manos,
 // ¡UNO! levanta los brazos, robar de castigo se lleva la mano a la cabeza (y con 4 o más la cámara voltea a verlo)
@@ -269,7 +277,7 @@ function sync(){if(!ready||!L||!active())return;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
  if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0)home()}
  // qué pasó desde la última vez: de dónde sale cada carta, gestos de los Miis y efectos
- const from={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;const old=logN<0;if(!old&&e.k!=null&&e.k>=0&&window.MPJ&&MPJ.on)pjLog(e);
+ const from={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;const old=logN<0;if(!old&&e.k!=null&&/^(jugó|robó)/.test(e.t))mira(e.k,1000,.3);if(!old&&e.k!=null&&e.k>=0&&window.MPJ&&MPJ.on)pjLog(e);
   if(e.c!=null&&/^jugó/.test(e.t)){from[e.c]=e.k;if(!old)fxPlay(e)}
   if(/^dijo/.test(e.t)){if(!old)popAt(e.k,'¡UNO!','#fdd835')}
   if(/^cobró/.test(e.t)&&!old){const v=G.players.findIndex(p=>e.t.includes(p.name+' (+2)'));if(v>=0)popAt(v,'+2','#ff6b5a')}});
@@ -430,16 +438,30 @@ function dpv(){if(!dpvEl)return;const G=V&&V.G,id=G&&G.disc.length?G.disc[G.disc
 const lig=()=>{try{return localStorage.getItem('casa_3d')==='0'||window.CALIDAD==='ligero'}catch(e){return false}};let sala0=null;   // en Ligero (menú 2D) cada sala nueva empieza en 2D
 function sala(k){const c=typeof V!='undefined'&&V&&V.code;if(!c||c===sala0)return;sala0=c;if(lig())on=false;else try{on=localStorage.getItem(k)!=='0'}catch(e){}}
 function active(){sala('uno_3d');return on&&!!S&&!!V&&V.game==='uno'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final')}
-function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
+function loop3(now){requestAnimationFrame(loop3);const a=active()&&!(window.SALA&&SALA.on&&SALA.on()),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('u3on',a);
- if(!a){first=true;if(dpvEl)dpvEl.classList.remove('on');document.documentElement.classList.remove('u3mini');home();VW.x=VW.z=0;VW.k=1;return}
- if(shR&&cv.parentNode!==root&&!(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
+ if(!a){first=true;ent=null;if(dpvEl)dpvEl.classList.remove('on');document.documentElement.classList.remove('u3mini');home();VW.x=VW.z=0;VW.k=1;return}
+ if(shR&&cv.parentNode!==root&&!document.documentElement.classList.contains('h3on')){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H){layout();sync()}
- viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);ringStep(dt,now);avStep(now);pulse(now);labels();turnoUi();viewBtn();dpv();
+ if(entP&&L.S)entIni(now);viewStep(dt);vivo(now,dt);entStep(now);step(now);if(window.MFX)MFX.paso(now);ringStep(dt,now);avStep(now);pulse(now);labels();turnoUi();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
- const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
+ const fs=window.FONDO?FONDO.pinta(R,CA,'uno',{r:mesa.R,rt:rtU(),viaje:1}):0;if(fs!==fz||(L.roomG?L.roomG.visible:!fz)!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
+// del lobby a tu silla: al empezar, la sala (c_sala.js) guarda la cámara de la casa y aquí se vuelve la de la mesa (mismo lienzo y misma mesa;
+// c_casa_fondo.js hace la cuenta al revés). Viaja a tus ojos en 1.35 s mientras se reparte; tu personaje se ve hasta que la cámara llega a su cabeza
+const rtU=()=>2.6*mesa.R/(MESA.radio(4)+MESA.ORL);
+window.u3dVa=()=>{sala('uno_3d');return on&&!!(window.FONDO&&window.CASA3D&&CASA3D.ancla&&CASA3D.ancla('uno'))};
+window.u3dDesde=()=>{const c=window.CASA3D&&CASA3D.cam&&CASA3D.cam();if(!c)return;c.updateMatrixWorld();const w=c.view&&c.view.enabled?c.view:null;
+ entP={p:c.getWorldPosition(v3(0,0,0)),q:c.getWorldQuaternion(new THREE.Quaternion()),fov:c.fov,ox:w?w.offsetX:0,oy:w?w.offsetY:0,t:performance.now()}};
+function entIni(now){const u=entP,A=window.CASA3D&&CASA3D.ancla&&CASA3D.ancla('uno');entP=null;if(!u||RM||!shR||!A||now-u.t>3000)return;
+ const qa=new THREE.Quaternion().setFromAxisAngle(YA,-A.a);
+ ent={p:u.p.sub(v3(A.x,A.y,A.z)).applyQuaternion(qa).multiplyScalar(mesa.R/rtU()),q:qa.multiply(u.q),fov:u.fov,ox:u.ox,oy:u.oy,t0:now,yo:1};sync()}
+function entStep(now){if(!ent)return;const u=Math.min(1,(now-ent.t0)/1350),e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;cam();
+ if(ent.yo&&u>.82){ent.yo=0;sync()}if(u>=1){ent=null;return}
+ TP.copy(CA.position);TQ.copy(CA.quaternion);CA.position.copy(ent.p).lerp(TP,e);CA.quaternion.copy(ent.q).slerp(TQ,e);
+ const o=lente(L.el+VW.t),f=2*Math.atan(o.s*H/2)*180/Math.PI;CA.fov=ent.fov+(f-ent.fov)*e;
+ CA.setViewOffset(W,H,ent.ox+(W/2-o.ax-ent.ox)*e,ent.oy+(H/2-o.ay-ent.oy)*e,W,H);CA.updateProjectionMatrix();CA.updateMatrixWorld()}
 // sin su cuarto en la casa: los Miis a tamaño de casa
 function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));mesa.sillas[0].visible=true;W=0}   // las sillas cambian de lugar: se vuelve a encuadrar (layout y sync)
 function toggle(){on=!on;menu=false;try{localStorage.setItem('uno_3d',on?'1':'0')}catch(e){}render()}
