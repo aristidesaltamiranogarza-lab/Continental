@@ -5,7 +5,7 @@
 #     techo con laja, árbol en su arriate, macetones y hamaca (la gata la pone el juego en el empty gata_n0). Resto: cuartos lisos.
 # Cada tramo conexo de muro es una malla por material con extras {linea} (el corte los esconde juntos) y el cuerpo lleva
 # {segs:[ax,az,bx,bz,...], r} (coords de three); columnas y muebles {obs:[x,z,r,...]}. UV0 en metros, UV1 = luz horneada.
-# Exporta modelos/casona/pb.glb y pb_luz.jpg (c_casona_mat.js los arma). Sin tocar el archivo abierto:
+# Exporta modelos/casona/pb.glb y pb_luz.webp (c_casona_mat.js los arma). Sin tocar el archivo abierto:
 #   blender -b --factory-startup --python blender/casona_pb.py -- vista [carpeta]      (renders de revisión, sin hornear)
 #   blender -b --factory-startup --python blender/casona_pb.py -- hornear [res] [muestras]
 import bpy, bmesh, math, os, sys, types
@@ -35,6 +35,7 @@ PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para l
 # por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
 # vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
 PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=.5)
+MUROS = ('muro', 'lambrin', 'cantera', 'cenefa', 'barda')   # piezas que se meten unas en otras (ver _dentro)
 FUERA = .1
 
 def V(x, y, z): return Vector((x - 18, z - 17, y))        # plano (x, alto, z) -> Blender
@@ -467,7 +468,7 @@ def luces(sc):
         if tp == 'SPOT': l.spot_size = math.radians(100); l.spot_blend = .85; l.shadow_soft_size = .5
         else: l.shadow_soft_size = r
         o = bpy.data.objects.new('l%d' % i, l); o.location = V(x, y, z); S.objects.link(o)
-    sol = bpy.data.lights.new('sol', 'SUN'); sol.energy = 2.0; sol.color = (1, .86, .66); sol.angle = math.radians(1.5)
+    sol = bpy.data.lights.new('sol', 'SUN'); sol.energy = 2.0; sol.color = (1, .86, .66); sol.angle = math.radians(3)
     so = bpy.data.objects.new('sol', sol); S.objects.link(so)
     d = Vector((.5, -.62, -.6)).normalized()   # en three: del frente a la izquierda hacia el fondo, bajando
     so.rotation_euler = Vector((d.x, -d.z, d.y)).to_track_quat('-Z', 'Y').to_euler()
@@ -561,6 +562,72 @@ def _pasadas(sc, img, muestras, sel, n=5):
         print('Horneado: %d%% (faltan ~%.1f min)' % (100 * (k + 1) // n, t / (k + 1) * (n - k - 1) / 60), flush=True)
     img.pixels.foreach_set(acc / n); img.update()
 
+def _pix(i):
+    import numpy as np
+    w, h = i.size; a = np.empty(w * h * 4, dtype=np.float32); i.pixels.foreach_get(a); return a.reshape(h, w, 4)
+
+def _pp(c, w):
+    """Push-pull: cada texel sin peso toma el promedio de sus vecinos válidos más cercanos (pirámide 2x2)."""
+    import numpy as np
+    h, ww = w.shape
+    if h <= 1 and ww <= 1: return c / max(float(w[0, 0]), 1e-8)
+    if h % 2 or ww % 2:
+        c = np.pad(c, ((0, h % 2), (0, ww % 2), (0, 0))); w = np.pad(w, ((0, h % 2), (0, ww % 2)))
+    cs = c[0::2, 0::2] + c[1::2, 0::2] + c[0::2, 1::2] + c[1::2, 1::2]
+    ws = w[0::2, 0::2] + w[1::2, 0::2] + w[0::2, 1::2] + w[1::2, 1::2]
+    up = _pp(cs, ws).repeat(2, 0).repeat(2, 1)
+    return np.where(w[..., None] > 0, c / np.maximum(w, 1e-8)[..., None], up)[:h, :ww]
+
+def _islas(cara):
+    """Etiqueta cada isla del atlas (texeles de cara conectados; entre islas hay ~4 px de fondo)."""
+    import numpy as np
+    h, w = cara.shape; lab = np.where(cara, np.arange(1, h * w + 1, dtype=np.int32).reshape(h, w), 0)
+    for _ in range(4096):
+        m = lab.copy()
+        for ax in (0, 1):
+            for d in (1, -1): m = np.maximum(m, np.roll(lab, d, ax))
+        j = m.ravel(); m = np.where(cara, np.maximum(m, j[np.maximum(j - 1, 0)].reshape(h, w)), 0)   # salto: converge rápido
+        if np.array_equal(m, lab): break
+        lab = m
+    return lab
+
+def _rellenar(img, cara, den=None):
+    """1) Texeles de muro metidos en otra pieza (den): la luz de sus vecinos de la MISMA isla (si toda la isla está tapada,
+    se queda como salió). 2) Fondo del atlas: push-pull. Sin esto el negro se corre a las orillas con el quitarruido,
+    el filtrado bilineal y los mipmaps (muros sucios en esquinas y uniones)."""
+    import numpy as np
+    a = _pix(img); c = a[:, :, :3]
+    if den is not None and (den & cara).any():
+        lab = _islas(cara); ok = cara & ~den
+        for _ in range(64):
+            falta = cara & ~ok
+            if not falta.any(): break
+            acc = np.zeros_like(c); n = np.zeros(ok.shape, np.float32)
+            for ax in (0, 1):
+                for d in (1, -1):
+                    v = np.roll(ok, d, ax) & (np.roll(lab, d, ax) == lab)
+                    acc += np.roll(c, d, ax) * v[..., None]; n += v
+            nu = falta & (n > 0)
+            if not nu.any(): break
+            c[nu] = acc[nu] / n[nu][:, None]; ok |= nu
+    a[:, :, :3] = _pp(c * cara[..., None], cara.astype(np.float32)); a[:, :, 3] = 1
+    img.pixels.foreach_set(a.ravel()); img.update()
+
+def _dentro(sc, obs, sel, res):
+    """Máscara de texeles de muro metidos en otra pieza (la punta de un muro dentro del perpendicular): oclusión casi total."""
+    import numpy as np
+    mur = [o for o in sel if o.data.materials and o.data.materials[0] and o.data.materials[0].name in MUROS]
+    if not mur: return None
+    ao = bpy.data.images.new('pb_ao', res, res, float_buffer=True); ao.pixels.foreach_set(np.ones(res * res * 4, np.float32))
+    _img(obs, ao); bk = sc.render.bake; ls = sc.world.light_settings; m0, d0 = bk.margin, ls.distance
+    bk.margin = 0; bk.use_clear = False; ls.distance = .35; sc.cycles.samples = 64
+    _sel(mur); bpy.ops.object.bake(type='AO')
+    bk.margin = m0; bk.use_clear = True; ls.distance = d0
+    m = _pix(ao)[:, :, 0] < .08
+    m = m | np.roll(m, 1, 0) | np.roll(m, -1, 0) | np.roll(m, 1, 1) | np.roll(m, -1, 1)   # +1 texel: la orilla salía en dientes (ruido)
+    print('dentro de otra pieza:', int(m.sum()), 'texeles', flush=True)
+    return m
+
 def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     """Hornea la luz (directa + indirecta, sin color) en UV 'luz'. solo: hornear solo esas mallas (prueba rápida).
     limpio: quita el ruido con OpenImageDenoise guiado por normales (sin guía borraba el detalle de los muros)."""
@@ -571,10 +638,12 @@ def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     bk = sc.render.bake; bk.use_pass_direct = True; bk.use_pass_indirect = True; bk.use_pass_color = False; bk.margin = 2; bk.target = 'IMAGE_TEXTURES'
     sc.cycles.sample_clamp_indirect = 2     # sin destellos del rebote (dejaban manchas al quitar el ruido)
     _pasadas(sc, img, muestras, solo or obs)
-    if limpio:
-        nrm = bpy.data.images.new('pb_nrm', res, res, float_buffer=True); _img(obs, nrm)
-        sc.cycles.samples = 1; _sel(solo or obs); bpy.ops.object.bake(type='NORMAL', normal_space='OBJECT')
-        _img(obs, img); img = oidn(sc, img, nrm)
+    den = _dentro(sc, obs, solo or obs, res)
+    nrm = bpy.data.images.new('pb_nrm', res, res, float_buffer=True); _img(obs, nrm)
+    bk.margin = 0; sc.cycles.samples = 1; _sel(solo or obs); bpy.ops.object.bake(type='NORMAL', normal_space='OBJECT'); bk.margin = 2
+    cara = _pix(nrm)[:, :, :3].sum(2) > 1e-4        # texeles de alguna cara (sin el margen: lo pone _rellenar)
+    _img(obs, img); _rellenar(img, cara, den)
+    if limpio: img = oidn(sc, img, nrm); _rellenar(img, cara)
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
     img.filepath_raw = os.path.join(DIR, 'blender', 'pb_luz.exr'); img.file_format = 'OPEN_EXR'; img.save()
     return img
@@ -617,10 +686,12 @@ def guardar(img, escala=.25, ruta=None, grano=False):
     if grano: c = (c + np.roll(c, 1, 0) * .5 + np.roll(c, -1, 0) * .5 + np.roll(c, 1, 1) * .5 + np.roll(c, -1, 1) * .5) / 3   # quita el grano fino
     print('luz: media %.3f p50 %.3f p95 %.3f p99 %.3f' % (c.mean(), *np.percentile(c, [50, 95, 99])))
     px[:, :, :3] = np.clip(c * escala, 0, 1) ** (1 / 2.2); px[:, :, 3] = 1
-    out = bpy.data.images.new('pb_luz_jpg', w, h); out.colorspace_settings.name = 'Non-Color'
-    out.pixels.foreach_set(px.ravel()); out.filepath_raw = ruta or os.path.join(SAL, 'pb_luz.jpg'); out.file_format = 'JPEG'
-    try: out.save(quality=84)
-    except TypeError: out.save()
+    # WEBP sin pérdida: el JPG metía cuadros y rayas de hasta 4.5% de brillo en los muros lisos (el piso los tapa con su dibujo)
+    out = bpy.data.images.new('pb_luz_webp', w, h); out.colorspace_settings.name = 'Non-Color'; out.pixels.foreach_set(px.ravel())
+    sc = bpy.context.scene; s = sc.render.image_settings; prev = (s.file_format, s.color_mode, s.quality)
+    s.file_format = 'WEBP'; s.color_mode = 'RGB'; s.quality = 100
+    p = ruta or os.path.join(SAL, 'pb_luz.webp'); out.save_render(p, scene=sc); print('luz:', p, os.path.getsize(p) // 1024, 'KB')
+    s.file_format, s.color_mode, s.quality = prev
 
 def exportar(col):
     for m in bpy.data.materials:
@@ -667,6 +738,7 @@ def previa(sc, solo, luz, carpeta, pre):
 def comparar(carpeta):
     """Une antes (izquierda) y después (derecha) de cada cámara en prueba_luz.png."""
     import numpy as np
+    if not os.path.exists(os.path.join(carpeta, 'antes_0.png')): print('comparar: falta correr "antes" en', carpeta); return
     filas = []
     for i in range(len(CAM_PRUEBA)):
         par = []
@@ -684,7 +756,7 @@ if __name__ == '__main__':
     if acc == 'antes':        # con blender/casona_pb.blend abierto: la luz que hoy usa el juego
         sc = bpy.context.scene; motor(sc); car = arg[1]
         obs = [o for o in bpy.data.collections['pb'].objects if o.type == 'MESH' and 'luz' in o.data.uv_layers]
-        previa(sc, region(obs), os.path.join(SAL, 'pb_luz.jpg'), car, 'antes'); sys.exit(0)
+        previa(sc, region(obs), next(p for p in (os.path.join(SAL, 'pb_luz.' + e) for e in ('webp', 'jpg')) if os.path.exists(p)), car, 'antes'); sys.exit(0)
     sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))
@@ -695,7 +767,8 @@ if __name__ == '__main__':
     elif acc == 'prueba':     # hornea solo zaguán y salón con los ajustes nuevos y los compara con 'antes'
         car = arg[1]; res = int(arg[2]) if len(arg) > 2 else K['RES']; mu = int(arg[3]) if len(arg) > 3 else K['SAMPLES']
         uv_luz(obs); solo = region(obs); print('prueba:', len(solo), 'mallas')
-        img = hornear(sc, obs, res, mu, solo=solo); luz = os.path.join(car, 'luz_nueva.jpg'); guardar(img, ruta=luz)
+        img = hornear(sc, obs, res, mu, solo=solo); luz = os.path.join(car, 'luz_nueva.webp'); guardar(img, ruta=luz)
         previa(sc, solo, luz, car, 'despues'); comparar(car)
+        if 'juego' in arg: guardar(img); exportar(col)   # para verla en el juego (resto de la planta sin hornear); no subir
     elif acc == 'exportar':
         exportar(col)

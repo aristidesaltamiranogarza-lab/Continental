@@ -7,5 +7,5 @@ $b = (Get-Command blender -ErrorAction SilentlyContinue).Source
 if (-not $b) { $b = Get-ChildItem 'C:\Program Files\Blender Foundation\*\blender.exe' | Sort-Object FullName | Select-Object -Last 1 -ExpandProperty FullName }
 $t = Get-Date
 & $b -b --factory-startup --python (Join-Path $PSScriptRoot $py) -- @a 2>&1 | ForEach-Object { "$_" } |
-    Where-Object { $_ -cmatch 'GPU:|sin GPU|Horneado|prueba:|comparar|Error:|Traceback' }
+    Where-Object { $_ -cmatch 'GPU:|sin GPU|Horneado|dentro de otra|luz: |prueba:|comparar|Error:|Traceback' }
 'Listo en {0:n1} min' -f ((Get-Date) - $t).TotalMinutes

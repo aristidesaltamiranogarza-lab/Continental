@@ -45,7 +45,7 @@ for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0'],['pa','n1']]){const J
   if(arch==='pb')t(by.gata_n0&&typeof ex(by.gata_n0).ry==='number','gata_n0');
   const uv1=(J.meshes||[]).filter(m=>m.primitives.every(p=>'TEXCOORD_1' in p.attributes)).length;
   t(uv1>50,'mallas con luz horneada (TEXCOORD_1): '+uv1);
-  t(fs.existsSync(path.join(DIR,arch+'_luz.jpg')),arch+'_luz.jpg');
+  t(['webp','jpg'].some(e=>fs.existsSync(path.join(DIR,arch+'_luz.'+e))),arch+'_luz.webp|jpg');
   if(arch==='pb')t(by.pb_arbol_copa&&by.pb_hamaca&&by.pb_columnas,'árbol, hamaca y columnas');
   // planta alta (paso 5): barandal al vacío con choque, balcones, libreros y el patio de abajo sin choques
   if(arch==='pa'){t(by.pa_barandal_pasamanos&&ex(by.pa_barandal_pasamanos).segs,'barandal con choque');t(by.pa_balcon_0&&by.pa_libros&&by.pa_columnas,'balcones, libros y columnas');

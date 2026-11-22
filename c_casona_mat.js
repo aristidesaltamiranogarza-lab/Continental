@@ -51,7 +51,7 @@ function texturas(ctex){if(TX)return TX;
  TX={
   muro:{map:T('muro',512,512,cal,1/4)},   // cal: grano fino y nubes muy suaves
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.1)','rgba(120,100,70,.08)',80,8,34),1/4)},
-  cantera:{map:T('cantera',256,256,ruido('#e7dac4','rgba(120,95,60,.12)','rgba(255,248,232,.2)',400,1,2),1/2)},
+  cantera:{map:T('cantera',512,512,ruido('#e7dac4','rgba(120,95,60,.07)','rgba(255,248,232,.12)',1600,2,4),1/2)},   // 512: de cerca, la de 256 se veía pixeleada en arcos y marcos
   pasta:{map:T('pasta',256,256,roseta('#ece5d4','#bccab2','#d9ad94','#bccab2'),1/1.2)},
   corredor:{map:T('corredor',256,256,roseta('#e6d2bb','#d4b48f','#c98f6c','#d4b48f'),1/1.2)},
   cenefa:{map:T('cenefa',128,128,cenefa,1/.8)},mosaico:{map:T('mosaico',256,256,mosaico,1/1.6)},
@@ -69,12 +69,18 @@ function texturas(ctex){if(TX)return TX;
 
 // materiales: con luz horneada (UV1) si la malla la trae; los que brillan y el hierro, sin ella
 function aplicar(root,luzUrl){const H=window.CASA3D;if(!H||!H.ctex)return;const tx=texturas(H.ctex),MAT={};
- const lm=new THREE.TextureLoader().load(luzUrl);lm.flipY=false;lm.channel=1;lm.colorSpace=THREE.SRGBColorSpace;
+ const LMT={value:new THREE.Vector2(2048,2048)},lm=new THREE.TextureLoader().load(luzUrl,t=>LMT.value.set(t.image.width,t.image.height));lm.flipY=false;lm.channel=1;lm.colorSpace=THREE.SRGBColorSpace;
+ // de cerca (un texel de luz > 1 pixel) la luz va con B-spline bicúbica (4 lecturas bilineales): sin bloques ni escalones
+ const cubica=r=>{r.extensions={derivatives:true};r.customProgramCacheKey=()=>'lmc';r.onBeforeCompile=s=>{s.uniforms.lmT=LMT;
+  s.fragmentShader='uniform vec2 lmT;\nvec4 lmC(sampler2D t,vec2 uv){vec2 q=uv*lmT,d=max(abs(dFdx(q)),abs(dFdy(q)));if(max(d.x,d.y)>1.)return texture2D(t,uv);'+
+   'q-=.5;vec2 i=floor(q),f=q-i,f2=f*f,f3=f2*f,w0=(1.-3.*f+3.*f2-f3)/6.,w1=(4.-6.*f2+3.*f3)/6.,w3=f3/6.,w2=1.-w0-w1-w3,g0=w0+w1,g1=w2+w3,'+
+   'p0=(i+w1/g0-.5)/lmT,p1=(i+w3/g1+1.5)/lmT;return g0.y*(g0.x*texture2D(t,p0)+g1.x*texture2D(t,vec2(p1.x,p0.y)))+g1.y*(g0.x*texture2D(t,vec2(p0.x,p1.y))+g1.x*texture2D(t,p1));}\n'+
+   s.fragmentShader.replace('texture2D( lightMap, vLightMapUv )','lmC( lightMap, vLightMapUv )')}};
  const material=(m,luz)=>{const n=(m&&m.name)||'x',k=n+(luz?'+':'');if(MAT[k])return MAT[k];let r;
   if(n==='arbotante')r=new THREE.MeshBasicMaterial({color:0xffe2b0,toneMapped:false});
   else if(n==='farol')r=new THREE.MeshBasicMaterial({color:0xffd08a,toneMapped:false});
   else if(n==='hierro')r=new THREE.MeshBasicMaterial({color:0x1d1814});
-  else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=new THREE.MeshBasicMaterial(o)}
+  else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=new THREE.MeshBasicMaterial(o);if(luz)cubica(r)}
   if(n==='hamaca'||n==='persiana')r.side=THREE.DoubleSide;
   return MAT[k]=r};
  root.traverse(o=>{if(!o.isMesh)return;o.material=material(o.material,!!o.geometry.attributes.uv1);o.castShadow=o.receiveShadow=false;o.matrixAutoUpdate=false;o.updateMatrix()});
