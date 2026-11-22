@@ -25,7 +25,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);
  CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V))).then(gl=>{const R=gl.scene;S.add(R);
-  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1]);F.copas=CMAT.copas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
+  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1]);F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   const D=MARC.leer(R);
   WL.push(...D.WL);OB.push(...D.OB);LIN.push(...D.lineas);
   if(D.llegada){sp.x=D.llegada.x;sp.z=D.llegada.z}
@@ -42,6 +42,32 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   if(hb&&id==='c0')gata(H,S,hits,R,D,F);
   F.marcas=D;CAJA.listos[id]=true;ok()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}
+
+// arreglos al cargar, sin volver a hornear (la luz va pegada a los vértices):
+// - las tapas de cada tramo de muro (caras con normal a lo largo del tramo) quedaban en el plano de la cara del muro perpendicular y parpadeaban
+//   (franjas oscuras en las uniones); se meten 1.5 cm dentro del muro. Las jambas de puertas y ventanas también, pero las tapa su marco de cantera.
+// - los pisos de afuera (pasto, calle, banqueta, laja) suben 2 cm: la calle y el patio de la casa vieja (CCALLE.fondo) se dibujan en el mismo plano.
+// - en la planta alta, el canto de la losa del vacío baja 1 cm (su tapa estaba al ras del piso del corredor).
+// Uniones: en una T (el muro de enfrente sigue de los dos lados) el que llega termina en la cara del otro (lambrín 2 cm dentro del otro, moldura en su cara;
+// las tapas quedan espalda con espalda, no se ven); en una esquina el tramo 'h' cubre el cuadro de la esquina tal cual y el 'v' llega solo hasta la cara del 'h'
+// (así su cara de afuera ya no está bajo la tapa del 'h'). Medidas de casona_pb.py.
+const HM=.15,PISO_FUERA=/_piso_(pasto|calle|banqueta|laja)$/;
+const EXT={'':HM,lam:HM+.05,rod:HM+.05},T_EXT={'':-HM,lam:-(HM+.01),rod:-(HM+.05)},E_EXT={h:EXT,v:T_EXT};
+function juntas(R){const W=[];
+ R.traverse(o=>{if(!o.isMesh)return;const m=/_muro_(b?)([hv])\d+_\d+(?:_(lam|rod))?$/.exec(o.name);
+  if(m){const bb=new THREE.Box3().setFromBufferAttribute(o.geometry.attributes.position),e=m[2],A=e==='h'?'x':'z',Cc=e==='h'?'z':'x';
+   W.push({o,b:!!m[1],e,s:m[3]||'',A,Cc,a0:bb.min[A],a1:bb.max[A],c:(bb.min[Cc]+bb.max[Cc])/2});return}
+  const dy=PISO_FUERA.test(o.name)?.02:/_losa_borde$/.test(o.name)?-.01:0;if(dy){o.position.y+=dy;o.updateMatrix()}});
+ const base=W.filter(w=>!w.s);
+ W.forEach(w=>{const g=w.o.geometry,P=g.attributes.position,N=g.attributes.normal;if(!N)return;const ia=w.A==='x'?0:2,ic=2-ia;
+  // planos de las tapas (vértices con normal a lo largo del tramo) → a dónde van; luego se mueven TODOS los vértices de ese plano (también las orillas de los lados)
+  const mv=new Map();
+  for(let i=0;i<P.count;i++){const n=N.getComponent(i,ia);if(Math.abs(n)<=.99)continue;const s=Math.sign(n),a=P.getComponent(i,ia),k=a.toFixed(3);if(mv.has(k))continue;const j=a-s*EXT[w.s];
+   const q=base.find(p=>p.e!==w.e&&Math.abs(p.c-j)<.02&&p.a0<w.c+.2&&p.a1>w.c-.2);if(!q){mv.set(k,null);continue}   // jamba o punta suelta: se queda
+   mv.set(k,j+s*(q.a0<w.c-.2&&q.a1>w.c+.2?T_EXT[w.s]:E_EXT[w.e][w.s]))}
+  for(let i=0;i<P.count;i++){const t=mv.get(P.getComponent(i,ia).toFixed(3));if(t!=null)P.setComponent(i,ia,t);
+   if(w.b&&!w.s&&Math.abs(N.getComponent(i,ic))>.99)P.setComponent(i,ic,P.getComponent(i,ic)-N.getComponent(i,ic)*.006)}   // la barda, 6 mm más delgada que el muro que la sigue
+  P.needsUpdate=true;g.computeBoundingSphere()})}
 
 // la gata de la casona: sale del empty gata_n0 (ry en extras) y pasea por el patio (el piso de laja) sin chocar con columnas ni mesas
 function gata(H,S,hits,R,D,F){const g=R.getObjectByName('gata_n0'),pl=R.getObjectByName('pb_piso_laja');if(!g||!pl||!window.GATA||!GATA.nueva)return;
