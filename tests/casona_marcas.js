@@ -1,6 +1,6 @@
 // tests/casona_marcas.js — revisa que los GLB de la casona traigan los marcadores y choques que lee MARC (c_casa_marcas.js).
 // Maqueta: modelos/casona/{nm1,n0,n1,n2}.glb. Planta baja horneada (pasos 3a/3b): pb.glb, con los marcadores de n0, líneas de corte,
-// la gata, la segunda UV (luz) y su pb_luz.jpg. Planta alta horneada (paso 5): pa.glb y pa_luz.webp. Sótano horneado (paso 6): sm.glb y sm_luz.webp.
+// la gata, la segunda UV (luz) y su pb_luz.jpg. Planta alta horneada (paso 5): pa.glb y pa_luz.webp. Sótano horneado (paso 6): sm.glb y sm_luz.webp. Azotea (paso 7): az.glb y az_luz.webp.
 const fs=require('fs'),path=require('path'),assert=require('assert');
 const DIR=path.join(__dirname,'..','modelos','casona');
 const ORDEN=['nm1','n0','n1','n2'];
@@ -11,7 +11,7 @@ function gltf(f){const b=fs.readFileSync(f);assert.strictEqual(b.readUInt32LE(0)
  const n=b.readUInt32LE(12);return JSON.parse(b.slice(20,20+n).toString('utf8'))}
 let fallas=0;
 const PUNTO={},cerca=(p,q)=>Math.abs(p[0]-q[0])<.01&&Math.abs(p[2]-q[2])<.01;
-for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0'],['pa','n1'],['sm','nm1']]){const J=gltf(path.join(DIR,arch+'.glb')),N=J.nodes||[],by={};N.forEach(o=>by[o.name]=o);const ex=o=>o.extras||{};
+for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0'],['pa','n1'],['sm','nm1'],['az','n2']]){const J=gltf(path.join(DIR,arch+'.glb')),N=J.nodes||[],by={};N.forEach(o=>by[o.name]=o);const ex=o=>o.extras||{};
  const t=(ok,msg)=>{if(!ok){fallas++;console.log('FALLA',arch,msg)}};
  t(!N.some(o=>/\.\d{3}$/.test(o.name||'')),'nombres con .001');
  // mesas
@@ -39,7 +39,7 @@ for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0'],['pa','n1'],['sm','nm
   if(Array.isArray(e.obs))t(e.obs.length%3===0,'obs de '+o.name)});
  t(nseg>=10,'segmentos de choque: '+nseg);
  t(N.some(o=>/_(piso|balcon|tierra)(_|$)/.test(o.name)),'pisos para los límites');
- if(arch==='pb'||arch==='pa'||arch==='sm'){
+ if(arch==='pb'||arch==='pa'||arch==='sm'||arch==='az'){
   const lin=N.filter(o=>/_(muro|dintel|antepecho)_/.test(o.name));
   t(lin.length>20&&lin.every(o=>typeof ex(o).linea==='string'),'líneas de corte con extra linea');
   if(arch==='pb')t(by.gata_n0&&typeof ex(by.gata_n0).ry==='number','gata_n0');
@@ -54,6 +54,11 @@ for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0'],['pa','n1'],['sm','nm
  if(arch==='sm'){t(N.some(o=>/_tapiz_vino$/.test(o.name)&&ex(o).linea)&&N.some(o=>/_tapiz_verde$/.test(o.name)&&ex(o).linea),'tapiz con corte');
   t(by.sm_muebles&&ex(by.sm_muebles).obs&&ex(by.sm_muebles).segs,'muebles con choque');
   for(const k of ['rockola','taquera','marcador','cuadro','neon_casino','neon_billar','neon_cantina'])t(by['sot_'+k]&&typeof ex(by['sot_'+k]).ry==='number','sot_'+k)}
+ // azotea (paso 7): pretil con corte y choque, barandal al vacío, pérgola alta, tinacos, tendedero; lo de abajo sin choques ni corte
+ if(arch==='az'){t(N.some(o=>/^az_muro_p[hv]/.test(o.name)&&ex(o).linea&&ex(o).segs),'pretil con corte y choque');t(by.az_barandal_pil&&ex(by.az_barandal_pil).segs,'barandal con choque');
+  t(by.az_pergola&&ex(by.az_pergola).obs&&by.az_tinacos&&ex(by.az_tinacos).obs&&by.az_tendedero&&ex(by.az_tendedero).segs,'pérgola, tinacos y tendedero con choque');
+  t(by.az_muro_tapa&&ex(by.az_muro_tapa).linea,'tapa del cubo con corte');
+  t(by.az_abajo0_arbol_copa&&by.az_abajo0_laja&&!N.some(o=>/^az_abajo/.test(o.name)&&(ex(o).segs||ex(o).obs||ex(o).linea||/_(muro|dintel|antepecho|piso)_/.test(o.name))),'abajo sin choques ni corte')}
  console.log(arch,'mesas',ms.length,'segmentos',nseg,'puertas',N.filter(o=>/^puerta_/.test(o.name)).length)}
 if(fallas){console.log('casona_marcas:',fallas,'fallas');process.exit(1)}
 console.log('casona_marcas: ok');

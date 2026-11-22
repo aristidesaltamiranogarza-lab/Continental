@@ -15,6 +15,7 @@ SALIDA = os.path.join(os.path.dirname(RAIZ), 'modelos', 'casona')
 K = dict(t=.3, puerta=3.6, losa=.3, barandal=2.0, barda=2.4, pretil=2.0, ante=1.4, vent=4.0, esc=.35)
 
 # escalera de los 4 niveles: tramos de 2.8 (sube y baja) centrados con la puerta (z 13.5), 8 escalones de .45 desde x0 hacia -x
+PERG = 4.4   # alto de los postes de la pérgola (era 3.4: se sentía baja y apretada)
 ESC = dict(n=8, paso=.45, x0=5.4, sube=(10.6, 13.4), baja=(13.6, 16.4), llegada=(7.2, 13.5))
 ORDEN = ['nm1', 'n0', 'n1', 'n2']   # de abajo hacia arriba: la escalera sube al siguiente y baja al anterior
 FAM = dict(continental='c', monopolydeal='c', uno='c', rummy='c', merida='t', haciendas='t', backgammon='t', conecta4='t')  # el resto: casino 'k'
@@ -228,8 +229,8 @@ def nivel(nid, N):
         elif k == 'pergola':
             _, _, x, z, w, dd = d
             for j, (a, b) in enumerate([(x+.4, z+.4), (x+w-.4, z+.4), (x+.4, z+dd-.4), (x+w-.4, z+dd-.4)]):
-                o = C(caja(col, pre+'poste_%d' % j, X(a)-.22, X(a)+.22, 0, 3.4, Z(b)-.22, Z(b)+.22, 'pergola')); o['tipo'] = 'obst'; o['r'] = .4
-            for j in range(11): xa = x+.5+j*1.5; C(caja(col, pre+'viga_%d' % j, X(xa)-.08, X(xa)+.08, 3.4, 3.6, Z(z+dd-.4), Z(z+.4), 'pergola'))
+                o = C(caja(col, pre+'poste_%d' % j, X(a)-.22, X(a)+.22, 0, PERG, Z(b)-.22, Z(b)+.22, 'pergola')); o['tipo'] = 'obst'; o['r'] = .4
+            for j in range(11): xa = x+.5+j*1.5; C(caja(col, pre+'viga_%d' % j, X(xa)-.08, X(xa)+.08, PERG, PERG+.2, Z(z+dd-.4), Z(z+.4), 'pergola'))
     return col
 
 def referencia():

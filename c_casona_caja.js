@@ -4,11 +4,11 @@
 // choques, llegada, límites y las escaleras (sube/baja, destino en el extra to) como portales. Corte con MARC.corte.
 // La planta baja ya es la detallada y horneada (pasos 3a/3b: modelos/casona/pb.glb, materiales en CMAT, gata en gata_n0);
 // con ?pb=caja vuelve a la maqueta de cajas (planta alta, paso 5: pa.glb de blender/casona_pa.py; ?pa=caja; sótano, paso 6: sm.glb de blender/casona_sm.py
-// con sus juegos de verdad en SOTC, c_casona_sot.js; ?sm=caja). Paso 4: una sola escalera (sube/baja en el mismo punto de los 4 niveles); al llegar
+// con sus juegos de verdad en SOTC, c_casona_sot.js; ?sm=caja; azotea, paso 7: az.glb de blender/casona_az.py; ?az=caja). Paso 4: una sola escalera (sube/baja en el mismo punto de los 4 niveles); al llegar
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=/[?&]casa=caja\b/.test(location.search),V='4',BASE='modelos/casona/',VP='5',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','2','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','3','webp']};
+const ON=/[?&]casa=caja\b/.test(location.search),V='4',BASE='modelos/casona/',VP='5',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','2','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','3','webp'],c2:Q('az')?null:['az','1','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
