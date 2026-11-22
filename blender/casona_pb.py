@@ -143,6 +143,14 @@ def muros():
     W.update(C.rect(*N['per']))
     for g in N['gaps']: G.update(C.piezas(*g[:4]))
     for g in N['wins']: Wn.update(C.piezas(*g))
+    Bd = C.rect(*N['barda']) - W; S = W | Bd
+    def fin(e, l, i):   # punta de un tramo en i: 'T' si el muro de cruce sigue de los dos lados, 'L' si es esquina
+        p = 'v' if e == 'h' else 'h'; a, b = (p, i, l - 1) in S, (p, i, l) in S
+        return 'T' if a and b else 'L' if a or b else None
+    # en una T el que llega termina 2 cm dentro del otro (antes llegaba a su cara de enfrente: la tapa quedaba en ese plano y horneaba una franja
+    # oscura del ancho del muro del otro lado); en una esquina el 'h' cubre el cuadro y el 'v' llega hasta él. Igual que juntas() en c_casona_caja.js.
+    corto = lambda k, e: k == 'T' or (k == 'L' and e == 'v')
+    ext = lambda k, e, m, o: o if corto(k, e) else m
     clase = lambda e, l, i: 'g' if (e, l, i) in G else 'w' if (e, l, i) in Wn else 'f'
     def vano(e, l, a, b):
         for x0, z0, x1, z1, nm in N['gaps']:
@@ -158,22 +166,23 @@ def muros():
             sub.append((c, i, j)); i = j
         segs = []
         for c, a, b in sub:
-            u0, u1 = a / 10, b / 10; e0 = h if a == i0 else 0; e1 = h if b == i1 else 0
+            u0, u1 = a / 10, b / 10; k0 = fin(e, l, i0) if a == i0 else 0; k1 = fin(e, l, i1) if b == i1 else 0
+            e0 = ext(k0, e, h, -h + .02) if a == i0 else 0; e1 = ext(k1, e, h, -h + .02) if b == i1 else 0
             if c == 'f':
                 caja_l(M, e, L, u0 - e0, u1 + e1, 0, H - dv(e), -h, h); segs += LT(e, L, u0) + LT(e, L, u1)
-                z0, z1 = (h + .05 if e0 else 0), (h + .05 if e1 else 0)
+                z0, z1 = (ext(k0, e, h + .05, -h - .01) if a == i0 else 0), (ext(k1, e, h + .05, -h - .01) if b == i1 else 0)
+                r0, r1 = (ext(k0, e, h + .05, -h - .05) if a == i0 else 0), (ext(k1, e, h + .05, -h - .05) if b == i1 else 0)
                 caja_l(LA, e, L, u0 - z0, u1 + z1, 0, K['LAM'] - dv(e) / 2, -h - .03, h + .03)
-                caja_l(RO, e, L, u0 - z0, u1 + z1, K['LAM'] - dv(e) / 2, K['LAM'] + K['ROD'] - dv(e) / 2, -h - .05, h + .05)
+                caja_l(RO, e, L, u0 - r0, u1 + r1, K['LAM'] - dv(e) / 2, K['LAM'] + K['ROD'] - dv(e) / 2, -h - .05, h + .05)
             elif c == 'w': ventana(base, e, L, u0, u1, segs)
             else: puerta(base, e, L, u0, u1, vano(e, l, a, b))
         ex(base, linea=lid, segs=segs, r=round(h + .15, 3))
         for s in ('_lam', '_rod', '_can', '_per', '_rej'):
             if base + s in B: ex(base + s, linea=lid)
-    Bd = C.rect(*N['barda']) - W
     for (e, l, i0, i1) in C.tramos(Bd):
-        L, u0, u1 = l / 10, i0 / 10, i1 / 10; base = 'pb_muro_b%s%d_%d' % (e, l, i0); lid = 'b%s%d_%d' % (e, l, i0)
-        caja_l(bmn(base, 'barda'), e, L, u0 - h, u1 + h, 0, C.K['barda'] - dv(e), -h, h)
-        caja_l(bmn(base + '_rod', 'rod'), e, L, u0 - h - .05, u1 + h + .05, C.K['barda'] - dv(e), C.K['barda'] + .1 - dv(e), -h - .05, h + .05)
+        L, u0, u1 = l / 10, i0 / 10, i1 / 10; k0, k1 = fin(e, l, i0), fin(e, l, i1); m0, m1 = ext(k0, e, h, -h + .02), ext(k1, e, h, -h + .02); n0, n1 = ext(k0, e, h + .05, -h - .05), ext(k1, e, h + .05, -h - .05); base = 'pb_muro_b%s%d_%d' % (e, l, i0); lid = 'b%s%d_%d' % (e, l, i0)
+        caja_l(bmn(base, 'barda'), e, L, u0 - m0, u1 + m1, 0, C.K['barda'] - dv(e), -h, h)
+        caja_l(bmn(base + '_rod', 'rod'), e, L, u0 - n0, u1 + n1, C.K['barda'] - dv(e), C.K['barda'] + .1 - dv(e), -h - .05, h + .05)
         ex(base, linea=lid, segs=LT(e, L, u0) + LT(e, L, u1), r=round(h + .15, 3)); ex(base + '_rod', linea=lid)
 
 def ventana(base, e, L, u0, u1, segs):
@@ -489,10 +498,13 @@ def motor(sc):
     try: sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
     except Exception as e: print('vista', e)
 
+def deco():   # paso 9: cocina, despensa, servicio y baño (blender/casona_pb_deco.py, con los ayudantes de este archivo)
+    exec(open(os.path.join(DIR, 'blender', 'casona_pb_deco.py'), encoding='utf-8').read(), globals()); decorar()
+
 def armar():
     for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
     sc = bpy.context.scene; motor(sc)
-    muros(); arqueria(); columnas(); patio(); hamaca(); frente(); traspatio(); pisos(); techos(); escalera(); marcas(); lamparas()
+    muros(); arqueria(); columnas(); patio(); hamaca(); frente(); traspatio(); deco(); pisos(); techos(); escalera(); marcas(); lamparas()
     col = coleccion('pb'); obs = crear(col); luces(sc)
     print('pb: %d mallas, %d con luz, %d empties' % (len([o for o in col.objects if o.type == 'MESH']), len(obs), len(EMP)))
     return sc, col, obs

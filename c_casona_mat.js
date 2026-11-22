@@ -67,6 +67,11 @@ function texturas(ctex){if(TX)return TX;
   while(x<w){const bw=9+rnd()*5,bh=h*(.7+rnd()*.22);g.fillStyle=c[(rnd()*c.length)|0];g.fillRect(x,h-bh*.62,bw,bh*.62);g.fillRect(x+bw*.35,h-bh,bw*.3,bh*.4);
    g.fillStyle='rgba(255,255,255,.22)';g.fillRect(x+1.5,h-bh*.58,2,bh*.5);x+=bw+3}};
  const barrica=(g,w,h)=>{g.fillStyle='#a88565';g.fillRect(0,0,w,h);for(let i=0;i<8;i++){g.fillStyle=i%2?'rgba(60,35,18,.12)':'rgba(255,230,190,.08)';g.fillRect(i*w/8,0,w/8,h);g.fillStyle='rgba(50,28,12,.45)';g.fillRect(i*w/8,0,1.5,h)}};
+ // azulejo de talavera (2x2 por textura): blanco, flor azul al centro y cuartos de círculo ocre en las esquinas
+ const azulejo=(g,w,h)=>{const s=w/2;g.fillStyle='#f1ece2';g.fillRect(0,0,w,h);for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*s+s/2,y=j*s+s/2;
+   g.fillStyle='#2f5d9a';for(let k=0;k<4;k++){const q=k*Math.PI/2;g.beginPath();g.ellipse(x+Math.cos(q)*9,y+Math.sin(q)*9,8,4.5,q,0,7);g.fill()}g.fillStyle='#d9a441';g.beginPath();g.arc(x,y,4,0,7);g.fill();
+   [[0,0],[s,0],[0,s],[s,s]].forEach(([a,c])=>{g.beginPath();g.arc(i*s+a,j*s+c,9,0,7);g.fill()})}
+  g.strokeStyle='rgba(120,110,95,.55)';g.lineWidth=2;for(let i=0;i<=2;i++){g.beginPath();g.moveTo(i*s,0);g.lineTo(i*s,h);g.moveTo(0,i*s);g.lineTo(w,i*s);g.stroke()}};
  TX={
   muro:{map:T('muro',512,512,cal,1/4)},   // cal: grano fino y nubes muy suaves
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.1)','rgba(120,100,70,.08)',80,8,34),1/4)},
@@ -88,7 +93,8 @@ function texturas(ctex){if(TX)return TX;
   tapiz_verde:{map:T('tapiz-verde',256,256,dam('#3d6e55','rgba(255,240,200,.05)','rgba(230,200,130,.26)'),1/1.1)},alfombra:{map:T('alfombra',256,256,alfombra,1/1.6)},
   ladrillo:{map:T('ladrillo',256,256,ladrillo,1/1.4)},losa_s:{map:T('losa-s',256,256,laja,1/2.6)},cemento:{map:T('cemento',128,128,ruido('#8d8a85','rgba(50,48,45,.12)','rgba(220,215,205,.1)',160,2,6),1/2)},
   botellas:{map:T('botellas',256,64,botellas,1/1.4,1/.4)},barrica:{map:T('barrica',128,64,barrica,1/.6,1)},madera_osc:{map:T('madera-osc',128,128,madera('#6e5242','rgba(30,18,10,.35)'),1)},
-  lambrin_s:{map:T('lambrin-s',128,128,madera('#7a5a44','rgba(35,20,10,.3)'),1)},zoclo:{color:0x8a837b},tierra:{color:0x5a5148},cuero:{color:0x94554c}};
+  lambrin_s:{map:T('lambrin-s',128,128,madera('#7a5a44','rgba(35,20,10,.3)'),1)},zoclo:{color:0x8a837b},tierra:{color:0x5a5148},cuero:{color:0x94554c},
+  azulejo:{map:T('azulejo',128,128,azulejo,1/.7)},loza:{color:0xf2eee6},espejo:{color:0xb9c7cc}};   // paso 9: cocina y baño
  return TX}
 
 // materiales: con luz horneada (UV1) si la malla la trae; los que brillan y el hierro, sin ella

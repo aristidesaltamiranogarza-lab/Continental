@@ -8,7 +8,7 @@
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=/[?&]casa=caja\b/.test(location.search),V='4',BASE='modelos/casona/',VP='5',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','2','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','3','webp'],c2:Q('az')?null:['az','1','webp']};
+const ON=/[?&]casa=caja\b/.test(location.search),V='4',BASE='modelos/casona/',VP='6',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','2','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','5','webp'],c2:Q('az')?null:['az','1','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
@@ -26,11 +26,12 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  let ok;F.listo=new Promise(r=>ok=r);
  CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V))).then(gl=>{const R=gl.scene;S.add(R);
   if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1]);F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
+  for(const n in PEGA){const o=R.getObjectByName(n);if(o)o.userData.pega=PEGA[n]}
   const D=MARC.leer(R);
   WL.push(...D.WL);OB.push(...D.OB);LIN.push(...D.lineas);
   if(D.llegada){sp.x=D.llegada.x;sp.z=D.llegada.z}
   if(D.llegadaEsc)Object.assign(se,{x:D.llegadaEsc.x,z:D.llegadaEsc.z,ok:1});
-  D.planos.forEach(p=>plano(H,S,hits,p,id,D));
+  D.planos.forEach(p=>plano(H,S,hits,p,id,D));D.acciones.forEach(a=>accion(S,hits,a));
   if(hb&&id==='cm1'&&window.SOTC)try{F.sot=SOTC.pon(F,R,D,H)}catch(er){console.error('[SOTC]',er)}
   if(D.caja){const c=D.caja;bx.splice(0,4,c[0]+.4,c[1]-.4,c[2]+.4,c[3]-.4);F.cb.splice(0,4,...c)}
   for(const k of ['sube','baja']){const e=D.escaleras[k],to=e&&PISO[e.to];if(!to)continue;
@@ -77,6 +78,13 @@ function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle');if(ar)ar.visib
  if(window.CCAS)try{F.casco=CCAS.pon(F)}catch(er){console.error('[CCAS]',er)}
  if(window.CIELO&&CIELO.pisos)CIELO.mundo.children.forEach(o=>{if((o.name==='patio'||o.name==='tras')&&!o.userData.casona){o.userData.casona=1;CIELO.pisos(o,p=>!(p in PISO_ID))}})}
 const PISO_ID={cm1:1,c0:1,c1:1,c2:1};
+// campana y cazos de la cocina: cuelgan del muro del norte (z 10 del plano); se esconden con él en el corte
+const PEGA={pb_coc_campana:[13.8,7],pb_coc_cobre:[11.2,7]};
+
+// cosas que se tocan (accion_<k> del GLB): el espejo y el ropero de tu cuarto abren Mi personaje; la radio de la sala de música cambia el volumen
+const ACC={mipj:()=>{if(window.MIPJ)MIPJ.abrir()},radio:()=>{if(window.musCyc)musCyc()}};
+function accion(S,hits,a){const f=ACC[a.k.replace(/\d+$/,'')];if(!f)return;const m=new THREE.Mesh(new THREE.SphereGeometry(a.r,10,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+ m.position.set(a.x,a.y,a.z);m.userData.hit={t:'fn',f};S.add(m);hits.push(m)}
 
 // la gata de la casona: sale del empty gata_n0 (ry en extras) y pasea por el patio (el piso de laja) sin chocar con columnas ni mesas
 function gata(H,S,hits,R,D,F){const g=R.getObjectByName('gata_n0'),pl=R.getObjectByName('pb_piso_laja');if(!g||!pl||!window.GATA||!GATA.nueva)return;

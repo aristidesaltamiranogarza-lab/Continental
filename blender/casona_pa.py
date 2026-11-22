@@ -175,6 +175,9 @@ def muebles():
         obs += T(mx, mz) + [.6]
     ex('pa_muebles', obs=obs, segs=segs, r=.45)
 
+def deco():   # paso 9: tu cuarto y sala de música (blender/casona_pa_deco.py, con los nombres de este archivo)
+    exec(open(os.path.join(DIR, 'blender', 'casona_pa_deco.py'), encoding='utf-8').read(), globals()); tu_cuarto(); sala_musica()
+
 def marcas():
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n1' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
@@ -206,7 +209,7 @@ def armar():
     COLS = C.COLS; C.COLS = [c for c in COLS if c[1] < 30 or c[0] in (12, 24)]   # arriba no hay corredor al fondo: solo las esquinas
     try: P.muros(); arqueria(); P.columnas(); barandal()
     finally: C.COLS = COLS
-    balcones(); pisos(); P.techos(); escalera(); muebles(); marcas(); lamparas()
+    balcones(); pisos(); P.techos(); escalera(); muebles(); deco(); marcas(); lamparas()
     col = P.coleccion('pa'); obs = P.crear(col)
     ms = N['mesas']; N['mesas'] = [m for m in ms if m[3] > 1.2]   # sombras de bulto solo para las mesas grandes
     try: P.luces(sc)
