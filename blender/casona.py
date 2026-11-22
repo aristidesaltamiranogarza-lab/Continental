@@ -14,6 +14,8 @@ if os.path.basename(RAIZ) != 'blender': RAIZ = os.path.join(os.getcwd(), 'blende
 SALIDA = os.path.join(os.path.dirname(RAIZ), 'modelos', 'casona')
 K = dict(t=.3, puerta=3.6, losa=.3, barandal=2.0, barda=2.4, pretil=2.0, ante=1.4, vent=4.0, esc=.35)
 
+# escalera de los 4 niveles: tramos de 2.8 (sube y baja) centrados con la puerta (z 13.5), 8 escalones de .45 desde x0 hacia -x
+ESC = dict(n=8, paso=.45, x0=5.4, sube=(10.6, 13.4), baja=(13.6, 16.4), llegada=(7.2, 13.5))
 ORDEN = ['nm1', 'n0', 'n1', 'n2']   # de abajo hacia arriba: la escalera sube al siguiente y baja al anterior
 FAM = dict(continental='c', monopolydeal='c', uno='c', rummy='c', merida='t', haciendas='t', backgammon='t', conecta4='t')  # el resto: casino 'k'
 COLS = [(12,14),(16,14),(20,14),(24,14),(12,18),(12,22),(12,26),(12,30),(24,18),(24,22),(24,26),(24,30),(16,30),(20,30)]
@@ -49,7 +51,7 @@ NIV = {
   gaps=[(16,3,16,7,None),(21,3,21,7,None),(11,10,13.5,10,'biblioteca'),(17,10,20,10,None),(22.5,10,25,10,'tableros'),(8,11.5,8,15.5,'escalera'),
         (8,22,8,25,'tucuarto'),(28,18,28,21,'musica'),(4.5,0,7,0,None),(9,0,11.5,0,None),(17.3,0,19.7,0,None),(25.5,0,28,0,None),(29.5,0,32,0,None)],
   rail=(12,14,12,16), cols=True,
-  mesas=[('merida',8,5.2,2.1,0),('haciendas',28.5,5.2,1.9,0),('backgammon',16.8,12,.7,0)],
+  mesas=[('merida',8,5.2,2.1,0),('haciendas',28.5,5.2,1.9,0),('backgammon',32,24.5,.7,0)],
   deco=[('caja','ropero',.3,23.4,.8,3.4,3.0),('caja','cama',3.4,26.2,3.6,3.5,1.0),('caja','radio',34.4,14,1.2,1.6,1.6)]),
  'n2': dict(elev=10.3, H=4.2, per=(0,0,36,30), pretil=True, sube=False, baja=True, abajo=-10.3,
   areas=[(0,0,16,10,'open','ta','pergola'),(16,0,20,10,'open','ta','azotea'),(8,10,4,20,'open','ta','azotea_o'),(12,10,12,4,'open','ta','azotea_s'),
@@ -175,7 +177,7 @@ def nivel(nid, N):
     for g in N.get('gaps', []):
         if g[4]: C(vacio(col, 'puerta_%s_%s' % (g[4], nid), X((g[0]+g[2])/2), 0, Z((g[1]+g[3])/2)))
     # pisos (el cuarto de la escalera deja el hueco de la bajada)
-    hueco = (1, 14, 6, 1.8) if N['baja'] else None
+    hueco = (1, ESC['baja'][0], ESC['x0'] - 1, ESC['baja'][1] - ESC['baja'][0]) if N['baja'] else None
     for x, z, w, d, k, tin, n in N['areas']:
         if k == 'void': continue
         if k == 'earth': C(caja(col, pre+'tierra', X(x), X(x+w), -K['losa'], .02, Z(z+d), Z(z), 'tierra')); continue
@@ -194,19 +196,19 @@ def nivel(nid, N):
         for j, (cx, cz) in enumerate(COLS): C(caja(col, pre+'columna_%d' % j, X(cx)-.26, X(cx)+.26, 0, H, Z(cz)-.26, Z(cz)+.26, 'columna', tipo='columna', r=.45))
         for e, l, i0, i1 in tramos(rect(12, 14, 12, 16) - W): i += 1; C(tramo_caja(col, pre+'dintel_%d' % i, e, l, i0, i1, H-.6, H, 'dintel', .5))
     # escalera: sube (hacia -x, el primer escalon junto a la puerta) y baja (hueco)
-    n_esc = 8; io = ORDEN.index(nid)
+    n_esc, pa, x0 = ESC['n'], ESC['paso'], ESC['x0']; (s0, s1), (b0, b1) = ESC['sube'], ESC['baja']; io = ORDEN.index(nid)
     if N['sube']:
         for s in range(n_esc):
-            xa = 6.5 - .5*(s+1); C(caja(col, pre+'escalon_s%d' % s, X(xa), X(xa+.5), 0, K['esc']*(s+1), Z(14), Z(12.2), 'escalon', escalera='sube'))
-        C(vacio(col, 'escalera_sube_' + nid, X(6.7), 0, Z(13.1), r=1.0, to=ORDEN[io+1], pie=[.7, 0]))
+            xa = x0 - pa*(s+1); C(caja(col, pre+'escalon_s%d' % s, X(xa), X(xa+pa), 0, K['esc']*(s+1), Z(s1), Z(s0), 'escalon', escalera='sube'))
+        C(vacio(col, 'escalera_sube_' + nid, X(x0-.4), 0, Z((s0+s1)/2), r=1.0, to=ORDEN[io+1], pie=[.7, 0]))
     if N['baja']:
         for s in range(n_esc):
-            xa = 6.5 - .5*(s+1); C(caja(col, pre+'escalon_b%d' % s, X(xa), X(xa+.5), -3, -K['esc']*(s+1), Z(15.8), Z(14), 'escalon', escalera='baja'))
-        C(caja(col, pre+'pozo', X(1), X(2.5), -3.1, -3, Z(15.8), Z(14), 'losa'))
-        C(vacio(col, 'escalera_baja_' + nid, X(6.7), 0, Z(14.9), r=1.0, to=ORDEN[io-1], pie=[.7, 0]))
-    C(vacio(col, 'llegada_' + nid, X(4), 0, Z(11.1)))
+            xa = x0 - pa*(s+1); C(caja(col, pre+'escalon_b%d' % s, X(xa), X(xa+pa), -3, -K['esc']*(s+1), Z(b1), Z(b0), 'escalon', escalera='baja'))
+        C(caja(col, pre+'pozo', X(1), X(x0-pa*n_esc), -3.1, -3, Z(b1), Z(b0), 'losa'))
+        C(vacio(col, 'escalera_baja_' + nid, X(x0-.4), 0, Z((b0+b1)/2), r=1.0, to=ORDEN[io-1], pie=[.7, 0]))
+    C(vacio(col, 'llegada_' + nid, X(ESC['llegada'][0]), 0, Z(ESC['llegada'][1])))
     # paso 4: al llegar por la escalera apareces aqui (el mismo punto en los 4 niveles); plano enmarcado en el muro del fondo
-    C(vacio(col, 'llegada_escalera_' + nid, X(4), 0, Z(11.1)))
+    C(vacio(col, 'llegada_escalera_' + nid, X(ESC['llegada'][0]), 0, Z(ESC['llegada'][1])))
     C(vacio(col, 'plano_escalera_' + nid, X(6.6), 2.7, Z(16.8), ry=0.0))
     if nid == 'n0': C(vacio(col, 'plano_zaguan_n0', X(20.8), 2.7, Z(8.6), ry=round(-math.pi/2, 4)))
     # mesas (marcadores; el juego pone la mesa real)

@@ -117,23 +117,22 @@ def pisos():
         elif n == 'antesala': quad('pa_piso_mosaico', 'mosaico', x, z, x1, z1)
         elif n.startswith('corredor'): quad('pa_piso_corredor', 'corredor', x, z, x1, z1)
         elif n == 'escalera':
-            hx, hz, hw, hd = 1, 14, 6, 1.8
+            hx, hz, hw, hd = 1, C.ESC['baja'][0], C.ESC['x0'] - 1, C.ESC['baja'][1] - C.ESC['baja'][0]
             for a, b, c, e in ((x, z, x1, hz), (x, hz + hd, x1, z1), (x, hz, hx, hz + hd), (hx + hw, hz, x1, hz + hd)): quad('pa_piso_cuarto', 'cuarto', a, b, c, e)
         else: quad('pa_piso_cuarto', 'cuarto', x, z, x1, z1)
 
 def escalera():
-    esc, ne = C.K['esc'], 8
+    esc, E0 = C.K['esc'], C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; (s0, s1), (b0, b1) = E0['sube'], E0['baja']
     E = bmn('pa_escalera_sube', 'escalon')
-    for s in range(ne): xa = 6.5 - .5 * (s + 1); caja(E, xa, xa + .5, 0, esc * (s + 1), 12.2, 14)
+    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, 0, esc * (s + 1), s0, s1)
     ex('pa_escalera_sube', escalera='sube')
-    vacio('escalera_sube_n1', 6.7, 0, 13.1, r=1.0, to='n2', pie=[.7, 0])
+    vacio('escalera_sube_n1', x0 - .4, 0, (s0 + s1) / 2, r=1.0, to='n2', pie=[.7, 0])
     E = bmn('pa_escalera_baja', 'escalon')
-    for s in range(ne): xa = 6.5 - .5 * (s + 1); caja(E, xa, xa + .5, -3, -esc * (s + 1), 14, 15.8)
-    caja(E, 1, 2.5, -3.1, -3, 14, 15.8)
+    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, -3, -esc * (s + 1), b0, b1)
+    caja(E, 1, x0 - pa * ne, -3.1, -3, b0, b1)
     ex('pa_escalera_baja', escalera='baja')
-    vacio('escalera_baja_n1', 6.7, 0, 14.9, r=1.0, to='n0', pie=[.7, 0])
+    vacio('escalera_baja_n1', x0 - .4, 0, (b0 + b1) / 2, r=1.0, to='n0', pie=[.7, 0])
 
-# ---------- muebles ----------
 def librero(e, L, u0, u1, lado, alto=3.2, fondo=.6):
     """Librero contra el muro (eje e, línea L) de u0 a u1; lado +1/-1 = hacia dónde mira. Filas de 0.4 (la textura de libros repite igual)."""
     h = K['t'] / 2; o0 = lado * h; o1 = lado * (h + fondo)
@@ -181,8 +180,8 @@ def marcas():
         if g[4]: vacio('puerta_%s_n1' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
         vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r)
-    vacio('llegada_n1', 4, 0, 11.1)
-    vacio('llegada_escalera_n1', 4, 0, 11.1)
+    vacio('llegada_n1', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
+    vacio('llegada_escalera_n1', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('plano_escalera_n1', 6.6, 2.7, 16.8, ry=0.0)
 
 # arbotantes en el corredor y los cuartos: (x, z, normal hacia el cuarto)
