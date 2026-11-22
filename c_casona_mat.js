@@ -1,4 +1,5 @@
-// c_casona_mat.js — CMAT: materiales de la planta baja horneada de la casona (blender/casona_pb.py → modelos/casona/pb.glb + pb_luz.jpg).
+// c_casona_mat.js — CMAT: materiales de los niveles horneados de la casona (blender/casona_pb.py → pb.glb + pb_luz.jpg, planta baja;
+// blender/casona_pa.py → pa.glb + pa_luz.jpg, planta alta).
 // Cada material del GLB se vuelve MeshBasicMaterial con una textura de canvas que se repite (UV0 en metros) por la luz horneada (UV1):
 // nada de luces en tiempo real para el cascarón. Los colores base son los de Blender pasados a sRGB, para que se vea como el horneado.
 // CMAT.aplicar(root,urlDeLaLuz) arma los materiales; CMAT.copas(root) junta las copas de los árboles y CMAT.paso(C,yo) las desvanece
@@ -34,9 +35,15 @@ function texturas(ctex){if(TX)return TX;
   ring(.5,'#9a463a');ring(.47,'#b05a47');ring(.18,'#d8b464');ring(.15,'#9a463a')};
  const hamaca=(g,w,h)=>{const c=['#d9534a','#f0b84a','#4f9d6e','#4a7fc0','#e8dcc4','#c04a7a'];const n=24;for(let i=0;i<n;i++){g.fillStyle=c[i%c.length];g.fillRect(i*w/n,0,w/n+1,h)}
   g.fillStyle='rgba(255,255,255,.12)';for(let y=0;y<h;y+=4)g.fillRect(0,y,w,1)};
+ // duela: tablas de madera a lo largo, juntas desfasadas; libros: lomos de colores en filas de 0.4 (como los libreros de casona_pa.py)
+ const duela=(g,w,h)=>{const n=6,s=h/n;for(let j=0;j<n;j++){g.fillStyle=['#a7805f','#9c7656','#b08a68','#a27b5a'][j%4];g.fillRect(0,j*s,w,s);g.strokeStyle='rgba(70,40,20,.18)';
+  for(let i=0;i<5;i++){g.lineWidth=1;g.beginPath();const y=j*s+rnd()*s;g.moveTo(0,y);g.bezierCurveTo(w*.3,y+rnd()*4-2,w*.7,y+rnd()*4-2,w,y);g.stroke()}
+  g.fillStyle='rgba(50,28,12,.35)';g.fillRect(0,j*s,w,1.5);g.fillRect(((j*.37)%1)*w,j*s,2,s)}};
+ const libros=(g,w,h)=>{g.fillStyle='#3a2416';g.fillRect(0,0,w,h);const c=['#8a3b2e','#2f5d4a','#b88a3a','#3d4f7a','#6e2f3f','#c9b48a','#4f6b3a','#7a4a2a'];let x=0;
+  while(x<w){const lw=6+rnd()*9,lh=h*(.62+rnd()*.3);g.fillStyle=c[(rnd()*c.length)|0];g.fillRect(x,h-lh,lw-1,lh);g.fillStyle='rgba(255,240,210,.25)';g.fillRect(x,h-lh+lh*.15,lw-1,2);x+=lw}};
  const copa=ruido('#86aa76','rgba(60,95,50,.35)','rgba(190,220,160,.25)',140,4,10);
  TX={
-  muro:{map:T('muro',256,256,ruido('#ddb395','rgba(255,240,220,.08)','rgba(120,70,40,.07)',80,8,34),1/4)},
+  muro:{map:T('muro',256,256,ruido('#ddb395','rgba(255,240,220,.05)','rgba(120,70,40,.04)',900,1,1.5),1/2)},   // pintura lisa: solo grano fino, sin manchas
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.1)','rgba(120,100,70,.08)',80,8,34),1/4)},
   cantera:{map:T('cantera',256,256,ruido('#e7dac4','rgba(120,95,60,.12)','rgba(255,248,232,.2)',400,1,2),1/2)},
   pasta:{map:T('pasta',256,256,roseta('#ece5d4','#bccab2','#d9ad94','#bccab2'),1/1.2)},
@@ -50,6 +57,7 @@ function texturas(ctex){if(TX)return TX;
   madera:{map:T('madera',128,128,madera('#957659','rgba(60,35,20,.3)'),1)},bejuco:{map:T('bejuco',64,64,bejuco,1/.35)},
   porton:{map:T('porton',128,128,porton,1/1.4)},tapete:{map:T('tapete',512,512,tapete,1)},hamaca:{map:T('hamaca',256,16,hamaca,1/1.4,1)},
   copa:{map:T('copa',128,128,copa,1/1.5)},tronco:{map:T('tronco',64,64,madera('#a08976','rgba(70,50,35,.35)'),1/.8)},
+  duela:{map:T('duela',256,256,duela,1/1.2)},libros:{map:T('libros',256,64,libros,1/1.6,1/.4)},
   lambrin:{color:0x618c79},rod:{color:0xede7d7},techo:{color:0xe7dfce},barro:{color:0xcb997c},escalon:{color:0xcea286}};
  return TX}
 

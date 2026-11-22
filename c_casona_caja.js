@@ -3,11 +3,11 @@
 // Todo lo que se toca sale del GLB vía MARC (c_casa_marcas.js): mesas (mesa real si el juego existe, si no una de muestra),
 // choques, llegada, límites y las escaleras (sube/baja, destino en el extra to) como portales. Corte con MARC.corte.
 // La planta baja ya es la detallada y horneada (pasos 3a/3b: modelos/casona/pb.glb, materiales en CMAT, gata en gata_n0);
-// con ?pb=caja vuelve a la maqueta de cajas. Paso 4: una sola escalera (sube/baja en el mismo punto de los 4 niveles); al llegar
+// con ?pb=caja vuelve a la maqueta de cajas (planta alta, paso 5: pa.glb de blender/casona_pa.py; ?pa=caja). Paso 4: una sola escalera (sube/baja en el mismo punto de los 4 niveles); al llegar
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=/[?&]casa=caja\b/.test(location.search),V='3',BASE='modelos/casona/',PB=!/[?&]pb=caja\b/.test(location.search),VP='2';
+const ON=/[?&]casa=caja\b/.test(location.search),V='3',BASE='modelos/casona/',VP='3',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={c0:Q('pb')?null:['pb',VP],c1:Q('pa')?null:['pa','1']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
@@ -17,14 +17,14 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  S.background=new THREE.Color(id==='cm1'?0x1a1512:0xbcd3e0);
  S.add(new THREE.HemisphereLight(0xfff4e0,0x8a7a6a,id==='cm1'?1.3:1.7));const L=new THREE.DirectionalLight(0xffffff,id==='cm1'?.6:1.4);L.position.set(-10,20,12);S.add(L);
  const sp={x:0,z:0},se={x:0,z:0,ok:0},bx=[-17.6,17.6,-12.6,16.6];
- const hb=id==='c0'&&PB&&!!window.CMAT;
+ const hb=!!(HB[id]&&window.CMAT)&&HB[id];
  const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();MARC.corte(LIN,c,p);
   if(F.copas)CMAT.paso(F.copas,p,c);if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);
- CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(hb?'pb.glb?v='+VP:NV[id]+'.glb?v='+V))).then(gl=>{const R=gl.scene;S.add(R);
-  if(hb){CMAT.aplicar(R,BASE+'pb_luz.jpg?v='+VP);F.copas=CMAT.copas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
+ CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V))).then(gl=>{const R=gl.scene;S.add(R);
+  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.jpg?v='+hb[1]);F.copas=CMAT.copas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   const D=MARC.leer(R);
   WL.push(...D.WL);OB.push(...D.OB);LIN.push(...D.lineas);
   if(D.llegada){sp.x=D.llegada.x;sp.z=D.llegada.z}
@@ -37,7 +37,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   D.mesas.forEach(m=>{const fe=FEL[m.fam]||FEL.k;
    if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe};TB.push(t);H.mesa(t,S,hits,OB)}
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
-  if(hb)gata(H,S,hits,R,D,F);
+  if(hb&&id==='c0')gata(H,S,hits,R,D,F);
   F.marcas=D;CAJA.listos[id]=true;ok()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}
 

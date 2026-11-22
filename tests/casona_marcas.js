@@ -1,6 +1,6 @@
 // tests/casona_marcas.js — revisa que los GLB de la casona traigan los marcadores y choques que lee MARC (c_casa_marcas.js).
 // Maqueta: modelos/casona/{nm1,n0,n1,n2}.glb. Planta baja horneada (pasos 3a/3b): pb.glb, con los marcadores de n0, líneas de corte,
-// la gata, la segunda UV (luz) y su pb_luz.jpg.
+// la gata, la segunda UV (luz) y su pb_luz.jpg. Planta alta horneada (paso 5): pa.glb y pa_luz.jpg.
 const fs=require('fs'),path=require('path'),assert=require('assert');
 const DIR=path.join(__dirname,'..','modelos','casona');
 const ORDEN=['nm1','n0','n1','n2'];
@@ -11,7 +11,7 @@ function gltf(f){const b=fs.readFileSync(f);assert.strictEqual(b.readUInt32LE(0)
  const n=b.readUInt32LE(12);return JSON.parse(b.slice(20,20+n).toString('utf8'))}
 let fallas=0;
 const PUNTO={},cerca=(p,q)=>Math.abs(p[0]-q[0])<.01&&Math.abs(p[2]-q[2])<.01;
-for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0']]){const J=gltf(path.join(DIR,arch+'.glb')),N=J.nodes||[],by={};N.forEach(o=>by[o.name]=o);const ex=o=>o.extras||{};
+for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0'],['pa','n1']]){const J=gltf(path.join(DIR,arch+'.glb')),N=J.nodes||[],by={};N.forEach(o=>by[o.name]=o);const ex=o=>o.extras||{};
  const t=(ok,msg)=>{if(!ok){fallas++;console.log('FALLA',arch,msg)}};
  t(!N.some(o=>/\.\d{3}$/.test(o.name||'')),'nombres con .001');
  // mesas
@@ -39,14 +39,17 @@ for(const [arch,nv] of [...ORDEN.map(n=>[n,n]),['pb','n0']]){const J=gltf(path.j
   if(Array.isArray(e.obs))t(e.obs.length%3===0,'obs de '+o.name)});
  t(nseg>=10,'segmentos de choque: '+nseg);
  t(N.some(o=>/_(piso|balcon|tierra)(_|$)/.test(o.name)),'pisos para los límites');
- if(arch==='pb'){
+ if(arch==='pb'||arch==='pa'){
   const lin=N.filter(o=>/_(muro|dintel|antepecho)_/.test(o.name));
   t(lin.length>20&&lin.every(o=>typeof ex(o).linea==='string'),'líneas de corte con extra linea');
-  t(by.gata_n0&&typeof ex(by.gata_n0).ry==='number','gata_n0');
+  if(arch==='pb')t(by.gata_n0&&typeof ex(by.gata_n0).ry==='number','gata_n0');
   const uv1=(J.meshes||[]).filter(m=>m.primitives.every(p=>'TEXCOORD_1' in p.attributes)).length;
   t(uv1>50,'mallas con luz horneada (TEXCOORD_1): '+uv1);
-  t(fs.existsSync(path.join(DIR,'pb_luz.jpg')),'pb_luz.jpg');
-  t(by.pb_arbol_copa&&by.pb_hamaca&&by.pb_columnas,'árbol, hamaca y columnas')}
+  t(fs.existsSync(path.join(DIR,arch+'_luz.jpg')),arch+'_luz.jpg');
+  if(arch==='pb')t(by.pb_arbol_copa&&by.pb_hamaca&&by.pb_columnas,'árbol, hamaca y columnas');
+  // planta alta (paso 5): barandal al vacío con choque, balcones, libreros y el patio de abajo sin choques
+  if(arch==='pa'){t(by.pa_barandal_pasamanos&&ex(by.pa_barandal_pasamanos).segs,'barandal con choque');t(by.pa_balcon_0&&by.pa_libros&&by.pa_columnas,'balcones, libros y columnas');
+   t(by.pa_abajo_arbol_copa&&by.pa_abajo_laja&&!N.some(o=>/^pa_abajo_/.test(o.name)&&(ex(o).segs||ex(o).obs||ex(o).linea)),'patio de abajo sin choques ni corte')}}
  console.log(arch,'mesas',ms.length,'segmentos',nseg,'puertas',N.filter(o=>/^puerta_/.test(o.name)).length)}
 if(fallas){console.log('casona_marcas:',fallas,'fallas');process.exit(1)}
 console.log('casona_marcas: ok');
