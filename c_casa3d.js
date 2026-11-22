@@ -512,8 +512,8 @@ const cp=c=>c.userData.off||c.position;
 function reubica(t){seated.forEach((s,k)=>{if(s.t!==t)return;const c=t.chairs[s.j];if(!c){if(s.av){AV.quita(s.g);if(s.ch&&s.ch.parent)s.ch.parent.remove(s.ch)}else disposeG(s.g);seated.delete(k);return}
  c.visible=false;const o=cp(c),ry=Math.atan2(-o.x,-o.z);if(s.ch){s.ch.rotation.y=ry;s.ch.position.set(t.x+o.x,1.55,t.z+o.z)}else{s.g.rotation.y=ry;s.g.position.set(t.x+o.x-(s.av?.2*Math.sin(ry):0),s.av?.24:1.55,t.z+o.z-(s.av?.2*Math.cos(ry):0))}})}
 // arranca(g): si recargaste a media partida la casa no se armó (se arma sin dibujarse); si la mesa está en otro piso, te pasa junto a ella
-const PISOJ={continental:'pb',uno:'pb',merida:'alta',haciendas:'alta'};
-function arranca(g){if(!on)return false;if(!ready)try{init()}catch(e){console.warn('Casa 3D:',e);return false}const p=PISOJ[g];if(p&&p!==FL.id&&!fBusy)irA(p,g);return true}
+const PISOJ={continental:'pb',uno:'pb',merida:'alta',haciendas:'alta'},PISOC={continental:'c0',uno:'c0',monopolydeal:'c0',merida:'c1',haciendas:'c1'};   // PISOC: casona (?casa=caja)
+function arranca(g){if(!on)return false;if(!ready)try{init()}catch(e){console.warn('Casa 3D:',e);return false}const p=(window.CAJA&&CAJA.on?PISOC:PISOJ)[g];if(p&&p!==FL.id&&!fBusy)irA(p,g);return true}
 function fondoFin(){const t=fzT;if(!t)return;fzT=null;t.G.children.concat(t.lampara||[]).forEach(o=>{if(o.userData.fz){o.visible=true;delete o.userData.fz}});seated.forEach(s=>{if(s.t===t)(s.ch||s.g).visible=true})}
 function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)return false;const now=performance.now();
  if(fzT!==t){fondoFin();fzT=t;fzN=0;fzP.set(t.x,0,t.z);t.G.children.concat(t.lampara||[]).forEach(o=>{if(o.visible&&!o.isLight&&!t.pie.includes(o)&&!(sillas&&t.chairs.includes(o))){o.visible=false;o.userData.fz=1}})}

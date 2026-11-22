@@ -17,7 +17,7 @@ function firma(g){return Object.keys(g.attributes).sort().map(n=>n+g.attributes[
 function sombra(o){return ''+o.castShadow+o.receiveShadow+o.renderOrder+o.frustumCulled+o.layers.mask}
 const FN=new WeakMap(),fl=f=>{let n=FN.get(f);if(n===undefined)FN.set(f,n=f.toString().length);return n};   // largo del código de una función (se calcula una vez)
 function apto(o){if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||NO.has(o)||OC.has(o))return false;
- const ud=Object.keys(o.userData);if(ud.length&&!(ud.length===1&&ud[0]==='hit'))return false;   // con userData: algo la usa (cartas); 'hit' de la casa solo se usa con rayos
+ if(Object.keys(o.userData).some(k=>k!=='hit'&&k!=='name'))return false;   // con userData: algo la usa (cartas); 'hit' de la casa solo se usa con rayos; 'name' lo pone GLTFLoader (casona)
  if(o.children.length||!vis(o)||Array.isArray(o.material)||!o.material||o.morphTargetInfluences)return false;
  const m=o.material;if(m.isShaderMaterial||m.onBeforeCompile&&fl(m.onBeforeCompile)>20||m.transparent)return false;
  const g=o.geometry;if(!g||!g.attributes.position||!g.attributes.normal||Object.keys(g.morphAttributes).length)return false;
@@ -27,11 +27,11 @@ function enHueso(o){for(let p=o.parent;p;p=p.parent){if(p.isBone||p.name==='Pers
 // visible propio: con CUA (cuartos de la planta baja) un objeto puede estar oculto solo porque su cuarto no se ve
 const vis=o=>window.CUA?CUA.vis(o):o.visible;
 // cuarto de la planta baja donde puede juntarse con piezas de otros grupos (-1: no)
-const cuartoDe=o=>window.CUA&&window.CASA3D&&CASA3D.piso&&CASA3D.piso()==='pb'?CUA.de(o):-1;
+const cuartoDe=o=>window.CUA&&window.CASA3D&&CASA3D.piso&&(CUA.hay?CUA.hay(CASA3D.piso()):CASA3D.piso()==='pb')?CUA.de(o):-1;
 function destino(o){let T=o.parent;const anc=[];   // sube mientras el grupo actual pueda quedar en medio
  while(llano(T)&&T.parent&&!T.parent.isScene&&vis(T)){anc.push(T);T=T.parent}
  // en la planta baja, los grupos de un mismo cuarto se juntan entre sí (la malla queda en la escena, ligada a ese cuarto)
- let r=-1;if(llano(T)&&T.parent&&T.parent.isScene&&vis(T)){r=cuartoDe(T);if(r>=0){anc.push(T);T=T.parent}}else if(T&&T.isScene)r=cuartoDe(o);
+ let r=-1;if(llano(T)&&T.parent&&T.parent.isScene&&vis(T)){r=cuartoDe(T);if(r>=0){anc.push(T);T=T.parent}else if(CUA.esAbre&&CUA.esAbre(T))r=cuartoDe(o)}else if(T&&T.isScene)r=cuartoDe(o);   // GLB de la casona (CUA.abre): por cuarto dentro del grupo
  return{T,anc,r}}
 function pose(o){const a=o.position,q=o.quaternion,s=o.scale;return [a.x,a.y,a.z,q.x,q.y,q.z,q.w,s.x,s.y,s.z]}
 function igual(o,p){const a=o.position,q=o.quaternion,s=o.scale;return a.x===p[0]&&a.y===p[1]&&a.z===p[2]&&q.x===p[3]&&q.y===p[4]&&q.z===p[5]&&q.w===p[6]&&s.x===p[7]&&s.y===p[8]&&s.z===p[9]}
@@ -69,7 +69,7 @@ function revisa(G){if(!G.malla.parent)return true;
  return false}
 function pasada(){if(off||!window.CASA3D||!CASA3D.sc)return;const sc=CASA3D.sc();if(!sc)return;sc.updateMatrixWorld();
  const dest=new Map();
- sc.traverse(o=>{if(!o.parent||!apto(o)||enHueso(o))return;const d=destino(o),dk=d.T.isScene?'r'+d.r:d.T;let e=dest.get(dk);if(!e)dest.set(dk,e={T:d.T,r:d.T.isScene?d.r:-1,l:[],anc:new Set()});e.l.push(o);d.anc.forEach(a=>e.anc.add(a))});
+ sc.traverse(o=>{if(!o.parent||!apto(o)||enHueso(o))return;const d=destino(o),dk=d.T.isScene?'r'+d.r:d.r>=0?d.T.uuid+'r'+d.r:d.T;let e=dest.get(dk);if(!e)dest.set(dk,e={T:d.T,r:d.r,l:[],anc:new Set()});e.l.push(o);d.anc.forEach(a=>e.anc.add(a))});
  dest.forEach(e=>{const T=e.T;if(e.l.length<2||T.isBone)return;const cub=new Map();
   for(const o of e.l){const k=clave(o.material)+'#'+firma(o.geometry)+'#'+sombra(o);(cub.get(k)||cub.set(k,[]).get(k)).push(o)}
   // las que quedaron solas se juntan si solo cambia el color (se hornea en los vértices)
@@ -84,7 +84,7 @@ function pasada(){if(off||!window.CASA3D||!CASA3D.sc)return;const sc=CASA3D.sc()
    m.userData._mrg=true;m.raycast=()=>{};m.name='mrg';G.malla=m;
    m.onBeforeRender=()=>{if(G.vivo&&revisa(G))queueMicrotask(()=>deshaz(G))};   // cada cuadro que se dibuja
    for(const o of l)G.items.push({o,pa:o.parent,p:pose(o),mat:o.material,k:clave(o.material),geo:o.geometry,res:null});
-   G.items.forEach(it=>{it.res=oculta(it.o,G)});T.add(m);if(T.isScene&&e.r>=0&&window.CUA)CUA.ligar(m,e.r);grupos.push(G)})})}
+   G.items.forEach(it=>{it.res=oculta(it.o,G)});T.add(m);if(e.r>=0&&window.CUA)CUA.ligar(m,e.r);grupos.push(G)})})}
 // las que no se dibujan (fuera de cámara) se revisan por partes: ~1/8 cada 120 ms, con el color del material
 function vigila(){if(!grupos.length)return;const n=Math.max(1,Math.ceil(grupos.length/8));
  for(let j=0;j<n&&grupos.length;j++){iv=iv%grupos.length;const G=grupos[iv++];let roto=revisa(G);

@@ -19,7 +19,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  S.add(new THREE.HemisphereLight(0xfff4e0,0x8a7a6a,id==='cm1'?1.3:1.7));const L=new THREE.DirectionalLight(0xffffff,id==='cm1'?.6:1.4);L.position.set(-10,20,12);S.add(L);
  const sp={x:0,z:0},se={x:0,z:0,ok:0},bx=[-17.6,17.6,-12.6,16.6];
  const hb=!!(HB[id]&&window.CMAT)&&HB[id];
- const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();MARC.corte(LIN,c,p);
+ const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();MARC.corte(LIN,c,p);if(F.cua)CUA.paso(c,p,id);
   if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
@@ -34,6 +34,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   D.planos.forEach(p=>plano(H,S,hits,p,id,D));D.acciones.forEach(a=>accion(S,hits,a));
   if(hb&&id==='cm1'&&window.SOTC)try{F.sot=SOTC.pon(F,R,D,H)}catch(er){console.error('[SOTC]',er)}
   if(D.caja){const c=D.caja;bx.splice(0,4,c[0]+.4,c[1]-.4,c[2]+.4,c[3]-.4);F.cb.splice(0,4,...c)}
+  if(window.CUA&&CUA.casona&&CUA.casona(id,D.WL,D.caja)){CUA.abre(R);F.cua=1}   // paso 10: no dibuja los cuartos cerrados que no se ven
   for(const k of ['sube','baja']){const e=D.escaleras[k],to=e&&PISO[e.to];if(!to)continue;
    const l={x:e.x,z:e.z,r:e.r,ax:e.ax,az:e.az,to};links.push(l);
    D.escalones[k].forEach(o=>{o.userData.hit={t:'link',l};hits.push(o)})}

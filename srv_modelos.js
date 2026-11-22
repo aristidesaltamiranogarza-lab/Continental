@@ -1,6 +1,6 @@
 // Envío de archivos por partes (stream) en vez de readFileSync, para no congelar el polling con archivos grandes.
 // modelos/: .glb y .ktx2 con caché larga (cada versión se publica con otra etiqueta o carpeta), ETag, 304 y Range.
-const fs=require('fs'),path=require('path');
+const fs=require('fs'),path=require('path'),zlib=require('zlib');
 const DIR=path.join(__dirname,'modelos');
 const TIPOS={'.glb':'model/gltf-binary','.gltf':'model/gltf+json','.bin':'application/octet-stream','.ktx2':'image/ktx2','.json':'application/json; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};
 
@@ -19,6 +19,18 @@ function envia(req,res,f,tipo,cache){
   if(req.method==='HEAD')return res.end();
   const s=fs.createReadStream(f,{start:a,end:b});s.on('error',()=>res.destroy());s.pipe(res)})}
 
+// los .glb (y .gltf/.bin/.json) van comprimidos si el navegador acepta br o gzip: un GLB de la casona baja de 1.7 MB a ~250 KB.
+// Se comprime una vez por archivo y versión (tamaño+fecha) y se guarda en memoria; con Range se manda tal cual. Las texturas ya vienen comprimidas.
+const ZIP=new Set(['.glb','.gltf','.bin','.json']),ZC=new Map();
+function comprimido(req,res,f,tipo,cache){const ae=req.headers['accept-encoding']||'',enc=/\bbr\b/.test(ae)?'br':/\bgzip\b/.test(ae)?'gzip':'';
+ if(!enc||req.headers.range)return envia(req,res,f,tipo,cache);
+ fs.stat(f,(e,st)=>{if(e||!st.isFile())return envia(req,res,f,tipo,cache);const tag='"'+st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36)+'-'+enc+'"',k=f+'|'+enc,h={'Content-Type':tipo,'Cache-Control':cache,'ETag':tag,'Vary':'Accept-Encoding'};
+  if(req.headers['if-none-match']===tag){res.writeHead(304,h);return res.end()}
+  const manda=b=>{h['Content-Encoding']=enc;h['Content-Length']=b.length;res.writeHead(200,h);res.end(req.method==='HEAD'?undefined:b)};
+  const c=ZC.get(k);if(c&&c.tag===tag){if(c.b)return manda(c.b);return c.p.then(manda,()=>envia(req,res,f,tipo,cache))}
+  const p=new Promise((ok,no)=>fs.readFile(f,(e2,buf)=>{if(e2)return no(e2);(enc==='br'?zlib.brotliCompress:zlib.gzip)(buf,enc==='br'?{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:11}}:{level:9},(e3,z)=>e3?no(e3):ok(z))}));
+  const ent={tag,p,b:null};ZC.set(k,ent);p.then(z=>{ent.b=z;manda(z)},()=>{ZC.delete(k);envia(req,res,f,tipo,cache)})})}
+
 // /modelos/...: solo archivos dentro de la carpeta; el catálogo se revalida siempre y los modelos se guardan un año
 // (el cliente pide cada modelo con ?h=<huella del catálogo>, así un modelo regenerado nunca sale viejo de la caché)
 function modelos(req,res,p){
@@ -26,6 +38,6 @@ function modelos(req,res,p){
  const f=path.normalize(path.join(DIR,rel)),ext=path.extname(f).toLowerCase();
  if(!f.startsWith(DIR+path.sep)||!TIPOS[ext]||/(^|[\\/])originales([\\/]|$)/.test(rel)){res.writeHead(404,{'Content-Type':'text/plain'});return res.end('no')}
  res.setHeader('Access-Control-Allow-Origin','*');
- envia(req,res,f,TIPOS[ext],ext==='.json'?'no-cache':'public, max-age=31536000, immutable')}
+ (ZIP.has(ext)?comprimido:envia)(req,res,f,TIPOS[ext],ext==='.json'?'no-cache':'public, max-age=31536000, immutable')}
 
 module.exports={envia,modelos};
