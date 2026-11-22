@@ -11,20 +11,16 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 
 | # | Paso | Esfuerzo | Riesgo | Archivos principales | Hecho |
 |---|------|----------|--------|----------------------|-------|
-| 1 | 2D: mesa siempre redonda | medium | bajo | ui_mesa2d.css, c_mesa2d.js | [ ] |
-| 2 | 2D: mismo estilo que la mesa 3D (fieltro, madera, centro, anillo) | medium | bajo | ui_mesa2d.css, c_uno2d.js | [ ] |
-| 3 | 3D: cámara desde tu silla (núcleo) | xhigh | alto | c_uno3d.js (layout, cam, clampV), c_mesa_cam.js | [ ] |
-| 4 | 3D: tu mano encima del borde de la mesa | high | medio | c_uno3d.js (fan, layout) | [ ] |
-| 5 | 3D: centro grande (mazo y descarte) | medium | bajo | c_uno3d.js (buildTable, pila) | [ ] |
-| 6 | 3D: anillo de dirección nuevo | medium | bajo | c_uno3d.js (ringTex, ringG) | [ ] |
-| 7 | 3D: rivales de frente con sus cartas y etiqueta | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js | [ ] |
-| 8 | Interfaz ligera (turno, pista, botones) | medium | bajo | c_uno3d.js, continental3d.html/ui css | [ ] |
-| 9 | Mirada viva (voltear al que juega, mirar alrededor) | high | medio | c_uno3d.js (vivo), c_mesa_cam.js | [ ] |
-| 10 | Transición del lobby a tu silla al empezar | xhigh | alto | c_uno3d.js, c_sala.js, c_casa_mesa.js | [ ] |
-| 11 | Paisaje, tablet y de 2 a 6+ jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [ ] |
-| 12 | Llevarlo a Continental (plan aparte) | xhigh | alto | c_continental3d.js, c_cont2d.js | [ ] |
+| 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [ ] |
+| 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [ ] |
+| 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [ ] |
+| 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [ ] |
+| 5 | Mirada viva y transición del lobby a tu silla | xhigh | alto | c_uno3d.js (vivo), c_mesa_cam.js, c_sala.js, c_casa_mesa.js | [ ] |
+| 6 | Paisaje, tablet y de 2 a 8 jugadores | medium | medio | c_uno3d.js, ui_mesa2d.css | [ ] |
 
-Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high / xhigh / max). Orden recomendado: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11. Los pasos 5, 6 y 8 son independientes entre sí y pueden ir en cualquier orden después del 4.
+Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high / xhigh / max). Riesgo = qué tan probable es romper algo fuera del paso (código compartido con otros juegos) o tener que rehacerlo. Orden: 1 → 6; el 1 es independiente y puede ir en cualquier momento. Continental va después, en un plan aparte (PLAN_CONTINENTAL.md), reusando lo hecho aquí.
+
+Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una sesión no alcanza, terminar en el límite de una parte y anotarlo en Notas.
 
 ## Contexto común (leer siempre)
 
@@ -66,7 +62,9 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 ---
 
-## Paso 1: 2D, mesa siempre redonda (medium)
+## Paso 1: 2D, mesa redonda con el estilo de la 3D (medium)
+
+### A. Mesa siempre redonda
 **Objetivo:** la mesa 2D es un círculo perfecto en cualquier pantalla, centrado en el espacio libre entre la barra de arriba y tu mano.
 
 1. ui_mesa2d.css:10: quitar los insets `left/right/top/bottom` y dejar `left:50%;top:<centro>;width:min(<ancho disponible>,<alto disponible>);aspect-ratio:1;transform:translate(-50%,-50%)`. Usar unidades del contenedor (`cqw/cqh`, ya se usan en :86 y :114) para que el tamaño salga del contenedor, no de la ventana.
@@ -77,14 +75,12 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Hecho cuando:** en 390×844, 844×390 y 1280×800 la mesa es un círculo, los retratos están sobre el borde y nada se encima con tu mano ni con la barra.
 
-**Notas:**
-
-## Paso 2: 2D, mismo estilo que la mesa 3D (medium)
+### B. Mismo estilo que la mesa 3D
 **Objetivo:** que la 2D se lea como la misma mesa vista desde arriba.
 
 1. Fieltro: cambiar el degradado verde (ui_mesa2d.css:11) por el color de la mesa 3D (`FELT[sbg]`); exponerlo como variable CSS `--m2d-fieltro` que c_uno2d.js pone. Madera: el borde actual (`border` transparente + degradado) pasa a tono madera como el aro de la mesa 3D, con una sombra interior suave.
 2. Centro: descarte más grande que el mazo (≈1.25×), con 1–2 cartas anteriores asomando giradas; contador del mazo debajo, discreto.
-3. Anillo de dirección: 4 arcos con punta de flecha (igual que el mockup y que el paso 6 en 3D), del color actual, girando despacio; al cambiar de sentido, la animación se invierte con un pequeño rebote.
+3. Anillo de dirección: 4 arcos con punta de flecha (igual que el mockup y que el paso 3B en 3D), del color actual, girando despacio; al cambiar de sentido, la animación se invierte con un pequeño rebote.
 4. Indicador de color actual: el anillo ya lo muestra. El chip "Rojo" de la barra de arriba se queda solo cuando el color lo eligió un comodín (por accesibilidad para daltónicos, con el nombre del color).
 5. Tu turno: el borde de madera de tu lado brilla (arco en el color de acento) en lugar de solo la píldora.
 
@@ -92,7 +88,9 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Notas:**
 
-## Paso 3: 3D, cámara desde tu silla (xhigh) — el núcleo
+## Paso 2: 3D, cámara desde tu silla y tu mano sobre el borde (xhigh)
+
+### A. Cámara desde tu silla
 **Objetivo:** la vista de juego normal es en primera persona desde tu asiento, mirando el centro a ~40–48°, con la mesa llenando el ancho de la pantalla.
 
 1. Leer c_uno3d.js:160–193 (layout, cam, vivo, clampV) y c_ruleta3d.js:193–206 antes de tocar nada.
@@ -106,14 +104,12 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Hecho cuando:** al entrar a una partida se ve el centro grande, el rival de frente arriba, nada se corta, Arriba sigue funcionando, y Continental/Monopoly Deal 3D no cambiaron (abrir cada uno una vez).
 
-**Riesgos:** la mano y los brillos se calculan con `L.ch`, `L.bar`, `L.top` del layout viejo; si algo se descuadra, anotarlo para el paso 4 en lugar de arreglarlo aquí.
+**Riesgos:** la mano y los brillos se calculan con `L.ch`, `L.bar`, `L.top` del layout viejo; si algo se descuadra, anotarlo para la parte B en lugar de arreglarlo aquí.
 
-**Notas:**
-
-## Paso 4: 3D, tu mano encima del borde de la mesa (high)
+### B. Tu mano encima del borde de la mesa
 **Objetivo:** tu abanico se ve grande en primer plano, tapando el borde cercano de la mesa (la madera y el fieltro detrás), nunca el piso.
 
-1. Con la cámara del paso 3, medir en pantalla dónde queda el borde cercano de la mesa (proyectar el punto `A.mano`/borde en +z). Colocar el abanico (`fan`, :214) para que su mitad superior se encime con ese borde.
+1. Con la cámara de la parte A, medir en pantalla dónde queda el borde cercano de la mesa (proyectar el punto `A.mano`/borde en +z). Colocar el abanico (`fan`, :214) para que su mitad superior se encime con ese borde.
 2. Tamaño: alto de carta ≈ 22–26% del alto de pantalla en celular parado (hoy `L.ch=min(h*.19,w*.26,165)`); que las 7 cartas iniciales quepan sin salirse; con muchas cartas, más encimadas (no más pequeñas de cierto mínimo, ≥ 44 px de ancho visible para tocar).
 3. Arco del abanico más marcado (como si las sostuvieras), las jugables se asoman un poco (ya existe) y la que robaste más.
 4. Luz `pt` (:127): revisar que la mano no se vea quemada ni oscura con la cámara nueva.
@@ -124,7 +120,9 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Notas:**
 
-## Paso 5: 3D, centro grande (medium)
+## Paso 3: 3D, centro grande y anillo de dirección nuevo (medium)
+
+### A. Centro grande
 1. buildTable (:147): con la vista sentada ya cabe mazo a la izquierda y descarte a la derecha también en celular parado; quitar el caso "uno arriba del otro" si ya no hace falta.
 2. Escala: el descarte se dibuja ~1.6–2× el tamaño real de carta (truco de Mattel); el mazo ~1.3×. Ajustar `ps` o una escala propia del centro.
 3. Pila del descarte: que se vean 2–3 cartas anteriores giradas debajo (ya hay `pile`, :261); la de arriba un poco levantada y con su brillo.
@@ -132,27 +130,25 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Hecho cuando:** el número de la carta de arriba se lee sin acercar la cámara en celular parado.
 
-**Notas:**
-
-## Paso 6: 3D, anillo de dirección nuevo (medium)
+### B. Anillo de dirección nuevo
 1. ringTex (:76): cambiar las 20 flechitas por 4 arcos gruesos con punta, como en el mockup; mismo canvas, versión por sentido (`d`).
 2. Color actual, brillo suave (aditivo o emisivo bajo), opacidad mayor que hoy (.5) pero sin tapar cartas.
 3. Gira despacio en el sentido del juego; al invertir, un giro rápido con rebote y destello (MFX tiene destellos).
-4. Que rodee el centro nuevo (paso 5) sin pasar por debajo del mazo ni del descarte.
-5. Mismo diseño que el anillo 2D (paso 2).
+4. Que rodee el centro nuevo (paso 3A) sin pasar por debajo del mazo ni del descarte.
+5. Mismo diseño que el anillo 2D (paso 1B).
 
 **Notas:**
 
-## Paso 7: 3D, rivales de frente con sus cartas y etiqueta (high)
-1. Con la cámara sentada, revisar cada número de jugadores (2, 3, 4, 6, 8): los de enfrente se ven de frente; los de los lados en tres cuartos, en la orilla de la pantalla, sin cortarse. Si se salen en celular parado, ajustar `MESA.radio`/`sep` o la inclinación solo en ese caso.
+## Paso 4: 3D, rivales de frente e interfaz ligera (high)
+
+### A. Rivales de frente con sus cartas y etiqueta
+1. Con la cámara sentada (paso 2), revisar cada número de jugadores (2, 3, 4, 6, 8): los de enfrente se ven de frente; los de los lados en tres cuartos, en la orilla de la pantalla, sin cortarse. Si se salen en celular parado, ajustar `MESA.radio`/`sep` o la inclinación solo en ese caso.
 2. Sus cartas: abanico boca abajo en sus manos (MPJ ya lo hace); que el tamaño del abanico refleje cuántas tienen (tope visual, p. ej. 12).
 3. Etiqueta: nombre y número de cartas sobre la cabeza, siempre legible (tamaño fijo en pantalla), con anillo/brillo cuando es su turno.
 4. "UNO" de un rival: la etiqueta parpadea y el personaje festeja (ya existe `MPJ.festeja`).
 5. Las cartas que roban vuelan del mazo a sus manos (`seatW`, :241) con la nueva escala.
 
-**Notas:**
-
-## Paso 8: Interfaz ligera (medium) — usar skill casa-ui
+### B. Interfaz ligera (usar skill casa-ui)
 1. Quitar la píldora grande "¡Tu turno!" y la barra de instrucciones fija (`#gjTop`/`#gjHint`): el turno se indica con el brillo del borde de tu lado y un texto corto "Tu turno" sobre la mano.
 2. La instrucción "Toca una carta para jugarla, o el mazo para robar" solo las primeras 2 partidas (guardar en localStorage con try/catch) o cuando el jugador tarda >8 s.
 3. Botones de arriba: solo menú (y Arriba/Recentrar dentro del menú o pequeños); chat abajo a la derecha como está.
@@ -160,15 +156,15 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Notas:**
 
-## Paso 9: Mirada viva (high)
+## Paso 5: Mirada viva y transición del lobby a tu silla (xhigh)
+
+### A. Mirada viva
 1. Como la Ruleta Rusa (c_ruleta3d.js:196–197): cuando un rival juega o roba, la mirada se va un poco hacia él (`lerp` del punto de mira ~25–35%) y regresa al centro cuando termina. Cuando te toca, la mirada vuelve al centro.
 2. Arrastrar con el dedo fuera de tu mano = mirar alrededor (giro de cabeza limitado, ±35° y ±15° de inclinación); regresa sola tras unos segundos (MCAM ya tiene `ESPERA` y `home`).
 3. Castigo de +4: el corte de cámara que hoy existe (`corte`, :234) se adapta a primera persona (volteas a ver al que roba, no un corte de plano).
 4. Respetar "reducir movimiento" del sistema: sin vaivenes si está activo.
 
-**Notas:**
-
-## Paso 10: Transición del lobby a tu silla (xhigh)
+### B. Transición del lobby a tu silla
 1. Averiguar (preguntar si no está claro) cómo se pasa hoy de la sala de espera (c_sala.js, cámara en CASA3D.sala) a la partida 3D de Uno: si es la misma escena o se cambia de lienzo.
 2. Al presionar Empezar: la cámara viaja del plano del lobby al ojo de tu asiento en ~1.2–1.5 s con curva suave (patrón `hand/swT` de la Ruleta Rusa), mientras se reparten las cartas.
 3. Al salir de la partida: el viaje inverso.
@@ -176,15 +172,10 @@ Esfuerzo = nivel de razonamiento sugerido para la sesión (low / medium / high /
 
 **Notas:**
 
-## Paso 11: Paisaje, tablet y de 2 a 6+ jugadores (medium)
+## Paso 6: Paisaje, tablet y de 2 a 8 jugadores (medium)
 1. Acostado (844×390): misma vista sentada con FOV más ancho; la mano baja más y es más pequeña; el centro sigue grande.
 2. Tablet y escritorio (1280×800, 1920×1080): no se ve demasiado vacío; la mesa no queda pequeña.
-3. 2D en los mismos tamaños (paso 1).
+3. 2D en los mismos tamaños (paso 1A).
 4. Una captura por tamaño crítico solo si la consola/medidas no bastan.
-
-**Notas:**
-
-## Paso 12: Llevarlo a Continental (xhigh, plan aparte)
-Cuando el Uno esté bien: escribir PLAN_CONTINENTAL.md con los mismos pasos adaptados (Continental baja juegos a la mesa, así que el centro y la mano cambian). Reusar lo que se haya movido a c_mesa_cam.js o a un módulo nuevo (p. ej. c_mesa_silla.js con la cámara sentada) si en el paso 3 se separó.
 
 **Notas:**
