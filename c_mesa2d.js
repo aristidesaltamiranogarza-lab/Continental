@@ -32,9 +32,9 @@ function emotes(){const P=V.players||[];if(emSala!==V.code){emSala=V.code;emVist
   if(!p.em||(k===V.me&&Date.now()-emPropio<5000))return;setTimeout(()=>{emoji(k,p.em);reac(k,EMV[p.em],3000)},0)})}
 function gesto(i){const em=EMS[i];if(!em||V.me<0)return;emAb=false;emPropio=Date.now();send({t:'emo',e:em});render();setTimeout(()=>{emoji(V.me,em);reac(V.me,EMV[em],3000)},0)}
 // ---------- asientos: los rivales en arco por arriba de la mesa; el siguiente en turno queda a tu izquierda ----------
-function rivales(){const G=V.G,n=G.players.length,me=V.me,ks=[];
+function rivales(red){const G=V.G,n=G.players.length,me=V.me,ks=[];
  if(me>=0)for(let j=1;j<n;j++)ks.push((me+j)%n);else for(let k=0;k<n;k++)ks.push(k);
- const m=ks.length,e=innerHeight>innerWidth*1.1?.32:0;return ks.map((k,j)=>{const a=Math.PI+e-(j+1)/(m+1)*(Math.PI+2*e);return [k,50+43*Math.cos(a),55-44*Math.sin(a)]})}
+ const m=ks.length,e=innerHeight>innerWidth*1.1?.32:red&&innerWidth>innerHeight*1.3?.6:0;return ks.map((k,j)=>{const a=Math.PI+e-(j+1)/(m+1)*(Math.PI+2*e);return red?[k,50+50*Math.cos(a),50-50*Math.sin(a)]:[k,50+43*Math.cos(a),55-44*Math.sin(a)]})}   // red: mesa redonda (.m2d-ronda), sobre la madera; acostado bajan por los lados para no encimarse
 // o: {x,y,turno,cuenta,fan,tag,alerta,extra}
 function asiento(k,o){const p=(V.players||[])[k]||{};
  return `<div class="m2d-seat${o.turno?' on':''}${p.out?' out':''}" data-seat="${k}" style="--c:${COL[k%10]};left:${o.x}%;top:${o.y}%">
@@ -57,12 +57,12 @@ function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M
  ${typeof musUI=='function'?`<div class="ui-row m2d-mus">${musUI()}</div>`:''}
  ${G&&G.log&&G.log.length?`<details><summary>Historial</summary>${logv()}</details>`:''}<details><summary>Jugadores</summary>${plist()}</details>${o.rules||''}
  ${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ico('x')}Cerrar sala</button>`:''}</div></div>`}
-// o: {cls,estilo,top,der,seats,centro,capa,hint,mine,yo,acc,ord,mano,menu,rules}
+// o: {cls,estilo,redonda,top,der,seats,centro,capa,hint,mine,yo,acc,ord,mano,menu,rules}; redonda: mesa circular con los asientos en su borde (Uno)
 function mesa(o){emotes();const g=V.me>=0&&V.G&&V.G.phase!='final';if(!g)emAb=false;
- return `<div class="m2d ${o.cls||''}" style="${o.estilo||''}">
+ return `<div class="m2d ${o.cls||''}${o.redonda?' m2d-redonda':''}" style="${o.estilo||''}">
  <div class="m2d-top"><button class="ui-rb" onclick="M2D.menu()" aria-label="Menú">${ico('menu')}</button>${o.top||''}<span class="m2d-sp"></span>${g?`<button class="ui-rb m2d-gb${emAb?' on':''}" onclick="M2D.gestos()" aria-label="Gestos" aria-expanded="${emAb}">${ico('gesto')}</button>`:''}${g?`<button class="ui-rb m2d-cb" onclick="chatTog()" aria-label="Chat">${ico('chat')}<span class="m2d-cn">${(document.getElementById('cn')||{}).textContent||''}</span></button>`:''}${o.der||''}
  ${emAb?`<div class="m2d-gestos" role="menu">${EMS.map((e,i)=>`<button role="menuitem" onclick="M2D.gesto(${i})" aria-label="Gesto ${i+1}">${e}</button>`).join('')}</div>`:''}</div>
- <div class="m2d-zona"><div class="m2d-felt">${o.centro||''}</div>${(o.seats||[]).join('')}${o.capa||''}</div>
+ <div class="m2d-zona">${o.redonda?'<div class="m2d-ronda">':''}<div class="m2d-felt">${o.centro||''}</div>${(o.seats||[]).join('')}${o.redonda?'</div>':''}${o.capa||''}</div>
  <div class="m2d-yo">${o.hint!=null?`<div class="m2d-bar">${o.yo||''}<div class="m2d-hint${o.mine?' mine':''}">${o.hint}</div>${o.acc||''}${o.ord||''}</div>`:''}${o.mano||''}</div>
  ${abierto?menuHtml(o):''}</div>`}
 const M2D=window.M2D={retrato,reac,gesto,rivales,asiento,yo,abanico,bb,mesa,suelta:null,teclas:null,

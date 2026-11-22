@@ -10,6 +10,11 @@ html:has(#app .m2d){overflow:hidden}
 .m2d-felt{container-type:size;position:absolute;left:7%;right:7%;top:12%;bottom:2%;border-radius:50%;border:clamp(8px,1.5vmin,15px) solid transparent;
  background:radial-gradient(ellipse at 50% 38%,#2f7d5a,#1f5c43 58%,#174734) padding-box,linear-gradient(140deg,#9a6238,#6a3c20 45%,#8d5530 70%,#5a321b) border-box;
  box-shadow:inset 0 0 0 2px rgba(0,0,0,.22),inset 0 14px 40px rgba(0,0,0,.35),0 14px 30px rgba(40,18,6,.35)}
+/* mesa redonda (Uno: M2D.mesa({redonda})): círculo perfecto centrado en el espacio libre, asientos sobre su borde; fieltro del color de la mesa 3D */
+.m2d-ronda{--d:min(100cqw - 2*var(--sw),100cqh - 1.3*var(--sw));position:absolute;left:50%;top:calc((100cqh - var(--d))/2 + .45*var(--sw));width:var(--d);aspect-ratio:1;transform:translateX(-50%)}
+.m2d-redonda .m2d-felt{inset:0;border-width:clamp(9px,2.6cqw,16px);
+ background:radial-gradient(circle at 50% 40%,var(--m2d-fieltro,#5d656f),color-mix(in srgb,var(--m2d-fieltro,#5d656f) 55%,var(--m2d-fieltro2,#1d2126)) 62%,var(--m2d-fieltro2,#1d2126)) padding-box,
+ conic-gradient(from 20deg,#9a6238,#6a3c20,#8d5530,#5a321b,#94603a,#6a3c20,#9a6238) border-box}
 /* asientos */
 .m2d-seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;width:calc(var(--sw)*1.9);z-index:3;transition:transform .3s}
 .m2d-seat.on{transform:translate(-50%,-50%) scale(1.1);z-index:4}
@@ -74,6 +79,7 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 @keyframes m2in{from{transform:translateY(-90px) scale(.6);opacity:0}}
 @keyframes m2bb{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0;margin-top:-8px}}
 @media (max-width:560px){.m2d-sm{display:none}.m2d-hint{font-size:13px;padding:7px 12px}.m2d-nm{font-size:11px;padding:2px 7px}.m2d-fan{display:none}}
+@media (max-height:460px){.m2d-ronda{--d:min(100cqw - 2*var(--sw),100cqh - .7*var(--sw) + 40px);top:calc((100cqh - var(--d))/2 + .35*var(--sw) + 20px)}}   /* acostado: la mesa se mete detrás de la pista */
 @media (max-height:460px){.m2d-top{padding-top:6px}.m2d-top .ui-rb,.m2d-top .ui-btn,.m2d-top .ui-pill{min-height:38px;height:38px}.m2d-top .ui-rb{width:38px}
  .m2d-bar{min-height:40px}.m2d-yo{margin-top:-34px}.m2d-me b{display:none}.m2d-hint{padding:6px 12px;font-size:13px}.m2d-fan{display:none}.m2d-felt{top:16%}}
 
@@ -84,6 +90,12 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 .u2-acu{padding:2px 9px;border-radius:999px;background:#d32f2f;color:#fff;font-weight:900}
 /* el anillo que gira en el sentido del juego */
 .u2-orbit{position:absolute;left:50%;top:50%;width:min(78cqw,150cqh);aspect-ratio:1;transform:translate(-50%,-50%) scaleY(.5);pointer-events:none}
+.m2d-redonda .u2-orbit{width:86cqw;transform:translate(-50%,-50%)}
+.u2-orbit.gira .u2-rot{animation:u2rebote .6s cubic-bezier(.3,1.5,.5,1)}
+.u2-rot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:color-mix(in srgb,var(--uc) 75%,#fff);stroke:color-mix(in srgb,var(--uc) 75%,#fff);opacity:.8;filter:drop-shadow(0 0 3px var(--uc))}
+.u2-rot svg path{fill:none;stroke-width:3;stroke-linecap:round}.u2-rot svg polygon{stroke:none}
+.u2-rot.rev svg{transform:scaleX(-1)}
+.m2d-redonda .u2-rot{border:0;animation-duration:16s}
 .u2-rot{position:absolute;inset:0;border-radius:50%;border:2px dashed color-mix(in srgb,var(--uc) 60%,rgba(255,255,255,.4));animation:m2spin 10s linear infinite}
 .u2-rot.rev{animation-direction:reverse}
 .u2-rot i{position:absolute;inset:0}.u2-rot i:nth-child(2){transform:rotate(120deg)}.u2-rot i:nth-child(3){transform:rotate(240deg)}
@@ -91,6 +103,13 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 .u2-rot.rev i::before{transform:scaleX(-1)}
 .u2-piles{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:calc(var(--cw)*.55);--cw:min(var(--pw),46cqh)}
 .u2-pila{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.m2d-redonda .u2-piles{--cb:min(var(--pw),19cqw);--cw:var(--cb);gap:calc(var(--cb)*.5)}
+.m2d-redonda .u2-desc{--cw:calc(var(--cb)*1.25)}
+.m2d-redonda .u2-pila small{font-size:11px;opacity:.75;padding:1px 7px}
+/* tu turno: brilla la madera de tu lado */
+.u2.tu .m2d-ronda::after{content:"";position:absolute;inset:-4px;border-radius:50%;pointer-events:none;z-index:2;
+ background:conic-gradient(transparent 125deg,var(--ui-accent) 155deg,#ffd36a 180deg,var(--ui-accent) 205deg,transparent 235deg);
+ -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));animation:u2brillo 1.6s ease-in-out infinite}
 .u2-pila small{font:800 13px var(--ui-font);color:#fff;background:rgba(0,0,0,.35);padding:2px 9px;border-radius:999px}
 html[data-game="uno"] .u2-mazo .c{box-shadow:2px 2px 0 #fff,3px 3px 0 #111,5px 5px 0 #fff,6px 6px 0 #111,8px 10px 14px rgba(0,0,0,.5)}
 html[data-game="uno"] .u2-mazo .c.go{cursor:pointer;animation:u2glow 1.3s ease-in-out infinite}
@@ -119,6 +138,8 @@ html[data-cb="on"] .u2-rueda button::after{content:attr(data-l)}
  display:flex;align-items:center;justify-content:center;text-align:center;font:800 14px/1.15 var(--ui-font);box-shadow:0 0 0 5px #fff}
 @keyframes u2glow{50%{box-shadow:2px 2px 0 #fff,3px 3px 0 #111,5px 5px 0 #fff,6px 6px 0 #111,0 0 0 4px #ffe27a,0 0 26px 6px #ffe27a}}
 @keyframes u2slam{from{transform:scale(1.6) rotate(14deg);opacity:0}}
+@keyframes u2rebote{0%{transform:scale(1) rotate(0)}45%{transform:scale(1.1) rotate(-25deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes u2brillo{50%{opacity:.45}}
 @keyframes u2uno{50%{transform:rotate(3deg) scale(1.08)}}
 @media (prefers-reduced-motion:reduce){.m2d *,.m2d *::before{animation:none!important;transition:none!important}}
 /* celular parado: cartas más grandes y la mano libre del botón de chat */

@@ -11,7 +11,7 @@ Meta: que el Uno se sienta como estar sentado en una mesa de la casa, no como un
 
 | # | Paso | Esfuerzo | Riesgo | Archivos principales | Hecho |
 |---|------|----------|--------|----------------------|-------|
-| 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [ ] |
+| 1 | 2D: mesa redonda con el estilo de la 3D | medium | medio | ui_mesa2d.css, c_mesa2d.js, c_uno2d.js | [[x] |
 | 2 | 3D: cámara desde tu silla y tu mano sobre el borde | xhigh | alto | c_uno3d.js (layout, cam, clampV, fan), c_mesa_cam.js | [ ] |
 | 3 | 3D: centro grande y anillo de dirección nuevo | medium | bajo | c_uno3d.js (buildTable, pila, ringTex) | [ ] |
 | 4 | 3D: rivales de frente e interfaz ligera | high | medio | c_uno3d.js, c_mesa_pj.js, c_mesa3d.js, css | [ ] |
@@ -87,6 +87,10 @@ Cada paso de abajo tiene partes (A, B…), que vienen del plan anterior. Si una 
 **Hecho cuando:** una captura 2D y una 3D se ven como la misma mesa (colores, centro, anillo).
 
 **Notas:**
+- Redonda es opcional por juego: `M2D.mesa({redonda:1})` pone `.m2d-redonda` y envuelve fieltro + asientos en `.m2d-ronda` (cuadrado, `--d` en cq de `.m2d-zona`); `M2D.rivales(1)` los pone en el borde (R=50%). Continental y Monopoly Deal 2D no cambian.
+- Acostado (max-height:460px) la mesa crece 40px y se mete detrás de la pista; los rivales bajan por los lados (`e=.6`) para no encimarse. Sigue chica en 844×390: revisar en el paso 6.
+- Fieltro: `MESA_J.uno.col()` → `--m2d-fieltro/--m2d-fieltro2` (c_uno2d.js `fieltro()`). Anillo: SVG `ARC` en c_uno2d.js (4 arcos, r=46); rebote `.u2-orbit.gira` al cambiar `G.dir`. Chip de color solo si la carta de arriba es comodín (`U(id).c>=4`). Turno: `.u2.tu .m2d-ronda::after` (arco abajo).
+- En /prueba hay 2 errores "THREE is not defined" sin red de CDN (no son de este paso).
 
 ## Paso 2: 3D, cámara desde tu silla y tu mano sobre el borde (xhigh)
 
