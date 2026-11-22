@@ -260,10 +260,10 @@ function poseSeated(s,now){const u=s.g.userData,t=now/1000+s.seed,r=Math.pow(Mat
 function avYa(){return !!(window.AV&&AV.ya&&AV.ya())}
 function pideAv(){if(pideAv.v||!window.AV||avYa())return;pideAv.v=1;AV.listo().then(()=>{if(me)refresh(me);others.forEach(refresh);if(ready)seatSync()},()=>{})}
 // mesas con partida en curso: el juego se ve andando (c_casa_ocupada.js); la mesa de tu partida no, ahí manda el juego
-function ocup(){if(!window.OCUP)return;const B=[];Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs||!t.G||t.door||t===fzT)return;const n=rooms.filter(r=>r.g==t.g&&r.st=='play').reduce((a,r)=>a+r.ps.length,0);if(n)B.push({t,n,y:TH+.07,dirs:t.chairs.map(c=>{const o=cp(c);return Math.atan2(o.z,o.x)})})}));OCUP.sync(B)}
+function ocup(){if(!window.OCUP)return;const B=[];Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs||!t.G||t.door||t===fzT||salaPs&&salaPs.g===t.g)return;const n=rooms.filter(r=>r.g==t.g&&r.st=='play').reduce((a,r)=>a+r.ps.length,0);if(n)B.push({t,n,y:TH+.07,dirs:t.chairs.map(c=>{const o=cp(c);return Math.atan2(o.z,o.x)})})}));OCUP.sync(B)}
 function seatSync(){ocup();const want=new Map();
  TB.forEach(t=>{if(!t.hit)return;const sa=salaPs&&salaPs.g===t.g,rm=!sa&&rooms.find(r=>r.g==t.g&&r.st=='play');if(mesaJ(t,sa?salaPs.n.length:rm?rm.ps.length:4,sa?salaPs.me||0:0))reubica(t);if(fzT!==t)t.deco.forEach(o=>o.visible=!sa&&!rm)});
-Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps.map((n,i)=>[n,avDe(n,(r.av||[])[i])])).slice(0,t.chairs.length).forEach(([n,av],j)=>want.set(t.g+':'+j+':'+n+':'+av,{t,j,n,av}))}));
+Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs||salaPs&&salaPs.g===t.g)return;t.fl=f;rooms.filter(r=>r.g==t.g&&r.st=='play').flatMap(r=>r.ps.map((n,i)=>[n,avDe(n,(r.av||[])[i])])).slice(0,t.chairs.length).forEach(([n,av],j)=>want.set(t.g+':'+j+':'+n+':'+av,{t,j,n,av}))}));
  if(salaPs){const t=TB.find(x=>x.g===salaPs.g&&!x.door&&x.chairs);if(t){t.fl=FL;salaPs.n.slice(0,t.chairs.length).forEach((n,j)=>{const av=avDe(n,(salaPs.av||[])[j]);want.set('sala:'+j+':'+n+':'+av,{t,j,n,av,pop:1})})}}
  const conAv=w=>w.av&&avYa();
  if(want.size)pideAv();

@@ -21,7 +21,7 @@ function putChair(v,k){const s=v.ch,c=s.c,l=Math.hypot(s.x,s.z)||1,m=1+OUT*k/l;c
 function step(dt,TB,g,cam){if(!ready)prepAll(TB);const f=1-Math.exp(-dt/90);
  TB.forEach(t=>{const v=t._hv;if(!v)return;const want=t.g===g?1:0;if(!want&&!v.h)return;
   v.h+=(want-v.h)*f;if(Math.abs(want-v.h)<.003)v.h=want;const k=sm(v.h);
-  if(!t.door)v.parts.forEach(([o,y])=>o.position.y=y+UP*k);
+  if(!t.door){v.parts.forEach(([o,y])=>o.position.y=y+UP*k);t.G.children.forEach(o=>{if(o.name==='ocupada')o.position.y=UP*k})}   // OCUP se arma después: sube con la mesa
   v.mats.forEach(([m,e0])=>m.emissive.copy(e0).lerp(GLOW,GK*k));
   if(t.door)return;
   if(want&&!v.ch)pickChair(t,v,cam);
