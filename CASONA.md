@@ -78,4 +78,5 @@ Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre 
 - [ ] **11. Quitar la bandera** — esfuerzo **medium**. Peso total, FPS en Android débil, corte en todos los cuartos; luego borrar la casa vieja.
   - [x] Peso: srv_modelos.js manda los .glb con brotli (o gzip), comprimidos una vez y guardados en memoria: pb.glb 1.7 MB → 258 KB. Por nivel ahora ~1.7 MB (c0), toda la casona ~5.6 MB; casi todo es la luz horneada (`*_luz.webp`, 2048 sin pérdida, ~1.4 MB cada una; el anteproyecto pedía ~0.5 MB). Bajarla (webp con pérdida o 1024) cambia cómo se ve: decidirlo con el usuario.
   - [ ] FPS en Android débil: probar en el teléfono (c0 caminando, Uno y Continental de fondo, sótano).
-  - [ ] Corte en todos los cuartos, luego quitar la bandera (casona por defecto) y borrar la casa vieja.
+  - [x] Casona por defecto (22 nov, para probar en el teléfono); `?casa=vieja` vuelve a la casa vieja.
+  - [ ] Corte en todos los cuartos; luego borrar la casa vieja.

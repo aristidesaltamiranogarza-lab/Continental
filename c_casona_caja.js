@@ -1,4 +1,4 @@
-// c_casona_caja.js — CAJA: maqueta de cajas de la casona (CASONA.md pasos 1–2). Solo con ?casa=caja.
+// c_casona_caja.js — CAJA: maqueta de cajas de la casona (CASONA.md pasos 1–2). Es la casa por defecto; ?casa=vieja vuelve a la casa vieja.
 // Cada nivel es un piso de c_casa3d.js (cm1, c0, c1, c2) armado desde modelos/casona/<nivel>.glb (blender/casona.py).
 // Todo lo que se toca sale del GLB vía MARC (c_casa_marcas.js): mesas (mesa real si el juego existe, si no una de muestra),
 // choques, llegada, límites y las escaleras (sube/baja, destino en el extra to) como portales. Corte con MARC.corte.
@@ -8,7 +8,7 @@
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=/[?&]casa=caja\b/.test(location.search),V='4',BASE='modelos/casona/',VP='6',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','2','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','5','webp'],c2:Q('az')?null:['az','1','webp']};
+const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',VP='6',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','2','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','5','webp'],c2:Q('az')?null:['az','1','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
