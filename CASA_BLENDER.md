@@ -86,3 +86,15 @@ Primera prueba: el salón de la planta baja (22 nov 2026). Se ve con `?casa=glb`
 5. **Altura de los muros:** 9 m es demasiado (tanto el aire vacío como una escalera creíble lo piden más bajo, 5–6 m como las casonas de Mérida). Cambiarlo afecta la fachada (`CASCO`), los remates y los cuartos vecinos, así que conviene hacerlo cuando toda la planta baja esté en Blender.
 6. **Orden sugerido:** salón → zaguán y fachada → comedor y cocina → baño → planta alta → azotea → sótano. Calle y patio al final.
 7. **Antes de quitar la bandera:** peso total de descarga, FPS en Android débil, que el corte funcione en todos los cuartos y que la casa de fondo de los juegos (`FONDO`) se vea bien.
+
+## 9. Planta baja de la casona (pasos 3a y 3b)
+
+- **`blender/casona_pb.py`** arma la planta baja detallada leyendo `NIV['n0']` de `casona.py` (misma distribución, mismos empties que la maqueta) y reemplaza a la prueba del salón: muros de 5.5 con lambrín, ventanales, arcos, arquería del patio, árbol, hamaca, muebles y luces. Exporta `modelos/casona/pb.glb` y `pb_luz.jpg`; en el juego, `c_casona_mat.js` (CMAT) y CAJA (`c0` con `?casa=caja`).
+- **Sin MCP:** `blender.exe -b --factory-startup --python blender/casona_pb.py -- vista <carpeta>` hace tres renders de revisión (~35 s); `-- hornear 2048 256` hornea, exporta y guarda `blender/casona_pb.blend` y `pb_luz.exr` (no se suben). Así no hay límite de 180 s ni se toca el archivo abierto del usuario.
+- **La GPU sí sirve:** en segundo plano Cycles ve la Radeon 780M por HIP (`compute_device_type='HIP'`).
+- **Caras coplanares = manchas negras en Cycles.** Las tapas de dos muros que se cruzan a la misma altura y la cornisa al ras de la arquería salían negras. Las tapas de los muros en `x` van 1 cm abajo (`dv`) y la cornisa sobresale un poco.
+- **Renders de revisión:** esconder con `visible_camera=False` (el techo, la fachada), no con `hide_render`, para que sigan haciendo sombra.
+- **Techo:** plano de una cara mirando abajo a `H-0.02`. Cycles lo usa para tapar el cielo; en el juego (FrontSide) no se ve desde la cámara alta.
+- **Corte por tramo:** cada tramo conexo de muro es una malla por material (`pb_muro_<eje><línea>_<inicio>` y `_lam`, `_rod`, `_can`, `_per`, `_rej`, `_arb`) con el extra `linea`; MARC agrupa por ese extra. El cuerpo lleva `segs` y las columnas y muebles `obs` (listas planas, coords de three).
+- **Colores:** las texturas de CMAT usan los colores base de Blender pasados a sRGB, para que el juego se vea como los renders.
+- **Pendiente:** los capiteles quedan oscuros arriba cuando el corte esconde la arquería (los tapa el arco en el horneado); la luz de las mesas en código aún no está emparejada con la horneada; reducir `pb_luz.jpg` con KTX2.

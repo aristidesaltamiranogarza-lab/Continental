@@ -1,13 +1,13 @@
 // c_casa_gata.js — GATA: Bagera, la gata negra del patio. c_casa_amb.js llama a GATA.build(e) y GATA.step(now,dt) (solo en planta baja).
 // Se sienta en la orilla del arriate del flamboyán (CPAT.gato), baja de un brinco a pasear por el patio y se echa a dormir.
-// Al tocarla ronronea y se le ven corazones.
+// Al tocarla ronronea y se le ven corazones. GATA.nueva(e,lugar) pone otra en otra escena (la casona) y GATA.paso(g,now,dt) la mueve.
 (function(){
 if(typeof THREE==='undefined')return;
-const BOX=[-14.4,14.4,-40,-27.4],OBS=[[-8.6,-36.2,2.3],[2.5,-30.4,.8],[8.7,-30.4,.8],[13.6,-41.2,2],[4.4,-38.6,.6],[11,-38.6,.6],[-7.4,-26.1,.9],[-1.2,-26.1,.9],[-12.4,-27.5,1]];
+let BOX=[-14.4,14.4,-40,-27.4],OBS=[[-8.6,-36.2,2.3],[2.5,-30.4,.8],[8.7,-30.4,.8],[13.6,-41.2,2],[4.4,-38.6,.6],[11,-38.6,.6],[-7.4,-26.1,.9],[-1.2,-26.1,.9],[-12.4,-27.5,1]];
 const R=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),ang=a=>Math.atan2(Math.sin(a),Math.cos(a));
 let o=null,AC=null,TA=0;
 
-function build(e){if(o)return;const {SC,std,hits}=e,GT=(window.CPAT&&CPAT.gato)||{x:-13.3,y:0,z:-7.2,ry:Math.PI*.35},P=GT.P||SC;
+function build(e,gt){if(o)return;const {SC,std,hits}=e,GT=gt||(window.CPAT&&CPAT.gato)||{x:-13.3,y:0,z:-7.2,ry:Math.PI*.35},P=GT.P||SC;
  const G=new THREE.Group();P.add(G);
  const fur=std(0x141418,.55),pink=std(0xd88a92,.8),
   ball=(r,sx,sy,sz,x,y,z,p,m)=>{const b=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),m||fur);b.scale.set(sx,sy,sz);b.position.set(x,y,z);b.castShadow=true;p.add(b);return b};
@@ -22,12 +22,17 @@ function build(e){if(o)return;const {SC,std,hits}=e,GT=(window.CPAT&&CPAT.gato)|
  const eyes=[-1,1].map(s=>{const g=new THREE.Group();g.position.set(s*.042,.016,.088);H.add(g);ball(.02,1,1,.6,0,0,0,g,em);ball(.008,.5,1.6,.6,0,0,.011,g,pm);return g});
  let par=new THREE.Group();par.position.set(0,.03,-.06);B.add(par);const tail=[par];
  for(let i=0;i<8;i++){const s=new THREE.Group();if(i)s.position.y=.07;par.add(s);const c=new THREE.Mesh(new THREE.CylinderGeometry(.018-i*.0013,.021-i*.0013,.075,8),fur);c.position.y=.035;c.castShadow=true;s.add(c);if(i)tail.push(s);par=s}
- const hb=new THREE.Mesh(new THREE.SphereGeometry(.36,10,8),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));hb.position.set(0,.25,.08);hb.userData.hit={t:'fn',f:toca};G.add(hb);if(hits)hits.push(hb);
+ const hb=new THREE.Mesh(new THREE.SphereGeometry(.36,10,8),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));hb.position.set(0,.25,.08);let yo=null;hb.userData.hit={t:'fn',f:()=>{if(!yo)return;const k=o;o=yo;try{toca()}finally{o=k}}};G.add(hb);if(hits)hits.push(hb);
  const tag=window.PERROS&&PERROS.etiqueta?PERROS.etiqueta('Bagera'):null;if(tag){tag.position.y=.75;G.add(tag)}
  const hs=[];if(window.PERROS&&PERROS.corazon)for(let i=0;i<3;i++){const h=new THREE.Sprite(new THREE.SpriteMaterial({map:PERROS.corazon(),transparent:true,depthWrite:false,opacity:0}));h.visible=false;G.add(h);hs.push(h)}
  const home={x:GT.x,y:GT.y||0,z:GT.z,ry:GT.ry||0},pie={x:home.x+.9*Math.sin(home.ry),z:home.z+.9*Math.cos(home.ry)};
  o={P,G,B,body,legs,H,ears,eyes,tail,tag,hs,home,pie,patio:!!GT.P,st:'home',t:R(8000,16000),ry:home.ry,sit:1,lie:0,ph:0,sp:0,pet:0,blink:0,hop:null};
- G.position.set(home.x,home.y,home.z);G.rotation.y=home.ry}
+ yo=o;G.position.set(home.x,home.y,home.z);G.rotation.y=home.ry}
+
+// otra gata en otra escena: lugar {x,z,ry,box:[x0,x1,z0,z1],obs:[[x,z,r],...]} (coords de three)
+function nueva(e,L){const k=[o,BOX,OBS];o=null;BOX=L.box||BOX;OBS=L.obs||[];
+ try{build(e,{x:L.x,y:0,z:L.z,ry:L.ry||0,P:e.SC});const n=o;if(n){n.box=BOX;n.obs=OBS}return n}finally{[o,BOX,OBS]=k}}
+function paso(n,now,dt){if(!n)return;const k=[o,BOX,OBS];o=n;BOX=n.box;OBS=n.obs;try{step(now,dt)}finally{[o,BOX,OBS]=k}}
 
 // ---------- a dónde ir ----------
 const libre=(x0,z0,x1,z1)=>OBS.every(([x,z,r])=>{if(Math.hypot(x0-x,z0-z)<r+.3)return true;const dx=x1-x0,dz=z1-z0,L=dx*dx+dz*dz||1,u=cl(((x-x0)*dx+(z-z0)*dz)/L,0,1),ex=x0+u*dx-x,ez=z0+u*dz-z;return ex*ex+ez*ez>(r+.2)*(r+.2)});
@@ -82,5 +87,5 @@ function ronroneo(){try{AC=AC||new (window.AudioContext||window.webkitAudioConte
  const g=a.createGain(),am=a.createGain(),lfo=a.createOscillator();lfo.frequency.value=24;lfo.connect(am.gain);am.gain.value=.5;
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.25);g.gain.setValueAtTime(.5,t+d-.5);g.gain.linearRampToValueAtTime(0,t+d);
  s.connect(f);f.connect(am);am.connect(g);g.connect(a.destination);s.start(t);lfo.start(t);s.stop(t+d);lfo.stop(t+d)}catch(_){}}
-window.GATA={build,step,get o(){return o}};
+window.GATA={build,step,nueva,paso,get o(){return o}};
 })();
