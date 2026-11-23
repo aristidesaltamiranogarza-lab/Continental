@@ -7,9 +7,11 @@ if(typeof THREE==='undefined')return;
 const BASE='modelos/casona/',GL={c0:['pb','6'],c1:['pa','5'],c2:['az','1']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
 const R={},P={};
 // entre la planta baja (muros hasta 5.5) y la alta (piso en 5.8) nadie modeló el canto de la losa por fuera: franja de muro y cornisa de cantera
-function losa(){if(!window.LOTE)return null;const L=LOTE(),h=.15,y0=5.45,y1=5.85,b=(x0,x1,z0,z1,a,c,k)=>L.box(x1-x0,c-a,z1-z0,k,(x0+x1)/2,(a+c)/2,(z0+z1)/2);
- const MU=0xe6b89c;b(-18-h,18+h,17-h,17+h-.01,y0,y1,MU);b(-18-h,18+h,-13-h,-13+h,y0,y1,MU);b(-18-h,-18+h,-13,17,y0,y1,MU);b(18-h,18+h,-13,17,y0,y1,MU);   // el contorno
- b(-18.3,18.3,17.1,17.38,5.4,5.9,0xe7dac4);b(-18.3,-18.1,-13.2,17.38,5.4,5.9,0xe7dac4);b(18.1,18.3,-13.2,17.38,5.4,5.9,0xe7dac4);
+// y lo mismo entre la planta alta (muros hasta 10.0) y la azotea (piso en 10.3)
+function losa(y0,y1){if(!window.LOTE)return null;const L=LOTE(),h=.15,b=(x0,x1,z0,z1,a,c,k)=>L.box(x1-x0,c-a,z1-z0,k,(x0+x1)/2,(a+c)/2,(z0+z1)/2);
+ const MU=0xe6b89c,CA=0xe7dac4;{
+  b(-18-h,18+h,17-h,17+h-.01,y0,y1,MU);b(-18-h,18+h,-13-h,-13+h,y0,y1,MU);b(-18-h,-18+h,-13,17,y0,y1,MU);b(18-h,18+h,-13,17,y0,y1,MU);   // el contorno
+  b(-18.3,18.3,17.1,17.38,y0-.05,y1+.05,CA);b(-18.3,-18.1,-13.2,17.38,y0-.05,y1+.05,CA);b(18.1,18.3,-13.2,17.38,y0-.05,y1+.05,CA)}
  const m=new THREE.MeshLambertMaterial();return L.mesh(window.CCALLE?CCALLE.tinte(m):m)}
 // con tu Mii fuera no se ven los letreros de las mesas (se asomaban a través de los muros)
 let tF=0;const st=document.createElement('style');st.textContent='body.cfue-fuera .h3sign{visibility:hidden!important}';document.head.appendChild(st);
@@ -23,14 +25,15 @@ function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
  const AB=[];F.SC.traverse(o=>{if(/_abajo/.test(o.name)&&o.visible)AB.push(o)});
  const capas=ORDEN.filter(k=>k!==id).map(k=>({k,arriba:Y[k]>Y[id],G:null,pedido:0}));
  const fuera=(x,z)=>x<-18.2||x>18.2||z>17.1||z<-13.2;
- let LS=null;
+ const BAN=[{a:'c0',b:'c1',y:[5.45,5.85],M:null},{a:'c1',b:'c2',y:[9.95,10.35],M:null}];   // cada franja se ve si se dibujan los dos niveles que junta
  function paso(c,p){let abajo=false,arriba=false;
   const cf=c&&fuera(c.position.x,c.position.z),pf=p&&fuera(p.x,p.z);
   capas.forEach(L=>{const ver=L.arriba?!!(pf&&cf):!!cf;
    if(ver&&!L.G){if(!L.pedido){L.pedido=1;carga(L.k).then(r=>{if(!r)return;L.G=r.clone();L.G.position.y=Y[L.k]-Y[id];L.G.visible=false;L.G.name='casona-fuera-'+L.k;F.SC.add(L.G)})}return}
    if(L.G){L.G.visible=ver;if(ver){if(L.arriba)arriba=true;else abajo=true}}});
   if(pf){tF=performance.now();document.body.classList.add('cfue-fuera')}
-  if((abajo||arriba)&&!LS&&(LS=losa()||1)!==1){LS.position.y=-Y[id];F.SC.add(LS)}if(LS&&LS!==1)LS.visible=abajo||arriba;
+  const dib=k=>k===id||capas.some(L=>L.k===k&&L.G&&L.G.visible);
+  BAN.forEach(B=>{const v=dib(B.a)&&dib(B.b);if(v&&!B.M&&(B.M=losa(...B.y)||1)!==1){B.M.position.y=-Y[id];F.SC.add(B.M)}if(B.M&&B.M!==1)B.M.visible=v});
   AB.forEach(o=>o.visible=!abajo);
   if(arriba&&F.casco)F.casco.M.visible=false}
  return {paso}}

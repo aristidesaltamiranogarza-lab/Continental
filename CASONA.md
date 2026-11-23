@@ -80,3 +80,9 @@ Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre 
   - [ ] FPS en Android débil: probar en el teléfono (c0 caminando, Uno y Continental de fondo, sótano).
   - [x] Casona por defecto (22 nov, para probar en el teléfono); `?casa=vieja` vuelve a la casa vieja.
   - [ ] Corte en todos los cuartos; luego borrar la casa vieja.
+- [x] Casona entera desde fuera (22 nov): `c_casona_fuera.js` (CFUE) pone copias de pb/pa/az a su altura con la cámara fuera (arriba solo con tu Mii fuera), franjas de losa con cornisa entre niveles y sin letreros de mesas con tu Mii fuera.
+
+## Pendientes (pedidos por el usuario, 22 nov)
+- [ ] Escalera: se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
+- [ ] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.
+- [ ] Barricas de la cava: se ven bien pero estorban el paso a la Ruleta Rusa; moverlas a los lados.
