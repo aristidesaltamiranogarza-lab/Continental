@@ -65,3 +65,6 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 - Antes de construir: una esquina terminada como referencia (y tablero de referencias + paleta para aprobar).
 - Visibilidad primero, luego paisaje.
 - Comparar antes/después con marcadores de cámara.
+
+## Pendiente
+- Lámina A-02 "Barrio" con el mismo estilo de plano que el anteproyecto (https://claude.ai/artifact/PX1g934RWSsWF4VdTB7Doa): manzana, plaza con kiosco, símbolos de árboles por especie, anillos de distancia de dibujo por nivel y corte calle–plaza. Parque actual en c_casa_campo.js (cx=-55, cz=-35).
