@@ -6,7 +6,11 @@
 // cuando el personaje queda debajo. Ajuste: CMAT.A.luz (intensidad de la luz horneada).
 (function(){
 if(typeof THREE==='undefined')return;
-const A={luz:1,copa:.28};
+const A={luz:1,copa:.28,noche:0x8c94b0,nocheExt:0x6c7898};
+// de noche (CIELO) todo lo horneado se oscurece y azula como las casas vecinas; lo de afuera más. Lámparas y faroles no.
+const EXT=/^(calle|banqueta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra)$/,NOC=[];let REG=false;
+function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche()),a=new THREE.Color(A.noche),e=new THREE.Color(A.nocheExt);
+ NOC.forEach(o=>{o.m.color.copy(o.c);if(n)o.m.color.multiply(o.ext?e:a)})}
 let TX=null;
 
 function texturas(ctex){if(TX)return TX;
@@ -114,17 +118,19 @@ function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if
   else if(n==='hierro')r=new THREE.MeshBasicMaterial({color:0x1d1814});
   else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=new THREE.MeshBasicMaterial(o);if(luz)cubica(r)}
   if(n==='hamaca'||n==='persiana')r.side=THREE.DoubleSide;
+  if(r.toneMapped!==false)NOC.push({m:r,c:r.color.clone(),ext:EXT.test(n)});
   return MAT[k]=r};
+  if(!REG&&window.CIELO&&CIELO.on){REG=true;CIELO.on(tema)}
  root.traverse(o=>{if(!o.isMesh)return;o.material=material(o.material,!!o.geometry.attributes.uv1);o.castShadow=o.receiveShadow=false;o.matrixAutoUpdate=false;o.updateMatrix()});
- return MAT}
+ tema();return MAT}
 
 // copas de los árboles: material propio para desvanecerlas sin tocar las demás mallas del mismo material
 function copas(root){const out=[],b=new THREE.Box3();root.traverse(o=>{if(!o.isMesh||!/_copa$/.test(o.name))return;
- b.setFromObject(o);const m=o.material.clone();m.transparent=true;m.depthWrite=true;o.material=m;
+ b.setFromObject(o);const m0=o.material,m=m0.clone(),k=NOC.find(q=>q.m===m0);if(k){NOC.push({m,c:k.c,ext:k.ext})}m.transparent=true;m.depthWrite=true;o.material=m;
  out.push({o,m,x:(b.min.x+b.max.x)/2,z:(b.min.z+b.max.z)/2,r:Math.max(b.max.x-b.min.x,b.max.z-b.min.z)/2+.6,y:b.min.y,v:1})});return out}
 function paso(cs,yo,cam){if(!cs||!yo)return;cs.forEach(c=>{let d=Math.hypot(yo.x-c.x,yo.z-c.z)<c.r;
  if(!d&&cam){const dx=cam.position.x-yo.x,dz=cam.position.z-yo.z,dy=cam.position.y-1,t=dy>0?Math.max(0,(c.y-1)/dy):0;d=Math.hypot(yo.x+dx*t-c.x,yo.z+dz*t-c.z)<c.r-.4}
  const v=d?A.copa:1;if(Math.abs(c.v-v)<.01)return;c.v+=(v-c.v)*.18;if(Math.abs(c.v-v)<.02)c.v=v;c.m.opacity=c.v;c.m.depthWrite=c.v>.99})}
 
-window.CMAT={A,aplicar,copas,paso};
+window.CMAT={A,aplicar,copas,paso,tema};
 })();

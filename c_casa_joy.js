@@ -3,13 +3,19 @@
 // c_casa3d.js lee JOY.x / JOY.y (-1..1; y negativo = adelante) cada cuadro. Solo se ve con la casa abierta (html.h3on) y pantalla táctil.
 (function(){
 const touch=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;
-const J={x:0,y:0,on:false};window.JOY=J;if(!touch)return;
+const J={x:0,y:0,on:false};window.JOY=J;
+// saltar (Espacio o el botón junto al joystick): solo se ve tu personaje, sube ~0.8 y cae en ~0.55 s; c_casa3d.js suma J.sy(now) a su altura
+let s0=-1;const V=6,G=22,T=2*V/G;J.saltar=()=>{const t=performance.now();if(s0<0||t-s0>T*1000)s0=t};
+J.sy=now=>{if(s0<0)return 0;const t=((now||performance.now())-s0)/1000;if(t>=T){s0=-1;return 0}return V*t-G*t*t/2};J.saltando=()=>s0>=0;
+if(!touch)return;
 const css=document.createElement('style');css.textContent=`#joy{position:fixed;left:calc(18px + env(safe-area-inset-left));bottom:calc(30px + env(safe-area-inset-bottom));width:124px;height:124px;border-radius:50%;z-index:6;display:none;touch-action:none;
  background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,.07));border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 10px rgba(0,0,0,.25)}
-html.h3on #joy{display:block}#joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none}
+html.h3on #joy,html.h3on #salto{display:block}#salto{position:fixed;left:calc(156px + env(safe-area-inset-left));bottom:calc(36px + env(safe-area-inset-bottom));width:62px;height:62px;border-radius:50%;z-index:6;display:none;touch-action:none;background:radial-gradient(circle,rgba(255,255,255,.22),rgba(255,255,255,.08));border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 10px rgba(0,0,0,.25)}#salto:active{background:rgba(255,255,255,.4)}#salto svg{width:30px;height:30px;margin:14px;fill:none;stroke:rgba(255,255,255,.85);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}#joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none}
 #a2hs{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(20,24,40,.92);color:#fff;font:600 14px/1.35 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.4)}
 #a2hs span{flex:1}#a2hs button{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:6px 10px;font:inherit}`;
 document.head.appendChild(css);
+const sb=document.createElement('div');sb.id='salto';sb.setAttribute('aria-label','Saltar');sb.innerHTML='<svg viewBox="0 0 30 30"><path d="M7 19l8-8 8 8"/></svg>';
+sb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();J.saltar()});
 const el=document.createElement('div');el.id='joy';el.innerHTML='<i></i>';const knob=el.firstChild;
 let pid=null,cx=0,cy=0;const R=50;
 function set(x,y){const d=Math.hypot(x,y),k=d>R?R/d:1;x*=k;y*=k;knob.style.transform=`translate(${x}px,${y}px)`;const m=Math.hypot(x,y)/R;J.x=m<.15?0:x/R;J.y=m<.15?0:y/R;J.on=m>=.15}
@@ -21,6 +27,6 @@ function a2hs(){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigat
  let seen=false;try{seen=!!localStorage.getItem('casa_a2hs')}catch(_){}if(!ios||navigator.standalone||seen)return;
  const b=document.createElement('div');b.id='a2hs';b.innerHTML='<span>📲 Para jugar en pantalla completa: toca <b>Compartir</b> ⬆️ y luego <b>Agregar a inicio</b>.</span><button aria-label="Cerrar">✕</button>';
  b.querySelector('button').onclick=()=>{b.remove();try{localStorage.setItem('casa_a2hs','1')}catch(_){}};document.body.appendChild(b);setTimeout(()=>b.remove(),20000)}
-const go=()=>{document.body.appendChild(el);const w=setInterval(()=>{if(document.documentElement.classList.contains('h3on')){clearInterval(w);a2hs()}},1000)};
+const go=()=>{document.body.appendChild(el);document.body.appendChild(sb);const w=setInterval(()=>{if(document.documentElement.classList.contains('h3on')){clearInterval(w);a2hs()}},1000)};
 if(document.body)go();else addEventListener('DOMContentLoaded',go);
 })();

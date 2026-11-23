@@ -117,6 +117,7 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(files[p])return SM.envia(req,res,path.join(__dirname,files[p][0]),files[p][1],files[p][1]=='audio/mpeg'?'public, max-age=604800':'no-store');   // por partes (srv_modelos.js)
  if(p.startsWith('/modelos/'))return SM.modelos(req,res,p);
  if(p=='/prueba')return require('./srv_prueba.js')(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump});
+ if(p=='/sw.js')return SM.envia(req,res,path.join(__dirname,'sw.js'),'text/javascript; charset=utf-8','no-store');   // caché de modelos y mapas de luz con versión
  if(p=='/manifest.webmanifest')return SM.envia(req,res,path.join(__dirname,'manifest.webmanifest'),'application/manifest+json','no-store');   // app instalable (ícono en la pantalla de inicio)
  if(/^\/iconos\/[a-z0-9_]+\.png$/.test(p))return SM.envia(req,res,path.join(__dirname,p),'image/png','public, max-age=86400');
  if(p=='/poll'){const R=rooms[q.get('c')],tok=q.get('t');if(!R)return out(res,{gone:1});
