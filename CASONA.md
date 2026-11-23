@@ -105,3 +105,13 @@ Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre 
 - Decidido (23 nov): pasto opción B. Textura nueva suave en todas las calidades; Medio sin matas o muy pocas (debe correr en cualquier teléfono); Completo con matas de hojas visibles instanciadas y meciéndose con el viento en el shader de vértices (barato: sin física, solo seno por posición).
 - Decidido (23 nov): luz de la azotea por calidad. Medio: mapa de luz sin sombras de sol, o con sombras muy suaves (sirve de día y de noche). Completo: horneado completo de día y de noche (se carga solo el que toca) y sombras en tiempo real solo de los personajes.
 - App en PC/Android: ya es instalable (manifest.webmanifest). Falta un service worker (sw.js, servido en server.js) que guarde en caché GLB, texturas y mapas de luz por versión (modelos-vN) para no volver a descargarlos; borrar cachés viejos al cambiar de versión. Nada de caché para server.js/polling.
+
+## Visibilidad y cámara (pedido 23 nov 2026, para la próxima semana)
+Problema: paredes, techos y hasta casas enteras desaparecen cuando no deben. Hoy varios sistemas ocultan cosas por su cuenta (frustum, CUA, copas de CMAT, CPB.corte/MARC.corte, mallas de MRG) y no se sabe cuál lo hizo.
+- Un solo gestor de visibilidad: todo ocultar pasa por él con su motivo (fuera de pantalla, cuarto, tapa a la cámara, corte de piso). `?vis` tiñe cada objeto según el motivo. Primero reproducir los lugares malos con marcadores de cámara.
+- Errores probables: esferas/cajas de límites viejas en mallas juntadas o movidas (computeBoundingSphere tras MRG); suelo y casco nunca con frustumCulled.
+- Lo que tapa al personaje no se borra: agujero tramado (dither) alrededor del personaje, fundido ~0.2 s, histéresis para que no parpadee. Casas vecinas y calle nunca se ocultan así.
+- Techos y pisos de arriba se ocultan por nivel (estilo Sims) con fundido; los muros cortados llevan tapa para que no se vean huecos.
+- Cuartos visibles por portales marcados en Blender (empties de cuarto y de puerta, como mesas y escaleras), en vez de adivinar en código.
+- Cámara: el usuario acepta fijarla en tercera persona detrás del hombro (estilo shooter en tercera persona) además de primera persona. Con cámara fija detrás del personaje casi no hay paredes entre cámara y jugador, así que el gestor se simplifica: colisión de cámara (se acerca al chocar) + dither solo de cerca. Revisar si la vista de arriba libre se queda solo para las mesas.
+- Paisaje: preguntas en casona_landscape.md.
