@@ -20,13 +20,18 @@ const ZON=[],TIN=[],VID=[],LUZ=[],NOC=new THREE.Color(0x6c7898),DIA=new THREE.Co
 function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche());
  TIN.forEach(o=>o.m.color.copy(o.c).multiply(n?NOC:DIA));
  VID.forEach(v=>{v.a.array.set(n?v.noc:v.dia);v.a.needsUpdate=true});
- LUZ.forEach(l=>l.L.intensity=n?l.i:0)}
+ LUZ.forEach(l=>l.L.intensity=n?l.i:0);REL.value.setHex(n?A.relleno:0)}
 // material de la casa que da a la calle o al patio: de noche se oscurece (las luces de la casa no siguen el tema)
 const tinte=m=>{TIN.push({m,c:m.color.clone()});return m};
 // vidrios (malla de LOTE con MeshBasic): el color de noche viene en los vértices (prendido u oscuro); de día todos son del color "dia"
 function vidrio(M,dia){const a=M.geometry.attributes.color,noc=a.array.slice(),d=new Float32Array(noc.length),c=new THREE.Color(dia==null?0x34404c:dia);
  for(let i=0;i<d.length;i+=3){d[i]=c.r;d[i+1]=c.g;d[i+2]=c.b}VID.push({a,noc,dia:d});return M}
 const luz=(L,i)=>{LUZ.push({L,i});L.intensity=0;return L};
+// casas vecinas (Lambert, sin horneado): de noche la luna casi no las alcanza y se veían mucho más oscuras que la casona horneada;
+// se les suma una luz pareja azulada (como el tinte de CMAT) solo de noche. Ajuste: CCALLE.A.relleno
+const A={relleno:0x5a6280},REL={value:new THREE.Color(0)};
+const relleno=m=>{m.customProgramCacheKey=()=>'ccrel';m.onBeforeCompile=s=>{s.uniforms.uRel=REL;
+ s.fragmentShader='uniform vec3 uRel;\n'+s.fragmentShader.replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n\treflectedLight.indirectDiffuse+=diffuseColor.rgb*uRel;')};return m};
 // grupo hijo de una cara de muro (c_casa_pb.js) cuyas piezas usan coordenadas del mundo: se esconde junto con la cara
 const enMundo=g=>{const Q=new THREE.Group();g.updateMatrix();Q.applyMatrix4(g.matrix.clone().invert());g.add(Q);return Q};
 
@@ -143,7 +148,7 @@ function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=
  const cop=LF.mesh(new THREE.MeshLambertMaterial({flatShading:true}));if(LAU)zona([cop],[LAU[0]-5.2,LAU[0]+5.2,6.6,13.8,LAU[1]-3.2,LAU[1]+5.4]);   // la copa del laurel se esconde si tapa a tu Mii
  RT.add(LA.mesh(new THREE.MeshLambertMaterial({map:asf})),LB.mesh(new THREE.MeshLambertMaterial({map:ban})),L.mesh(new THREE.MeshLambertMaterial()),cop,vidrio(VL.mesh(new THREE.MeshBasicMaterial()),0xd8d2c0));
  // los vecinos: de este lado (con árboles en sus patios) y enfrente; cada bloque se esconde si tapa a tu Mii
- const mC=new THREE.MeshLambertMaterial({map:pat}),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
+ const mC=relleno(new THREE.MeshLambertMaterial({map:pat})),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
  const lado=(xs,s,arb,b)=>{const Lc=LOTE(),Lv=LOTE(),Lf=LOTE();xs.forEach(([a,c])=>fila(Lc,Lv,Lf,a,c,s,arb));const G=new THREE.Group();
   const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));RT.add(G);zona([G],b)};   // la casona: vecinos más bajos (S), los árboles no
  lado([[LX,80],[90,215]],1,true,[LX+.05,400,-2,80,-90,FZ-.05]);
@@ -182,5 +187,5 @@ function ventana(L,V,px,o,mad,cr,lejos,y0,wh){const ww=1.5+rnd()*.5,yc=y0+wh/2;
  L.box(ww+.8,.32,.16,cr,px,y0+wh+.3,o(.08));L.box(ww+.6,.14,.4,cr,px,y0-.07,o(.2));
  if(!lejos){const nb=Math.round(ww/.25);for(let i=1;i<nb;i++)L.box(.04,wh+.1,.04,HI,px-ww/2+i*ww/nb,yc,o(.22));[.25,.75].forEach(f=>L.box(ww+.1,.04,.04,HI,px,y0+wh*f,o(.22)))}}
 
-window.CCALLE={build,fondo,zona,tinte,vidrio,luz,enMundo,tema};
+window.CCALLE={build,fondo,zona,tinte,vidrio,luz,enMundo,tema,A};
 })();
