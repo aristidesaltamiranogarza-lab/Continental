@@ -86,3 +86,18 @@ Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre 
 - [ ] Escalera: se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
 - [ ] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.
 - [ ] Barricas de la cava: se ven bien pero estorban el paso a la Ruleta Rusa; moverlas a los lados.
+
+## Pendientes de la prueba en línea (23 nov 2026)
+- Carga: la primera vez la pantalla queda negra (a veces hay que recargar varias veces) aunque el juego ya corre detrás. Poner una pantalla de carga con progreso que compruebe que todo cargó (GLB, luz, texturas) y que se quite sola; si algo falla, reintentar sin recargar.
+- Calle: dejar cruzar la calle (al menos hasta la banqueta de enfrente) para ver la fachada completa. Ahora solo se llega a la puerta.
+- Saltar (tecla Espacio y botón en el celular).
+- Pasto: se ve feo (manchas). Opciones baratas: textura nueva sin manchas en tonos suaves más un ruido de color grande en el shader (casi sin costo); o matas de pasto en tarjetas cruzadas instanciadas solo en las orillas y alrededor de los objetos (costo bajo, se apaga en Ligero/Medio). Decidir con el usuario.
+- Jardinera de los conos: las esquinas del marco parpadean donde se cruzan las piezas (z-fighting, como pasó antes con los muros). Separar o ingletear las piezas.
+- Camino de piedras de la casa al pozo: ahora solo se ven sombras sueltas; hacer piedras de verdad (lajas planas en Blender, horneadas).
+- Decoración: en el salón del Catan las sillas pegadas a la mesa son las viejas gigantes (usar las de escala fija); las mecedoras se ven fuera de lugar ahí, reubicarlas. El mueble de repisas con "barras" (libros/chocolates) se ve raro: cambiarlo o quitarlo. Repasar la decoración de toda la casa.
+- Azotea de noche: el mapa de luz está horneado de día y se ven sombras de sol de noche. Hornear con una luz que sirva para ambos (cielo/luna difusa, sombras suaves) o un segundo horneado de noche, y que el sol/luna del juego coincida con el ángulo horneado.
+- Pérgola de la azotea: mejor transición entre el piso de la azotea y el de la pérgola: un escalón bajo y un borde/barandal ligero.
+- Luces: más fuentes de luz falsas horneadas (lámparas que brillan y luz en el mapa); calidad "Ultra" opcional con luces en tiempo real, sombra propia y reflejos. El objetivo sigue siendo el celular.
+- Patio: la casa debe verse siempre (al menos los pisos de arriba, aunque sea en versión simple). Ahora desde el patio central solo en cierta posición se ve el piso de arriba y la azotea; al moverse desaparece (ocultamiento por piso/cuartos demasiado agresivo).
+- Balcón: en la fachada trasera que da al jardín, sobre la planta baja, hay espacio para un balcón con barandal mirando al jardín.
+- Menú "Ir a…": íconos enormes en la casona (arreglado el tamaño el 23 nov). Si sigue fallando, volver al corte de la casa (DH) adaptado a los 4 niveles.
