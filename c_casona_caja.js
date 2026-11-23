@@ -76,7 +76,10 @@ function juntas(R){const W=[];
 // arroyo del GLB se esconde; se camina hasta la orilla de la banqueta y el poste choca. El patio de la casa vieja (CPAT) no se ve en la casona.
 // Con tu Mii en la banqueta se prende el casco (CCAS: planta alta, azotea, pérgola y tinacos).
 function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle');if(ar)ar.visible=false;
- F.bx[3]=Math.min(F.bx[3],18.25);F.OB.push({x:11.8,z:18.3,r:.3});
+ // se cruza la calle hasta la banqueta de enfrente (fachadas vecinas en 32.6): se baja al arroyo (y -.35) y se sube en las guarniciones
+ F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);F.OB.push({x:11.8,z:18.3,r:.3},{x:0,z:29.05,r:.3});
+ [4.8,6.2,7.5,8.8,10.2].forEach(x=>F.OB.push({x,z:20.5,r:.75}));   // el vocho
+ const ss=(e,z)=>Math.min(1,Math.max(0,(z-e+.15)/.3)),st=t=>t*t*(3-2*t);F.gy=(x,z)=>-.35*(st(ss(18.6,z))-st(ss(28.6,z)));
  if(window.CCAS)try{F.casco=CCAS.pon(F)}catch(er){console.error('[CCAS]',er)}
  if(window.CIELO&&CIELO.pisos)CIELO.mundo.children.forEach(o=>{if((o.name==='patio'||o.name==='tras')&&!o.userData.casona){o.userData.casona=1;CIELO.pisos(o,p=>!(p in PISO_ID))}})}
 const PISO_ID={cm1:1,c0:1,c1:1,c2:1};

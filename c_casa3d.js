@@ -300,7 +300,7 @@ function walk(dt,now){if(window.SENT&&SENT.paso(me,keys.size||(window.JOY&&JOY.o
  a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*3.1;
  // mirar hacia la mesa al llegar
  const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);if(fpOn()&&!mv)a.yaw=VW.a+Math.PI;   // en primera persona miras hacia donde ve la cámara
- turn(a,a.yaw);a.g.position.set(p.x,GY(a.g),p.z);pose(a,now,!!sel);
+ turn(a,a.yaw);a.g.position.set(p.x,GY(a.g)+(FL.gy?FL.gy(p.x,p.z):0),p.z);pose(a,now,!!sel);
  // ¿cerca de la mesa que picaste? abre su ventanita (solo si la elegiste con clic o Ir a…; si te alejas se olvida)
  let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3&&!(x.to&&canGo(x.to));if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
  // caminar hasta una puerta que lleva a otro piso (o a la escalera) = cambiar de piso
@@ -310,7 +310,7 @@ function walk(dt,now){if(window.SENT&&SENT.paso(me,keys.size||(window.JOY&&JOY.o
 // (antes corrían al punto y se quedaban quietos hasta la otra muestra: se veían trabados)
 function walkOthers(dt,now){const f=1-Math.exp(-dt/110),t=performance.now();others.forEach((a,id)=>{a.g.visible=(a.f||'pb')===FL.id&&!(window.BJ3&&BJ3.sentado(id))&&!(window.PK3&&PK3.sentado(id))&&!(window.BIJ&&BIJ.oculto(id));const q=a.pos.clone();
  if(a.fr)a.pos.lerpVectors(a.fr,a.to,Math.min(1,(t-a.t0)/a.dur));else a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
- a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g),a.pos.z);pose(a,now,false)});
+ a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g)+(FL.gy?FL.gy(a.pos.x,a.pos.z):0),a.pos.z);pose(a,now,false)});
  seated.forEach(s=>{if(!s.av)poseSeated(s,now)});if(window.OCUP)OCUP.paso(now)}
 function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}if(window.SENT)SENT.llega(me);
  if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}
