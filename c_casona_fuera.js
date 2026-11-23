@@ -33,7 +33,7 @@ function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
    if(L.G){L.G.visible=ver;if(ver){if(L.arriba)arriba=true;else abajo=true}}});
   if(pf){tF=performance.now();document.body.classList.add('cfue-fuera')}
   const dib=k=>k===id||capas.some(L=>L.k===k&&L.G&&L.G.visible);
-  BAN.forEach(B=>{const v=dib(B.a)&&dib(B.b);if(v&&!B.M&&(B.M=losa(...B.y)||1)!==1){B.M.position.y=-Y[id];F.SC.add(B.M)}if(B.M&&B.M!==1)B.M.visible=v});
+  BAN.forEach(B=>{const v=dib(B.a)&&dib(B.b);if(v&&!B.M&&(B.M=losa(...B.y)||1)!==1){B.M.userData.cfue=1;B.M.position.y=-Y[id];F.SC.add(B.M)}if(B.M&&B.M!==1)B.M.visible=v});
   AB.forEach(o=>o.visible=!abajo);
   if(arriba&&F.casco)F.casco.M.visible=false}
  return {paso}}
