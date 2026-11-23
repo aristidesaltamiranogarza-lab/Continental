@@ -53,7 +53,8 @@ function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=tr
   Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA);subeTex(SC)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
  // pisos que cargan su GLB (CAJA: F.listo): se espera en negro a que estén, para aparecer en su llegada y junto a la mesa (tope 5 s)
- CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return f&&f.listo&&Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))])}).then(()=>{sw();return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
+ CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return f&&f.listo&&(window.CCARGA?CCARGA.espera(f):Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))]))}).catch(e=>console.error('[casa] carga',e))
+  .then(()=>{try{sw()}catch(e){console.error('[casa] piso '+id,e)}return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
 // full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
 function rstate(full){R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;if(full!==false)applyQ(window.CALIDAD);else{R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true}if(FL.enter)FL.enter(fpOn())}
@@ -492,7 +493,7 @@ home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la b
 function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB.find(x=>x.g===g)||(g=='cub'&&window.CUB3?{x:CUB3.X,z:CUB3.Z,r:.8}:window.JG3&&JG3.P&&JG3.P[g]&&{x:JG3.P[g].x,z:JG3.P[g].z,r:1}||window.SAL&&SAL.P[g]&&{x:SAL.P[g].x,z:SAL.P[g].z,r:1.3}||g&&FL.marcas&&FL.marcas.mesas.find(m=>m.g===g));if(!t)return;
   const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;picked=t.door?null:g;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,GY(me.g),p.z);
   Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
- if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{put();render();return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
+ if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{try{put();render()}catch(e){console.error('[casa] irA',e)}return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
 // mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)
 function mesaEn(t,S,h,O){const k=[SC,hits,OB];SC=S;hits=h;OB=O;try{t.r=t.r||2.2;buildTable(t)}finally{[SC,hits,OB]=k}}
 // la casa de fondo en una partida (c_casa_fondo.js). ancla(g): la mesa del juego en este piso (centro, altura de la cubierta y hacia dónde queda

@@ -88,7 +88,7 @@ Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre 
 - [ ] Barricas de la cava: se ven bien pero estorban el paso a la Ruleta Rusa; moverlas a los lados.
 
 ## Pendientes de la prueba en línea (23 nov 2026)
-- Carga: la primera vez la pantalla queda negra (a veces hay que recargar varias veces) aunque el juego ya corre detrás. Poner una pantalla de carga con progreso que compruebe que todo cargó (GLB, luz, texturas) y que se quite sola; si algo falla, reintentar sin recargar.
+- Hecho (23 nov) carga: CCARGA (c_casona_carga.js) muestra logo y barra mientras goFloor espera el GLB y la luz del piso (F.prog), se quita sola; GLB y luz se reintentan sin recargar (CAJA bajaGLB, CMAT.aplicar); el fundido a negro ya no se queda pegado si falla el armado del piso.
 - Calle: dejar cruzar la calle (al menos hasta la banqueta de enfrente) para ver la fachada completa. Ahora solo se llega a la puerta.
 - Saltar (tecla Espacio y botón en el celular).
 - Pasto: se ve feo (manchas). Opciones baratas: textura nueva sin manchas en tonos suaves más un ruido de color grande en el shader (casi sin costo); o matas de pasto en tarjetas cruzadas instanciadas solo en las orillas y alrededor de los objetos (costo bajo, se apaga en Ligero/Medio). Decidir con el usuario.

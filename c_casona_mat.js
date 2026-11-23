@@ -98,8 +98,10 @@ function texturas(ctex){if(TX)return TX;
  return TX}
 
 // materiales: con luz horneada (UV1) si la malla la trae; los que brillan y el hierro, sin ella
-function aplicar(root,luzUrl){const H=window.CASA3D;if(!H||!H.ctex)return;const tx=texturas(H.ctex),MAT={};
- const LMT={value:new THREE.Vector2(2048,2048)},lm=new THREE.TextureLoader().load(luzUrl,t=>LMT.value.set(t.image.width,t.image.height));lm.flipY=false;lm.channel=1;lm.colorSpace=THREE.SRGBColorSpace;
+function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if(fin)fin();return}const tx=texturas(H.ctex),MAT={};
+ const LMT={value:new THREE.Vector2(2048,2048)},lm=new THREE.Texture();
+ (function va(n){new THREE.ImageLoader().load(luzUrl+(n?'&r='+n:''),im=>{lm.image=im;lm.needsUpdate=true;LMT.value.set(im.width,im.height);if(fin)fin()},undefined,
+  e=>{console.warn('[CMAT] luz '+luzUrl+' falló, reintento '+(n+1),e);if(falla)falla(n+1);if(n<8)setTimeout(()=>va(n+1),Math.min(15000,1000*2**n));else if(fin)fin()})})(0);lm.flipY=false;lm.channel=1;lm.colorSpace=THREE.SRGBColorSpace;
  // de cerca (un texel de luz > 1 pixel) la luz va con B-spline bicúbica (4 lecturas bilineales): sin bloques ni escalones
  const cubica=r=>{r.extensions={derivatives:true};r.customProgramCacheKey=()=>'lmc';r.onBeforeCompile=s=>{s.uniforms.lmT=LMT;
   s.fragmentShader='uniform vec2 lmT;\nvec4 lmC(sampler2D t,vec2 uv){vec2 q=uv*lmT,d=max(abs(dFdx(q)),abs(dFdy(q)));if(max(d.x,d.y)>1.)return texture2D(t,uv);'+

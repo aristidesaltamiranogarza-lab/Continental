@@ -23,9 +23,9 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.fuera)F.fuera.paso(c,p);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
- let ok;F.listo=new Promise(r=>ok=r);
- CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V))).then(gl=>{const R=gl.scene;S.add(R);
-  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1]);F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
+ let ok;F.listo=new Promise(r=>ok=r);const PR=F.pr={glb:0,luz:hb?0:1,re:0};F.prog=()=>({p:PR.glb*.75+PR.luz*.25,re:PR.re});let gOK=0,lOK=!hb;const fin=()=>{if(gOK&&lOK)ok()};
+ bajaGLB(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);
+  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1],()=>{PR.luz=1;lOK=1;fin()},n=>{PR.re=n});F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   for(const n in PEGA){const o=R.getObjectByName(n);if(o)o.userData.pega=PEGA[n]}
   const D=MARC.leer(R);
   WL.push(...D.WL);OB.push(...D.OB);LIN.push(...D.lineas);
@@ -43,7 +43,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
   if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D)}
   if(hb&&id!=='cm1'&&window.CFUE)try{F.fuera=CFUE.pon(F)}catch(er){console.error('[CFUE]',er)}
-  F.marcas=D;CAJA.listos[id]=true;ok()}).catch(err=>{console.warn('CAJA',err);ok()});
+  F.marcas=D;CAJA.listos[id]=true;gOK=1;fin()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}
 
 // arreglos al cargar, sin volver a hornear (la luz va pegada a los vértices):
@@ -97,6 +97,9 @@ function gata(H,S,hits,R,D,F){const g=R.getObjectByName('gata_n0'),pl=R.getObjec
 
 // plano enmarcado en el muro: la planta de este nivel dibujada desde el GLB (muros de choque, mesas por familia, "estás aquí")
 // y la pila de los 4 niveles con el actual marcado. Tocarlo abre "Ir a" (CIR). Mira hacia su +z local girado ry.
+// GLB con progreso (PR.glb) y reintentos sin recargar (1, 2, 4, 8, 15 s...; tras 8 fallos se rinde y el piso queda vacío)
+function bajaGLB(url,PR){let n=0;const va=()=>CGLB.cargador().then(Ld=>new Promise((si,no)=>Ld.load(url+(n?'&r='+n:''),si,e=>{PR.glb=e.lengthComputable&&e.total?e.loaded/e.total:Math.min(.9,e.loaded/8e6)},no)))
+ .then(gl=>{PR.glb=1;return gl},e=>{if(++n>8)throw e;PR.re=n;console.warn('[CAJA] '+url+' falló, reintento '+n,e);return new Promise(r=>setTimeout(r,Math.min(15000,1000*2**(n-1)))).then(va)});return va()}
 const ORD=['c2','c1','c0','cm1'];
 function plano(H,S,hits,p,id,D){const c=D.caja;if(!c)return;
  const tx=H.ctex('casona-plano-'+id+'-'+p.k,512,512,(g,w,h)=>{g.fillStyle='#efe3c8';g.fillRect(0,0,w,h);g.strokeStyle='#8a6a48';g.lineWidth=6;g.strokeRect(14,14,w-28,h-28);
