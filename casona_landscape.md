@@ -17,6 +17,7 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 ## Estilo
 - Estilizado pintado (formas suaves, texturas tipo gouache), nada semi-realista. Ver ejemplos antes de decidir del todo.
 - Colores cálidos pastel como la casona horneada. Referencia: juegos acogedores tipo life-sim, formas de fotos reales de Mérida, color de las cartas 2D.
+- Referencia principal (elegida por el usuario): Alba: A Wildlife Adventure. Tomar de ahí: luz de sol fuerte y cálida con sombras suaves, materiales lisos sin texturas ruidosas (casi solo color + luz horneada), árboles en grupos de copas oscuras que contrastan con suelo dorado, muchos objetos chicos que dan vida (macetas, bancas, botes) y paleta limitada. Es inspiración, no copia: nuestro estilo, nuestra Mérida y nuestro personaje (serio, ojos óvalos oscuros).
 - Lugar: centro de Mérida. Idea a futuro: una hacienda.
 - Hora por defecto: atardecer dorado (más adelante, hora real del jugador).
 
