@@ -8,6 +8,11 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 - Metas: Medio 30 FPS parejos en celular; Completo 60 a ~120 FPS en la 780M. Calidad por detección de aparato, que sube si sobra.
 - Distancia de dibujo menor en Medio (con niebla). Descarga del paisaje en Medio 5–15 MB. Casa primero, paisaje después.
 - En Medio se quita primero: pasto 3D, sombras en tiempo real, árboles lejanos a sprite, detalles chicos de calle, viento.
+- Regla de Medio: nada de pasto 3D ni hojas con recorte (cards): en GPU de celular las capas transparentes encimadas (overdraw) son lo más caro.
+- Presupuestos por nivel (prueba que falla si se pasan; cifras a medir en el Android de referencia): Medio ~150 draw calls, ~300 mil triángulos, ~150 MB de texturas en GPU; Completo ~400 draw calls. Juntar mallas (MRG/LOTE) y hornear para cumplirlos.
+- Resolución dinámica: si bajan los FPS, baja un poco la resolución antes de que tartamudee (sin pasar el tope de densidad de c_movil.js).
+- Celular de referencia: el Android más débil de los amigos, no solo el del usuario. Los muy débiles (2–3 GB, MediaTek barato, PowerVR viejo) van a Ligero por detección.
+- iPhone 15 Pro Max: Completo 30 sin problema; Completo 60 posible pero baja a ~40–45 tras 5–10 min por calor. Safari cierra la pestaña si se pasa de memoria: texturas siempre en KTX2 y mapas de luz moderados.
 
 ## Estilo
 - Estilizado pintado (formas suaves, texturas tipo gouache), nada semi-realista. Ver ejemplos antes de decidir del todo.
@@ -24,7 +29,7 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 
 ## Árboles y plantas
 - Laurel de la India, flamboyán, palmeras, ceiba; naranjos en patios.
-- Copas de grupos de hojas (no bolas lisas); cerca low-poly, lejos sprites (impostores).
+- Copas de grupos de hojas (no bolas lisas); cerca low-poly, lejos sprites (impostores). En Medio, grupos sólidos sin recorte; hojas con recorte (cards) solo en Completo.
 - Viento sutil en árboles en todos los niveles (vértice, casi gratis).
 - Plaza: menos árboles pero más grandes.
 - Bugambilias, macetas de barro, enredaderas en fachadas, cactus y agaves; acentos de color fuerte (magenta sobre pastel).
