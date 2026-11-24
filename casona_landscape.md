@@ -73,6 +73,7 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 - Comparar antes/después con marcadores de cámara.
 
 ## Pendiente
+- Desde el 24 nov el barrio se modela en la laptop y se hornea en la PC: reglas en CASONA.md, "Trabajo en la laptop" punto 5.
 - Hecho (24 nov) borrador: lámina A-02 + tablero de estilo y paleta en https://claude.ai/artifact/3gFhpi5TLmU1Kj51oteuWR . Decidido por rendimiento: andador a la plaza sí; plaza del tamaño de hoy (28×24) con la iglesia pegada al fondo; sin Calle 57 (solo barda, torres en el horizonte); baldío con hierba, agaves, barda y perro (perro solo en Completo). Original: lámina A-02 "Barrio" con el mismo estilo de plano que el anteproyecto (https://claude.ai/artifact/PX1g934RWSsWF4VdTB7Doa): manzana, plaza con kiosco, símbolos de árboles por especie, anillos de distancia de dibujo por nivel y corte calle–plaza. Parque actual en c_casa_campo.js (cx=-55, cz=-35).
 
 ## Siguiente: Blender en la otra PC — tramo de referencia (paso 1 del paisaje)
