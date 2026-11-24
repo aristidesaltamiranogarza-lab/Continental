@@ -94,7 +94,7 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
   - [x] 5) jardinera: el borde de cantera del arriate ya no se encima en las esquinas (lados cortos entre los largos) y la tierra queda .01 adentro; igual el borde del lavadero de la azotea (sin hornear)
   - [x] 6) lajas al pozo: 9 lajas irregulares de .08 de grueso en curva suave y piedritas a los lados (pb_deco)
   - [x] 7) balcón trasero: terraza de la planta alta sobre la losa de la PB (balc_t en casona.py, z 30..34), barandal en tres lados, macetas y banca; vanos desde tu cuarto, música y los dos corredores
-  - [x] 8) iluminación: un solo sol (C.SOL = CIELO.dia, también en la calle) y horneado de noche por nivel (hornear_noche: luna C.LUNA + lámparas → <nivel>_luz_noche.webp; CMAT la pide al hacerse de noche y sin ella usa la de día;  la salta). Falta aparte: sondas de luz para personajes y sombra en tiempo real del personaje
+  - [x] 8) iluminación: un solo sol (C.SOL = CIELO.dia, también en la calle) y horneado de noche por nivel (hornear_noche: luna C.LUNA + lámparas → <nivel>_luz_noche.webp; CMAT la pide al hacerse de noche y sin ella usa la de día; con `-- hornear 2048 320 sin_noche` se salta). Falta aparte: sondas de luz para personajes y sombra en tiempo real del personaje
   - [x] 11) guitarra de la sala de música rehecha a escala (1.3, cuerpo con cinturas, boca, puente, diapasón, clavijero y cuerdas), recargada con la cabeza en el muro
   - [x] 10) azotea con más decoración (blender/casona_az_deco.py): guirnalda de focos en la pérgola, macetas de sábila/cactus/helecho, calentador solar, tanques de gas, lavadero con cubeta y escoba, rejas de refresco y antena
   - [ ] 9) cualquier cambio nuevo que dé el usuario
