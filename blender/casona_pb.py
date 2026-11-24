@@ -497,12 +497,27 @@ def luces(sc):
         o = bpy.data.objects.new('l%d' % i, l); o.location = V(x, y, z); S.objects.link(o)
     sol = bpy.data.lights.new('sol', 'SUN'); sol.energy = 2.0; sol.color = (1, .86, .66); sol.angle = math.radians(3)
     so = bpy.data.objects.new('sol', sol); S.objects.link(so)
-    d = Vector((.5, -.62, -.6)).normalized()   # en three: del frente a la izquierda hacia el fondo, bajando
+    d = Vector(C.SOL).normalized()   # el mismo sol que CIELO.dia (casona.py SOL)
     so.rotation_euler = Vector((d.x, -d.z, d.y)).to_track_quat('-Z', 'Y').to_euler()
     w = sc.world or bpy.data.worlds.new('cielo'); sc.world = w
     try: w.use_nodes = True
     except Exception: pass
     bg = next(n for n in w.node_tree.nodes if n.type == 'BACKGROUND'); bg.inputs[0].default_value = (.6, .72, .9, 1); bg.inputs[1].default_value = .55
+
+def noche(sc):
+    """Pasa la escena a noche: la luna (C.LUNA) en lugar del sol, azul y suave, cielo oscuro; las lámparas siguen igual."""
+    so = bpy.data.objects.get('sol')
+    if so:
+        so.data.energy = .22; so.data.color = (.62, .72, 1); so.data.angle = math.radians(10)
+        d = Vector(C.LUNA).normalized(); so.rotation_euler = Vector((d.x, -d.z, d.y)).to_track_quat('-Z', 'Y').to_euler()
+    w = sc.world
+    if w and w.node_tree:
+        bg = next((n for n in w.node_tree.nodes if n.type == 'BACKGROUND'), None)
+        if bg: bg.inputs[0].default_value = (.05, .07, .14, 1); bg.inputs[1].default_value = .25
+
+def hornear_noche(sc, obs, res, mu):
+    """Segundo horneado con las mismas UV: NOM_luz_noche.webp (CMAT la usa cuando CIELO está de noche)."""
+    noche(sc); img = hornear(sc, obs, res, mu); guardar(img, ruta=os.path.join(SAL, NOM + '_luz_noche.webp'))
 
 def motor(sc):
     try: sc.render.engine = 'CYCLES'
@@ -796,6 +811,7 @@ if __name__ == '__main__':
     elif acc == 'hornear':
         res = int(arg[1]) if len(arg) > 1 else K['RES']; mu = int(arg[2]) if len(arg) > 2 else K['SAMPLES']
         uv_luz(obs); img = hornear(sc, obs, res, mu); guardar(img); exportar(col)
+        if 'sin_noche' not in arg: hornear_noche(sc, obs, res, mu)
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(DIR, 'blender', 'casona_pb.blend'))
     elif acc == 'prueba':     # hornea solo zaguán y salón con los ajustes nuevos y los compara con 'antes'
         car = arg[1]; res = int(arg[2]) if len(arg) > 2 else K['RES']; mu = int(arg[3]) if len(arg) > 3 else K['SAMPLES']

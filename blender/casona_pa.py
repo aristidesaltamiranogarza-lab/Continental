@@ -85,6 +85,33 @@ def barandal():
         segs += P.LT(e, L, a) + P.LT(e, L, b)
     ex('pa_barandal_pasamanos', segs=segs, r=.3)
 
+def balcon_trasero():
+    """Terraza sobre la losa de la planta baja (z 30..34), al jardín: piso de corredor, borde de cantera, barandal en tres lados,
+    macetas y una banca. Se sale por tu cuarto, la sala de música y los dos corredores (vanos en z=30)."""
+    h = K['t'] / 2; bx, bz, bw, bd = N['balc_t']; x0, x1, z0, z1 = bx + h, bx + bw - h, bz + h, bz + bd
+    caja(bmn('pa_balcon_t', 'cantera'), x0, x1, -.3, -.01, z0, z1 + .1)
+    quad('pa_piso_corredor', 'corredor', x0, z0, x1, z1 - .3)
+    caja(bmn('pa_balcon_t_borde', 'cantera'), x0, x1, -.45, .12, z1 - .3, z1 + .12)
+    hb = C.K['barandal']; HI, PM = bmn('pa_balcon_t_rej', 'hierro', luz=False), bmn('pa_balcon_t_pasamanos', 'madera'); segs = []
+    zr = z1 - .15
+    for e, L, a, b in (('h', zr, x0 + .15, x1 - .15), ('v', x0 + .15, z0, zr), ('v', x1 - .15, z0, zr)):
+        nb = max(2, int((b - a) / .18))
+        for k in range(nb + 1): uu = a + k * (b - a) / nb; caja_l(HI, e, L, uu - .016, uu + .016, .12, hb - .08, -.016, .016)
+        for yy in (.2, .9): caja_l(HI, e, L, a, b, yy - .025, yy + .025, -.025, .025)
+        caja_l(PM, e, L, a, b, hb - .08, hb, -.07, .07); segs += P.LT(e, L, a) + P.LT(e, L, b)
+    ex('pa_balcon_t_pasamanos', segs=segs, r=.3)
+    MT, HO = bmn('pa_balcon_t_macetas', 'barro'), bmn('pa_balcon_t_hojas', 'copa'); obs = []
+    for mx in (1.2, 7.0, 13.0, 23.0, 29.0, 34.8):
+        mz = 33.1; tubo(MT, (mx, 0, mz), (mx, .7, mz), .28, .38, 14); P.anillo(MT, mx, mz, .3, .42, .7, .78, 14)
+        for k in range(5):
+            an = k * 2 * math.pi / 5
+            bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.34, matrix=P.Matrix.Translation(P.V(mx + math.cos(an) * .22, 1.02 + .12 * (k % 2), mz + math.sin(an) * .22)) @ P.Matrix.Diagonal((1, 1, .8, 1)))
+        obs += T(mx, mz) + [.55]
+    MA = bmn('pa_balcon_t_banca', 'madera')
+    caja(MA, 16.2, 19.8, .72, .8, 32.6, 33.2); caja(MA, 16.2, 19.8, .8, 1.45, 33.12, 33.2)
+    for xx in (16.4, 19.6): caja(MA, xx - .05, xx + .05, 0, .72, 32.65, 33.15)
+    ex('pa_balcon_t_macetas', obs=obs); ex('pa_balcon_t_banca', segs=T(16.4, 32.9) + T(19.6, 32.9), r=.4)
+
 def balcones():
     hb = C.K['barandal']; HI, PM = bmn('pa_balcon_rej', 'hierro', luz=False), bmn('pa_balcon_pasamanos', 'madera'); segs = []
     for j, (bx, bz, bw, bd) in enumerate(N['balc']):
@@ -206,7 +233,7 @@ def armar():
     COLS = C.COLS; C.COLS = [c for c in COLS if c[1] < 30 or c[0] in (12, 24)]   # arriba no hay corredor al fondo: solo las esquinas
     try: P.muros(); arqueria(); P.columnas(); barandal()
     finally: C.COLS = COLS
-    balcones(); pisos(); P.techos(); escalera(); muebles(); deco(); marcas(); lamparas()
+    balcones(); balcon_trasero(); pisos(); P.techos(); escalera(); muebles(); deco(); marcas(); lamparas()
     col = P.coleccion('pa'); obs = P.crear(col)
     ms = N['mesas']; N['mesas'] = [m for m in ms if m[3] > 1.2]   # sombras de bulto solo para las mesas grandes
     try: P.luces(sc)
@@ -228,6 +255,7 @@ if __name__ == '__main__':
     elif acc == 'hornear':
         res = int(arg[1]) if len(arg) > 1 else K['RES']; mu = int(arg[2]) if len(arg) > 2 else K['SAMPLES']
         P.uv_luz(obs); img = P.hornear(sc, obs, res, mu); P.guardar(img); P.exportar(col)
+        if 'sin_noche' not in arg: P.hornear_noche(sc, obs, res, mu)
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(DIR, 'blender', 'casona_pa.blend'))
     elif acc == 'exportar':
         P.exportar(col)

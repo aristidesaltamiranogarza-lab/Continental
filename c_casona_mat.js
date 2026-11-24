@@ -9,8 +9,12 @@ if(typeof THREE==='undefined')return;
 const A={luz:1,copa:.28,noche:0x8c94b0,nocheExt:0x6c7898};
 // de noche (CIELO) todo lo horneado se oscurece y azula como las casas vecinas; lo de afuera más. Lámparas y faroles no.
 const EXT=/^(calle|banqueta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra)$/,NOC=[];let REG=false;
+// luz de noche: <nivel>_luz_noche.webp (blender: hornear_noche); se pide la primera vez que es de noche; sin archivo se queda la de día
+const LMS=[],LMN=new Set();
 function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche()),a=new THREE.Color(A.noche),e=new THREE.Color(A.nocheExt);
- NOC.forEach(o=>{o.m.color.copy(o.c);if(n)o.m.color.multiply(o.ext?e:a)})}
+ LMS.forEach(q=>{if(n&&!q.pide&&q.dia){q.pide=true;new THREE.ImageLoader().load(q.url,im=>{q.noche=im;LMN.add(q.lm);tema()},undefined,()=>{})}
+  const im=n&&q.noche?q.noche:q.dia;if(im&&q.lm.image!==im){q.lm.image=im;q.lm.needsUpdate=true}});
+ NOC.forEach(o=>{o.m.color.copy(o.c);if(n&&!(o.m.lightMap&&LMN.has(o.m.lightMap)))o.m.color.multiply(o.ext?e:a)})}
 let TX=null;
 
 function texturas(ctex){if(TX)return TX;
@@ -103,8 +107,8 @@ function texturas(ctex){if(TX)return TX;
 
 // materiales: con luz horneada (UV1) si la malla la trae; los que brillan y el hierro, sin ella
 function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if(fin)fin();return}const tx=texturas(H.ctex),MAT={};
- const LMT={value:new THREE.Vector2(2048,2048)},lm=new THREE.Texture();
- (function va(n){new THREE.ImageLoader().load(luzUrl+(n?'&r='+n:''),im=>{lm.image=im;lm.needsUpdate=true;LMT.value.set(im.width,im.height);if(fin)fin()},undefined,
+ const LMT={value:new THREE.Vector2(2048,2048)},lm=new THREE.Texture(),LQ={lm,url:luzUrl.replace('_luz.','_luz_noche.'),dia:null};LMS.push(LQ);
+ (function va(n){new THREE.ImageLoader().load(luzUrl+(n?'&r='+n:''),im=>{lm.image=im;lm.needsUpdate=true;LQ.dia=im;LMT.value.set(im.width,im.height);tema();if(fin)fin()},undefined,
   e=>{console.warn('[CMAT] luz '+luzUrl+' falló, reintento '+(n+1),e);if(falla)falla(n+1);if(n<8)setTimeout(()=>va(n+1),Math.min(15000,1000*2**n));else if(fin)fin()})})(0);lm.flipY=false;lm.channel=1;lm.colorSpace=THREE.SRGBColorSpace;
  // de cerca (un texel de luz > 1 pixel) la luz va con B-spline bicúbica (4 lecturas bilineales): sin bloques ni escalones
  const cubica=r=>{r.extensions={derivatives:true};r.customProgramCacheKey=()=>'lmc';r.onBeforeCompile=s=>{s.uniforms.lmT=LMT;

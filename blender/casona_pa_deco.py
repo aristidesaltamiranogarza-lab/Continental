@@ -4,7 +4,7 @@
 # baúl al pie, ropero y espejo de cuerpo entero (los dos llevan accion_mipj: abren "Mi personaje"), tapete. Sala de música
 # (x 28..36, z 10..30; Backgammon en 32, 24.5): radio de consola (accion_radio: la música), discoteca baja, tocadiscos de
 # bocina en su mesita, guitarra recargada, sillón y tapete. Coordenadas del plano (x, alto, z); caras de los muros a .15.
-P.COLOR.update(colcha=(.62, .2, .18), tela=(.88, .85, .78), espejo=(.55, .62, .66), laton=(.7, .52, .22), rejilla=(.55, .45, .3),
+P.COLOR.update(guitarra=(.78, .5, .24), cuerda=(.85, .82, .72), colcha=(.62, .2, .18), tela=(.88, .85, .78), espejo=(.55, .62, .66), laton=(.7, .52, .22), rejilla=(.55, .45, .3),
                madera_osc=(.22, .13, .08), sillon=(.42, .22, .16))
 P.PRIO_MAT.update(tela=.6, laton=.5, rejilla=.7)
 viga, anillo = P.viga, P.anillo
@@ -40,6 +40,37 @@ def tu_cuarto():
     ex('pa_cuarto_madera', segs=T(5.2, 27.0) + T(5.2, 29.0), r=1.95)
     ex('pa_cuarto_ropero', segs=T(.65, 23.7) + T(.65, 26.5) + T(4.5, 25.6) + T(5.9, 25.6), r=.55)
 
+def guitarra(bx, bz, MO, NE, LA):
+    """Guitarra de 1.3 (a escala del personaje de 2.1): cuerpo con cinturas, boca, puente, mástil con diapasón, clavijero con
+    clavijas y seis cuerdas. Apoyada en el piso en (bx, bz) y recargada con la cabeza en el muro x=28.15."""
+    GU, CU = bmn('pa_guitarra', 'guitarra'), bmn('pa_guitarra_cuerdas', 'cuerda', luz=False)
+    L = 1.3; top = (28.27, L * .985); dx, dy = top[0] - bx, top[1]
+    ln = math.hypot(dx, dy); u = (dx / ln, dy / ln); n = (u[1], -u[0])          # u: a lo largo; n: frente de la tapa (hacia +x y un poco arriba)
+    n = (-n[0], -n[1]) if n[0] < 0 else n
+    def p(b, a, c): return P.V(bx + u[0] * b + n[0] * c, .02 + u[1] * b + n[1] * c, bz + a)
+    def prisma(bm, perfil, c0, c1):                                             # perfil: [(b, a)] cerrado, extruido de c0 a c1 por el frente
+        t = [bm.verts.new(p(b, a, c1)) for b, a in perfil]; d = [bm.verts.new(p(b, a, c0)) for b, a in perfil]
+        bm.faces.new(t); bm.faces.new(d[::-1]); k = len(perfil)
+        for i in range(k): j = (i + 1) % k; bm.faces.new([d[i], d[j], t[j], t[i]])
+    # cuerpo: medio ancho por altura (lo de abajo, la cintura y lo de arriba)
+    hw = [(0, .1), (.03, .19), (.09, .245), (.18, .26), (.27, .23), (.34, .175), (.39, .17), (.45, .2), (.52, .205), (.58, .17), (.62, .08)]
+    perfil = [(b, -w) for b, w in hw] + [(b, w) for b, w in reversed(hw)]
+    prisma(GU, perfil, 0, .1)
+    prisma(MO, [(b, -w - .008) for b, w in hw] + [(b, w + .008) for b, w in reversed(hw)], -.004, .004)   # aro oscuro de la orilla
+    prisma(NE, [(.42 + .055 * math.cos(k * math.pi / 8), .055 * math.sin(k * math.pi / 8)) for k in range(16)], .1, .104)   # boca
+    prisma(MO, [(.12, -.09), (.12, .09), (.16, .09), (.16, -.09)], .1, .125)                     # puente
+    # mástil y diapasón (de .6 a 1.12), clavijero inclinado (1.12 a 1.3) con tres clavijas por lado
+    prisma(GU, [(.58, -.04), (1.12, -.032), (1.12, .032), (.58, .04)], .02, .08)
+    prisma(MO, [(.5, -.042), (1.12, -.034), (1.12, .034), (.5, .042)], .08, .095)
+    prisma(MO, [(1.12, -.045), (1.3, -.055), (1.3, .055), (1.12, .045)], .05, .085)
+    for k in range(3):
+        b = 1.16 + k * .045
+        for sa in (-1, 1): tubo(LA, (bx + u[0] * b + n[0] * .07, .02 + u[1] * b + n[1] * .07, bz + sa * .05), (bx + u[0] * b + n[0] * .07, .02 + u[1] * b + n[1] * .07, bz + sa * .09), .012, .012, 6)
+    for k in range(6):                                                                         # cuerdas del puente a la cejuela
+        a0, a1 = -.05 + k * .02, -.025 + k * .01
+        prisma(CU, [(.14, a0 - .002), (1.12, a1 - .002), (1.12, a1 + .002), (.14, a0 + .002)], .128, .132)
+    ex('pa_guitarra', obs=T(bx - .2, bz) + [.35])
+
 def sala_musica():
     MO, MA, RE, LA, NE, SI = bmn('pa_musica_consola', 'madera_osc'), bmn('pa_musica_madera', 'madera'), bmn('pa_musica_rejilla', 'rejilla'), \
         bmn('pa_musica_laton', 'laton'), bmn('pa_musica_hierro', 'hierro', luz=False), bmn('pa_musica_sillon', 'sillon')
@@ -59,10 +90,7 @@ def sala_musica():
         for z in (10.6, 11.5): caja(MA, x - .04, x + .04, 0, 1.15, z - .04, z + .04)
     caja(MO, 34.45, 35.35, 1.22, 1.42, 10.65, 11.45); tubo(NE, (34.9, 1.42, 11.05), (34.9, 1.44, 11.05), .32, .32, 16)
     tubo(LA, (35.2, 1.44, 10.8), (35.2, 1.75, 10.8), .03, .03, 6); tubo(LA, (35.2, 1.75, 10.8), (34.7, 2.25, 11.25), .05, .42, 14)
-    # guitarra recargada en el muro del poniente (junto a la puerta)
-    tubo(MA, (28.18, .5, 12.4), (28.34, .5, 12.4), .45, .45, 16); tubo(MA, (28.24, 1.12, 12.4), (28.4, 1.12, 12.4), .34, .34, 14)
-    tubo(NE, (28.35, .78, 12.4), (28.36, .78, 12.4), .12, .12, 12)
-    viga(MA, (28.33, 1.4, 12.4), (28.46, 2.65, 12.4), .1, .04); caja(MO, 28.4, 28.55, 2.62, 2.92, 12.32, 12.48)
+    guitarra(28.68, 12.4, MO, NE, LA)   # recargada en el muro del poniente (junto a la puerta)
     # sillón frente a la radio y tapete
     caja(SI, 31.3, 32.5, .5, .95, 14.1, 15.5); caja(SI, 31.15, 31.5, .5, 2.0, 14.0, 15.6)
     for zz in (13.95, 15.65): caja(SI, 31.15, 32.55, .5, 1.35, zz - .15, zz + .15)

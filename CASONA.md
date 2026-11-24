@@ -92,9 +92,10 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
   - [x] 3) sótano: Póker a (20.5, 5) y Blackjack a (30.5, 5) (las sillas del BJ quedaban a .4 del muro), ya en sm.glb con -- marcas; barricas de la cava en dos estibas contra los muros de los lados (sin hornear)
   - [x] 4) salón del Catan: mesas sin MESA_J usan la silla de escala fija (MESA.sillaSola en c_casa3d.js, toda la casa); mecedoras al corredor alto asomadas al patio; aparador bajo con puertas, cajas de juegos y florero en lugar de las repisas (sin hornear)
   - [x] 5) jardinera: el borde de cantera del arriate ya no se encima en las esquinas (lados cortos entre los largos) y la tierra queda .01 adentro; igual el borde del lavadero de la azotea (sin hornear)
-  - [ ] 6) revisar lajas al pozo
-  - [ ] 7) balcón trasero
-  - [ ] 8) iluminación (abajo; sol de CIELO)
+  - [x] 6) lajas al pozo: 9 lajas irregulares de .08 de grueso en curva suave y piedritas a los lados (pb_deco)
+  - [x] 7) balcón trasero: terraza de la planta alta sobre la losa de la PB (balc_t en casona.py, z 30..34), barandal en tres lados, macetas y banca; vanos desde tu cuarto, música y los dos corredores
+  - [x] 8) iluminación: un solo sol (C.SOL = CIELO.dia, también en la calle) y horneado de noche por nivel (hornear_noche: luna C.LUNA + lámparas → <nivel>_luz_noche.webp; CMAT la pide al hacerse de noche y sin ella usa la de día;  la salta). Falta aparte: sondas de luz para personajes y sombra en tiempo real del personaje
+  - [x] 11) guitarra de la sala de música rehecha a escala (1.3, cuerpo con cinturas, boca, puente, diapasón, clavijero y cuerdas), recargada con la cabeza en el muro
   - [x] 10) azotea con más decoración (blender/casona_az_deco.py): guirnalda de focos en la pérgola, macetas de sábila/cactus/helecho, calentador solar, tanques de gas, lavadero con cubeta y escoba, rejas de refresco y antena
   - [ ] 9) cualquier cambio nuevo que dé el usuario
 - Iluminación "pro" (decidido 24 nov: el sol de CIELO, poniente y bajo, (1,-.6,.35)): hoy hay DOS soles — horneado pb/pa/sm/az usa three (.5,-.62,-.6) (casona_pb.py luces()), CIELO.dia y calle usan (1,-.6,.35). Recomendado: quedarse con el de CIELO (poniente, bajo). Plan: 1) un solo sol/luna definido en casona.py, leído por todos los scripts y exportado en el GLB para CIELO; 2) mapa de luz de día y de noche por nivel (se carga el que toca; arregla azotea y fachada de noche); 3) lámparas = luz + pieza que brilla, horneadas; 4) sondas de luz: rejilla horneada que tiñe a los personajes según dónde están; sombra en tiempo real solo del personaje, alineada al sol.
@@ -112,13 +113,13 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
 - Saltar (tecla Espacio y botón en el celular).
 - Pasto: se ve feo (manchas). Opciones baratas: textura nueva sin manchas en tonos suaves más un ruido de color grande en el shader (casi sin costo); o matas de pasto en tarjetas cruzadas instanciadas solo en las orillas y alrededor de los objetos (costo bajo, se apaga en Ligero/Medio). Decidir con el usuario.
 - [x] Jardinera de los conos: las esquinas del marco parpadean donde se cruzan las piezas (z-fighting, como pasó antes con los muros). Separar o ingletear las piezas.
-- Camino de piedras de la casa al pozo: ahora solo se ven sombras sueltas; hacer piedras de verdad (lajas planas en Blender, horneadas).
+- [x] Camino de piedras de la casa al pozo: ahora solo se ven sombras sueltas; hacer piedras de verdad (lajas planas en Blender, horneadas).
 - Decoración: en el salón del Catan las sillas pegadas a la mesa son las viejas gigantes (usar las de escala fija); las mecedoras se ven fuera de lugar ahí, reubicarlas. El mueble de repisas con "barras" (libros/chocolates) se ve raro: cambiarlo o quitarlo. Repasar la decoración de toda la casa.
 - Azotea de noche: el mapa de luz está horneado de día y se ven sombras de sol de noche. Hornear con una luz que sirva para ambos (cielo/luna difusa, sombras suaves) o un segundo horneado de noche, y que el sol/luna del juego coincida con el ángulo horneado.
 - Pérgola de la azotea: mejor transición entre el piso de la azotea y el de la pérgola: un escalón bajo y un borde/barandal ligero.
 - Luces: más fuentes de luz falsas horneadas (lámparas que brillan y luz en el mapa); calidad "Ultra" opcional con luces en tiempo real, sombra propia y reflejos. El objetivo sigue siendo el celular.
 - Patio: la casa debe verse siempre (al menos los pisos de arriba, aunque sea en versión simple). Ahora desde el patio central solo en cierta posición se ve el piso de arriba y la azotea; al moverse desaparece (ocultamiento por piso/cuartos demasiado agresivo).
-- Balcón: en la fachada trasera que da al jardín, sobre la planta baja, hay espacio para un balcón con barandal mirando al jardín.
+- [x] Balcón: en la fachada trasera que da al jardín, sobre la planta baja, hay espacio para un balcón con barandal mirando al jardín.
 - Fachada de noche: la casona se ve mucho más brillante que las casas vecinas (muro rosa casi blanco junto a las de al lado, oscuras y azuladas). Bajar la luz de la fachada (mapa de luz o material de CMAT) para que tenga el mismo tono nocturno que la calle; que solo resalten ventanas y lámparas.
 - Menú "Ir a…": íconos enormes en la casona (arreglado el tamaño el 23 nov). Si sigue fallando, volver al corte de la casa (DH) adaptado a los 4 niveles.
 - Decidido (23 nov): pasto opción B. Textura nueva suave en todas las calidades; Medio sin matas o muy pocas (debe correr en cualquier teléfono); Completo con matas de hojas visibles instanciadas y meciéndose con el viento en el shader de vértices (barato: sin física, solo seno por posición).

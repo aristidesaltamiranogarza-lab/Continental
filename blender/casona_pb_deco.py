@@ -151,9 +151,18 @@ def traspatio2():
             if j == 1: hojas(HO, xx, .4, zz, 6, .32, .05, .38, -.06, giro=i)
             else: bmesh.ops.create_icosphere(HO, subdivisions=2, radius=.26, matrix=Matrix.Translation(V(xx, .52, zz)) @ Matrix.Diagonal((1, 1, .6, 1)))
     segs = T(x0 + .5, (z0 + z1) / 2) + T(x1 - .5, (z0 + z1) / 2)
-    # sendero de laja del corredor al pozo
-    for k in range(7):
-        t = (k + .5) / 7; x, z = 18 + (14 - 18) * t, 34.8 + (43.3 - 34.8) * t; quad('pb_tras_laja', 'laja', x - .45, z - .42, x + .45, z + .42, y=.015, prio=.4)
+    # sendero de lajas del corredor al pozo: piedras planas irregulares de .08 de grueso, en curva suave, con piedritas a los lados
+    LA = bmn('pb_tras_laja', 'laja', prio=.5); sem = [3]
+    def r3(): sem[0] = (sem[0] * 9301 + 49297) % 233280; return sem[0] / 233280
+    def laja(cx, cz, rad, n=7, alto=.08):
+        g0 = r3() * 6.28; pts = [(cx + math.cos(g0 + 6.283 * i / n) * rad * (.78 + .3 * r3()), cz + math.sin(g0 + 6.283 * i / n) * rad * (.7 + .3 * r3())) for i in range(n)]
+        top = [LA.verts.new(V(x, alto, z)) for x, z in pts]; bot = [LA.verts.new(V(x, -.02, z)) for x, z in pts]
+        LA.faces.new(top); LA.faces.new(bot[::-1])
+        for i in range(n): j = (i + 1) % n; LA.faces.new([bot[i], bot[j], top[j], top[i]])
+    for k in range(9):
+        t = (k + .5) / 9; x = 18 + (14 - 18) * t + .7 * math.sin(t * 3.1); z = 34.8 + (43.3 - 34.8) * t
+        laja(x + (r3() - .5) * .2, z, .5 + .08 * r3())
+        if k % 2 == 0: laja(x + (.75 if k % 4 == 0 else -.75), z + (r3() - .5) * .4, .16 + .06 * r3(), 6, .05)
     # banca bajo el mamey
     caja(MA, 8.3, 8.85, .72, .8, 39.8, 42.4); caja(MA, 8.78, 8.86, .8, 1.5, 39.85, 42.35)
     for z in (40.0, 42.2): caja(MA, 8.35, 8.8, 0, .72, z - .05, z + .05)

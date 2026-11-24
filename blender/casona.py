@@ -15,6 +15,8 @@ SALIDA = os.path.join(os.path.dirname(RAIZ), 'modelos', 'casona')
 K = dict(t=.3, puerta=3.6, losa=.3, barandal=2.0, barda=2.4, pretil=2.0, ante=1.4, vent=4.0, esc=.35)
 
 # escalera de los 4 niveles: tramos de 2.8 (sube y baja) centrados con la puerta (z 13.5), 8 escalones de .45 desde x0 hacia -x
+SOL = (1, -.6, .35)     # dirección de la luz del sol en three = CIELO.dia.dir (poniente, bajo); la usan todos los horneados
+LUNA = (.35, -.9, .25)  # luna del horneado de noche (alta y suave)
 PERG = 4.4   # alto de los postes de la pérgola (era 3.4: se sentía baja y apretada)
 ESC = dict(n=8, paso=.45, x0=5.4, sube=(10.6, 13.4), baja=(13.6, 16.4), llegada=(7.2, 13.5))
 ORDEN = ['nm1', 'n0', 'n1', 'n2']   # de abajo hacia arriba: la escalera sube al siguiente y baja al anterior
@@ -48,9 +50,9 @@ NIV = {
   areas=[(0,0,16,10,None,'tt','biblioteca'),(16,0,5,10,None,'th','antesala'),(21,0,15,10,None,'tt','tableros'),
          (8,10,20,4,'open','tg','corredor'),(8,14,4,16,'open','tg','corredor_o'),(24,14,4,16,'open','tg','corredor_e'),
          (0,10,8,7,None,'th','escalera'),(0,17,8,13,None,'th','tucuarto'),(28,10,8,20,None,'th','musica'),(12,14,12,16,'void','',' vacio')],
-  balc=[(3,-1.3,10,1.3),(16.8,-1.3,3.4,1.3),(24,-1.3,9,1.3)],
+  balc=[(3,-1.3,10,1.3),(16.8,-1.3,3.4,1.3),(24,-1.3,9,1.3)], balc_t=(0,30,36,4),   # balcón trasero sobre la losa de la planta baja, al jardín
   gaps=[(16,3,16,7,None),(21,3,21,7,None),(11,10,13.5,10,'biblioteca'),(17,10,20,10,None),(22.5,10,25,10,'tableros'),(8,11.5,8,15.5,'escalera'),
-        (8,22,8,25,'tucuarto'),(28,18,28,21,'musica'),(4.5,0,7,0,None),(9,0,11.5,0,None),(17.3,0,19.7,0,None),(25.5,0,28,0,None),(29.5,0,32,0,None)],
+        (8,22,8,25,'tucuarto'),(28,18,28,21,'musica'),(2.5,30,5,30,None),(9,30,11,30,None),(25,30,27,30,None),(30.5,30,33,30,None),(4.5,0,7,0,None),(9,0,11.5,0,None),(17.3,0,19.7,0,None),(25.5,0,28,0,None),(29.5,0,32,0,None)],
   rail=(12,14,12,16), cols=True,
   mesas=[('merida',8,5.2,2.1,0),('haciendas',28.5,5.2,1.9,0),('backgammon',32,24.5,.7,0)],
   deco=[('caja','ropero',.3,23.4,.8,3.4,3.0),('caja','cama',3.4,26.2,3.6,3.5,1.0),('caja','radio',34.4,14,1.2,1.6,1.6)]),

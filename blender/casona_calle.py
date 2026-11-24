@@ -187,7 +187,7 @@ def atardecer(sc):
     o = bpy.data.objects.new('px_casona', me); o.visible_camera = False; S.objects.link(o)
     sol = bpy.data.lights.new('sol', 'SUN'); sol.energy = 2.6; sol.color = (1, .8, .56); sol.angle = math.radians(5)
     so = bpy.data.objects.new('sol', sol); S.objects.link(so)
-    d = Vector((1, -.6, .35)).normalized()      # CIELO.dia en three: del poniente (-X), bajo
+    d = Vector(P.C.SOL).normalized()            # CIELO.dia en three: del poniente (-X), bajo (casona.py SOL)
     so.rotation_euler = Vector((d.x, -d.z, d.y)).to_track_quat('-Z', 'Y').to_euler()
     w = sc.world or bpy.data.worlds.new('cielo'); sc.world = w
     try: w.use_nodes = True

@@ -272,6 +272,7 @@ if __name__ == '__main__':
     elif acc == 'hornear':
         res = int(arg[1]) if len(arg) > 1 else K['RES']; mu = int(arg[2]) if len(arg) > 2 else K['SAMPLES']
         P.uv_luz(obs); img = P.hornear(sc, obs, res, mu); P.guardar(img); P.exportar(col)
+        if 'sin_noche' not in arg: P.hornear_noche(sc, obs, res, mu)
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(DIR, 'blender', 'casona_az.blend'))
     elif acc == 'exportar':
         P.exportar(col)
