@@ -10,7 +10,11 @@ if(typeof THREE==='undefined')return;
 // gestos encima de AV.GE (radianes desde AgarreFrente; medidos con la mano sobre el paño, el zapato y su carta):
 // apo/apd las manos juntas apoyadas en la orilla, detrás de la charola (codos parejos; resueltas midiendo manos y codos), zap la izquierda sobre el zapato, rep la derecha lanza al frente, vol la derecha sobre su carta, gir le gira la muñeca
 const GES={apo:{I:[-.16,.06,-.6,-1.84]},apd:{D:[.45,-.18,.56,1.5]},zap:{I:[-1.5,1,-.4,-.4],D:[-.7,.5,0,0]},rep:{D:[-1.1,-1,.6,0],I:[-.35,0,0,0]},vol:{D:[-.1,.9,-.1,0]},gir:{D:[0,0,0,-1.6]}};
-const fab=(cfg={})=>{const COD=cfg.cod||'s1p2c2b1n1a1d1-1268',LUGAR=cfg.lugar||[0,.47];   // código AV del de Blackjack: camisa vino y pantalón oscuro
+// atuendo de crupier (a4 de chibi.glb): camisa blanca, chaleco vino con botones dorados, moño y pantalón negros; viste() pone el blanco y el negro
+// (la paleta de Mi personaje no los tiene; el chaleco, los botones y el moño traen su color en el GLB)
+const ROPA={av_arriba:'#f2efe8',av_abajo:'#1c1b1e'};
+function viste(q){const u=q.userData.av;if(u)for(const k in ROPA)if(u.mat[k])u.mat[k].color.set(ROPA[k])}
+const fab=(cfg={})=>{const COD=cfg.cod||'s1p2c2b1n1a4d1-12',LUGAR=cfg.lugar||[0,.47];   // código AV del de Blackjack
 const G0={cy:0,cx:.2,gy:0,col:0,apo:1,apd:1,zap:0,rep:0,vol:0,gir:0,mano:0},PJ=new THREE.Vector3();
 let mesa=null,p=null,LZ=[],POS=[0,-.3],ZAP=[.76,.2],cola=[],act=null,mir=null,prev=null,cb=null,g={...G0},giro=0,tA=0,suelto=true;
 const ang=t=>Math.atan2(t[0]-POS[0],t[1]-POS[1]);   // + hacia su izquierda (+x)
@@ -19,7 +23,7 @@ const dest=i=>i<0||!mesa?LUGAR:mesa.D.casillas[i];
 // sin luces propias: cada luz extra se cobra en todos los materiales del sótano; la lámpara de la mesa ya alumbra al crupier
 function luces(G,D){return;const y=D.tarima||0;[[0xffe6c4,3,2.6,[0,y+2.2,POS[1]+1.1]],[0xffd9a8,2.2,1.6,[0,y+1.9,POS[1]-.65]]].forEach(([c,i,d,q])=>{const l=new THREE.PointLight(c,i,d,1.5);l.position.set(...q);G.add(l);LZ.push(l)})}
 function pon(m){quita();mesa=m;if(!window.AV||!m)return;const D=m.D;POS=D.crupier||POS;ZAP=D.zapato||ZAP;luces(m.G,D);
- AV.crear(COD).then(q=>{if(!q||mesa!==m)return q&&AV.quita(q);p=q;for(const k in GES)AV.GE[k]=GES[k];
+ AV.crear(COD).then(q=>{if(!q||mesa!==m)return q&&AV.quita(q);p=q;viste(q);for(const k in GES)AV.GE[k]=GES[k];
   q.position.set(POS[0],D.tarima||0,POS[1]);q.traverse(o=>{if(o.isMesh)o.castShadow=true});m.G.add(q);AV.pose(q,'AgarreFrente',0);AV.agarre(q,'I',.25);AV.agarre(q,'D',.25)}).catch(()=>{})}
 function quita(){LZ.splice(0).forEach(l=>l.parent&&l.parent.remove(l));if(p){if(p.parent)p.parent.remove(p);AV.quita(p)}p=null;mesa=null;cola=[];act=null;g={...G0};giro=0}
 function mete(o){o.en=o.at||performance.now();if(cola.length<40)cola.push(o)}
@@ -47,5 +51,5 @@ function paso(){if(!p)return;const t=performance.now(),dt=Math.min(.1,(t-(tA||t)
 function mano(){const b=p&&p.getObjectByName('mano_D');return b?b.getWorldPosition(PJ):null}
 return {pon,quita,estado,paso,reparte,voltea,mira,mano,al:fn=>{cb=fn},LUGAR,get p(){return p}}};
 window.BJC=fab();BJC.nueva=fab;
-window.PKC=fab({cod:'s2p4c2b1n2a2d2-0378',rep:230,lugar:[0,.04]});   // el del Póker: blusa crema y pantalón oscuro (c_poker3d.js lo mueve)
+window.PKC=fab({cod:'s2p4c2b1n2a4d1-03',rep:230,lugar:[0,.04]});   // la del Póker: mismo atuendo (c_poker3d.js la mueve)
 })();

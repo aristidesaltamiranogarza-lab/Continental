@@ -114,10 +114,10 @@ function build(e){const H=window.CASA3D,{S,hits,HT,W,XL}=e,TH=e.TH||1.5;if(!H||!
 function mesas(e){const H=window.CASA3D,{S,hits}=e,TH=e.TH||1.5,HT=e.HT||3.9,{std,ctex}=H,OB=[],C3=window.CAS3,hit=g=>({t:'fn',g,f:()=>pronto(g)});
  const at=(p,lx,lz)=>{const c=Math.cos(p.ry||0),s=Math.sin(p.ry||0);return {x:p.x+lx*c+lz*s,z:p.z-lx*s+lz*c}};
  if(C3&&e.poker){const p=e.poker,pk=C3.poker({S,hits,std,ctex,TH,x:p.x,z:p.z,ry:p.ry||0,hit:hit('poker'),cuero:'#5a1a1a'});M.poker=pk;if(window.PKC)PKC.pon(pk);OB.push(...pk.OB);P.poker={x:p.x,y:TH+2.1,z:p.z};
-  // dos campanas sobre el póker y una sobre el blackjack (una luz cada mesa; en calidad Media se apagan, los focos siguen)
+  // dos campanas sobre el póker y una sobre el blackjack, al centro del paño y no sobre la cabeza del crupier (una luz cada mesa; en calidad Media se apagan, los focos siguen)
   [-.8,.8].forEach(lx=>{const q=at(p,lx,0);C3.campana(S,std,q.x,2.85,q.z,HT)});C3.luz(S,p.x,2.6,p.z,11,7)}
  if(C3&&e.blackjack){const p=e.blackjack,bj=C3.blackjack({S,hits,std,ctex,TH,x:p.x,z:p.z,ry:p.ry||0,hit:hit('blackjack'),cuero:'#5a1a1a'});M.blackjack=bj;if(window.BJC)BJC.pon(bj);OB.push(...bj.OB);
-  const q=at(p,0,.55),l=at(p,0,.4);P.blackjack={x:q.x,y:TH+2.1,z:q.z};C3.campana(S,std,l.x,2.85,l.z,HT,1.15);C3.luz(S,l.x,2.6,l.z,10,6.5)}
+  const q=at(p,0,.55),l=at(p,0,.9);P.blackjack={x:q.x,y:TH+2.1,z:q.z};C3.campana(S,std,l.x,2.85,l.z,HT,1.15);C3.luz(S,l.x,2.6,l.z,10,6.5)}
  if(window.BIL&&e.billar){const p=e.billar,b=BIL.build({S,hits,std,ctex,x:p.x,z:p.z,ry:p.ry||0,top:HT,hit:hit('billar')});M.billar=b;OB.push(...b.OB);P.billar={x:p.x,y:TH+1.7,z:p.z};
   if(e.taquera){const t=e.taquera,q=at(t,0,.34);BIL.taquera({S,std,x:t.x,z:t.z,ry:t.ry||0});OB.push({x:q.x,z:q.z,r:.5})}
   if(e.marcador){const m=e.marcador;BIL.marcador({S,std,x:m.x,y:m.y,z:m.z,ry:m.ry||0})}}

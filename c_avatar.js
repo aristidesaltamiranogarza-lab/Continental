@@ -4,13 +4,13 @@
 // Código: s cuerpo (1 H, 2 M), p pelo 1–7, c cejas, b boca, n nariz, a arriba, d abajo (1–3); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb?v=8',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=9',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],
  ropa:['#c8643c','#d9a441','#7d8a4a','#8fae8b','#2f6f73','#2e3f5c','#7a2f3a','#efe3cf','#3a3634','#d9a3a0']
 };
-const LET='spcbnad',MAX={s:2,p:7,c:3,b:3,n:3,a:3,d:3};
+const LET='spcbnad',MAX={s:2,p:7,c:3,b:3,n:3,a:4,d:3};   // a4 = atuendo de crupier (camisa, chaleco vino y moño; solo para los crupieres, Mi personaje ofrece 1–3)
 const DEF={s:1,p:1,c:1,b:1,n:1,a:1,d:1,col:[1,1,0,5]};
 const NCOL=[PAL.pelo.length,PAL.piel.length,PAL.ropa.length,PAL.ropa.length];
 const RANURA=['av_pelo','av_piel','av_arriba','av_abajo'];

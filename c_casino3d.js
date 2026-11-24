@@ -53,6 +53,16 @@ function silla(std,cuero){const G=new THREE.Group();if(!window.LOTE)return G;con
  for(let i=0;i<3;i++)for(let j=0;j<2;j++)LT.bola(.018,1,1,.5,'#3a0e0e',-.18+i*.18,1.22+j*.25,-.285+j*.016,0);
  const m=LT.mesh(std(0xffffff,.55));m.castShadow=true;m.receiveShadow=true;G.add(m);return G}
 
+// tarima del crupier: el chibi no alcanza la mesa desde el piso; plataforma de madera con canto redondeado, alfombra vino,
+// filo de latón y un escalón atrás (por donde sube). z = centro; ancho w (x) y fondo d (z); el frente (+z) queda bajo la orilla de la mesa.
+const rr=(w,d,r)=>{const s=new THREE.Shape(),a=w/2,b=d/2;s.moveTo(-a+r,-b);s.lineTo(a-r,-b);s.quadraticCurveTo(a,-b,a,-b+r);s.lineTo(a,b-r);s.quadraticCurveTo(a,b,a-r,b);
+ s.lineTo(-a+r,b);s.quadraticCurveTo(-a,b,-a,b-r);s.lineTo(-a,-b+r);s.quadraticCurveTo(-a,-b,-a+r,-b);return s};
+function tarima(G,std,z,w,d){const h=.38,mad=std(0x2a1a10,.55),lat=std(0xb08a3e,.35,{metalness:.7});
+ const caja=(w,d,h,y,zz,m)=>{const g=new THREE.ExtrudeGeometry(rr(w,d,.1),{depth:h-.024,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:2,curveSegments:5});
+  g.rotateX(-PI/2);g.translate(0,y+.012,zz);return malla(G,g,m,0,0,0)};
+ caja(w,d,h,0,z,mad);caja(w*.5,.34,h/2,0,z-d/2-.15,mad);   // estrado y escalón
+ const filo=rr(w-.03,d-.03,.09);filo.holes.push(rr(w-.1,d-.1,.06));const fg=new THREE.ShapeGeometry(filo,5);fg.rotateX(-PI/2);malla(G,fg,lat,0,h+.001,z,false);
+ const al=new THREE.ShapeGeometry(rr(w-.1,d-.1,.06),5);al.rotateX(-PI/2);malla(G,al,std(0x5a1622,.95),0,h+.002,z,false)}
 // ---------- lámpara colgante: campana de esmalte verde con su foco (la luz la pone quien la usa) ----------
 function campana(G,std,x,y,z,top,s){s=s||1;const pr=[[.3,0],[.29,.03],[.24,.1],[.16,.17],[.09,.22],[.05,.26],[.04,.3]].map(p=>new V2(p[0]*s,p[1]*s)),sg=new THREE.LatheGeometry(pr,28);
  const sh=new THREE.Mesh(sg,std(0x1d3a2a,.35,{metalness:.45}));sh.position.set(x,y,z);G.add(sh);
@@ -106,13 +116,12 @@ function blackjack(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.
   g.fillStyle='#e9c46a';g.textAlign='center';g.font='800 30px Georgia,serif';g.fillText('BLACKJACK',w/2,50);g.fillStyle='#f1ead6';g.font='700 26px Arial,sans-serif';g.fillText('Mín $10 · Máx $500',w/2,102)});
  const pl=new THREE.Group();pl.position.set(-1.68,TH,.04);pl.rotation.y=.5;G.add(pl);malla(pl,new THREE.BoxGeometry(.24,.02,.06),blk,0,.01,0);
  const pp=malla(pl,new THREE.PlaneGeometry(.24,.14),new THREE.MeshBasicMaterial({map:lt}),0,.09,.0,false);pp.rotation.x=-.25;
- // tarima del crupier (detrás de la orilla recta; el personaje chibi no alcanza la mesa desde el piso)
- malla(G,new THREE.BoxGeometry(1.4,.38,.8),std(0x2a1a10,.7),0,.19,-.43);
+ tarima(G,std,-.6,2.3,1.14);   // estrado detrás de la orilla recta
  if(hit)G.traverse(o=>{if(o.isMesh){o.userData.hit=hit;hits.push(o)}});
  // 7 lugares frente a sus casillas
  const lugares=[],sillas=[];for(let i=0;i<BJN;i++){const q=bjAng(i),x=Math.cos(q)*BJRS,z=-CZ+Math.sin(q)*BJRS,c=silla(std,e.cuero);
   c.position.set(x,0,z);c.rotation.y=Math.atan2(-x,-(z+CZ));G.add(c);sillas.push(c);const w=mundo(G,x,z);lugares.push({x:w.x,z:w.z,ry:c.rotation.y+(e.ry||0)})}
- const OB=[[0,.6,1.2],[-1.45,.2,.75],[1.45,.2,.75]].map(([x,z,r])=>{const w=mundo(G,x,z);return {x:w.x,z:w.z,r}}).concat(lugares.map(l=>({x:l.x,z:l.z,r:.42})));
+ const OB=[[0,.6,1.2],[-1.45,.2,.75],[1.45,.2,.75],[-.65,-.75,.6],[.65,-.75,.6]].map(([x,z,r])=>{const w=mundo(G,x,z);return {x:w.x,z:w.z,r}}).concat(lugares.map(l=>({x:l.x,z:l.z,r:.42})));
  return {G,lugares,sillas,OB,D:{TH,CZ,RB,crupier:[0,-.3],tarima:.38,zapato:[.76,.2],casillas:[...Array(BJN)].map((_,i)=>{const q=bjAng(i);return [Math.cos(q)*BJRC,-CZ+Math.sin(q)*BJRC]}),ang:bjAng,CZ,RC:BJRC}}}
 
 // ---------- Póker ----------
@@ -141,7 +150,7 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
  charola(G,std,ctex,0,TH+.026,-.51,.7,.12,['blanca','roja','roja','verde','negra','morada']);
  const rv=std(0xffffff,.6,{map:texReverso(ctex)}),bl=std(0xf4f1ea,.6);
  malla(G,new THREE.BoxGeometry(.1,.035,.14),[bl,bl,rv,bl,bl,bl],.5,TH+.018,-.5).rotation.y=.2;
- malla(G,new THREE.BoxGeometry(1.4,.38,.8),std(0x2a1a10,.7),0,.19,-1.38);   // tarima del crupier (como la del Blackjack)
+ tarima(G,std,-1.55,2.3,1.14);   // estrado del crupier (como el del Blackjack)
  const bt=ctex('boton-dealer',128,128,(g,w,h)=>{g.fillStyle='#f6f3ea';g.fillRect(0,0,w,h);g.fillStyle='#1a1a1a';g.font='900 26px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('DEALER',w/2,h/2)});
  const bd=enOvalo(.48,3/9),boton=malla(G,new THREE.CylinderGeometry(.06,.06,.016,24),[bl,std(0xffffff,.5,{map:bt}),bl],bd.x,TH+.008,bd.z);
  // lugares: 9 a lo largo del óvalo (el 0 es el crupier, sin silla); portavasos en la pista
@@ -151,7 +160,7 @@ function poker(e){const {S,hits,std,ctex}=e,TH=e.TH||1.5,G=grupo(S,e),hit=e.hit;
   if(LT){const q=enOvalo(.705,k/9+.022);LT.geo(new THREE.TorusGeometry(.045,.009,6,18).rotateX(PI/2),'#c8ccd0',q.x,TH+.03,q.z);LT.geo(new THREE.CircleGeometry(.04,16).rotateX(-PI/2),'#141414',q.x,TH+.028,q.z)}}
  if(LT)G.add(LT.mesh(std(0xffffff,.3,{metalness:.6})));
  if(hit)G.traverse(o=>{if(o.isMesh&&o.parent===G){o.userData.hit=hit;hits.push(o)}});
- const OB=[-.95,0,.95].map(x=>{const w=mundo(G,x,0);return {x:w.x,z:w.z,r:.97}}).concat([-.4,.4].map(x=>{const w=mundo(G,x,-1.45);return {x:w.x,z:w.z,r:.45}}),lugares.map(l=>({x:l.x,z:l.z,r:.42})));
+ const OB=[-.95,0,.95].map(x=>{const w=mundo(G,x,0);return {x:w.x,z:w.z,r:.97}}).concat([-.65,0,.65].map(x=>{const w=mundo(G,x,-1.6);return {x:w.x,z:w.z,r:.6}}),lugares.map(l=>({x:l.x,z:l.z,r:.42})));
  return {G,lugares,sillas,OB,D:{TH,PA,PB,crupier:[0,-1.25],tarima:.38,zapato:[.5,-.5],casillas:[...Array(8)].map((_,s)=>{const p=enOvalo(.47,(s+1)/9);return [p.x,p.z]}),boton,enOvalo}}}   // boton y enOvalo: PK3 mueve el botón de dealer
 
 window.CAS3={blackjack,poker,silla,campana,luz};
