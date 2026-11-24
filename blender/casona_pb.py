@@ -28,7 +28,7 @@ COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), c
              cenefa=(.55, .38, .3), mosaico=(.7, .62, .52), corredor=(.75, .6, .45), laja=(.64, .61, .55), pasto=(.3, .45, .22),
              cuarto=(.8, .77, .7), techo=(.8, .74, .62), madera=(.3, .18, .1), bejuco=(.75, .6, .38), porton=(.32, .2, .12),
              persiana=(.18, .36, .26), hierro=(.05, .05, .05), tapete=(.5, .2, .15), hamaca=(.7, .35, .3), tronco=(.35, .25, .18),
-             copa=(.24, .4, .18), barro=(.6, .32, .2), escalon=(.62, .36, .24), calle=(.35, .35, .37), banqueta=(.62, .6, .56),
+             copa=(.24, .4, .18), barro=(.6, .32, .2), escalon=(.34, .1, .07), calle=(.35, .35, .37), banqueta=(.62, .6, .56),
              barda=(.78, .7, .58), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08))
 EMITE = dict(arbotante=6, farol=8)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)

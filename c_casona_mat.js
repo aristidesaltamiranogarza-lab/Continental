@@ -92,7 +92,7 @@ function texturas(ctex){if(TX)return TX;
   porton:{map:T('porton',128,128,porton,1/1.4)},tapete:{map:T('tapete',512,512,tapete,1)},hamaca:{map:T('hamaca',256,16,hamaca,1/1.4,1)},
   copa:{map:T('copa',128,128,copa,1/1.5)},tronco:{map:T('tronco',64,64,madera('#a08976','rgba(70,50,35,.35)'),1/.8)},
   duela:{map:T('duela',256,256,duela,1/1.2)},libros:{map:T('libros',256,64,libros,1/1.6,1/.4)},
-  lambrin:{color:0x618c79},rod:{color:0xede7d7},techo:{color:0xe7dfce},barro:{color:0xcb997c},escalon:{color:0xcea286},
+  lambrin:{color:0x618c79},rod:{color:0xede7d7},techo:{color:0xe7dfce},barro:{color:0xcb997c},escalon:{color:0x8e3a28},
   piedra:{map:T('piedra',512,512,piedra,1/2.2)},tapiz_vino:{map:T('tapiz-vino',256,256,dam('#8a2f3a','rgba(255,210,150,.05)','rgba(230,180,100,.22)'),1/1.1)},
   tapiz_verde:{map:T('tapiz-verde',256,256,dam('#3d6e55','rgba(255,240,200,.05)','rgba(230,200,130,.26)'),1/1.1)},alfombra:{map:T('alfombra',256,256,alfombra,1/1.6)},
   ladrillo:{map:T('ladrillo',256,256,ladrillo,1/1.4)},losa_s:{map:T('losa-s',256,256,laja,1/2.6)},cemento:{map:T('cemento',128,128,ruido('#8d8a85','rgba(50,48,45,.12)','rgba(220,215,205,.1)',160,2,6),1/2)},
