@@ -225,6 +225,9 @@ def muebles():
     for xx in (1.4, 3.7, 6.0): caja(CA, xx - .15, xx + .15, 0, .55, 29.1, 29.7)
     ex('az_banca', segs=T(1.5, 29.4) + T(5.9, 29.4), r=.45)
 
+def deco():   # guirnalda, plantas, calentador solar, gas, lavadero, rejas y antena (blender/casona_az_deco.py)
+    exec(open(os.path.join(DIR, 'blender', 'casona_az_deco.py'), encoding='utf-8').read(), globals()); decorar()
+
 def marcas():
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n2' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
@@ -250,7 +253,7 @@ def armar():
     abajo()                           # primero: usa los nombres de arquería, columnas y patio antes que lo de arriba
     P.muros()
     for d in P.B.values(): d['mat'] = REMAP.get(d['mat'], d['mat'])
-    pretiles(); barandal(); pisos(); escalera(); cubo(); pergola(); tinacos(); tendedero(); muebles(); marcas(); lamparas()
+    pretiles(); barandal(); pisos(); escalera(); cubo(); pergola(); tinacos(); tendedero(); muebles(); deco(); marcas(); lamparas()
     col = P.coleccion('az'); obs = P.crear(col); P.luces(sc)
     print('az: %d mallas, %d con luz, %d empties' % (len([o for o in col.objects if o.type == 'MESH']), len(obs), len(P.EMP)))
     return sc, col, obs

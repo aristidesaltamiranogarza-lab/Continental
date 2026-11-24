@@ -95,6 +95,7 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
   - [ ] 6) revisar lajas al pozo
   - [ ] 7) balcón trasero
   - [ ] 8) iluminación (abajo; sol de CIELO)
+  - [x] 10) azotea con más decoración (blender/casona_az_deco.py): guirnalda de focos en la pérgola, macetas de sábila/cactus/helecho, calentador solar, tanques de gas, lavadero con cubeta y escoba, rejas de refresco y antena
   - [ ] 9) cualquier cambio nuevo que dé el usuario
 - Iluminación "pro" (decidido 24 nov: el sol de CIELO, poniente y bajo, (1,-.6,.35)): hoy hay DOS soles — horneado pb/pa/sm/az usa three (.5,-.62,-.6) (casona_pb.py luces()), CIELO.dia y calle usan (1,-.6,.35). Recomendado: quedarse con el de CIELO (poniente, bajo). Plan: 1) un solo sol/luna definido en casona.py, leído por todos los scripts y exportado en el GLB para CIELO; 2) mapa de luz de día y de noche por nivel (se carga el que toca; arregla azotea y fachada de noche); 3) lámparas = luz + pieza que brilla, horneadas; 4) sondas de luz: rejilla horneada que tiñe a los personajes según dónde están; sombra en tiempo real solo del personaje, alineada al sol.
 - Mesas al aire libre (p. ej. la 1): MESA (c_mesa3d.js) siempre pone lámpara colgante con cable al infinito. Usar el dato `libre` de N['mesas'] para quitar el colgante afuera y poner en Blender guirnalda de focos entre postes o farol de pie, horneados.
