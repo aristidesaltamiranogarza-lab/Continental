@@ -8,7 +8,7 @@
 #   blender -b --factory-startup --python blender/casona_calle.py -- vista [carpeta]
 #   blender -b --factory-startup --python blender/casona_calle.py -- hornear [res] [muestras]
 #   después: node glb_cuantizar.js modelos/casona/calle.glb --sin-uv0=fachada,hierro --sin-luz=hierro   (1.5 MB -> ~300 KB)
-#   blender --factory-startup --python blender/casona_calle.py -- ver   (ventana que se rearma sola al guardar este archivo)
+#   en vivo: blender --factory-startup --python blender/ver.py -- calle
 import bpy, bmesh, math, os, sys, types, random
 from mathutils import Vector, Matrix
 
@@ -64,6 +64,7 @@ def cf(bm, xa, xb, ya, yb, d0, d1, back=False):
     om = ([2] if ya <= .001 else []) + ([5 if DZ < 0 else 4] if back or d0 == 0 else [])   # sin la cara pegada al muro
     caja_o(bm, xa, xb, ya, yb, z0, z1, om)
 
+def ex_obs(n, x, z, r): P.ex(n, obs=P.T(x, z) + [r])   # choque redondo (MARC lo lee como los de pb)
 def FA(): return bmn('calle_fachadas', 'fachada', recalc=False)
 def HI(): return bmn('calle_herreria', 'hierro', recalc=False, luz=False)   # CMAT pinta el hierro sin luz horneada
 
@@ -127,10 +128,12 @@ def enfrente():
         casa(x0, x1, H, PAL[c], -15.6, 1, hu); x = x1
     if XA < -22: casa(XA, -22, 6.0, PAL['rosa'], -15.6, 1, [('v', -23.5)])
 
-def laurel(cx=-12, cz=-.8):
-    """Laurel de la India: tronco encalado abajo, copa de grupos de hojas cargada hacia la calle (alto ~12, ancho ~12)."""
+def laurel(cx=-12, cz=-1.3):
+    """Laurel de la India: tronco encalado abajo, copa de grupos de hojas cargada hacia la calle (alto ~12, ancho ~12).
+    Ramas y copa baja lejos de la fachada (z<0); la copa alta pasa por encima del pretil."""
     TR, CP, fa = bmn('calle_laurel_tronco', 'tronco', recalc=False), bmn('calle_laurel_copa', 'copa', recalc=False, prio=.6), FA()
-    ox, oz = cx, cz - 2.2; top = (cx + .1, 5.4, cz - .7)
+    ox, oz = cx, cz - 3.0; top = (cx + .1, 5.4, cz - .8)
+    ex_obs('calle_laurel_tronco', cx, cz, .75)
     pieza(TR, None, P.tubo, (cx, 0, cz), top, .55, .42, 10)
     pieza(fa, PAL['cal'], P.tubo, (cx, 0, cz), (cx + .02, 1.4, cz - .02), .585, .565, 10)
     blobs = [(0, 0, 10.3, 3.0)] + [(math.cos(a) * 3.4, math.sin(a) * 3.4, 8.7 + .4 * (k % 2), 2.6)
@@ -143,6 +146,7 @@ def laurel(cx=-12, cz=-.8):
 def postes():
     fa, hi = FA(), HI(); PX, Y = (-18, 12), 7.9
     for px in PX:
+        ex_obs('calle_fachadas', px, -1.3, .35)
         pieza(fa, PAL['poste'], P.tubo, (px, 0, -1.3), (px, 8.4, -1.3), .17, .12, 8)
         pieza(hi, None, caja_o, px - .06, px + .06, Y - .15, Y, -2.2, -.4)
         pieza(fa, PAL['poste'], caja_o, px - .04, px + .04, 6.9, 6.98, -2.9, -1.3)    # brazo del farol hacia la calle
@@ -224,38 +228,10 @@ def vistas(sc, carpeta):
     P.vista(sc, os.path.join(carpeta, 'calle_enfrente.png'), (16, 2.4, -1.2), (8, 3.6, -16))
     P.vista(sc, os.path.join(carpeta, 'calle_todo.png'), (9, 20, 4), (9, 0, -14))
 
-def ver():
-    """Ventana de Blender con el tramo armado que se rearma sola al guardar este archivo (para ver los cambios en vivo)."""
-    import time, traceback
-    from mathutils import Euler
-    ruta = os.path.join(DIR, 'blender', 'casona_calle.py'); est = dict(t=0.0, primera=True)
-    def vista_3d():
-        for w in bpy.context.window_manager.windows:
-            for a in w.screen.areas:
-                if a.type != 'VIEW_3D': continue
-                s = a.spaces.active; s.shading.type = 'MATERIAL'; s.shading.use_scene_world = s.shading.use_scene_lights = True
-                r = s.region_3d; r.view_location = V(8, 2, -10); r.view_distance = 60
-                r.view_rotation = Euler((math.radians(62), 0, 0)).to_quaternion()
-    def revisar():
-        try: t = os.path.getmtime(ruta)
-        except OSError: return 1.0
-        if t != est['t']:
-            est['t'] = t
-            try:
-                g = dict(__name__='recarga', __file__=ruta); exec(open(ruta, encoding='utf-8').read(), g); g['armar']()
-                for o in bpy.data.collections['horneado'].objects: o.hide_viewport = o.type == 'MESH'
-                bpy.data.orphans_purge(do_recursive=True)
-                if est['primera']: vista_3d(); est['primera'] = False
-                print('rearmado', time.strftime('%H:%M:%S'))
-            except Exception: traceback.print_exc()
-        return 1.0
-    bpy.app.timers.register(revisar, first_interval=.5, persistent=True)
-
 if __name__ == '__main__':
     arg = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     acc = arg[0] if arg else 'vista'
-    if acc == 'ver': ver()   # sin SystemExit: cerraría la ventana
-    else: sc, col, obs = armar()
+    sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))
     elif acc == 'hornear':

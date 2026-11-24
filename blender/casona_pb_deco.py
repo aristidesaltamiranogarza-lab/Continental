@@ -72,7 +72,13 @@ def servicio():
     tubo(HI, (35.25, 3.4, 29.0), (35.25, K['H'], 29.0), .07, .07, 8); tubo(HI, (35.7, 2.0, 29.0), (35.85, 2.0, 29.0), .04, .04, 8)
     tubo(TQ, (35.2, 0, 30.5), (35.2, 1.8, 30.5), .4, .4, 16); tubo(TQ, (35.2, 1.8, 30.5), (35.2, 2.05, 30.5), .4, .14, 16)
     tubo(HI, (35.2, 2.05, 30.5), (35.2, 2.2, 30.5), .06, .06, 8)
-    viga(MA, (28.45, 0, 33.55), (28.32, 2.7, 33.2), .035); caja(CS, 28.25, 28.7, 0, .5, 33.35, 33.8)
+    # trapeador recargado: palo y fleco de tiras que se abren en el piso (antes un costal cuadrado en la base parecía su cabeza)
+    viga(MA, (28.45, .32, 33.55), (28.32, 2.7, 33.2), .035)
+    tubo(CS, (28.45, .26, 33.55), (28.45, .36, 33.55), .07, .06, 8)
+    bmesh.ops.create_icosphere(CS, subdivisions=2, radius=.15, matrix=Matrix.Translation(V(28.45, .2, 33.55)) @ Matrix.Diagonal((1, 1, .8, 1)))
+    for k in range(16):
+        an = k * 2 * math.pi / 16; rr = .2 + .05 * (k % 3)
+        viga(CS, (28.45 + math.cos(an) * .06, .26, 33.55 + math.sin(an) * .06), (28.45 + math.cos(an) * rr, .02, 33.55 + math.sin(an) * rr), .045, .015)
     tubo(CB, (29.4, 0, 33.3), (29.4, .55, 33.3), .25, .3, 14)
     ex('pb_serv_loza', obs=T(35.25, 29.0) + [.65] + T(35.2, 30.5) + [.55])
     ex('pb_serv_cubeta', obs=T(29.4, 33.3) + [.45])
@@ -102,6 +108,11 @@ def bano():
     caja(MA, 4.6, 5.8, 2.0, 3.3, 21.72, 21.78); caja(ES, 4.72, 5.68, 2.12, 3.18, 21.7, 21.72)
     # toallero junto a la puerta
     tubo(HI, (7.76, 2.6, 20.8), (7.76, 2.6, 21.6), .03, .03, 8); caja(TO, 7.66, 7.74, 1.75, 2.62, 20.85, 21.55)
+    # puerta entreabierta hacia adentro (vano z 18.5..20.5 en el muro x=8), bisagra en la jamba del norte
+    a = math.radians(70); ux, uz = -math.sin(a), math.cos(a); hx, hz, R = 7.72, 18.7, 1.62
+    hoja_puerta(bmn('pb_bano_puerta', 'porton'), hx, hz, ux, uz, R, K['PUERTA'] - .03, g=.07, ab=.02)
+    tubo(HI, (hx + ux * (R - .15) - uz * .04, 1.5, hz + uz * (R - .15) + ux * .04), (hx + ux * (R - .15) - uz * .1, 1.5, hz + uz * (R - .15) + ux * .1), .03, .03, 8)
+    ex('pb_bano_puerta', segs=T(hx, hz) + T(hx + ux * R, hz + uz * R), r=.1)
     ex('pb_bano_loza', obs=T(4.0, 17.9) + [.6] + T(5.2, 21.3) + [.55])
     ex('pb_bano_azulejo', segs=T(2.57, 17.3) + T(2.57, 21.7), r=.15)
 
@@ -123,15 +134,22 @@ def traspatio2():
     obs = []
     for x in (19, 21, 23, 25, 27, 29):          # macetas en la barda del fondo
         tubo(BA, (x, 0, 47.1), (x, .75, 47.1), .34, .46, 12); tubo(TI, (x, .7, 47.1), (x, .72, 47.1), .42, .42, 12)
-        tubo(CP, (x, .72, 47.1), (x, 1.5 + (x % 4) * .1, 47.1), .5, .18, 8); obs += T(x, 47.1) + [.55]
+        if x % 4 == 1: hojas(AG, x, .7, 47.1, 8, .9, .15, .55, .05, giro=x)                 # agave
+        else:                                                                                   # mata redonda
+            for dx, dz, dy, r in ((0, 0, 1.15, .42), (.26, -.1, .95, .32), (-.25, .08, .97, .3)):
+                bmesh.ops.create_icosphere(CP, subdivisions=2, radius=r, matrix=Matrix.Translation(V(x + dx, dy, 47.1 + dz)) @ Matrix.Diagonal((1, 1, .82, 1)))
+        obs += T(x, 47.1) + [.55]
     for x, z, al in ((2.4, 36.8, 2.8), (33.6, 45.6, 3.1), (34.9, 43.4, 2.5)):   # plátanos
         tubo(TR, (x, 0, z), (x, al, z), .2, .14, 8); hojas(HO, x, al - .1, z, 6, 1.9, .34, .55, .9, giro=x); obs += T(x, z) + [.45]
     # arriate de hortalizas con su borde de cantera y matitas
     x0, x1, z0, z1 = 22, 29, 39, 42.4
     for a, b, c, d in ((x0, x1, z0, z0 + .22), (x0, x1, z1 - .22, z1), (x0, x0 + .22, z0, z1), (x1 - .22, x1, z0, z1)): caja(CA, a, b, 0, .45, c, d)
     caja(TI, x0 + .22, x1 - .22, 0, .4, z0 + .22, z1 - .22)
-    for i in range(9):
-        for j in range(3): xx, zz = x0 + .75 + i * .69, z0 + .75 + j * .95; tubo(HO, (xx, .4, zz), (xx, .75 + ((i + j) % 3) * .1, zz), .22, .06, 6)
+    for i in range(7):                       # hortalizas: lechugas (bolas bajas) y una hilera de cebollines (hojas que suben)
+        for j in range(3):
+            xx, zz = x0 + .85 + i * .88, z0 + .75 + j * .95
+            if j == 1: hojas(HO, xx, .4, zz, 6, .32, .05, .38, -.06, giro=i)
+            else: bmesh.ops.create_icosphere(HO, subdivisions=2, radius=.26, matrix=Matrix.Translation(V(xx, .52, zz)) @ Matrix.Diagonal((1, 1, .6, 1)))
     segs = T(x0 + .5, (z0 + z1) / 2) + T(x1 - .5, (z0 + z1) / 2)
     # sendero de laja del corredor al pozo
     for k in range(7):

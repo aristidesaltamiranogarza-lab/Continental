@@ -82,6 +82,14 @@ Al empezar una sesión: "Sigue CASONA.md, paso N". Leer este archivo, **siempre 
   - [ ] Corte en todos los cuartos; luego borrar la casa vieja.
 - [x] Casona entera desde fuera (22 nov): `c_casona_fuera.js` (CFUE) pone copias de pb/pa/az a su altura con la cámara fuera (arriba solo con tu Mii fuera), franjas de losa con cornisa entre niveles y sin letreros de mesas con tu Mii fuera.
 
+## Paquete Blender en curso (24 nov) — UN solo horneado al final
+Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (`blender --factory-startup --python blender/ver.py -- pb|pa|sm|az|calle`) y hornear una vez al final, avisando antes (todos los niveles ~35–40 min).
+- Hecho en scripts, SIN hornear (pb.glb y calle.glb aún son los viejos): portón del zaguán a la altura completa del arco con tableros (porton/hoja_puerta en casona_pb.py); puerta entreabierta del baño; trapeador con fleco (sin costal-cubo); traspatio sin conos (matas, agaves, lechugas, cebollines); laurel de la calle separado de la fachada, choques del tronco y postes.
+- Falta (orden sugerido): 1) escaleras de todos los pisos (abajo); 2) pérgola: escalón bajo y borde; 3) sótano: mesas/sillas de Póker y Blackjack, barricas a los lados; 4) salón del Catan: sillas de escala fija, mecedoras fuera, quitar repisas con "barras"; 5) jardinera: esquinas que parpadean; 6) revisar lajas al pozo; 7) balcón trasero; 8) iluminación (abajo); 9) cualquier cambio nuevo que dé el usuario.
+- Iluminación "pro" (propuesta, falta que el usuario confirme el sol): hoy hay DOS soles — horneado pb/pa/sm/az usa three (.5,-.62,-.6) (casona_pb.py luces()), CIELO.dia y calle usan (1,-.6,.35). Recomendado: quedarse con el de CIELO (poniente, bajo). Plan: 1) un solo sol/luna definido en casona.py, leído por todos los scripts y exportado en el GLB para CIELO; 2) mapa de luz de día y de noche por nivel (se carga el que toca; arregla azotea y fachada de noche); 3) lámparas = luz + pieza que brilla, horneadas; 4) sondas de luz: rejilla horneada que tiñe a los personajes según dónde están; sombra en tiempo real solo del personaje, alineada al sol.
+- Mesas al aire libre (p. ej. la 1): MESA (c_mesa3d.js) siempre pone lámpara colgante con cable al infinito. Usar el dato `libre` de N['mesas'] para quitar el colgante afuera y poner en Blender guirnalda de focos entre postes o farol de pie, horneados.
+- Después del horneado: CCALLE carga calle.glb (material `fachada` con vertexColors) y probar glb_cuantizar.js también en pb/pa/sm/az (1.7 MB c/u).
+
 ## Pendientes (pedidos por el usuario, 22 nov)
 - [ ] Escalera: se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
 - [ ] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.

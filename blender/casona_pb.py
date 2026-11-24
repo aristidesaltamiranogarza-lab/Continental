@@ -328,16 +328,44 @@ def frente():
     for zz in (3.2, 4.4, 6.2): tubo(bmn('pb_jarron', 'barro'), (35.5, 1.28, zz), (35.5, 1.68, zz), .12, .16, 10)
     segs += T(35.5, 2.3) + T(35.5, 7.7)
     ex('pb_muebles', obs=obs, segs=segs, r=.45)
-    # portón del zaguán, abierto hacia adentro
-    PO = bmn('pb_porton', 'porton'); a = math.radians(74); ps = []
-    for hx, sg in ((17.1, 1), (19.9, -1)):
-        dx, dz = sg * math.cos(a), math.sin(a); lw = 1.4
-        bloque(PO, (hx + dx * lw / 2, 1.5, .2 + dz * lw / 2), (dx * lw / 2, 0, dz * lw / 2), (0, 1.5, 0), (-dz * .05, 0, dx * .05))
-        ps += T(hx, .2) + T(hx + dx * lw, .2 + dz * lw)
-    ex('pb_porton', segs=ps, r=.2)
+    porton()
     # tapetes redondos bajo las mesas de la crujía del frente
     for g, mx, mz, r, libre in N['mesas']:
         if g in ('continental', 'monopolydeal'): disco('pb_tapete_' + g, 'tapete', mx, mz, 3.1, .012, 48, uvr=True)
+
+def hoja_puerta(bm, hx, hz, ux, uz, R, alto, s=None, g=.1, ab=0.0):
+    """Hoja de puerta de madera con tableros en las dos caras. Bisagra en (hx, hz); (ux, uz): hacia dónde va la hoja (unitario);
+    R: ancho; alto: altura del canto de la bisagra; s: si se da, el remate es un cuarto de arco que sube de s (bisagra) a alto
+    (centro del arco), como el vano del zaguán. ab: altura desde el piso."""
+    nx, nz = -uz, ux; n = 12 if s is not None else 1
+    def y_top(w): return alto if s is None else s + math.sqrt(max(R * R - (R - w) ** 2, 0))
+    ws = [R * k / n for k in range(n + 1)] if s is not None else [0, R]
+    perfil = [(0, ab), (R, ab)] + [(w, y_top(w)) for w in reversed(ws)]
+    for lado in (-1, 1):
+        cara = [bm.verts.new(V(hx + ux * w + nx * g / 2 * lado, y, hz + uz * w + nz * g / 2 * lado)) for w, y in perfil]
+        if lado < 0: A = cara
+        else: Bq = cara
+    m = len(perfil); bm.faces.new(A); bm.faces.new(Bq[::-1])
+    for i in range(m): j = (i + 1) % m; bm.faces.new([A[i], A[j], Bq[j], Bq[i]])
+    # tableros: dos por hoja (abajo, arriba), salen 3 cm de cada cara
+    sup = (s if s is not None else alto) - .35
+    for y0, y1 in ((ab + .35, ab + 1.35), (ab + 1.65, sup)):
+        if y1 - y0 < .3: continue
+        for lado in (-1, 1):
+            c = (hx + ux * R / 2 + nx * (g / 2 + .015) * lado, (y0 + y1) / 2, hz + uz * R / 2 + nz * (g / 2 + .015) * lado)
+            bloque(bm, c, (ux * (R / 2 - .18), 0, uz * (R / 2 - .18)), (0, (y1 - y0) / 2, 0), (nx * .015, 0, nz * .015))
+
+def porton():
+    """Portón del zaguán: dos hojas con el remate en arco hasta la clave (altura completa del vano), abiertas hacia adentro
+    a 90°, recargadas junto a las jambas, con tableros y aldaba."""
+    PO, HI = bmn('pb_porton', 'porton'), bmn('pb_porton_hierro', 'hierro', luz=False)
+    u0, u1 = 17.1, 19.9; f = .16; c = (u0 + u1) / 2; R = (u1 - u0) / 2 - f; s = ARCOS['zaguan'] - (u1 - u0) / 2
+    hz = K['t'] / 2 + .02; ps = []
+    for hx, sg in ((u0 + f + .05, 1), (u1 - f - .05, -1)):
+        hoja_puerta(PO, hx, hz, 0, 1, R, ARCOS['zaguan'] - .02, s=s, ab=.02)
+        tubo(HI, (hx + sg * .05, 1.3, hz + R - .25), (hx + sg * .12, 1.3, hz + R - .25), .05, .05, 8)   # aldaba, cara hacia el zaguán
+        ps += T(hx, hz) + T(hx, hz + R)
+    ex('pb_porton', segs=ps, r=.15)
 
 def traspatio():
     arbol('mamey', 6, 41, 2.6, 3.4, 4, prio=.5)
