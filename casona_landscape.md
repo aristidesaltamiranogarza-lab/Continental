@@ -73,4 +73,4 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 - Comparar antes/después con marcadores de cámara.
 
 ## Pendiente
-- Lámina A-02 "Barrio" con el mismo estilo de plano que el anteproyecto (https://claude.ai/artifact/PX1g934RWSsWF4VdTB7Doa): manzana, plaza con kiosco, símbolos de árboles por especie, anillos de distancia de dibujo por nivel y corte calle–plaza. Parque actual en c_casa_campo.js (cx=-55, cz=-35).
+- Hecho (24 nov) borrador: lámina A-02 + tablero de estilo y paleta en https://claude.ai/artifact/3gFhpi5TLmU1Kj51oteuWR (andador a la plaza, plaza 40×36 con iglesia, Calle 57, baldío: por decidir). Original: lámina A-02 "Barrio" con el mismo estilo de plano que el anteproyecto (https://claude.ai/artifact/PX1g934RWSsWF4VdTB7Doa): manzana, plaza con kiosco, símbolos de árboles por especie, anillos de distancia de dibujo por nivel y corte calle–plaza. Parque actual en c_casa_campo.js (cx=-55, cz=-35).
