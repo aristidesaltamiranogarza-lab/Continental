@@ -135,17 +135,10 @@ def pisos():
         x1, z1 = x + w, z + d
         if n == 'pergola': quad('az_piso_corredor', 'corredor', x, z, x1, z1)
         elif n == 'escalera':
-            hx, hz, hw, hd = 1, C.ESC['baja'][0], C.ESC['x0'] - 1, C.ESC['baja'][1] - C.ESC['baja'][0]
-            for a, b, c, e in ((x, z, x1, hz), (x, hz + hd, x1, z1), (x, hz, hx, hz + hd), (hx + hw, hz, x1, hz + hd)): quad('az_piso_cuarto', 'cuarto', a, b, c, e)
+            P.quad_hueco('az_piso_cuarto', 'cuarto', x, z, x1, z1)
         else: quad('az_piso_ladrillo', 'ladrillo', x, z, x1, z1)
 
-def escalera():
-    esc, E0 = C.K['esc'], C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; b0, b1 = E0['baja']
-    E = bmn('az_escalera_baja', 'escalon')
-    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, -3, -esc * (s + 1), b0, b1)
-    caja(E, 1, x0 - pa * ne, -3.1, -3, b0, b1)
-    ex('az_escalera_baja', escalera='baja')
-    vacio('escalera_baja_n2', x0 - .4, 0, (b0 + b1) / 2, r=1.0, to='n1', pie=[.7, 0])
+def escalera(): P.escalera_u('az', 'n2', 'muro')   # escalera en U (blender/casona_esc.py)
 
 def cubo():
     """Tapa del cubo de la escalera: cuelga del muro del frente (z=10) para que el corte la esconda con él al entrar."""

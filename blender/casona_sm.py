@@ -83,14 +83,9 @@ def pisos():
 
 def techos():
     for x, z, w, d, k, tin, n in N['areas']:
-        if k is None: quad('sm_techo', 'techo', x, z, x + w, z + d, H - .02, arriba=False, prio=.3)
+        if k is None: (P.quad_hueco if n == 'escalera' else quad)('sm_techo', 'techo', x, z, x + w, z + d, H - .02, arriba=False, prio=.3)
 
-def escalera():
-    esc, E0 = C.K['esc'], C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; s0, s1 = E0['sube']
-    E = bmn('sm_escalera_sube', 'escalon')
-    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, 0, esc * (s + 1), s0, s1)
-    ex('sm_escalera_sube', escalera='sube')
-    vacio('escalera_sube_nm1', x0 - .4, 0, (s0 + s1) / 2, r=1.0, to='n0', pie=[.7, 0])
+def escalera(): P.escalera_u('sm', 'nm1', 'piedra')   # escalera en U (blender/casona_esc.py)
 
 # ---------- muebles ----------
 def banco(MA, CU, x, z, alto=.9):

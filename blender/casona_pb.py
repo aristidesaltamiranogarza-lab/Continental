@@ -394,25 +394,15 @@ def pisos():
         elif n == 'calle':
             quad('pb_piso_banqueta', 'banqueta', x, -1.6, x1, 0, prio=.5); quad('pb_piso_calle', 'calle', x, z, x1, -1.6, prio=.35)
         elif n == 'escalera':
-            hx, hz, hw, hd = 1, C.ESC['baja'][0], C.ESC['x0'] - 1, C.ESC['baja'][1] - C.ESC['baja'][0]
-            for a, b, c, e in ((x, z, x1, hz), (x, hz + hd, x1, z1), (x, hz, hx, hz + hd), (hx + hw, hz, x1, hz + hd)): quad('pb_piso_cuarto', 'cuarto', a, b, c, e)
+            quad_hueco('pb_piso_cuarto', 'cuarto', x, z, x1, z1)
         else: quad('pb_piso_cuarto', 'cuarto', x, z, x1, z1)
 
 def techos():
     for x, z, w, d, k, tin, n in N['areas']:
-        if k is None or (k == 'open' and n.startswith('corredor')): quad('pb_techo', 'techo', x, z, x + w, z + d, K['H'] - .02, arriba=False, prio=.3)
+        if k is None or (k == 'open' and n.startswith('corredor')):
+            (quad_hueco if n == 'escalera' and N['sube'] else quad)('pb_techo', 'techo', x, z, x + w, z + d, K['H'] - .02, arriba=False, prio=.3)
 
-def escalera():
-    esc, E0 = C.K['esc'], C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; (s0, s1), (b0, b1) = E0['sube'], E0['baja']
-    E = bmn('pb_escalera_sube', 'escalon')
-    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, 0, esc * (s + 1), s0, s1)
-    ex('pb_escalera_sube', escalera='sube')
-    vacio('escalera_sube_n0', x0 - .4, 0, (s0 + s1) / 2, r=1.0, to='n1', pie=[.7, 0])
-    E = bmn('pb_escalera_baja', 'escalon')
-    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, -3, -esc * (s + 1), b0, b1)
-    caja(E, 1, x0 - pa * ne, -3.1, -3, b0, b1)
-    ex('pb_escalera_baja', escalera='baja')
-    vacio('escalera_baja_n0', x0 - .4, 0, (b0 + b1) / 2, r=1.0, to='nm1', pie=[.7, 0])
+def escalera(): escalera_u('pb', 'n0')   # escalera en U (blender/casona_esc.py)
 
 def marcas():
     for g in N['gaps']:
@@ -528,6 +518,8 @@ def motor(sc):
 
 def deco():   # paso 9: cocina, despensa, servicio y baño (blender/casona_pb_deco.py, con los ayudantes de este archivo)
     exec(open(os.path.join(DIR, 'blender', 'casona_pb_deco.py'), encoding='utf-8').read(), globals()); decorar()
+
+exec(open(os.path.join(DIR, 'blender', 'casona_esc.py'), encoding='utf-8').read(), globals())   # escalera_u, quad_hueco
 
 def armar():
     for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)

@@ -117,21 +117,10 @@ def pisos():
         elif n == 'antesala': quad('pa_piso_mosaico', 'mosaico', x, z, x1, z1)
         elif n.startswith('corredor'): quad('pa_piso_corredor', 'corredor', x, z, x1, z1)
         elif n == 'escalera':
-            hx, hz, hw, hd = 1, C.ESC['baja'][0], C.ESC['x0'] - 1, C.ESC['baja'][1] - C.ESC['baja'][0]
-            for a, b, c, e in ((x, z, x1, hz), (x, hz + hd, x1, z1), (x, hz, hx, hz + hd), (hx + hw, hz, x1, hz + hd)): quad('pa_piso_cuarto', 'cuarto', a, b, c, e)
+            P.quad_hueco('pa_piso_cuarto', 'cuarto', x, z, x1, z1)
         else: quad('pa_piso_cuarto', 'cuarto', x, z, x1, z1)
 
-def escalera():
-    esc, E0 = C.K['esc'], C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; (s0, s1), (b0, b1) = E0['sube'], E0['baja']
-    E = bmn('pa_escalera_sube', 'escalon')
-    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, 0, esc * (s + 1), s0, s1)
-    ex('pa_escalera_sube', escalera='sube')
-    vacio('escalera_sube_n1', x0 - .4, 0, (s0 + s1) / 2, r=1.0, to='n2', pie=[.7, 0])
-    E = bmn('pa_escalera_baja', 'escalon')
-    for s in range(ne): xa = x0 - pa * (s + 1); caja(E, xa, xa + pa, -3, -esc * (s + 1), b0, b1)
-    caja(E, 1, x0 - pa * ne, -3.1, -3, b0, b1)
-    ex('pa_escalera_baja', escalera='baja')
-    vacio('escalera_baja_n1', x0 - .4, 0, (b0 + b1) / 2, r=1.0, to='n0', pie=[.7, 0])
+def escalera(): P.escalera_u('pa', 'n1')   # escalera en U (blender/casona_esc.py)
 
 def librero(e, L, u0, u1, lado, alto=3.2, fondo=.6):
     """Librero contra el muro (eje e, línea L) de u0 a u1; lado +1/-1 = hacia dónde mira. Filas de 0.4 (la textura de libros repite igual)."""
