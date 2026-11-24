@@ -8,7 +8,7 @@
 # Exporta modelos/casona/pb.glb y pb_luz.webp (c_casona_mat.js los arma). Sin tocar el archivo abierto:
 #   blender -b --factory-startup --python blender/casona_pb.py -- vista [carpeta]      (renders de revisión, sin hornear)
 #   blender -b --factory-startup --python blender/casona_pb.py -- hornear [res] [muestras]
-import bpy, bmesh, math, os, sys, types
+import bpy, bmesh, math, os, random, sys, types
 from mathutils import Vector, Matrix
 
 def _raiz():   # carpeta del repo: junto a este archivo, o la carpeta actual (blender.exe se corre desde el repo)
@@ -248,17 +248,75 @@ def columnas():
         obs += T(cx, cz) + [.45]
     ex('pb_columnas', obs=obs)
 
+# ---------- árboles de ramas con nubes de hojas (los usan el patio, el traspatio y blender/barrio_kit.py) ----------
+def nube(bm, x, y, z, r, sub=2, sy=.5, sem=0):
+    """Nube de hojas: ancha y baja, abajo casi plana y arriba esponjada (bultos suaves, no esfera)."""
+    n0 = len(bm.verts)
+    bmesh.ops.create_icosphere(bm, subdivisions=sub, radius=r, matrix=Matrix.Translation(V(x, y, z)) @ Matrix.Diagonal((1, 1, sy, 1)))
+    bm.verts.ensure_lookup_table()
+    R = random.Random(sem); c = V(x, y, z); piso = c.z - r * sy * .5; f = [R.uniform(0, 6.28) for _ in range(3)]
+    for v in bm.verts[n0:]:
+        d = v.co - c; a = math.atan2(d.y, d.x)
+        v.co += d * (.07 * math.sin(3 * a + f[0]) + .05 * math.sin(5 * a + f[1]) + .04 * math.cos(2 * a + f[2]))
+        if v.co.z < piso: v.co.z = piso + (v.co.z - piso) * .3
+
+def _pon(bm, fn, *a, suave=False):
+    n0 = len(bm.faces); fn(bm, *a); bm.faces.ensure_lookup_table()
+    for f in bm.faces[n0:]: f.smooth = suave
+
+def rama(TR, A, Bp, r0, r1, cv=.0, n=6, pon=_pon):
+    """Rama en dos tramos con una curva suave hacia arriba (cv)."""
+    m = ((A[0] + Bp[0]) / 2, (A[1] + Bp[1]) / 2 + cv, (A[2] + Bp[2]) / 2); rm = (r0 + r1) / 2
+    pon(TR, tubo, A, m, r0, rm, n); pon(TR, tubo, m, Bp, rm, r1, n)
+
+def arbol_ramas(R, TR, cps, cx, cz, s, y0, H, fork, ramas, alto, largo, rn, sub=2, sy=.5, lean=(0, 0), tope=True, tocon=True, rtr=.5,
+                lado=.5, pon=_pon):
+    """Tronco que a fork·s se abre en ramas; en la punta de cada una un grupo de 1-3 nubes planas, con cielo entre grupos.
+    cps: [(malla, peso)] para escoger la malla de cada nube; alto/largo/rn: rangos (min, max) en unidades de s; lado: probabilidad de
+    ramita lateral con nube más baja. Regresa las nubes [(x, y, z, r)] (para colgarles fruta)."""
+    lx, lz = lean[0] * 1.6 * s, lean[1] * 1.6 * s; ns = []
+    K = (cx + lx * .25 + R.uniform(-.25, .25) * s, y0 + fork * .5 * s, cz + lz * .25 + R.uniform(-.25, .25) * s)
+    F = (cx + lx * .6, y0 + fork * s, cz + lz * .6)
+    d = (Vector(K) - Vector((cx, y0, cz))).normalized() * rtr * .6 * s; K2 = tuple(Vector(K) + d)     # el primer tramo pasa la junta: sin grieta
+    pon(TR, tubo, (cx, y0, cz), K2, rtr * s, rtr * .84 * s, 9); K0 = tuple(Vector(K) - (Vector(F) - Vector(K)).normalized() * rtr * .6 * s); pon(TR, tubo, K0, F, rtr * .88 * s, rtr * .7 * s, 9)
+    if tocon:     # muñón seco abajo, como rama cortada
+        a = R.uniform(0, 6.28); h = y0 + fork * R.uniform(.45, .7) * s
+        pon(TR, tubo, (cx + lx * .4, h, cz + lz * .4), (cx + lx * .4 + math.cos(a) * 1.3 * s * rtr / .55, h + .7 * s * rtr / .55, cz + lz * .4 + math.sin(a) * 1.3 * s * rtr / .55), .26 * rtr * s, .1 * rtr * s, 5)
+    a0 = R.uniform(0, 6.28); pesos = sum(p for _, p in cps)
+    def malla():
+        t = R.uniform(0, pesos)
+        for m, p in cps:
+            t -= p
+            if t <= 0: return m
+        return cps[-1][0]
+    def una(x, y, z, r):
+        pon(malla(), nube, x, y, z, r, sub, sy, R.randrange(1 << 30), suave=True); ns.append((x, y, z, r))
+    def grupo(x, y, z, r):
+        una(x, y, z, r)
+        for _ in range(R.choice((1, 2, 2))):
+            b = R.uniform(0, 6.28); d = r * R.uniform(.55, .8)
+            una(x + math.cos(b) * d, y + r * sy * R.uniform(.2, .6), z + math.sin(b) * d, r * R.uniform(.55, .75))
+    for k in range(ramas):
+        a = a0 + k * 2 * math.pi / ramas + R.uniform(-.35, .35); L = R.uniform(*largo) * s; y = y0 + R.uniform(*alto) * s
+        T = (F[0] + lx * .5 + math.cos(a) * L, y, F[2] + lz * .5 + math.sin(a) * L)
+        rama(TR, F, T, rtr * .55 * s, rtr * .18 * s, .6 * s * rtr / .55, pon=pon)
+        r = R.uniform(*rn) * s; grupo(T[0], T[1] + r * sy * .3, T[2], r)
+        if R.random() < lado:     # ramita lateral con una nube más baja (pisos de hojas)
+            u = R.uniform(.35, .55); M0 = (F[0] + (T[0] - F[0]) * u, F[1] + (T[1] - F[1]) * u, F[2] + (T[2] - F[2]) * u)
+            b = a + R.choice((-1, 1)) * R.uniform(.7, 1.1); l2 = L * R.uniform(.45, .6)
+            T2 = (M0[0] + math.cos(b) * l2, M0[1] + R.uniform(.2, 1.0) * s * rtr / .55, M0[2] + math.sin(b) * l2)
+            rama(TR, M0, T2, .25 * rtr * s, .11 * rtr * s, .3 * s * rtr / .55, pon=pon); r2 = r * R.uniform(.55, .7)
+            una(T2[0], T2[1] + r2 * sy * .3, T2[2], r2)
+    if tope:      # remate arriba del tronco, corrido para que no quede simétrico
+        b = R.uniform(0, 6.28); d = R.uniform(.6, 1.4) * s * rtr / .55; T = (F[0] + lx + math.cos(b) * d, y0 + H * s, F[2] + lz + math.sin(b) * d)
+        rama(TR, F, T, rtr * .5 * s, rtr * .18 * s, .2 * s, pon=pon); grupo(T[0], T[1], T[2], R.uniform(*rn) * s * .9)
+    return ns
+
 def arbol(nom, cx, cz, R, alto, n=5, prio=1.0):
-    TR = bmn('pb_' + nom + '_tronco', 'tronco'); top = (cx + .15, alto, cz - .1)
-    tubo(TR, (cx, 0, cz), top, .44, .3, 10)
-    for k in range(n):
-        a = k * 2 * math.pi / n + .4; rr = R * .55
-        tubo(TR, top, (cx + math.cos(a) * rr, alto + 1.5 + .35 * (k % 2), cz + math.sin(a) * rr), .2, .08, 7)
-    CP = bmn('pb_' + nom + '_copa', 'copa', prio=prio)
-    blobs = [(0, 0, alto + 2.5, R * .56)] + [(math.cos(a) * R * .56, math.sin(a) * R * .56, alto + 1.9 + .4 * (k % 2), R * .47)
-                                            for k, a in enumerate(i * 2 * math.pi / 7 + .2 for i in range(7))]
-    for dx, dz, y, r in blobs:
-        bmesh.ops.create_icosphere(CP, subdivisions=2, radius=r, matrix=Matrix.Translation(V(cx + dx, y, cz + dz)) @ Matrix.Diagonal((1, 1, .5, 1)))
+    """Árbol de patio: tronco que a 'alto' se abre en n ramas con nubes de hojas planas; la copa cabe en ~R (no toca los corredores)."""
+    TR = bmn('pb_' + nom + '_tronco', 'tronco'); CP = bmn('pb_' + nom + '_copa', 'copa', prio=prio)
+    arbol_ramas(random.Random(int(cx * 7 + cz * 3)), TR, [(CP, 1)], cx, cz, 1.0, 0, alto + 2.9, alto, n,
+                (alto + 1.3, alto + 2.4), (R * .3, R * .45), (R * .35, R * .43), 2, .58, rtr=.44)
 
 def patio():
     x, z, R = ARBOL
