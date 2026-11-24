@@ -33,7 +33,7 @@ function leer(root){root.updateMatrixWorld(true);
   else if((m=n.match(/^accion_(.+)_[^_]+$/))){const p=pos(o);R.acciones.push({k:m[1],x:p.x,y:p.y,z:p.z,r:+(u.r||1)})}});   // paso 9: espejo, radio (se tocan)
  // cada línea: eje y centro del cuerpo del muro (el que choca), largo de todo lo que cuelga de ella
  R.lineas=Object.values(lin).map(g=>{const b=g.cu||g.u,h=b.max.x-b.min.x>b.max.z-b.min.z;
-  return {h,c:h?(b.min.z+b.max.z)/2:(b.min.x+b.max.x)/2,a:h?g.u.min.x:g.u.min.z,b:h?g.u.max.x:g.u.max.z,t:h?b.max.z-b.min.z:b.max.x-b.min.x,y0:b.min.y,ms:g.ms}});
+  return {h,c:h?(b.min.z+b.max.z)/2:(b.min.x+b.max.x)/2,a:h?g.u.min.x:g.u.min.z,b:h?g.u.max.x:g.u.max.z,t:h?b.max.z-b.min.z:b.max.x-b.min.x,y0:b.min.y,y1:g.u.max.y,ms:g.ms}});
  // lo que cuelga de un muro sin ser muro (extra pega=[x,z], un punto del muro): se esconde con su línea
  peg.forEach(o=>{const [x,z]=o.userData.pega,l=R.lineas.find(l=>Math.abs(l.c-(l.h?z:x))<.5&&(l.h?x:z)>=l.a&&(l.h?x:z)<=l.b);if(l)l.ms.push(o)});
  if(!cj.isEmpty())R.caja=[cj.min.x,cj.max.x,cj.min.z,cj.max.z];

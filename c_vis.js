@@ -1,7 +1,7 @@
 // c_vis.js — VIS: gestor único de visibilidad (CASONA.md V2). Todo lo que esconde cosas de la casa pasa por aquí con un motivo,
 // así se sabe quién lo hizo. Un objeto se dibuja solo si su visible propio es true y no tiene ningún motivo duro activo.
 // Motivos: cuarto (CUA), piso (corte por nivel), tapa (lo que tapa al Mii: CPB.corte, MARC.corte; luego el tramado),
-// copa (CMAT: el dueño desvanece, VIS solo lo anota) y fuera (solo diagnóstico). copa y fuera no esconden.
+// copa (CMAT: el dueño desvanece, VIS solo lo anota), trama (TRAMA: el dueño trama el material) y fuera (solo diagnóstico). copa, trama y fuera no esconden.
 // VIS.ocultar(o,m) / VIS.mostrar(o,m) / VIS.poner(o,m,bool) / VIS.motivos(o) / VIS.propio(o) (visible sin motivos).
 // ?vis: nada se esconde por motivo; se tiñe (rojo cuarto, azul piso, verde copa, amarillo tapa, gris fuera) y F6 lista en consola qué y por qué;
 // F7 (o VIS.limites()) busca límites viejos. VIS.grandes(raíz): lo grande sin prueba de cámara (V3).
@@ -9,8 +9,8 @@
 (function(){
 if(typeof THREE==='undefined')return;
 const DIAG=new URLSearchParams(location.search).has('vis');
-const SUAVE={copa:1,fuera:1},ORDEN=['tapa','piso','cuarto','copa','fuera'];
-const COL={cuarto:0xe0413a,piso:0x3a6be0,copa:0x3ac25a,tapa:0xf0c63a,fuera:0x8a8a8a};
+const SUAVE={copa:1,fuera:1,trama:1},ORDEN=['tapa','trama','piso','cuarto','copa','fuera'];
+const COL={cuarto:0xe0413a,piso:0x3a6be0,copa:0x3ac25a,tapa:0xf0c63a,trama:0xf0a03a,fuera:0x8a8a8a};
 const ST=new WeakMap(),CON=new Set(),ORIG=new WeakMap(),MAT={};
 const duro=s=>{for(const m of s.m)if(!SUAVE[m])return true;return false};
 function reg(o){let s=ST.get(o);if(s)return s;s={v:o.visible,m:new Set()};ST.set(o,s);
