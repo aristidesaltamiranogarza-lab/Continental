@@ -17,7 +17,7 @@ function paso(N,cam){if(!N||!cam)return;const y=cam.position.y,n=performance.now
  if(a!==N.arriba){N.arriba=a;N.t=n;if(!N.mt)clonar(N);if(!a)N.T.forEach(o=>window.VIS?VIS.mostrar(o,'piso'):o.visible=true)}
  const meta=N.arriba?0:1;if(N.f===meta)return;
  const k=Math.min(1,(n-N.t)/A.dur);N.f=N.arriba?1-k:k;opac(N,N.f);
- if(N.f===0)N.T.forEach(o=>window.VIS?VIS.ocultar(o,'piso'):o.visible=false)}
+ if(N.arriba&&N.f===0)N.T.forEach(o=>window.VIS?VIS.ocultar(o,'piso'):o.visible=false)}   // solo al subir: al bajar el primer cuadro también da f 0 y lo volvía a esconder (R7)
 // tapa oscura en el pie de cada muro cortado (la crea al primer corte)
 let MT=null;
 function tapa(l){if(l.tapa!==undefined)return l.tapa;const m0=l.ms[0];let S=m0;while(S&&S.parent)S=S.parent;if(!S||l.t==null){l.tapa=null;return null}
