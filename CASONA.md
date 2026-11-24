@@ -149,7 +149,7 @@ Arte y horneado (Blender, otra PC; avisar antes):
 - [ ] **R2. Luz de noche en traspatio y azotea**: muy oscuros. Agregar fuentes de luz como decoración (faroles, arbotantes, guirnaldas, focos en muros) en Blender y que entren en el horneado de noche.
 - [ ] **R3. Hueco entre niveles**: el canto entre pisos se veía transparente y se tapó con un anillo de código. Resolverlo en la geometría de Blender (losas y entrepisos cerrados) y quitar el anillo.
 - [ ] **R4. Horneado pixeleado**: en muchas zonas la luz horneada sigue saliendo en bloques (dinteles, cantos de muros, rincones). Revisar resolución por objeto/texel, márgenes, desenvuelto UV1 y filtrado; problema recurrente, buscar la causa de fondo.
-- [ ] **R5. Esquinas encimadas**: en las esquinas los muros/zoclos/lambrines se traslapan y se ve una franja rara y más oscura. Cortar las piezas para que se toquen sin encimarse.
+- [ ] **R5. Esquinas encimadas**: en las esquinas los muros/zoclos/lambrines se traslapan y se ve una franja rara y más oscura. Cortar las piezas para que se toquen sin encimarse. — 24 nov: en las esquinas en L el lambrín del 'h' salía 2 cm y el del 'v' se metía 2 cm (tira clara en las esquinas de la fachada); ahora se tocan al ras en casona_pb.py (muros(), también PA y SM) y en juntas() del juego. Listo para hornear: casona_pb.py, casona_pa.py, casona_sm.py (R5). La raya oscura de las esquinas de adentro es del horneado (R4).
 - [ ] **R6. Muros del sótano**: no gusta la textura de sillares del pasillo y la ruleta; proponer otra.
 
 Juego:

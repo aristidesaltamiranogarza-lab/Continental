@@ -167,10 +167,13 @@ def muros():
         segs = []
         for c, a, b in sub:
             u0, u1 = a / 10, b / 10; k0 = fin(e, l, i0) if a == i0 else 0; k1 = fin(e, l, i1) if b == i1 else 0
-            e0 = ext(k0, e, h, -h + .02) if a == i0 else 0; e1 = ext(k1, e, h, -h + .02) if b == i1 else 0
+            mm = lambda k: -h if k == 'L' else -h + .02   # en L el 'v' llega a la cara del 'h' (si se mete, su cara de afuera queda en el plano de la tapa del 'h')
+            e0 = ext(k0, e, h, mm(k0)) if a == i0 else 0; e1 = ext(k1, e, h, mm(k1)) if b == i1 else 0
             if c == 'f':
                 caja_l(M, e, L, u0 - e0, u1 + e1, 0, H - dv(e), -h, h); segs += LT(e, L, u0) + LT(e, L, u1)
-                z0, z1 = (ext(k0, e, h + .05, -h - .01) if a == i0 else 0), (ext(k1, e, h + .05, -h - .01) if b == i1 else 0)
+                # lambrín: en una esquina (L) los dos se tocan al ras (antes el 'h' salía 2 cm y el 'v' se metía 2 cm: franja oscura, R5); en una T el que llega se mete 2 cm
+                lm = lambda k: -h - .03 if k == 'L' else -h - .01
+                z0, z1 = (ext(k0, e, h + .03, lm(k0)) if a == i0 else 0), (ext(k1, e, h + .03, lm(k1)) if b == i1 else 0)
                 r0, r1 = (ext(k0, e, h + .05, -h - .05) if a == i0 else 0), (ext(k1, e, h + .05, -h - .05) if b == i1 else 0)
                 caja_l(LA, e, L, u0 - z0, u1 + z1, 0, K['LAM'] - dv(e) / 2, -h - .03, h + .03)
                 caja_l(RO, e, L, u0 - r0, u1 + r1, K['LAM'] - dv(e) / 2, K['LAM'] + K['ROD'] - dv(e) / 2, -h - .05, h + .05)

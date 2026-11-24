@@ -55,7 +55,8 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
 // las tapas quedan espalda con espalda, no se ven); en una esquina el tramo 'h' cubre el cuadro de la esquina tal cual y el 'v' llega solo hasta la cara del 'h'
 // (así su cara de afuera ya no está bajo la tapa del 'h'). Medidas de casona_pb.py.
 const HM=.15,PISO_FUERA=/_piso_(pasto|calle|banqueta|laja)$/;
-const EXT={'':HM,lam:HM+.05,rod:HM+.05},T_EXT={'':-HM,lam:-(HM+.01),rod:-(HM+.05)},E_EXT={h:EXT,v:T_EXT};
+// R5: en una esquina el lambrín del 'h' llega a la cara del lambrín del 'v' (antes salía 2 cm y su tapa horneada hacía una franja oscura) y el del 'v' a la del 'h'
+const EXT={'':HM,lam:HM+.03,rod:HM+.05},T_EXT={'':-HM,lam:-(HM+.01),rod:-(HM+.05)},L_EXT={'':-HM,lam:-(HM+.03),rod:-(HM+.05)},E_EXT={h:EXT,v:L_EXT};
 function juntas(R){const W=[];
  R.traverse(o=>{if(!o.isMesh)return;const m=/_muro_(b?)([hv])\d+_\d+(?:_(lam|rod))?$/.exec(o.name);
   if(m){const bb=new THREE.Box3().setFromBufferAttribute(o.geometry.attributes.position),e=m[2],A=e==='h'?'x':'z',Cc=e==='h'?'z':'x';
