@@ -4,6 +4,7 @@
 # regresa hacia +x sobre el hueco y llega al piso de arriba en x0. Contrahuella = alto entre niveles / (2 n).
 # Cada nivel dibuja lo que sube (tramos, descanso, barandales, borde del hueco del techo) y lo que baja (tramo 2 y descanso del nivel
 # de abajo dentro de un cubo cerrado bajo el hueco, con su barandal) para que el hueco nunca muestre el vacío.
+# Por el hueco del techo se ve el cubo de la escalera del nivel de arriba (_arriba): la escalera lleva a algún lado.
 
 def esc_hueco():
     """Hueco del piso (y del techo del nivel de abajo): x0, z0, x1, z1 (de cara a cara de muro)."""
@@ -30,6 +31,50 @@ def _barandal(HI, PM, a, b, z, hb):
 def _poste(PM, x, y, z, hb):
     caja(PM, x - .07, x + .07, y, y + hb + .1, z - .07, z + .07)
 
+def _tramos(S, y, r, ne, pa, x0, xl, w, za, s1, b0, zb):
+    """Tramo 1 macizo, descanso y tramo 2 de losa escalonada, del piso y al de arriba (y + r)."""
+    h = r / (2 * ne); m = ne * h
+    for s in range(ne):
+        xa = x0 - pa * (s + 1); caja(S, xa, xa + pa, y, y + h * (s + 1), za, s1)
+    caja(S, w, xl, y, y + m, za, s1); caja(S, w, xl, y + m - .3, y + m, s1, zb)
+    for s in range(ne):
+        xa = xl + pa * s; caja(S, xa, xa + pa, y + m + h * s - .3, y + m + h * (s + 1), b0, zb)
+    return h, m
+
+def _arriba(pre, nid, r, muro):
+    """Lo que se ve por el hueco del techo (antes: vacío): el cubo de la escalera del nivel de arriba con su piso, muros,
+    puerta a un pasillo corto con arbotante encendido, techo, el tramo que sigue subiendo y su barandal. Todo queda arriba
+    de la losa (y >= r): NIVC lo esconde con el techo; CFUE lo esconde (*_arriba*) cuando dibuja el nivel de arriba."""
+    E0 = C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; xl = x0 - pa * ne
+    w = C.K['t'] / 2; za, s1, b0, zb = 10 + w, E0['sube'][1], E0['baja'][0], 17 - w
+    nx = C.ORDEN[C.ORDEN.index(nid) + 1]; nv = C.NIV[nx]; H = nv['H']; PU = C.K['puerta']; x1 = 8 - w; y = r
+    g = next((q for q in nv['gaps'] if q[4] == 'escalera' and q[0] == q[2] == 8), (8, 11.5, 8, 15.5, 'escalera')); gz0, gz1 = g[1], g[3]
+    M = bmn(pre + '_escalera_arriba', muro, prio=.4); PI = bmn(pre + '_escalera_arriba_piso', 'corredor', prio=.4)
+    TE = bmn(pre + '_escalera_arriba_techo', 'techo', prio=.3)
+    plano(PI, [(w, za), (x1, za), (x1, b0), (w, b0)], y); plano(PI, [(x0, b0), (x1, b0), (x1, zb), (x0, zb)], y)
+    caja(M, w - .05, w, y, y + H, za - .05, zb + .05); caja(M, w, x1, y, y + H, za - .05, za); caja(M, w, x1, y, y + H, zb, zb + .05)
+    caja(M, x1, x1 + .05, y, y + H, za, gz0); caja(M, x1, x1 + .05, y, y + H, gz1, zb); caja(M, x1, x1 + .05, y + PU, y + H, gz0, gz1)
+    # pasillo corto tras la puerta: piso, fondo, lados y techo; arbotante en el fondo
+    xf = x1 + 2.4; plano(PI, [(x1, gz0), (xf, gz0), (xf, gz1), (x1, gz1)], y)
+    caja(M, xf, xf + .05, y, y + PU + .4, gz0 - .05, gz1 + .05); caja(M, x1 + .05, xf, y, y + PU + .4, gz0 - .05, gz0); caja(M, x1 + .05, xf, y, y + PU + .4, gz1, gz1 + .05)
+    plano(TE, [(x1, gz0), (xf, gz0), (xf, gz1), (x1, gz1)], y + PU + .4, arriba=False)
+    zc = (gz0 + gz1) / 2; AR = bmn(pre + '_escalera_arriba_arb', 'arbotante', luz=False)
+    caja(AR, xf - .12, xf, y + 2.7, y + 3.1, zc - .14, zc + .14); LUCES.append(('POINT', (xf - .5, y + 2.9, zc), 70, .12))
+    LUCES.append(('POINT', (4, y + H - .9, 13.5), 90, .25))
+    if nv['sube']:   # techo con su hueco y una tapa cerrada encima; el tramo sigue subiendo
+        yt = y + H - .02
+        for a, b, c, d in ((w, za, x1, b0), (x0, b0, x1, zb)): plano(TE, [(a, b), (c, b), (c, d), (a, d)], yt, arriba=False)
+        caja(M, w - .05, x0 + .05, yt, yt + 1.2, b0 - .05, b0); caja(M, w - .05, x0 + .05, yt, yt + 1.2, zb, zb + .05)
+        caja(M, x0, x0 + .05, yt, yt + 1.2, b0, zb); caja(M, w - .05, x0 + .05, yt + 1.2, yt + 1.25, b0 - .05, zb + .05)
+        S = bmn(pre + '_escalera_arriba_escalon', 'escalon', prio=.5)
+        PM, HI = bmn(pre + '_escalera_arriba_pasamanos', 'madera', prio=.4), bmn(pre + '_escalera_arriba_hierro', 'hierro', luz=False)
+        r2 = _alto(nx, 1); h, m = _tramos(S, y, r2, ne, pa, x0, xl, w, za, s1, b0, zb); hb = C.K['barandal'] * .8
+        _barandal(HI, PM, (x0, y + h), (xl + pa, y + m), s1 - .08, hb); _poste(PM, x0 + .05, y, s1 - .08, h + hb)
+    else:
+        plano(TE, [(w, za), (x1, za), (x1, zb), (w, zb)], y + H - .02, arriba=False)
+        PM, HI = bmn(pre + '_escalera_arriba_pasamanos', 'madera', prio=.4), bmn(pre + '_escalera_arriba_hierro', 'hierro', luz=False)
+        hb = C.K['barandal'] * .8; _barandal(HI, PM, (w + .1, y), (x0, y), s1 - .08 + .1, hb); _poste(PM, x0, y, s1 - .08 + .1, hb)
+
 def escalera_u(pre, nid, muro='muro'):
     E0 = C.ESC; ne, pa, x0 = E0['n'], E0['paso'], E0['x0']; xl = x0 - pa * ne        # xl: orilla del descanso
     w = C.K['t'] / 2; za, s1, b0, zb = 10 + w, E0['sube'][1], E0['baja'][0], 17 - w
@@ -44,6 +89,7 @@ def escalera_u(pre, nid, muro='muro'):
         for s in range(ne):                                                           # tramo 2: losa escalonada sobre el hueco
             xa = xl + pa * s; caja(S, xa, xa + pa, m + h * s - .3, m + h * (s + 1), b0, zb)
         ex(pre + '_escalera_sube', escalera='sube')
+        _arriba(pre, nid, r, muro)
         _barandal(HI, PM, (x0, h), (xl + pa, m), zr1, hb); _poste(PM, x0 + .05, 0, zr1, h + hb); _poste(PM, xl - .07, m, zr1, hb)
         _barandal(HI, PM, (xl, m + h), (x0 - pa, r), zr2, hb); _poste(PM, xl - .07, m, zr2, hb + h)
         M = bmn(pre + '_escalera_borde', muro); y0 = nv['H'] - .02                    # borde de la losa alrededor del hueco del techo

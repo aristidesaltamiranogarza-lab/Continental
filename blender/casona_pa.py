@@ -233,6 +233,7 @@ def armar():
     COLS = C.COLS; C.COLS = [c for c in COLS if c[1] < 30 or c[0] in (12, 24)]   # arriba no hay corredor al fondo: solo las esquinas
     try: P.muros(); arqueria(); P.columnas(); barandal()
     finally: C.COLS = COLS
+    P.entrepiso('pa')                 # R3: canto de la losa entre la planta baja y esta
     balcones(); balcon_trasero(); pisos(); P.techos(); escalera(); muebles(); deco(); marcas(); lamparas()
     col = P.coleccion('pa'); obs = P.crear(col)
     ms = N['mesas']; N['mesas'] = [m for m in ms if m[3] > 1.2]   # sombras de bulto solo para las mesas grandes

@@ -8,7 +8,7 @@
 (function(){
 if(typeof THREE==='undefined')return;
 const A={dens:2.4,max:3600,chicas:.45,estorbo:40,alto:.5,viento:1,copa:.012};   // chicas: parte de matas pequeñas; estorbo: área máx. de una pieza que tapa el pasto
-const U={uT:{value:0},uV:{value:A.viento}},MATAS=[],SIN=/[?&]nomatas\b/.test(location.search);
+const U={uT:{value:0},uV:{value:A.viento},uHo:{value:new THREE.Vector3()}},HO={x:0,z:0,r:0},MATAS=[],SIN=/[?&]nomatas\b/.test(location.search);
 const tic=()=>{U.uT.value=performance.now()/1000;U.uV.value=A.viento};
 const medio=()=>window.CALIDAD==='medio';
 
@@ -31,7 +31,7 @@ function textura(g,w,h){let s=7;const r=()=>(s=(s*9301+49297)%233280)/233280;
 function suelo(m){if(m.userData.pasto)return;m.userData.pasto=1;
  parche(m,'|pasto',s=>{
   s.vertexShader='varying vec2 vPW;\n'+s.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvPW=(modelMatrix*vec4(transformed,1.)).xz;');
-  s.fragmentShader='varying vec2 vPW;\n'+RUIDO+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n'+
+  s.uniforms.uHo=U.uHo;s.fragmentShader='varying vec2 vPW;\nuniform vec3 uHo;\n'+RUIDO+s.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif(uHo.z>0.&&distance(vPW,uHo.xy)<uHo.z)discard;').replace('#include <map_fragment>','#include <map_fragment>\n'+
    '{float n1=pN(vPW*.07),n2=pN(vPW*.29+17.),n3=pN(vPW*1.1+5.);float seco=smoothstep(.5,.85,n1*.65+n2*.35);vec3 c=diffuseColor.rgb;'+
    'c=mix(c,c*vec3(1.3,1.13,.74),seco*.8);c=mix(c,c*vec3(1.12,.98,.86),smoothstep(.78,.95,n2)*.6);'+
    'c=mix(c,c*vec3(.84,.93,.82),smoothstep(.55,.85,1.-n1)*.45*(1.-seco));c*=.95+.1*n3;diffuseColor.rgb=c;}')})}
@@ -67,7 +67,7 @@ function matas(root,ms,mPasto){let s=13;const r=()=>(s=(s*9301+49297)%233280)/23
    const t=[a.x,a.z,b.x,b.z,c.x,c.z,ar];for(let gx=Math.floor(Math.min(a.x,b.x,c.x)/2);gx<=Math.floor(Math.max(a.x,b.x,c.x)/2);gx++)
     for(let gz=Math.floor(Math.min(a.z,b.z,c.z)/2);gz<=Math.floor(Math.max(a.z,b.z,c.z)/2);gz++){const q=gx+','+gz;(GR[q]||(GR[q]=[])).push(t)}}});
  const enTri=(x,z,t)=>{const s=((t[2]-x)*(t[5]-z)-(t[4]-x)*(t[3]-z))/t[6],u=((t[4]-x)*(t[1]-z)-(t[0]-x)*(t[5]-z))/t[6];return s>-.03&&u>-.03&&s+u<1.03};
- const libre=p=>{if(EST.some(e=>p.x>e[0]&&p.x<e[1]&&p.z>e[2]&&p.z<e[3]))return false;const L=GR[Math.floor(p.x/2)+','+Math.floor(p.z/2)];return !L||!L.some(t=>enTri(p.x,p.z,t))};
+ const libre=p=>{if(HO.r&&Math.hypot(p.x-HO.x,p.z-HO.z)<HO.r+.15)return false;if(EST.some(e=>p.x>e[0]&&p.x<e[1]&&p.z>e[2]&&p.z<e[3]))return false;const L=GR[Math.floor(p.x/2)+','+Math.floor(p.z/2)];return !L||!L.some(t=>enTri(p.x,p.z,t))};
  const N=Math.min(A.max,Math.round(area*A.dens));if(!N||!T.length)return null;
  const geo=mataGeo(),UV=new Float32Array(N*2),m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});
  if(mPasto&&mPasto.lightMap){m.lightMap=mPasto.lightMap;m.lightMapIntensity=mPasto.lightMapIntensity}
@@ -105,5 +105,8 @@ function viento(m,o){if(!m||m.userData.viento)return;m.userData.viento=1;
    'transformed.x+=(sin(uT*1.1+wp.x*.25+wp.z*.15)*.6+sin(uT*2.7+wp.y*.8+wp.x)*.22)*h;transformed.z+=(sin(uT*.9+wp.z*.3)*.45+sin(uT*3.1+wp.x*.7)*.15)*h;}\n#include <project_vertex>')});
  if(o){const prev=o.onBeforeRender;o.onBeforeRender=function(){tic();if(prev)prev.apply(this,arguments)}}}
 
-window.PASTO={A,U,textura,suelo,pon,viento,calidad,matas:()=>MATAS};
+// hoyo (el pozo): círculo sin pasto ni matas; x,z,r en coordenadas de root, wx,wz en mundo
+function hoyo(x,z,r,wx,wz){HO.x=x;HO.z=z;HO.r=r;U.uHo.value.set(wx,wz,r)}
+
+window.PASTO={A,U,hoyo,textura,suelo,pon,viento,calidad,matas:()=>MATAS};
 })();

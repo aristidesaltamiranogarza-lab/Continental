@@ -29,12 +29,12 @@ COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), c
              cuarto=(.8, .77, .7), techo=(.8, .74, .62), madera=(.3, .18, .1), bejuco=(.75, .6, .38), porton=(.32, .2, .12),
              persiana=(.18, .36, .26), hierro=(.05, .05, .05), tapete=(.5, .2, .15), hamaca=(.7, .35, .3), tronco=(.35, .25, .18),
              copa=(.24, .4, .18), barro=(.6, .32, .2), escalon=(.34, .1, .07), calle=(.35, .35, .37), banqueta=(.62, .6, .56),
-             barda=(.78, .7, .58), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08), foco=(1, .86, .58))
+             barda=(.78, .7, .58), agua=(.06, .14, .15), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08), foco=(1, .86, .58))
 EMITE = dict(arbotante=6, farol=8, foco=10)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)
 # por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
 # vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
-PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=.5)
+PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=.5)   # techo: ver techos() (antes .3 x .5 = 2 texeles por unidad)
 MUROS = ('muro', 'lambrin', 'cantera', 'cenefa', 'barda')   # piezas que se meten unas en otras (ver _dentro)
 FUERA = .1
 
@@ -370,15 +370,42 @@ def porton():
         ps += T(hx, hz) + T(hx, hz + R)
     ex('pb_porton', segs=ps, r=.15)
 
+POZO = (14, 44.6)   # centro del pozo del traspatio (el pasto lleva su hoyo; c_casona_pozo.js lo imita mientras no se hornee)
+def pozo(x, z):
+    """Pozo que baja: brocal de cantera con zócalo, franja y remate que sobresale; tiro de 3 por dentro con el agua a 1.5;
+    pretil de madera con garrucha, cuerda a la cubeta colgada sobre la boca y amarre al poste."""
+    CA = bmn('pb_pozo', 'cantera', prio=.6)
+    anillo(CA, x, z, .62, .9, 0, .95, 28); anillo(CA, x, z, .56, .97, .95, 1.04, 28); anillo(CA, x, z, .6, .99, 1.04, 1.07, 28)
+    anillo(CA, x, z, .86, .99, 0, .14, 28); anillo(CA, x, z, .895, .915, .46, .49, 28)
+    anillo(bmn('pb_pozo_tiro', 'cantera', prio=.3), x, z, .62, .68, -3, 0, 24)
+    disco('pb_pozo_agua', 'agua', x, z, .64, -1.5, 28)
+    MA, HI, CU = bmn('pb_traspatio_madera', 'madera', prio=.5), bmn('pb_pozo_hierro', 'hierro', luz=False), bmn('pb_pozo_cuerda', 'bejuco', prio=.3)
+    for xx in (x - .95, x + .95): caja(MA, xx - .07, xx + .07, .95, 2.6, z - .07, z + .07)
+    caja(MA, x - 1.05, x + 1.05, 2.5, 2.62, z - .08, z + .08)
+    tubo(MA, (x, 2.2, z - .05), (x, 2.2, z + .05), .2, .2, 18); tubo(MA, (x + .19, 1.1, z), (x + .19, 1.4, z), .13, .17, 14)
+    for dz in (-.08, .08): caja(HI, x - .03, x + .03, 2.2, 2.5, z + dz - .01, z + dz + .01)
+    tubo(HI, (x, 2.2, z - .1), (x, 2.2, z + .1), .025, .025, 8)
+    for y in (1.16, 1.34): r = .142 + (y - 1.1) * .13; anillo(HI, x + .19, z, r, r + .033, y, y + .03, 14)
+    asa = [(x + .19 + .17 * math.cos(math.pi * i / 8), 1.4 + .17 * math.sin(math.pi * i / 8)) for i in range(9)]
+    for (ax, ay), (bx, by) in zip(asa, asa[1:]): tubo(HI, (ax, ay, z), (bx, by, z), .012, .012, 6)
+    tubo(CU, (x + .19, 2.2, z), (x + .19, 1.57, z), .016, .016, 6); tubo(CU, (x - .19, 2.2, z), (x - .86, 1.35, z), .016, .016, 6)
+    tubo(CU, (x - .86, 1.35, z - .08), (x - .86, 1.35, z + .08), .03, .03, 8)
+
 def traspatio():
     arbol('mamey', 6, 41, 2.6, 3.4, 4, prio=.5)
     CA = bmn('pb_traspatio', 'cantera', prio=.5)
     caja(CA, 31, 34, 0, 1.0, 35.4, 36.8); caja(CA, 31.2, 33.8, 1.0, 1.2, 35.6, 36.6)
-    anillo(CA, 14, 44.6, .62, .9, 0, .95, 24)
-    MA = bmn('pb_traspatio_madera', 'madera', prio=.5)
-    for xx in (13.05, 14.95): caja(MA, xx - .07, xx + .07, .95, 2.6, 44.53, 44.67)
-    caja(MA, 12.95, 15.05, 2.5, 2.62, 44.52, 44.68)
+    pozo(*POZO)
     ex('pb_traspatio', segs=T(31.5, 36.1) + T(33.5, 36.1), r=.85, obs=T(14, 44.6) + [1.1] + T(6, 41) + [.7])
+
+def entrepiso(pre, y0=-.32, y1=0.0):
+    """R3: canto de la losa por fuera, del muro del nivel de abajo (termina .3 bajo este piso) a este nivel: franja de muro en el
+    contorno del lote y cornisa de cantera al frente y a los lados. La usan casona_pa.py y casona_az.py (antes: c_casona_fuera.js)."""
+    t = K['t'] / 2; M, CA = bmn(pre + '_entrepiso', 'muro', prio=.4), bmn(pre + '_entrepiso_cor', 'cantera', prio=.4)
+    caja(M, -t, 36 + t, y0, y1, -t, t); caja(M, -t, 36 + t, y0, y1, 30 - t, 30 + t)
+    caja(M, -t, t, y0, y1, t, 30 - t); caja(M, 36 - t, 36 + t, y0, y1, t, 30 - t)
+    caja(CA, -.3, 36.3, y0 - .08, y1 + .1, -.38, -.1)
+    for x0, x1 in ((-.3, -.1), (36.1, 36.3)): caja(CA, x0, x1, y0 - .08, y1 + .1, -.1, 30.2)
 
 # ---------- pisos, techos, escalera, luces ----------
 def pisos():
@@ -393,7 +420,10 @@ def pisos():
         elif n == 'zaguan': quad('pb_piso_mosaico', 'mosaico', x, z, x1, z1)
         elif n.startswith('corredor'): quad('pb_piso_corredor', 'corredor', x, z, x1, z1)
         elif n == 'patio': quad('pb_piso_laja', 'laja', x, z, x1, z1)
-        elif n == 'traspatio': quad('pb_piso_pasto', 'pasto', x, z, x1, z1, prio=.35)
+        elif n == 'traspatio':   # con el hoyo del pozo: cuadro de .66 (más que el tiro, sus esquinas bajo el zócalo)
+            px, pz = POZO; h = .66
+            for a, b, c, e in ((x, z, x1, pz - h), (x, pz + h, x1, z1), (x, pz - h, px - h, pz + h), (px + h, pz - h, x1, pz + h)):
+                quad('pb_piso_pasto', 'pasto', a, b, c, e, prio=.35)
         elif n == 'calle':
             quad('pb_piso_banqueta', 'banqueta', x, -1.6, x1, 0, prio=.5); quad('pb_piso_calle', 'calle', x, z, x1, -1.6, prio=.35)
         elif n == 'escalera':
@@ -403,7 +433,7 @@ def pisos():
 def techos():
     for x, z, w, d, k, tin, n in N['areas']:
         if k is None or (k == 'open' and n.startswith('corredor')):
-            (quad_hueco if n == 'escalera' and N['sube'] else quad)('pb_techo', 'techo', x, z, x + w, z + d, K['H'] - .02, arriba=False, prio=.3)
+            (quad_hueco if n == 'escalera' and N['sube'] else quad)('pb_techo', 'techo', x, z, x + w, z + d, K['H'] - .02, arriba=False, prio=.9)
 
 def escalera(): escalera_u('pb', 'n0')   # escalera en U (blender/casona_esc.py)
 
@@ -628,10 +658,51 @@ def uv_luz(obs):
             f = FUERA if (x < .05 and n.x < -.7) or (x > 35.95 and n.x > .7) or (z > 47.95 and n.y > .7) else 1
             if s * f != 1:
                 for i in p.loop_indices: ly[i].uv = ly[i].uv * (s * f)
-    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=.002, shape_method='CONCAVE')
-    bpy.ops.object.mode_set(mode='OBJECT')
+    def empaca():
+        bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=.002, shape_method='CONCAVE')
+        bpy.ops.object.mode_set(mode='OBJECT')
+    empaca()
+    if MIN_TX: ancho_min(obs, K['RES'], MIN_TX); empaca()   # R4: las islas delgadas se estiran a lo ancho y se reempaca
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
+
+# R4 (horneado en bloques): la mitad de las caras (cantos de muro, molduras, jambas, bajo los dinteles) quedaba con un lado de
+# 1-2 texeles: su luz salía de un solo texel mezclado con el relleno del atlas (bloques en dinteles, cantos y rincones).
+# ancho_min estira cada isla a lo ancho (eje menor) hasta MIN_TX texeles; a lo largo no cambia, así cuesta poco atlas.
+MIN_TX = 4
+def ancho_min(obs, res, minimo):
+    n_is = n_est = 0
+    for o in obs:
+        bm = bmesh.new(); bm.from_mesh(o.data); uv = bm.loops.layers.uv['luz']; bm.faces.ensure_lookup_table()
+        padre = list(range(len(bm.faces)))
+        def raiz(i):
+            while padre[i] != i: padre[i] = padre[padre[i]]; i = padre[i]
+            return i
+        for e in bm.edges:
+            if len(e.link_faces) != 2: continue
+            f1, f2 = e.link_faces; ok = True
+            for v in e.verts:
+                a = next(l[uv].uv for l in f1.loops if l.vert == v); b = next(l[uv].uv for l in f2.loops if l.vert == v)
+                if (a - b).length > 1e-6: ok = False; break
+            if ok: padre[raiz(f1.index)] = raiz(f2.index)
+        islas = {}
+        for f in bm.faces: islas.setdefault(raiz(f.index), []).append(f)
+        for caras in islas.values():
+            ls = [l for f in caras for l in f.loops]; pts = [l[uv].uv.copy() for l in ls]
+            cx = sum(p.x for p in pts) / len(pts); cy = sum(p.y for p in pts) / len(pts)
+            sxx = sum((p.x - cx) ** 2 for p in pts); syy = sum((p.y - cy) ** 2 for p in pts); sxy = sum((p.x - cx) * (p.y - cy) for p in pts)
+            ang = .5 * math.atan2(2 * sxy, sxx - syy); ux, uy = math.cos(ang), math.sin(ang); vx, vy = -uy, ux   # u: eje mayor
+            pu = [(p.x - cx) * ux + (p.y - cy) * uy for p in pts]; pv = [(p.x - cx) * vx + (p.y - cy) * vy for p in pts]
+            wu, wv = (max(pu) - min(pu)) * res, (max(pv) - min(pv)) * res; n_is += 1
+            k = [1, 1]
+            if wv < minimo and wv > 1e-4: k[1] = min(minimo / wv, 8)
+            if wu < minimo and wu > 1e-4: k[0] = min(minimo / wu, 8)
+            if k == [1, 1]: continue
+            n_est += 1
+            for l, a, b in zip(ls, pu, pv):
+                a *= k[0]; b *= k[1]; l[uv].uv = (cx + a * ux + b * vx, cy + a * uy + b * vy)
+        bm.to_mesh(o.data); bm.free()
+    print('ancho_min: %d de %d islas estiradas a %d texeles' % (n_est, n_is, minimo), flush=True)
 
 def _img(o_img, nodo_img):
     for o in o_img:

@@ -127,7 +127,7 @@ function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if
   return MAT[k]=r};
   if(!REG&&window.CIELO&&CIELO.on){REG=true;CIELO.on(tema)}
  root.traverse(o=>{if(!o.isMesh)return;o.material=material(o.material,!!o.geometry.attributes.uv1);o.castShadow=o.receiveShadow=false;o.matrixAutoUpdate=false;o.updateMatrix()});
- if(window.PASTO)PASTO.pon(root,MAT);tema();return MAT}
+ if(window.POZO)POZO.pon(root,MAT);if(window.PASTO)PASTO.pon(root,MAT);tema();return MAT}
 
 // copas de los árboles: material propio para desvanecerlas sin tocar las demás mallas del mismo material
 function copas(root){const out=[],b=new THREE.Box3();root.traverse(o=>{if(!o.isMesh||!/_copa$/.test(o.name))return;

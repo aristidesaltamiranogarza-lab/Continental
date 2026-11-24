@@ -257,6 +257,7 @@ def armar():
     abajo()                           # primero: usa los nombres de arquería, columnas y patio antes que lo de arriba
     P.muros()
     for d in P.B.values(): d['mat'] = REMAP.get(d['mat'], d['mat'])
+    P.entrepiso('az')                 # R3: canto de la losa entre la planta alta y la azotea
     pretiles(); barandal(); pisos(); escalera(); cubo(); pergola(); tinacos(); tendedero(); muebles(); deco(); marcas(); lamparas()
     col = P.coleccion('az'); obs = P.crear(col); P.luces(sc)
     print('az: %d mallas, %d con luz, %d empties' % (len([o for o in col.objects if o.type == 'MESH']), len(obs), len(P.EMP)))

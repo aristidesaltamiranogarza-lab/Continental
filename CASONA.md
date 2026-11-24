@@ -158,11 +158,14 @@ Juego:
 - [ ] **R9. Ruleta Rusa**: se perdió su mesa (hoy es una mesa redonda genérica), no tiene decoración, está demasiado oscura y se perdió el foco que parpadea. Recuperar mesa y foco, decorar y dar luz. — 24 nov (PC): mesa vieja de tablas, foco que se mece y parpadea (la luz del cuarto; la genérica quedaba a 5.9, arriba del techo), cenicero con humo, whisky, revólver, cajas y barril en c_casona_rr.js (RRC, vía SOTC.viste). Falta: decoración de muros en Blender (props_ruleta.py).
 
 ## Siguiente (si el usuario solo dice "continua")
-No hornear nada sin que lo pida. Orden (todo en la PC, sin hornear):
-1. R3: cerrar losas/entrepisos en blender/casona_pb.py y casona_pa.py y quitar el anillo de código; revisar con renders de Blender (no horneado).
-2. R4: buscar la causa del horneado pixeleado (texeles por objeto, márgenes, UV1, filtrado) y dejar el arreglo listo para el próximo horneado.
-3. Escalera: que no se vea vacía y que lleve a algún lado (blender/casona_esc.py).
-4. R9: decoración de muros del cuarto de la Ruleta (blender/props_ruleta.py, GLB aparte; mientras, por código en c_casona_rr.js).
+No hornear nada sin que lo pida. Hecho el 24 nov en la laptop, sin hornear (la PC hace git pull antes de tocar blender/casona*.py):
+- R3: P.entrepiso() en casona_pb.py (canto de losa y cornisa) lo usan casona_pa.py y casona_az.py; c_casona_fuera.js deja su franja de código solo mientras el GLB no traiga pa_entrepiso/az_entrepiso.
+- R4: causa encontrada: la mitad de las caras (cantos, molduras, jambas, bajo dinteles) tenían un lado de 1-2 texeles y el techo 2 texeles/unidad. uv_luz estira cada isla a MIN_TX=4 texeles de ancho y reempaca; techo con prio .9 (5.7 tx/u). Se nota hasta el próximo horneado.
+- Escalera: casona_esc.py _arriba(): por el hueco del techo se ve el cubo de la escalera del nivel de arriba (piso, muros, puerta a un pasillo con arbotante, el tramo que sigue y su barandal); NIVC lo esconde con el techo y CFUE (_escalera_arriba) cuando dibuja el nivel de arriba.
+- Pozo del traspatio: casona_pb.py pozo() (tiro de 3, agua a 1.5, remate, zócalo, garrucha, cuerda, cubeta, hoyo en el pasto). Mientras no se hornee, c_casona_pozo.js (POZO) lo arma en el juego; con el GLB nuevo solo ordena el tiro (el suelo de CIELO.fondo lo taparía).
+Siguiente:
+1. Hornear pb, pa, az y sm cuando el usuario diga (junta R2, R3, R4, R5, escalera y pozo).
+2. R9: decoración de muros del cuarto de la Ruleta (blender/props_ruleta.py, GLB aparte; vista previa antes del commit).
 Esperan aprobación (no empezar sin ella): R8 casino (propuesta: https://claude.ai/artifact/EmmxDfesUdpzSjX2fWifX4), R1 y R6 (texturas con preview).
 Listo para hornear cuando el usuario diga: pb y az (R5, R2 con noche); pa y sm (R5).
 Ver cambios en vivo: blender --factory-startup --python blender/ver.py -- pb|az. Revisar con renders guardados a archivo (el panel del navegador a veces no pinta).
