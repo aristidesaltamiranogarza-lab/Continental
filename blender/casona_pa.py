@@ -22,7 +22,7 @@ N = dict(C.NIV['n1']); N['wins'] = []; N['barda'] = (0, 0, 0, 0); P.N = N
 K = P.K; K.update(H=N['H'], SPRING=2.9, RES=2048, SAMPLES=320)
 P.ARCOS = dict(biblioteca=3.9, tableros=3.9)
 P.NOM = 'pa'   # guardar/exportar escriben pa.glb y pa_luz.webp
-P.COLOR.update(duela=(.48, .3, .18), libros=(.5, .32, .26), cajas=(.55, .26, .2), losa=(.7, .66, .6))
+P.COLOR.update(cajas2=(.2, .32, .5), cajas3=(.78, .66, .3), flor=(.72, .16, .42), duela=(.48, .3, .18), libros=(.5, .32, .26), cajas=(.55, .26, .2), losa=(.7, .66, .6))
 ABAJO = -C.NIV['n1']['elev']          # el piso del patio visto desde arriba
 ARBOL = P.ARBOL
 bmn, ex, vacio, caja, caja_l, prisma, quad, disco, tubo, T = P.bmn, P.ex, P.vacio, P.caja, P.caja_l, P.prisma, P.quad, P.disco, P.tubo, P.T
@@ -144,15 +144,23 @@ def muebles():
     librero('v', 0, .8, 9.2, 1); librero('h', 10, .8, 4.4, -1); librero('v', 16, .6, 2.6, -1); librero('v', 16, 7.4, 9.4, -1)
     for g, mx, mz, r, libre in N['mesas']:
         if g in ('merida', 'haciendas'): disco('pa_tapete_' + g, 'tapete', mx, mz, 3.3 if g == 'merida' else 3.1, .012, 48, uvr=True)
-    # sala de tableros: aparador con cajas de juegos y dos mecedoras
-    MA, BE, CJ = bmn('pa_muebles', 'madera'), bmn('pa_muebles_bejuco', 'bejuco'), bmn('pa_cajas', 'cajas')
-    caja(MA, 35.15, 35.85, 0, 1.2, 2.2, 7.8); caja(MA, 35.08, 35.85, 1.2, 1.28, 2.1, 7.9)
-    caja(MA, 35.74, 35.85, 1.28, 3.0, 2.4, 7.6); caja(MA, 35.4, 35.85, 3.0, 3.14, 2.3, 7.7)
-    for yy in (1.95, 2.5): caja(MA, 35.45, 35.84, yy, yy + .05, 2.45, 7.55)
-    for z0, z1, y0, n in ((2.6, 3.6, 1.28, 3), (4.4, 5.6, 1.28, 2), (6.2, 7.2, 1.28, 4)):
-        for k in range(n): caja(CJ, 35.48 - .03 * k, 35.82, y0 + k * .11, y0 + k * .11 + .09, z0 + .04 * k, z1 - .04 * k)
-    P.mecedora(32.2, 8.7, math.radians(-47), MA, BE); P.mecedora(34.2, 8.7, math.radians(-58), MA, BE)
-    obs = T(32.2, 8.7) + [.75] + T(34.2, 8.7) + [.75]
+    # sala de tableros: aparador bajo con puertas, cajas de juegos encima y un florero (sin repisas)
+    MA, BE = bmn('pa_muebles', 'madera'), bmn('pa_muebles_bejuco', 'bejuco')
+    caja(MA, 35.15, 35.85, .12, 1.2, 2.2, 7.8); caja(MA, 35.08, 35.85, 1.2, 1.28, 2.1, 7.9); caja(MA, 35.2, 35.85, 0, .12, 2.3, 7.7)
+    for k in range(4):
+        z0 = 2.3 + k * 1.35; caja(MA, 35.1, 35.15, .22, 1.1, z0 + .05, z0 + 1.3)                      # puertas en relieve
+        caja(bmn('pa_aparador_jalon', 'hierro', luz=False), 35.06, 35.1, .62, .7, z0 + (1.1 if k % 2 == 0 else .2), z0 + (1.2 if k % 2 == 0 else .3))
+    for z0, z1, alto in ((2.6, 3.9, (.14, .12, .1)), (4.4, 5.5, (.16, .12))):                        # pilas de cajas de juegos
+        y = 1.28
+        for n, a in enumerate(alto):
+            caja(bmn('pa_cajas_%d' % n, ('cajas', 'cajas2', 'cajas3')[n]), 35.2 + .02 * n, 35.8 - .02 * n, y, y + a, z0 + .05 * n, z1 - .05 * n); y += a
+    MT, FL = bmn('pa_florero', 'barro'), bmn('pa_florero_flor', 'flor')
+    tubo(MT, (35.5, 1.28, 6.8), (35.5, 1.6, 6.8), .14, .2, 12); tubo(MT, (35.5, 1.6, 6.8), (35.5, 1.85, 6.8), .2, .09, 12)
+    for k in range(7):
+        a = k * .9; bmesh.ops.create_icosphere(FL, subdivisions=1, radius=.1, matrix=P.Matrix.Translation(P.V(35.5 + math.cos(a) * .17, 2.05 + .1 * (k % 3), 6.8 + math.sin(a) * .22)))
+    # mecedoras en el corredor alto, asomadas al patio (ya no en la sala de tableros)
+    P.mecedora(14.2, 12.9, math.pi - .25, MA, BE); P.mecedora(21.3, 12.9, math.pi + .2, MA, BE)
+    obs = T(14.2, 12.9) + [.75] + T(21.3, 12.9) + [.75]
     segs = T(35.5, 2.3) + T(35.5, 7.7)
     # macetones en la antesala y el corredor
     MT, HO = bmn('pa_macetas', 'barro'), bmn('pa_macetas_hojas', 'copa')

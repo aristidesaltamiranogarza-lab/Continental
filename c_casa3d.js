@@ -208,8 +208,8 @@ function buildTable(t){if(t.door)return buildDoor(t);const G=new THREE.Group();G
  t.deco=G.children.slice(d0);
  // sillas alrededor (cuando alguien está jugando en esa mesa, su Mii ocupa la silla)
  t.chairs=[];if(usaM){t.hit=hit;t.hits=hits;mesaJ(t,4,0);t.chairs.forEach(c=>OB.push({x:t.x+c.userData.off.x,z:t.z+c.userData.off.z,r:.6}))}   // la mesa del juego (c_mesa3d.js), igual a la de la partida
- else for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4,cx=Math.cos(a)*(t.r+.9),cz=Math.sin(a)*(t.r+.9),ch=new THREE.Group();ch.position.set(cx,0,cz);ch.rotation.y=Math.atan2(-cx,-cz);G.add(ch);
-  box(1,.12,1,wood,0,.9,0,ch);box(1,1.3,.12,wood,0,1.6,-.45,ch);[[-.42,-.42],[.42,-.42],[-.42,.42],[.42,.42]].forEach(([x,z])=>cyl(.05,.05,.9,wood,x,.45,z,ch,8));
+ else for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4,cx=Math.cos(a)*(t.r+.9),cz=Math.sin(a)*(t.r+.9),nu=!!(window.MESA&&MESA.sillaSola),ch=nu?MESA.sillaSola():new THREE.Group();ch.position.set(cx,nu?1.55:0,cz);ch.rotation.y=Math.atan2(-cx,-cz);G.add(ch);   // silla de escala fija (c_mesa3d.js)
+  if(!nu){box(1,.12,1,wood,0,.9,0,ch);box(1,1.3,.12,wood,0,1.6,-.45,ch);[[-.42,-.42],[.42,-.42],[-.42,.42],[.42,.42]].forEach(([x,z])=>cyl(.05,.05,.9,wood,x,.45,z,ch,8))}
   t.chairs.push(ch);OB.push({x:t.x+cx,z:t.z+cz,r:.6})}
  // luz cálida sobre la mesa (sin lámpara: desde arriba tapaba la vista)
  const lt=new THREE.PointLight(0xffd9a0,30,12,1.6);lt.position.y=5.9;G.add(lt);

@@ -90,7 +90,7 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
   - [x] 1) escaleras de todos los pisos (en U, rojo óxido; ver arriba)
   - [x] 2) pérgola: cenefa de cantera de .5 alrededor del piso y sardinel de .15 con entrada en los dos lados a la azotea (ver.py -- az perg)
   - [x] 3) sótano: Póker a (20.5, 5) y Blackjack a (30.5, 5) (las sillas del BJ quedaban a .4 del muro), ya en sm.glb con -- marcas; barricas de la cava en dos estibas contra los muros de los lados (sin hornear)
-  - [ ] 4) salón del Catan: sillas de escala fija, mecedoras fuera, quitar repisas con "barras"
+  - [x] 4) salón del Catan: mesas sin MESA_J usan la silla de escala fija (MESA.sillaSola en c_casa3d.js, toda la casa); mecedoras al corredor alto asomadas al patio; aparador bajo con puertas, cajas de juegos y florero en lugar de las repisas (sin hornear)
   - [ ] 5) jardinera: esquinas que parpadean
   - [ ] 6) revisar lajas al pozo
   - [ ] 7) balcón trasero
