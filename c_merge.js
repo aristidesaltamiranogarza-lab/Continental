@@ -80,9 +80,10 @@ function pasada(){if(off||!window.CASA3D||!CASA3D.sc)return;const sc=CASA3D.sc()
   const anc=[...e.anc].map(a=>({o:a,v:vis(a),pa:a.parent,p:pose(a)}));
   cub.forEach((l,k)=>{if(l.length<2)return;const G={vivo:true,items:[],anc:anc.filter(a=>l.some(o=>{for(let p=o.parent;p&&p!==T;p=p.parent)if(p===a.o)return true;return false}))},h=k.startsWith('c#');
    G.me=matDe(l[0].material,h);const mat=G.me.m;
-   const m=new THREE.Mesh(junta(l,T,h),mat);m.castShadow=l[0].castShadow;m.receiveShadow=l[0].receiveShadow;m.renderOrder=l[0].renderOrder;m.frustumCulled=l[0].frustumCulled;m.layers.mask=l[0].layers.mask;
+   const m=new THREE.Mesh(junta(l,T,h),mat);m.castShadow=l[0].castShadow;m.receiveShadow=l[0].receiveShadow;m.renderOrder=l[0].renderOrder;m.frustumCulled=l[0].frustumCulled&&!(window.VIS&&VIS.esGrande(m));m.layers.mask=l[0].layers.mask;
    m.userData._mrg=true;m.raycast=()=>{};m.name='mrg';G.malla=m;
    m.onBeforeRender=()=>{if(G.vivo&&revisa(G))queueMicrotask(()=>deshaz(G))};   // cada cuadro que se dibuja
+   // límites: junta() ya calcula esfera y caja; la malla juntada nunca se mueve (si una pieza se mueve, revisa deshace el grupo), así que no envejecen
    for(const o of l)G.items.push({o,pa:o.parent,p:pose(o),mat:o.material,k:clave(o.material),geo:o.geometry,res:null});
    G.items.forEach(it=>{it.res=oculta(it.o,G)});T.add(m);if(e.r>=0&&window.CUA)CUA.ligar(m,e.r);grupos.push(G)})})}
 // las que no se dibujan (fuera de cámara) se revisan por partes: ~1/8 cada 120 ms, con el color del material

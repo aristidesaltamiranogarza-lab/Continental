@@ -24,7 +24,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);const PR=F.pr={glb:0,luz:hb?0:1,re:0};F.prog=()=>({p:PR.glb*.75+PR.luz*.25,re:PR.re});let gOK=0,lOK=!hb;const fin=()=>{if(gOK&&lOK)ok()};
- bajaGLB(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);
+ bajaGLB(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);if(window.VIS)VIS.grandes(R);
   if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1],()=>{PR.luz=1;lOK=1;fin()},n=>{PR.re=n});F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   for(const n in PEGA){const o=R.getObjectByName(n);if(o)o.userData.pega=PEGA[n]}
   const D=MARC.leer(R);
@@ -70,7 +70,7 @@ function juntas(R){const W=[];
    mv.set(k,j+s*(q.a0<w.c-.2&&q.a1>w.c+.2?T_EXT[w.s]:E_EXT[w.e][w.s]))}
   for(let i=0;i<P.count;i++){const t=mv.get(P.getComponent(i,ia).toFixed(3));if(t!=null)P.setComponent(i,ia,t);
    if(w.b&&!w.s&&Math.abs(N.getComponent(i,ic))>.99)P.setComponent(i,ic,P.getComponent(i,ic)-N.getComponent(i,ic)*.006)}   // la barda, 6 mm más delgada que el muro que la sigue
-  P.needsUpdate=true;g.computeBoundingSphere()})}
+  P.needsUpdate=true;g.computeBoundingSphere();g.computeBoundingBox()})}
 
 // paso 8, la calle: CCALLE ya arma el exterior a la medida de la casona (fachada en 17, banqueta de 1.6, arroyo más abajo), así que la tira de
 // arroyo del GLB se esconde; se camina hasta la orilla de la banqueta y el poste choca. El patio de la casa vieja (CPAT) no se ve en la casona.

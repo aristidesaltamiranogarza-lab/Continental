@@ -54,7 +54,7 @@ function pon(F){if(!window.LOTE)return null;const L=LOTE();
  [[.4,.4],[.4,9.6],[15.6,.4],[5,.6],[10.5,9.4],[13,.5]].forEach(([px,pz],i)=>{for(let j=0;j<3;j++)L.bola(.55+rnd()*.35,1.3,.7,1.3,j===1?HO[i%2]:BUG[(i+j)%3],X(px+(rnd()-.5)*1.6),PG+.15+rnd()*.3,Z(pz+(rnd()-.5)*1.2))});
  // tinacos sobre su base
  b(29.5,35.3,11.4,14.2,AZ,AZ+.55,CE);[31,33.8].forEach(cx=>{L.cyl(1.1,1.05,1.9,TI,X(cx),AZ+1.5,Z(12.8),16);L.cyl(.55,1.1,.3,TI,X(cx),AZ+2.6,Z(12.8),16)});
- const m=new THREE.MeshLambertMaterial(),M=L.mesh(window.CCALLE?CCALLE.tinte(m):m);M.name='casona-casco';M.visible=false;F.SC.add(M);
+ const m=new THREE.MeshLambertMaterial(),M=L.mesh(window.CCALLE?CCALLE.tinte(m):m);M.name='casona-casco';M.visible=false;F.SC.add(M);if(window.VIS)VIS.grandes(M);
  return {M,paso:p=>{M.visible=!!p&&p.z>17.25}}}   // solo con tu Mii en la banqueta: adentro sería un techo encima
 window.CCAS={pon};
 })();

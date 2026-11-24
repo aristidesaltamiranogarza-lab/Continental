@@ -116,5 +116,5 @@ function terraza(){const L=LOTE(),V=LOTE();
  const RX=-3.6,RZ=-1.6;[[RX-4.6,RZ-4.4],[RX+4.6,RZ-4.4],[RX+4.6,RZ+4.4],[RX-4.6,RZ+4.4]].forEach(([x,z])=>{L.cyl(.07,.09,4.6,0x3a2212,x,TE+2.3,z,6);V.bola(.12,1,1,1,0xffd27a,x,TE+4.4,z,0)});
  return [L,V]}
 
-window.CASCO={build,VA,dentro,fuera,balc,medidas:{A,TE,X,ZB,ZF,T,PX,PF,PZ}};
+window.CASCO={build:k=>{const r=build(k);if(window.VIS&&window.CIELO)CIELO.mundo.children.forEach(o=>{if(/^casco-/.test(o.name))VIS.grandes(o)});return r},VA,dentro,fuera,balc,medidas:{A,TE,X,ZB,ZF,T,PX,PF,PZ}};
 })();

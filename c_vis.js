@@ -3,7 +3,8 @@
 // Motivos: cuarto (CUA), piso (corte por nivel), tapa (lo que tapa al Mii: CPB.corte, MARC.corte; luego el tramado),
 // copa (CMAT: el dueño desvanece, VIS solo lo anota) y fuera (solo diagnóstico). copa y fuera no esconden.
 // VIS.ocultar(o,m) / VIS.mostrar(o,m) / VIS.poner(o,m,bool) / VIS.motivos(o) / VIS.propio(o) (visible sin motivos).
-// ?vis: nada se esconde por motivo; se tiñe (rojo cuarto, azul piso, verde copa, amarillo tapa, gris fuera) y F6 lista en consola qué y por qué.
+// ?vis: nada se esconde por motivo; se tiñe (rojo cuarto, azul piso, verde copa, amarillo tapa, gris fuera) y F6 lista en consola qué y por qué;
+// F7 (o VIS.limites()) busca límites viejos. VIS.grandes(raíz): lo grande sin prueba de cámara (V3).
 // El estado va en un WeakMap (no en userData: MRG no junta lo que tiene userData).
 (function(){
 if(typeof THREE==='undefined')return;
@@ -23,6 +24,18 @@ const motivos=o=>{const s=ST.get(o);return s?[...s.m]:[]};
 const propio=o=>{const s=ST.get(o);return s?s.v:o.visible};
 function lista(){const L=[];for(const o of CON){if(!o.parent){CON.delete(o);continue}L.push({nombre:o.name||o.type,motivos:motivos(o).join(' '),propio:propio(o)})}
  console.table(L);const n={};L.forEach(r=>r.motivos.split(' ').forEach(m=>n[m]=(n[m]||0)+1));console.log('[vis]',n);return L}
-if(DIAG)addEventListener('keydown',e=>{if(e.key==='F6'){e.preventDefault();lista()}});
-window.VIS={reg,ocultar,mostrar,poner,motivos,propio,lista,DIAG,COL};
+// V3: lo grande (suelo, muros de lado a lado, pisos, techos, casco) casi siempre está en pantalla: sin prueba de cámara (frustumCulled=false)
+const GR=20,bg=new THREE.Box3(),vg=new THREE.Vector3();
+const esGrande=o=>{if(!o.geometry||o.isSkinnedMesh||o.isInstancedMesh)return false;o.updateWorldMatrix(true,false);bg.setFromObject(o);bg.getSize(vg);return Math.max(vg.x,vg.z)>=GR};
+function grandes(R){let n=0;R.traverse(o=>{if(o.isMesh&&o.frustumCulled&&esGrande(o)){o.frustumCulled=false;n++}});return n}
+// límites viejos (?vis, F7): mallas cuya esfera o caja no contiene sus vértices (se movieron sin recalcular) o sin prueba de cámara
+const lb=new THREE.Box3(),lv=new THREE.Vector3();
+function limites(R){R=R||(window.CASA3D&&CASA3D.sc());if(!R)return;const mal=[];let sin=0;
+ R.traverse(o=>{if(!o.isMesh||!o.geometry||o.isSkinnedMesh)return;if(!o.frustumCulled){sin++;return}const g=o.geometry,P=g.attributes.position;if(!P||o.isInstancedMesh)return;
+  lb.setFromBufferAttribute(P);const s=g.boundingSphere,b=g.boundingBox,e=1e-3;
+  if(s){const r2=(s.radius+e)**2,st=Math.max(1,P.count>>12);for(let i=0;i<P.count;i+=st){lv.fromBufferAttribute(P,i);if(lv.distanceToSquared(s.center)>r2){mal.push({nombre:o.name||o.type,que:'esfera'});break}}}
+  if(b&&(b.min.x>lb.min.x+e||b.min.y>lb.min.y+e||b.min.z>lb.min.z+e||b.max.x<lb.max.x-e||b.max.y<lb.max.y-e||b.max.z<lb.max.z-e))mal.push({nombre:o.name||o.type,que:'caja'})});
+ if(mal.length)console.table(mal);console.log('[vis] límites viejos:',mal.length,'sin prueba de cámara:',sin);return mal}
+if(DIAG)addEventListener('keydown',e=>{if(e.key==='F6'){e.preventDefault();lista()}if(e.key==='F7'){e.preventDefault();limites()}});
+window.VIS={reg,ocultar,mostrar,poner,motivos,propio,lista,DIAG,COL,grandes,esGrande,limites};
 })();

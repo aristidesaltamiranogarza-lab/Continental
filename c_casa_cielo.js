@@ -34,7 +34,7 @@ const hemi=new THREE.HemisphereLight(0xffffff,0x888888,1),sol=new THREE.Directio
 
 // ---------- horizonte (el suelo es la llanura verde; parque, hacienda y henequén en c_casa_campo.js): casas de uno y dos pisos de colores, árboles asomando y el suelo (luego D4 pone la calle) ----------
 let rs=7;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280;
-mundo.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(500,500).rotateX(-Math.PI/2).translate(0,-.4,0),new THREE.MeshLambertMaterial({color:0xb39a78})),{name:'suelo'}));
+mundo.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(500,500).rotateX(-Math.PI/2).translate(0,-.4,0),new THREE.MeshLambertMaterial({color:0xb39a78})),{name:'suelo',frustumCulled:false}));
 const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c49b];
 const N=78,casas=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1).translate(0,.5,0),new THREE.MeshLambertMaterial(),N);
 const NV=N*2,vent=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.1,1.5),new THREE.MeshBasicMaterial({color:0xffffff,fog:true}),NV);
