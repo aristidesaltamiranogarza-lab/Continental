@@ -4,7 +4,7 @@
 // (dentro serían un techo encima). En la planta baja reemplaza al casco de cajas (CCAS) en cuanto cargan. Los GLB se cargan la primera vez que hacen falta.
 (function(){
 if(typeof THREE==='undefined')return;
-const BASE='modelos/casona/',GL={c0:['pb','6'],c1:['pa','5'],c2:['az','1']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
+const BASE='modelos/casona/',GL={c0:['pb','7'],c1:['pa','6'],c2:['az','2']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
 const R={},P={};
 // entre la planta baja (muros hasta 5.5) y la alta (piso en 5.8) nadie modeló el canto de la losa por fuera: franja de muro y cornisa de cantera
 // y lo mismo entre la planta alta (muros hasta 10.0) y la azotea (piso en 10.3)
