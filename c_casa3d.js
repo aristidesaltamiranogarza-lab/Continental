@@ -280,7 +280,10 @@ Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs||sal
   else{if(fs)fs.add(g);g.rotation.y=ry;if(ya){AV.sentar(g,true);AV.pose(g,w.pop?'Reposo':'AgarreFrente',0);g.position.set(w.t.x+co.x-.2*Math.sin(ry),.24,w.t.z+co.z-.2*Math.cos(ry))}
   else g.position.set(w.t.x+co.x,1.55,w.t.z+co.z)}
   const k0=g.scale.x;if(w.pop)g.scale.setScalar(.001);seated.set(k,{g,ch,av:ya,t:w.t,j:w.j,seed:Math.random()*10,p0:w.pop?performance.now():0,k0})})}
-function solve(p){return;const b=FL.bx;p.x=Math.max(b[0],Math.min(b[1],p.x));p.z=Math.max(b[2],Math.min(b[3],p.z));
+// límites: la caja del piso y, si la hay, la de la calle (FL.bx2); fuera de las dos va al punto más cercano de alguna
+const enC=(p,b)=>({x:Math.max(b[0],Math.min(b[1],p.x)),z:Math.max(b[2],Math.min(b[3],p.z))});
+function lim(p,b,s){if(!b)return;const q=enC(p,b);if(s){const r=enC(p,s);if((r.x-p.x)**2+(r.z-p.z)**2<(q.x-p.x)**2+(q.z-p.z)**2){p.x=r.x;p.z=r.z;return}}p.x=q.x;p.z=q.z}
+function solve(p){lim(p,FL.bx,FL.bx2);
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}});
  // muros (FL.WL: segmentos [ax,az,bx,bz,r] sin los vanos, de c_casa_pb.js)
  (FL.WL||[]).forEach(([ax,az,bx,bz,r])=>{const vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((p.x-ax)*vx+(p.z-az)*vz)/(vx*vx+vz*vz||1))),qx=ax+vx*t,qz=az+vz*t,dx=p.x-qx,dz=p.z-qz,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=qx+dx/d*r;p.z=qz+dz/d*r}})}

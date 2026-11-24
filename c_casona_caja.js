@@ -19,12 +19,12 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  S.add(new THREE.HemisphereLight(0xfff4e0,0x8a7a6a,id==='cm1'?1.3:1.7));const L=new THREE.DirectionalLight(0xffffff,id==='cm1'?.6:1.4);L.position.set(-10,20,12);S.add(L);
  const sp={x:0,z:0},se={x:0,z:0,ok:0},bx=[-17.6,17.6,-12.6,16.6];
  const hb=!!(HB[id]&&window.CMAT)&&HB[id];
- const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();MARC.corte(LIN,c,p);if(F.cua)CUA.paso(c,p,id);
+ const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();MARC.corte(LIN,c,p);if(window.NIVC){NIVC.tapas(LIN);NIVC.paso(F.niv,c)}if(F.cua)CUA.paso(c,p,id);
   if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.fuera)F.fuera.paso(c,p);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);const PR=F.pr={glb:0,luz:hb?0:1,re:0};F.prog=()=>({p:PR.glb*.75+PR.luz*.25,re:PR.re});let gOK=0,lOK=!hb;const fin=()=>{if(gOK&&lOK)ok()};
- bajaGLB(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);if(window.VIS)VIS.grandes(R);
+ bajaGLB(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);if(window.VIS)VIS.grandes(R);if(window.NIVC)F.niv=NIVC.preparar(R,id);
   if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1],()=>{PR.luz=1;lOK=1;fin()},n=>{PR.re=n});F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   for(const n in PEGA){const o=R.getObjectByName(n);if(o)o.userData.pega=PEGA[n]}
   const D=MARC.leer(R);
@@ -77,7 +77,8 @@ function juntas(R){const W=[];
 // Con tu Mii en la banqueta se prende el casco (CCAS: planta alta, azotea, pérgola y tinacos).
 function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle'),cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();if(ar){if(cg){ar.position.y-=.35;ar.updateMatrix()}else ar.visible=false}
  // se cruza la calle hasta la banqueta de enfrente (fachadas vecinas en 32.6): se baja al arroyo (y -.35) y se sube en las guarniciones
- F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);F.OB.push(...(cg?[{x:-36,z:18.3,r:.35},{x:-6,z:18.3,r:.35},{x:-30,z:18.3,r:.75}]:[{x:11.8,z:18.3,r:.3}]),{x:0,z:29.05,r:.3});
+ F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);if(cg){F.bx2=[-42,21,17.2,32.2];F.cb[0]=Math.min(F.cb[0],-43);F.cb[1]=Math.max(F.cb[1],22)}   // calle.glb: se camina todo su tramo
+ F.OB.push(...(cg?[{x:-36,z:18.3,r:.35},{x:-6,z:18.3,r:.35},{x:-30,z:18.3,r:.75}]:[{x:11.8,z:18.3,r:.3}]),{x:0,z:29.05,r:.3});
  [4.8,6.2,7.5,8.8,10.2].forEach(x=>F.OB.push({x,z:20.5,r:.75}));   // el vocho
  const ss=(e,z)=>Math.min(1,Math.max(0,(z-e+.15)/.3)),st=t=>t*t*(3-2*t);F.gy=(x,z)=>-.35*(st(ss(18.6,z))-st(ss(28.6,z)));
  if(window.CCAS)try{F.casco=CCAS.pon(F)}catch(er){console.error('[CCAS]',er)}
