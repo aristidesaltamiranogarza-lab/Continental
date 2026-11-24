@@ -249,67 +249,121 @@ def columnas():
     ex('pb_columnas', obs=obs)
 
 # ---------- árboles de ramas con nubes de hojas (los usan el patio, el traspatio y blender/barrio_kit.py) ----------
-def nube(bm, x, y, z, r, sub=2, sy=.5, sem=0):
-    """Nube de hojas: ancha y baja, abajo casi plana y arriba esponjada (bultos suaves, no esfera)."""
-    n0 = len(bm.verts)
-    bmesh.ops.create_icosphere(bm, subdivisions=sub, radius=r, matrix=Matrix.Translation(V(x, y, z)) @ Matrix.Diagonal((1, 1, sy, 1)))
-    bm.verts.ensure_lookup_table()
-    R = random.Random(sem); c = V(x, y, z); piso = c.z - r * sy * .5; f = [R.uniform(0, 6.28) for _ in range(3)]
+# Ramas: un esqueleto continuo (tronco, ramas y ramitas) con el modificador Skin + Subdivisión: una sola malla lisa, sin juntas.
+# Hojas: cada grupo es una metabola (un elipsoide por punta de ramita y bultos encima) que se funde en una nube suave,
+# casi plana abajo y esponjada arriba; grupos separados para que se vea cielo y ramas entre ellos.
+def _malla_de(o, bm):
+    """Pega en bm la malla evaluada del objeto o (está en el origen: coordenadas del mundo) y borra o; regresa el índice del primer vértice."""
+    ev = o.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh()
+    bm.verts.ensure_lookup_table(); n0 = len(bm.verts); bm.from_mesh(me); ev.to_mesh_clear()
+    dat = o.data; bpy.data.objects.remove(o, do_unlink=True)
+    (bpy.data.meshes if isinstance(dat, bpy.types.Mesh) else bpy.data.metaballs).remove(dat)
+    bm.verts.ensure_lookup_table(); return n0
+
+def esqueleto(bm, nodos, aristas, radios, sub=1, dec=.42, col=None):
+    """Ramas lisas: nodos en el plano (x, alto, z), aristas (i, j) en árbol con raíz 0, radio por nodo."""
+    me = bpy.data.meshes.new('_esq'); me.from_pydata([tuple(V(*p)) for p in nodos], aristas, [])
+    o = bpy.data.objects.new('_esq', me); bpy.context.scene.collection.objects.link(o)
+    sk = o.modifiers.new('piel', 'SKIN'); sk.use_smooth_shade = True; sk.branch_smoothing = .5
+    for v, r in zip(me.skin_vertices[0].data, radios): v.radius = (r, r)
+    me.skin_vertices[0].data[0].use_root = True
+    if sub: o.modifiers.new('sub', 'SUBSURF').levels = sub
+    if dec < 1: o.modifiers.new('dec', 'DECIMATE').ratio = dec     # liso pero ligero
+    n0 = _malla_de(o, bm)
+    if col:      # color por vértice (malla de fachadas): tronco gris de la ceiba
+        cl = bm.loops.layers.float_color.get('Col') or bm.loops.layers.float_color.new('Col')
+        for f in {f for v in bm.verts[n0:] for f in v.link_faces}:
+            for lp in f.loops: lp[cl] = (*col, 1)
+
+NUBES = [0]
+def nube_mb(bm, bolas, sy, res, piso):
+    """Nube de hojas fundida: bolas [(x, y, z, r)] en el plano (r = radio visible aprox.), sy aplasta en alto; abajo se aplana hasta 'piso'."""
+    NUBES[0] += 1; mb = bpy.data.metaballs.new('_nube'); mb.resolution = res; mb.render_resolution = res
+    for x, y, z, r in bolas:
+        e = mb.elements.new(); e.type = 'ELLIPSOID'; e.co = V(x, y, z); e.radius = r / .565; e.size_x = e.size_y = 1; e.size_z = sy
+    o = bpy.data.objects.new('nube%d' % NUBES[0], mb); bpy.context.scene.collection.objects.link(o)    # nombre propio: no se funde con otras
+    n0 = _malla_de(o, bm); pz = V(0, piso, 0).z
     for v in bm.verts[n0:]:
-        d = v.co - c; a = math.atan2(d.y, d.x)
-        v.co += d * (.07 * math.sin(3 * a + f[0]) + .05 * math.sin(5 * a + f[1]) + .04 * math.cos(2 * a + f[2]))
-        if v.co.z < piso: v.co.z = piso + (v.co.z - piso) * .3
-
-def _pon(bm, fn, *a, suave=False):
-    n0 = len(bm.faces); fn(bm, *a); bm.faces.ensure_lookup_table()
-    for f in bm.faces[n0:]: f.smooth = suave
-
-def rama(TR, A, Bp, r0, r1, cv=.0, n=6, pon=_pon):
-    """Rama en dos tramos con una curva suave hacia arriba (cv)."""
-    m = ((A[0] + Bp[0]) / 2, (A[1] + Bp[1]) / 2 + cv, (A[2] + Bp[2]) / 2); rm = (r0 + r1) / 2
-    pon(TR, tubo, A, m, r0, rm, n); pon(TR, tubo, m, Bp, rm, r1, n)
+        if v.co.z < pz: v.co.z = pz + (v.co.z - pz) * .25
+    for f in {f for v in bm.verts[n0:] for f in v.link_faces}: f.smooth = True
 
 def arbol_ramas(R, TR, cps, cx, cz, s, y0, H, fork, ramas, alto, largo, rn, sub=2, sy=.5, lean=(0, 0), tope=True, tocon=True, rtr=.5,
-                lado=.5, pon=_pon):
-    """Tronco que a fork·s se abre en ramas; en la punta de cada una un grupo de 1-3 nubes planas, con cielo entre grupos.
-    cps: [(malla, peso)] para escoger la malla de cada nube; alto/largo/rn: rangos (min, max) en unidades de s; lado: probabilidad de
-    ramita lateral con nube más baja. Regresa las nubes [(x, y, z, r)] (para colgarles fruta)."""
-    lx, lz = lean[0] * 1.6 * s, lean[1] * 1.6 * s; ns = []
-    K = (cx + lx * .25 + R.uniform(-.25, .25) * s, y0 + fork * .5 * s, cz + lz * .25 + R.uniform(-.25, .25) * s)
-    F = (cx + lx * .6, y0 + fork * s, cz + lz * .6)
-    d = (Vector(K) - Vector((cx, y0, cz))).normalized() * rtr * .6 * s; K2 = tuple(Vector(K) + d)     # el primer tramo pasa la junta: sin grieta
-    pon(TR, tubo, (cx, y0, cz), K2, rtr * s, rtr * .84 * s, 9); K0 = tuple(Vector(K) - (Vector(F) - Vector(K)).normalized() * rtr * .6 * s); pon(TR, tubo, K0, F, rtr * .88 * s, rtr * .7 * s, 9)
-    if tocon:     # muñón seco abajo, como rama cortada
-        a = R.uniform(0, 6.28); h = y0 + fork * R.uniform(.45, .7) * s
-        pon(TR, tubo, (cx + lx * .4, h, cz + lz * .4), (cx + lx * .4 + math.cos(a) * 1.3 * s * rtr / .55, h + .7 * s * rtr / .55, cz + lz * .4 + math.sin(a) * 1.3 * s * rtr / .55), .26 * rtr * s, .1 * rtr * s, 5)
-    a0 = R.uniform(0, 6.28); pesos = sum(p for _, p in cps)
+                lado=.5, raices=0, tr_col=None, vaiven=1.0, ligero=False):
+    """Tronco que sube a fork·s y sigue hasta H·s (remate) soltando 'ramas' ramas escalonadas; cada rama se abre en dos ramitas y en sus
+    puntas va una nube. cps: [(malla, peso)] para escoger la malla de cada nube; alto/largo/rn: rangos (min, max) en unidades de s (alto =
+    altura de las puntas sobre y0, largo = alcance horizontal, rn = radio de la nube); sub 3 = nubes más finas (cerca); lado: probabilidad
+    de ramita lateral con nube más baja; raices: contrafuertes lisos al pie; ligero: árboles chicos o lejanos (menos triángulos); tr_col: color por vértice de las ramas (si TR es de fachadas). Regresa las bolas de las nubes [(x, y, z, r)] (para colgarles fruta)."""
+    lx, lz = lean[0] * 1.6 * s, lean[1] * 1.6 * s; ns = []; N, A, RA = [], [], []; g = rtr / .55
+    def nodo(p, r, padre=None):
+        N.append(p); RA.append(max(r, .035))
+        if padre is not None: A.append((padre, len(N) - 1))
+        return len(N) - 1
+    def curva(i0, p1, r0, r1, cv, n):      # rama curva (sube cv en medio) de N[i0] a p1 en n tramos; regresa el último nodo
+        p0 = N[i0]; i = i0
+        for k in range(1, n + 1):
+            t = k / n; q = (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t + cv * 4 * t * (1 - t), p0[2] + (p1[2] - p0[2]) * t)
+            i = nodo(q, r0 + (r1 - r0) * t, i)
+        return i
+    # tronco: base ensanchada, sube con un leve vaivén hasta la horqueta y sigue hasta el remate soltando las ramas escalonadas
+    pie = (1.8, 1.3) if raices else (1.35, 1.05)     # con contrafuertes, pie muy ensanchado
+    i = nodo((cx, y0, cz), rtr * pie[0] * s); i = nodo((cx, y0 + .35 * g * s, cz), rtr * pie[1] * s, i)
+    yt = y0 + (H - 1.2 * g) * s if tope else y0 + (fork + .6 * g) * s
+    w = (R.uniform(-.3, .3) * g * s * vaiven, R.uniform(-.3, .3) * g * s * vaiven); tr = []
+    for k in range(1, 4):
+        t = k / 3; i = nodo((cx + lx * .6 * t + w[0] * math.sin(t * math.pi), y0 + fork * s * t, cz + lz * .6 * t + w[1] * math.sin(t * math.pi)),
+                            rtr * s * (1.0 - .3 * t), i); tr.append(i)
+    tronco = [i]; F = N[i]; m = ramas + (1 if tope else 0)
+    for k in range(1, m):
+        t = k / m; i = nodo((F[0] + lx * .4 * t, F[1] + (yt - F[1]) * t, F[2] + lz * .4 * t), rtr * s * (.7 - .3 * t), i); tronco.append(i)
+    for k in range(raices):     # contrafuertes: raíces que bajan del tronco al suelo, fundidas con él
+        a = k * 2 * math.pi / raices + R.uniform(-.25, .25) + .4; d = rtr * R.uniform(2.0, 2.5) * s; c, sn = math.cos(a), math.sin(a)
+        h = nodo((cx + c * d * .6, y0 + .3 * s, cz + sn * d * .6), rtr * .36 * s, 1)     # nace del pie ensanchado
+        nodo((cx + c * d, y0 + .06, cz + sn * d), rtr * .17 * s, h)
+    if tocon:     # muñón seco a media altura, como rama cortada
+        a = R.uniform(0, 6.28); b = tr[0]; P0 = N[b]
+        curva(b, (P0[0] + math.cos(a) * 1.1 * g * s, P0[1] + .7 * g * s, P0[2] + math.sin(a) * 1.1 * g * s), rtr * .3 * s, rtr * .14 * s, .1 * s, 1)
+    a0 = R.uniform(0, 6.28); pesos = sum(p for _, p in cps); ys = sorted(R.uniform(*alto) for _ in range(ramas))    # más arriba sale, más arriba llega
     def malla():
         t = R.uniform(0, pesos)
-        for m, p in cps:
+        for mm, p in cps:
             t -= p
-            if t <= 0: return m
+            if t <= 0: return mm
         return cps[-1][0]
-    def una(x, y, z, r):
-        pon(malla(), nube, x, y, z, r, sub, sy, R.randrange(1 << 30), suave=True); ns.append((x, y, z, r))
-    def grupo(x, y, z, r):
-        una(x, y, z, r)
-        for _ in range(R.choice((1, 2, 2))):
-            b = R.uniform(0, 6.28); d = r * R.uniform(.55, .8)
-            una(x + math.cos(b) * d, y + r * sy * R.uniform(.2, .6), z + math.sin(b) * d, r * R.uniform(.55, .75))
+    fina = sub >= 3; dv = 4.0 if fina else (2.3 if ligero else 2.9)
+    def nube(puntas, r):
+        """Una nube sobre las puntas: un elipsoide por punta y 2-4 bultos encima, corridos al azar."""
+        bl = [(x, y + r * sy * .25, z, r * R.uniform(.75, .85)) for x, y, z in puntas]
+        cxm = sum(p[0] for p in puntas) / len(puntas); cym = sum(p[1] for p in puntas) / len(puntas); czm = sum(p[2] for p in puntas) / len(puntas)
+        b0 = R.uniform(0, 6.28); nl = R.randint(3, 4) if ligero else R.randint(4, 6)
+        for k in range(nl):     # lóbulos en la orilla: el contorno queda festoneado, no de disco
+            b = b0 + k * 2 * math.pi / nl + R.uniform(-.3, .3); d = r * R.uniform(.62, .85)
+            bl.append((cxm + math.cos(b) * d, cym + r * sy * R.uniform(.05, .35), czm + math.sin(b) * d, r * R.uniform(.42, .58)))
+        for _ in range(R.randint(1, 2) if ligero else R.randint(2, 3)):     # bultos arriba
+            b = R.uniform(0, 6.28); d = r * R.uniform(.15, .5)
+            bl.append((cxm + math.cos(b) * d, cym + r * sy * R.uniform(.6, .95), czm + math.sin(b) * d, r * R.uniform(.45, .6)))
+        nube_mb(malla(), bl, sy, r / dv, cym - r * sy * .35)
+        ns.extend(bl)
     for k in range(ramas):
-        a = a0 + k * 2 * math.pi / ramas + R.uniform(-.35, .35); L = R.uniform(*largo) * s; y = y0 + R.uniform(*alto) * s
-        T = (F[0] + lx * .5 + math.cos(a) * L, y, F[2] + lz * .5 + math.sin(a) * L)
-        rama(TR, F, T, rtr * .55 * s, rtr * .18 * s, .6 * s * rtr / .55, pon=pon)
-        r = R.uniform(*rn) * s; grupo(T[0], T[1] + r * sy * .3, T[2], r)
+        a = a0 + k * 2 * math.pi / ramas + R.uniform(-.3, .3); L = R.uniform(*largo) * s; y = y0 + ys[k] * s
+        r = R.uniform(*rn) * s; j0 = tronco[min(k, len(tronco) - 1)]
+        T = (F[0] + lx * .5 + math.cos(a) * L * .78, y - r * sy * .55, F[2] + lz * .5 + math.sin(a) * L * .78)
+        j = curva(j0, T, rtr * .55 * s, rtr * .26 * s, .5 * g * s, 3)     # 3 tramos: la curva se nota
+        puntas = []
+        for e in (-1, 1):   # la rama se abre en dos ramitas que entran a la nube
+            b = a + e * R.uniform(.35, .6); l2 = r * R.uniform(.45, .6)
+            q = (T[0] + math.cos(b) * l2, T[1] + r * sy * R.uniform(.15, .45), T[2] + math.sin(b) * l2)
+            curva(j, q, rtr * .2 * s, rtr * .09 * s, .1 * s, 1); puntas.append(q)
+        nube(puntas, r * .82)
         if R.random() < lado:     # ramita lateral con una nube más baja (pisos de hojas)
-            u = R.uniform(.35, .55); M0 = (F[0] + (T[0] - F[0]) * u, F[1] + (T[1] - F[1]) * u, F[2] + (T[2] - F[2]) * u)
-            b = a + R.choice((-1, 1)) * R.uniform(.7, 1.1); l2 = L * R.uniform(.45, .6)
-            T2 = (M0[0] + math.cos(b) * l2, M0[1] + R.uniform(.2, 1.0) * s * rtr / .55, M0[2] + math.sin(b) * l2)
-            rama(TR, M0, T2, .25 * rtr * s, .11 * rtr * s, .3 * s * rtr / .55, pon=pon); r2 = r * R.uniform(.55, .7)
-            una(T2[0], T2[1] + r2 * sy * .3, T2[2], r2)
+            jm = j - 3 + R.randint(1, 2); M0 = N[jm]
+            b = a + R.choice((-1, 1)) * R.uniform(.8, 1.2); l2 = L * R.uniform(.35, .5); r2 = r * R.uniform(.5, .65)
+            q = (M0[0] + math.cos(b) * l2, M0[1] + R.uniform(.1, .7) * g * s, M0[2] + math.sin(b) * l2)
+            curva(jm, q, rtr * .22 * s, rtr * .08 * s, .25 * g * s, 1); nube([q], r2)
     if tope:      # remate arriba del tronco, corrido para que no quede simétrico
-        b = R.uniform(0, 6.28); d = R.uniform(.6, 1.4) * s * rtr / .55; T = (F[0] + lx + math.cos(b) * d, y0 + H * s, F[2] + lz + math.sin(b) * d)
-        rama(TR, F, T, rtr * .5 * s, rtr * .18 * s, .2 * s, pon=pon); grupo(T[0], T[1], T[2], R.uniform(*rn) * s * .9)
+        b = R.uniform(0, 6.28); d = R.uniform(.5, 1.2) * g * s; r = R.uniform(*rn) * s * .85; P0 = N[tronco[-1]]
+        q = (P0[0] + math.cos(b) * d, y0 + H * s - r * sy * .6, P0[2] + math.sin(b) * d)
+        curva(tronco[-1], q, rtr * .3 * s, rtr * .12 * s, .1 * s, 2); nube([q], r)
+    esqueleto(TR, N, A, RA, 1, dec=.42 if fina else (.24 if ligero else .32), col=tr_col)
     return ns
 
 def arbol(nom, cx, cz, R, alto, n=5, prio=1.0):

@@ -16,9 +16,9 @@ function arbol(x,z,k,laurel,lejos){k=k||1;const c=pick(HO);let q=Math.abs((x*73+
  const F0=Y+2.7*k,a0=r2()*6.28,n=lejos?3:3+(r2()<.5);
  L.cyl(.22*k,.32*k,2.7*k,TRO,x,Y+1.35*k,z,6);if(laurel)L.cyl(.34*k,.34*k,1.1*k,CAL,x,Y+.55*k,z,6);
  for(let i=0;i<n;i++){const th=a0+i*6.28/n+(r2()-.5)*.6,p=L.rama(TRO,x,F0,z,(1.6+r2()*.8)*k,.15*k,.06*k,th,.7+r2()*.35,5),r=(.95+r2()*.35)*k;
-  F.bola(r,1.15,.55,1.15,c,p[0],p[1]+.2*r,p[2]);
-  if(!lejos&&r2()<.5){const b=th+(r2()<.5?1.2:-1.2);F.bola(r*.65,1.1,.6,1.1,c,p[0]+Math.cos(b)*r*.7,p[1]+.45*r,p[2]+Math.sin(b)*r*.7)}}
- const t=L.rama(TRO,x,F0,z,2.1*k,.13*k,.06*k,a0+3.14,.18,5);F.bola(1.15*k,1.1,.6,1.1,c,t[0],t[1]+.25*k,t[2])}
+  F.nube(r,1.15,.55,1.15,c,p[0],p[1]+.2*r,p[2]);
+  if(!lejos&&r2()<.5){const b=th+(r2()<.5?1.2:-1.2);F.nube(r*.65,1.1,.6,1.1,c,p[0]+Math.cos(b)*r*.7,p[1]+.45*r,p[2]+Math.sin(b)*r*.7)}}
+ const t=L.rama(TRO,x,F0,z,2.1*k,.13*k,.06*k,a0+3.14,.18,5);F.nube(1.15*k,1.1,.6,1.1,c,t[0],t[1]+.25*k,t[2])}
 function banca(x,z,ry){const c=Math.cos(ry),s=Math.sin(ry),P=(u,v)=>[x+u*c+v*s,z-u*s+v*c];
  const [a,b]=P(0,0),[e,f]=P(0,.35);L.box(2.4,.12,.6,MAD,a,Y+.75,b,ry);L.box(2.4,.6,.1,MAD,e,Y+1.15,f,ry);
  [-1,1].forEach(k=>{const [g,h]=P(k*1.05,.1);L.box(.1,.75,.7,HI,g,Y+.38,h,ry)})}
