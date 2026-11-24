@@ -1,6 +1,6 @@
 // c_casona_sot.js — SOTC: los juegos del sótano de la casona (CASONA.md paso 6). CAJA lo llama en cm1 con el GLB ya leído (modelos/casona/sm.glb,
 // blender/casona_sm.py). Póker, Blackjack y Billar salen de SAL.mesas (mesas de CAS3 y BIL; las juegan PK3, BJ3 y BIJ como en el sótano de hoy),
-// el Cubilete en la punta de la barra (CUB3) y la Ruleta queda como mesa de la casa (GM.ruleta, en el cuarto oscuro). Rockola, taquera, marcador,
+// el Cubilete en la punta de la barra (CUB3) y la Ruleta es la mesa de la casa (GM.ruleta, en el cuarto oscuro) vestida por RRC (viste). Rockola, taquera, marcador,
 // cuadro y neones van en los empties sot_<cosa> del GLB (ry = hacia dónde miran). SOTC.pon(F,R,D,H) → {hechas:{juego:1}, step} o null.
 (function(){
 if(typeof THREE==='undefined')return;
@@ -34,7 +34,9 @@ function pon(F,R,D,H){if(!window.SAL||!SAL.mesas)return null;
  n('billar','Billar','#d8fff0','#18d6a0','italic bold 96px Georgia,serif',1.6,.5);
  n('cantina','El Gato Negro','#ffd6e8','#ff3b8a','italic bold 70px Georgia,serif',2.1,.66);
  const c=e('cuadro');if(c)cuadro(H,S,c);
- return {hechas,step:ms.step}}
+ // la Ruleta: la mesa de la casa la arma CAJA y aquí se viste (c_casona_rr.js: mesa vieja, foco que se mece y parpadea, cosas)
+ let rr=null;const viste=t=>{if(t.g==='ruleta'&&window.RRC&&!rr)try{rr=RRC.pon(t,H,F,D)}catch(er){console.error('[RRC]',er)}};
+ return {hechas,viste,step:()=>{ms.step();if(rr)rr.paso()}}}
 
 window.SOTC={pon};
 })();
