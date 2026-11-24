@@ -131,11 +131,13 @@ def muebles():
     caja(MO, 11.3, 11.82, .48, .58, 21.0, 26.0); caja(CU, 11.32, 11.8, .58, .66, 21.05, 25.95); caja(CU, 11.72, 11.82, .66, 1.3, 21.05, 25.95)
     for zz in (21.1, 23.5, 25.9): caja(MO, 11.36, 11.46, 0, .48, zz - .05, zz + .05); caja(MO, 11.66, 11.76, 0, .48, zz - .05, zz + .05)
     segs += T(11.55, 21.3) + T(11.55, 25.7)
-    # cava: dos estantes de barricas acostadas (las de la maqueta) y un botellero en el muro de la medianera
-    for zz in (15.4, 17.6):
-        caja(MO, 29.3, 35.1, 0, .12, zz - .55, zz - .4); caja(MO, 29.3, 35.1, 0, .12, zz + .4, zz + .55)
-        for xx in (30.2, 32.2, 34.2): barrica_acostada(BA, HI, xx, .72, zz, 'z', 1.1, .58)
-        segs += T(29.7, zz) + T(34.7, zz)
+    # cava: barricas acostadas en dos estibas contra los muros de los lados (4 abajo, 3 encima en las canaletas); el centro queda libre
+    # para pasar a la Ruleta (puerta x 30.5..32.5 en z 20)
+    for xc in (28.85, 35.25):
+        for o in (-.42, .3): caja(MO, xc + o, xc + o + .12, 0, .16, 14.3, 19.6)
+        for zz in (15.0, 16.3, 17.6, 18.9): barrica_acostada(BA, HI, xc, .72, zz, 'x', 1.1, .58)
+        for zz in (15.65, 16.95, 18.25): barrica_acostada(BA, HI, xc, 1.68, zz, 'x', 1.1, .58)
+        segs += T(xc, 14.5) + T(xc, 19.4)
     caja(MO, 35.25, 35.85, 0, 2.6, 10.6, 13.6); caja(BO, 35.2, 35.25, .2, 2.4, 10.7, 13.5)
     segs += T(35.5, 10.9) + T(35.5, 13.3)
     # cuarto oscuro: cajas de madera apiladas en dos esquinas

@@ -89,7 +89,7 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
 - Lista (marcar al terminar cada uno):
   - [x] 1) escaleras de todos los pisos (en U, rojo óxido; ver arriba)
   - [x] 2) pérgola: cenefa de cantera de .5 alrededor del piso y sardinel de .15 con entrada en los dos lados a la azotea (ver.py -- az perg)
-  - [ ] 3) sótano: mesas/sillas de Póker y Blackjack, barricas a los lados
+  - [x] 3) sótano: Póker a (20.5, 5) y Blackjack a (30.5, 5) (las sillas del BJ quedaban a .4 del muro), ya en sm.glb con -- marcas; barricas de la cava en dos estibas contra los muros de los lados (sin hornear)
   - [ ] 4) salón del Catan: sillas de escala fija, mecedoras fuera, quitar repisas con "barras"
   - [ ] 5) jardinera: esquinas que parpadean
   - [ ] 6) revisar lajas al pozo
@@ -103,8 +103,8 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
 
 ## Pendientes (pedidos por el usuario, 22 nov)
 - [ ] Escalera: se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
-- [ ] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.
-- [ ] Barricas de la cava: se ven bien pero estorban el paso a la Ruleta Rusa; moverlas a los lados.
+- [x] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.
+- [x] Barricas de la cava: se ven bien pero estorban el paso a la Ruleta Rusa; moverlas a los lados.
 
 ## Pendientes de la prueba en línea (23 nov 2026)
 - Hecho (23 nov) carga: CCARGA (c_casona_carga.js) muestra logo y barra mientras goFloor espera el GLB y la luz del piso (F.prog), se quita sola; GLB y luz se reintentan sin recargar (CAJA bajaGLB, CMAT.aplicar); el fundido a negro ya no se queda pegado si falla el armado del piso.
