@@ -29,8 +29,8 @@ COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), c
              cuarto=(.8, .77, .7), techo=(.8, .74, .62), madera=(.3, .18, .1), bejuco=(.75, .6, .38), porton=(.32, .2, .12),
              persiana=(.18, .36, .26), hierro=(.05, .05, .05), tapete=(.5, .2, .15), hamaca=(.7, .35, .3), tronco=(.35, .25, .18),
              copa=(.24, .4, .18), barro=(.6, .32, .2), escalon=(.34, .1, .07), calle=(.35, .35, .37), banqueta=(.62, .6, .56),
-             barda=(.78, .7, .58), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08))
-EMITE = dict(arbotante=6, farol=8)
+             barda=(.78, .7, .58), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08), foco=(1, .86, .58))
+EMITE = dict(arbotante=6, farol=8, foco=10)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)
 # por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
 # vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
@@ -438,6 +438,50 @@ def lamparas():
     for g, mx, mz, r, libre in N['mesas']:
         if g in ('continental', 'monopolydeal'): LUCES.append(('SPOT', (mx, 5.15, mz), 1100, 0))
     for x, z in ((4, 13.5), (4, 19.5), (4, 28), (32, 16), (32, 25), (32, 31)): LUCES.append(('POINT', (x, 4.6, z), 110, .3))
+    traspatio_noche()
+
+def arbotante(x, z, nx, nz, y0=3.0, E=70):
+    """Arbotante en el muro (su línea lo esconde con el corte) y su luz puntual para el horneado."""
+    h = K['t'] / 2; e = 'h' if nx == 0 else 'v'; L, u = (z, x) if e == 'h' else (x, z)
+    base, lid = linea_de(e, L, u); n = base + '_arb'; bm = bmn(n, 'arbotante', luz=False); ex(n, linea=lid)
+    o = (nz if e == 'h' else nx)
+    caja_l(bm, e, L, u - .15, u + .15, y0, y0 + .4, o * h, o * (h + .14)) if o > 0 else caja_l(bm, e, L, u - .15, u + .15, y0, y0 + .4, o * (h + .14), o * h)
+    LUCES.append(('POINT', (x + nx * .55, y0 + .25, z + nz * .55), E, .12))
+
+def guirnalda(pre, A, Bp, caida=.45, paso=.7, cada=3, E=16):
+    """Cable con focos de A a Bp (plano: x, alto, z) que cuelga 'caida' al centro; una luz puntual cada 'cada' focos (horneado de noche)."""
+    CB, FO = bmn(pre + '_cable', 'hierro', luz=False), bmn(pre + '_focos', 'foco', luz=False)
+    n = max(2, round(math.dist(A, Bp) / paso)); pts = []
+    for i in range(n + 1):
+        t = i / n; pts.append((A[0] + (Bp[0] - A[0]) * t, A[1] + (Bp[1] - A[1]) * t - caida * 4 * t * (1 - t), A[2] + (Bp[2] - A[2]) * t))
+    for p, q in zip(pts, pts[1:]): tubo(CB, p, q, .01, .01, 4)
+    for i, (x, y, z) in enumerate(pts[1:-1], 1):
+        tubo(CB, (x, y, z), (x, y - .06, z), .014, .014, 6)
+        bmesh.ops.create_icosphere(FO, subdivisions=1, radius=.05, matrix=Matrix.Translation(V(x, y - .11, z)) @ Matrix.Diagonal((1, 1, 1.3, 1)))
+        if i % cada == 0: LUCES.append(('POINT', (x, y - .24, z), E, .05))   # abajo del foco (adentro lo tapaba)
+
+def farolito(pre, x, y, z, E=45):
+    """Farol chico de hierro sobre un pretil o una barda (y = su tapa)."""
+    HI, FA = bmn(pre + '_hierro', 'hierro', luz=False), bmn(pre, 'farol', luz=False)
+    caja(HI, x - .1, x + .1, y, y + .04, z - .1, z + .1); caja(FA, x - .08, x + .08, y + .04, y + .32, z - .08, z + .08)
+    for dx in (-.085, .085):
+        for dz in (-.085, .085): caja(HI, x + dx - .012, x + dx + .012, y + .04, y + .32, z + dz - .012, z + dz + .012)
+    caja(HI, x - .12, x + .12, y + .32, y + .36, z - .12, z + .12); tubo(HI, (x, y + .36, z), (x, y + .44, z), .04, .01, 6)
+    LUCES.append(('POINT', (x, y + .52, z), E, .08))   # arriba del sombrerete (adentro la caja la tapaba)
+
+# R2: de noche el traspatio quedaba a oscuras (los arbotantes del muro de atrás miran a la casa): arbotantes del lado del traspatio,
+# dos postes de madera y guirnaldas de focos en zigzag del muro a los postes (libran el mamey y el pozo)
+POSTES_T = [(10.5, 46.8), (25.5, 46.8)]
+def traspatio_noche():
+    for x in (4, 11, 25, 34): arbotante(x, 34, 0, 1)
+    MA = bmn('pb_traspatio_postes', 'madera', prio=.5); obs = []
+    for px, pz in POSTES_T:
+        caja(MA, px - .09, px + .09, 0, 3.5, pz - .09, pz + .09); caja(MA, px - .3, px + .3, 3.38, 3.46, pz - .05, pz + .05); obs += T(px, pz) + [.3]
+    ex('pb_traspatio_postes', obs=obs)
+    (a, b), (c, d) = POSTES_T
+    for A, Bp in (((9, 4.0, 34.25), (a, 3.4, b)), ((18, 4.0, 34.25), (a, 3.4, b)), ((18, 4.0, 34.25), (c, 3.4, d)), ((27, 4.0, 34.25), (c, 3.4, d)),
+                  ((a, 3.4, b), (c, 3.4, d))):
+        guirnalda('pb_guirnalda', A, Bp, .5)
 
 def mat(n):
     m = bpy.data.materials.get(n)

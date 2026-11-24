@@ -246,6 +246,10 @@ def lamparas():
         caja_l(bm, e, L, u - .15, u + .15, 2.7, 3.1, o * h, o * (h + .14)) if o > 0 else caja_l(bm, e, L, u - .15, u + .15, 2.7, 3.1, o * (h + .14), o * h)
         L_.append(('POINT', (x + nx * .55, 2.95, z + nz * .55), 55, .12))
     L_.append(('POINT', (4, 3.6, 13.5), 70, .3))
+    # R2: de noche la azotea quedaba a oscuras: tres guirnaldas bajo la pérgola (de trabe a trabe) y faroles chicos en el pretil
+    for xa in (4, 8, 12): P.guirnalda('az_guirnalda', (xa, PERG - .02, .55), (xa, PERG - .02, 9.45), .4, E=24)
+    for x, z in ((21, 0), (27, 0), (33, 0), (36, 9), (36, 18), (36, 27), (30, 30), (21, 30), (12, 30), (0, 22)):
+        P.farolito('az_faroles', x, PRET, z, E=130)
 
 def armar():
     for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
