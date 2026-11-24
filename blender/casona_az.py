@@ -133,7 +133,9 @@ def pisos():
     for x, z, w, d, k, tin, n in N['areas']:
         if k == 'void': continue
         x1, z1 = x + w, z + d
-        if n == 'pergola': quad('az_piso_corredor', 'corredor', x, z, x1, z1)
+        if n == 'pergola':   # corredor con cenefa de cantera de .5 alrededor (borde con la azotea)
+            c = .5; quad('az_piso_corredor', 'corredor', x + c, z + c, x1 - c, z1 - c)
+            for a, b, cc, e in ((x, z, x1, z + c), (x, z1 - c, x1, z1), (x, z + c, x + c, z1 - c), (x1 - c, z + c, x1, z1 - c)): quad('az_piso_cenefa', 'cantera', a, b, cc, e)
         elif n == 'escalera':
             P.quad_hueco('az_piso_cuarto', 'cuarto', x, z, x1, z1)
         else: quad('az_piso_ladrillo', 'ladrillo', x, z, x1, z1)
@@ -167,6 +169,13 @@ def pergola():
     for b in (z + .4, z + d - .4): caja(MA, x + .1, x + w - .1, PERG, PERG + .38, b - .14, b + .14)
     for j in range(11): xa = x + .5 + j * 1.5; caja(MA, xa - .08, xa + .08, PERG + .38, PERG + .58, z + .05, z + d - .05)
     ex('az_pergola', obs=obs)
+    # sardinel de cantera (.14, con tapa volada) en los lados que dan a la azotea, con una entrada en cada uno
+    SA = bmn('az_pergola_sardinel', 'cantera'); segs = []
+    for e, L, tramos in (('v', x + w - .25, ((z + .7, z + 3.5), (z + 6.5, z + d))), ('h', z + d - .25, ((x + 8, x + 9), (x + 11.6, x + w - .7)))):
+        for u0, u1 in tramos:
+            caja_l(SA, e, L, u0, u1, 0, .11, -.2, .2); caja_l(SA, e, L, u0 - .03, u1 + .03, .11, .15, -.23, .23)
+            segs += P.LT(e, L, u0) + P.LT(e, L, u1)
+    ex('az_pergola_sardinel', segs=segs, r=.25)
     HO, FL = bmn('az_pergola_hojas', 'copa'), bmn('az_pergola_flores', 'flor'); sem = [7]
     def r3(): sem[0] = (sem[0] * 9301 + 49297) % 233280; return sem[0] / 233280
     def mata(cx, y, cz, r, n):

@@ -1,6 +1,6 @@
 # blender/ver.py — Ventana de Blender que arma un nivel de la casona y se rearma sola al guardar cualquier blender/casona*.py.
 # Sirve para ver los cambios en vivo sin hornear (vista Material con las luces de la escena).
-#   blender --factory-startup --python blender/ver.py -- pb      (pb, pa, sm, az o calle); agrega esc para ver la escalera de cerca
+#   blender --factory-startup --python blender/ver.py -- pb      (pb, pa, sm, az o calle); agrega esc (escalera) o perg (pérgola) para verla de cerca
 import bpy, os, sys, glob, math, time, traceback
 from mathutils import Vector, Euler
 
@@ -9,6 +9,7 @@ arg = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 NIV = arg[0] if arg else 'pb'
 VISTA = dict(calle=((-10, -27, 2), 60, 62), pb=((0, 3, 2), 45, 50))   # (centro en Blender, distancia, inclinación)
 if 'esc' in arg[1:]: VISTA[NIV] = ((-14.5, -3.5, 0), 16, 58)   # -- pb esc: de cerca a la escalera
+if 'perg' in arg[1:]: VISTA[NIV] = ((-10, -12, 0), 22, 55)    # -- az perg: de cerca a la pérgola
 est = dict(t=None, primera=True)
 
 def vista_3d():
