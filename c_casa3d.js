@@ -25,7 +25,7 @@ let OB=[];                               // obstáculos redondos (sillas, mueble
 // y escaleras (links). Solo se dibuja el piso donde estás; el sótano se arma la primera vez que bajas. to: la puerta te lleva a ese piso
 const PB={id:'pb',bx:[-HX+1,HX-1,ZB+1.2,ZF-1],cb:[-HX,HX,ZB,ZF],links:[],spawn:f=>f==='alta'||f==='ter'?{x:HX-11.4,z:2.8,yaw:-Math.PI/2}:{x:HX-2.6,z:-8,yaw:-Math.PI/2}};let FL=PB,LK=[],fBusy=false;
 const FM={sot:'SOT',alta:'ALTA',ter:'TERR'},fmod=id=>window[FM[id]]||(window.CAJA&&CAJA.M[id]),FLS={pb:PB};   // módulo de cada piso y los que ya se armaron
-const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&CAV.on());
+const canGo=id=>id==='pb'||!!(fmod(id)&&fmod(id).ok()),fpOn=()=>!!(window.CAV&&CAV.on()),segOn=()=>!fpOn()&&!!(window.CSEG&&CSEG.on());
 // sube a la GPU las texturas del piso mientras la pantalla está en negro (si no, se suben al primer cuadro y se traba)
 function subeTex(s){const v=new Set();s.traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture&&!v.has(t)){v.add(t);R.initTexture(t)}}})})}
 // P3: al acercarte a una escalera o puerta de un piso que no se ha armado, se arma en un rato libre, se compilan sus shaders
@@ -354,9 +354,10 @@ const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>0;   // AH: cuánto adelante de tu 
 const EL=()=>por?.78:.62,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // punto de la casa al centro de la pantalla
 function center(V){const p=me.pos;return v3(p.x+V.ox-Math.sin(V.a)*AH(),0,p.z+V.oz-Math.cos(V.a)*AH())}
-function applyCam(){if(fpOn())return CAV.apply(CA,me.pos,VW);const c=center(VW).add(selOff),a=VW.a,d=(por?20:14)/VW.k,el=EL()+VW.t;
+function applyCam(){if(fpOn())return CAV.apply(CA,me.pos,VW);if(segOn())return CSEG.apply(CA,me.pos,VW,selOff);   // seguimiento (c_casa_seg.js)
+ const c=center(VW).add(selOff),a=VW.a,d=(por?20:14)/VW.k,el=EL()+VW.t;
  CA.position.set(c.x+Math.sin(a)*Math.cos(el)*d,Math.sin(el)*d+1.9,c.z+Math.cos(a)*Math.cos(el)*d);CA.lookAt(c.x,1.9,c.z);CA.updateMatrixWorld()}
-function clampV(){if(fpOn())return CAV.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.1-EL(),Math.min(1.45-EL(),VT.t));
+function clampV(){if(fpOn())return CAV.clamp(VT);if(segOn())return CSEG.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.1-EL(),Math.min(1.45-EL(),VT.t));
  // que el centro no se salga de la casa
  const c=center(VT),b=FL.cb,cx=Math.max(b[0],Math.min(b[1],c.x)),cz=Math.max(b[2],Math.min(b[3],c.z));VT.ox+=cx-c.x;VT.oz+=cz-c.z}
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);applyCam()}
@@ -371,7 +372,7 @@ function camBtn(c){if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')
 // punto del piso debajo del dedo/ratón
 function ground(x,y){const r=cv.getBoundingClientRect();P2.set((x-r.left)/r.width*2-1,-(y-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(FLOOR,v3(0,0,0))}
 // zoom hacia donde apuntas (rueda del ratón)
-function zoomAt(x,y,k){if(fpOn())return;const p=ground(x,y);k=Math.max(KMIN,Math.min(KMAX,k));if(!p){VT.k=k;return clampV()}const c=center(VT),f=VT.k/k;
+function zoomAt(x,y,k){if(fpOn())return;if(segOn()){VT.k=k;return clampV()}const p=ground(x,y);k=Math.max(KMIN,Math.min(KMAX,k));if(!p){VT.k=k;return clampV()}const c=center(VT),f=VT.k/k;
  VT.ox+=(p.x-c.x)*(1-f);VT.oz+=(p.z-c.z)*(1-f);VT.k=k;clampV()}
 let IW=0,IH=0;function layout(){IW=innerWidth;IH=innerHeight;const pe=R.domElement.parentNode,b=pe&&pe.getBoundingClientRect();W=Math.round(b&&b.width||IW);H=Math.round(b&&b.height||IH);por=W/H<.95;R.setSize(W,H,false);CA.aspect=W/H;CA.fov=fpOn()?CAV.fov(por):por?52:42;CA.updateProjectionMatrix()}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H,q.z<1]}
