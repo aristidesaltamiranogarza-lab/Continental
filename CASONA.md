@@ -142,3 +142,17 @@ Reglas para todos los pasos: probar en `?casa=caja` a 840×360 y 360×840; topes
 
 Al cerrar cada paso: marcarlo [x] aquí con una línea de lo hecho, commit y push a gamemash-casona.
 - Paisaje: preguntas en casona_landscape.md.
+
+## Revisión con capturas (pedido 24 nov 2026; anotado, sin hacer)
+Arte y horneado (Blender, otra PC; avisar antes):
+- [ ] **R1. Árboles y matas**: la textura de manchas de la copa (laurel del patio, macetas, árboles del traspatio) se ve fea y se repite en todo. Cambiarla por otra (o copas sin esa textura) en todos los lugares donde se usa.
+- [ ] **R2. Luz de noche en traspatio y azotea**: muy oscuros. Agregar fuentes de luz como decoración (faroles, arbotantes, guirnaldas, focos en muros) en Blender y que entren en el horneado de noche.
+- [ ] **R3. Hueco entre niveles**: el canto entre pisos se veía transparente y se tapó con un anillo de código. Resolverlo en la geometría de Blender (losas y entrepisos cerrados) y quitar el anillo.
+- [ ] **R4. Horneado pixeleado**: en muchas zonas la luz horneada sigue saliendo en bloques (dinteles, cantos de muros, rincones). Revisar resolución por objeto/texel, márgenes, desenvuelto UV1 y filtrado; problema recurrente, buscar la causa de fondo.
+- [ ] **R5. Esquinas encimadas**: en las esquinas los muros/zoclos/lambrines se traslapan y se ve una franja rara y más oscura. Cortar las piezas para que se toquen sin encimarse.
+- [ ] **R6. Muros del sótano**: no gusta la textura de sillares del pasillo y la ruleta; proponer otra.
+
+Juego:
+- [ ] **R7. Entrada: carga el segundo piso pero no el techo** — solo pasa en el zaguán/entrada (vista desde la entrada hacia el patio se ve la planta alta sin techo arriba). Revisar NIVC/CUA/VIS ahí (?vis).
+- [ ] **R8. Casino rehecho** (libertad de diseño; mostrar propuesta antes): no gusta la disposición de las mesas; sillas raras (probar otro tipo de sillas y mesas, ya hay más espacio); se ve vacío: más decoración (p. ej. tragamonedas, barra, plantas, cuadros, alfombra con zonas). La lámpara de la mesa atraviesa la cabeza del crupier (subirla o moverla). Crupieres con atuendo de crupier: camisa blanca, chaleco (rojo vino), moño negro, pantalón negro; hoy se ven raros (de playera y parados en un cajón).
+- [ ] **R9. Ruleta Rusa**: se perdió su mesa (hoy es una mesa redonda genérica), no tiene decoración, está demasiado oscura y se perdió el foco que parpadea. Recuperar mesa y foco, decorar y dar luz.
