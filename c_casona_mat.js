@@ -8,7 +8,7 @@
 if(typeof THREE==='undefined')return;
 const A={luz:1,copa:.28,noche:0x8c94b0,nocheExt:0x6c7898};
 // de noche (CIELO) todo lo horneado se oscurece y azula como las casas vecinas; lo de afuera más. Lámparas y faroles no.
-const EXT=/^(calle|banqueta|fachada|pasta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra)$/,NOC=[];let REG=false;
+const EXT=/^(calle|banqueta|fachada|pasta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra|hoja|hoja_c|hoja_seca|agave|zacate|flor|tallo)$/,NOC=[];let REG=false;
 // luz de noche: <nivel>_luz_noche.webp (blender: hornear_noche); se pide la primera vez que es de noche; sin archivo se queda la de día
 const LMS=[],LMN=new Set();
 function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche()),a=new THREE.Color(A.noche),e=new THREE.Color(A.nocheExt);

@@ -118,38 +118,36 @@ def bano():
 
 COLOR.update(tierra=(.3, .22, .15), hoja=(.3, .5, .22), agave=(.36, .5, .44))
 
-def hojas(bm, x, y, z, n, largo, ancho, alza, cae, giro=0.0):
-    """Hojas planas que salen de (x, y, z) en n rumbos: suben 'alza' a medio largo y caen 'cae' en la punta (plátano, agave)."""
-    for k in range(n):
-        a = giro + 2 * math.pi * k / n; dx, dz = math.cos(a), math.sin(a)
-        m = (x + dx * largo * .5, y + alza, z + dz * largo * .5); f = (x + dx * largo, y + alza - cae, z + dz * largo)
-        viga(bm, (x, y, z), m, ancho, .02); viga(bm, m, f, ancho * .8, .02)
-
 def traspatio2():
-    """Traspatio (z 34..48): macetas en la barda del fondo, plátanos, arriate de hortalizas, sendero de laja al pozo,
-    banca bajo el mamey, tendedero con ropa, tinaja junto al lavadero y un agave en su maceta junto a la puerta."""
+    """Traspatio (z 34..48): macetas con matas y agaves en la barda del fondo, plátanos, arriate de hortalizas, sendero de laja al pozo,
+    banca bajo el mamey (con su mancha de tierra), tendedero con ropa, tinaja junto al lavadero, agave junto a la puerta, matas al pie
+    de las bardas, una bugambilia en la esquina del fondo y macollos de zacate (blender/casona_plantas.py)."""
     BA, MA, CP, TI = bmn('pb_tras_barro', 'barro', prio=.5), bmn('pb_tras_mueble', 'madera', prio=.5), bmn('pb_tras_planta', 'copa', prio=.5), bmn('pb_tras_tierra', 'tierra', prio=.4)
-    HO, AG, CA, TR = bmn('pb_tras_hoja', 'hoja', prio=.5), bmn('pb_tras_agave', 'agave', prio=.5), bmn('pb_tras_cantera', 'cantera', prio=.5), bmn('pb_tras_tronco', 'tronco', prio=.5)
+    HO, AG, CA, TL = bmn('pb_tras_hoja', 'hoja', prio=.5), bmn('pb_tras_agave', 'agave', prio=.5), bmn('pb_tras_cantera', 'cantera', prio=.5), bmn('pb_tras_tallo', 'tallo', prio=.5)
+    SE, FL, ZA, HC = bmn('pb_tras_seca', 'hoja_seca', prio=.4), bmn('pb_tras_flor', 'flor', prio=.5), bmn('pb_tras_zacate', 'zacate', prio=.4), bmn('pb_tras_hortaliza', 'hoja_c', prio=.5)
+    MT = bmn('pb_tras_mancha', 'tierra', recalc=False, prio=.4)
     HI, RO = bmn('pb_tras_hierro', 'hierro', luz=False), [bmn('pb_tras_ropa%d' % i, m, prio=.4) for i, m in enumerate(('toalla', 'hamaca', 'costal'))]
-    obs = []
+    obs = []; R = random.Random(48)
     for x in (19, 21, 23, 25, 27, 29):          # macetas en la barda del fondo
-        tubo(BA, (x, 0, 47.1), (x, .75, 47.1), .34, .46, 12); tubo(TI, (x, .7, 47.1), (x, .72, 47.1), .42, .42, 12)
-        if x % 4 == 1: hojas(AG, x, .7, 47.1, 8, .9, .15, .55, .05, giro=x)                 # agave
-        else:                                                                                   # mata redonda
-            for dx, dz, dy, r in ((0, 0, 1.15, .42), (.26, -.1, .95, .32), (-.25, .08, .97, .3)):
-                bmesh.ops.create_icosphere(CP, subdivisions=2, radius=r, matrix=Matrix.Translation(V(x + dx, dy, 47.1 + dz)) @ Matrix.Diagonal((1, 1, .82, 1)))
+        tubo(BA, (x, 0, 47.1), (x, .75, 47.1), .34, .46, 14); tubo(TI, (x, .7, 47.1), (x, .72, 47.1), .42, .42, 14)
+        if x % 4 == 1: agave(AG, x, .7, 47.1, .85, R)
+        else:
+            n0 = mata(CP, x, 1.05, 47.1, .5, .85, sem=x, piso=.72)
+            if x == 23: flores(FL, CP, n0, 14, .06, R)
         obs += T(x, 47.1) + [.55]
     for x, z, al in ((2.4, 36.8, 2.8), (33.6, 45.6, 3.1), (34.9, 43.4, 2.5)):   # plátanos
-        tubo(TR, (x, 0, z), (x, al, z), .2, .14, 8); hojas(HO, x, al - .1, z, 6, 1.9, .34, .55, .9, giro=x); obs += T(x, z) + [.45]
-    # arriate de hortalizas con su borde de cantera y matitas
+        platano(TL, HO, SE, x, z, al, R); obs += T(x, z) + [.45]
+    # arriate de hortalizas con su borde de cantera: lechugas (rosetas fundidas) y una hilera de cebollines
     x0, x1, z0, z1 = 22, 29, 39, 42.4
     for a, b, c, d in ((x0, x1, z0, z0 + .22), (x0, x1, z1 - .22, z1), (x0, x0 + .22, z0 + .22, z1 - .22), (x1 - .22, x1, z0 + .22, z1 - .22)): caja(CA, a, b, 0, .45, c, d)   # sin encimarse en las esquinas (parpadeaban)
     caja(TI, x0 + .23, x1 - .23, 0, .4, z0 + .23, z1 - .23)
-    for i in range(7):                       # hortalizas: lechugas (bolas bajas) y una hilera de cebollines (hojas que suben)
+    for i in range(7):
         for j in range(3):
             xx, zz = x0 + .85 + i * .88, z0 + .75 + j * .95
-            if j == 1: hojas(HO, xx, .4, zz, 6, .32, .05, .38, -.06, giro=i)
-            else: bmesh.ops.create_icosphere(HO, subdivisions=2, radius=.26, matrix=Matrix.Translation(V(xx, .52, zz)) @ Matrix.Diagonal((1, 1, .6, 1)))
+            if j == 1:
+                for k in range(6):
+                    a = i + k * 1.05; hoja(HO, (xx + math.cos(a) * .04, .4, zz + math.sin(a) * .04), a, .1, .05, .42, -.02, n=2, grueso=.02, forma='brizna', lados=3)
+            else: mata(HC, xx, .55, zz, .27, .6, sem=i * 3 + j, lob=(5, 6), res=2.2, piso=.41)
     segs = T(x0 + .5, (z0 + z1) / 2) + T(x1 - .5, (z0 + z1) / 2)
     # sendero de lajas del corredor al pozo: piedras planas irregulares de .08 de grueso, en curva suave, con piedritas a los lados
     LA = bmn('pb_tras_laja', 'laja', prio=.5); sem = [3]
@@ -159,14 +157,15 @@ def traspatio2():
         top = [LA.verts.new(V(x, alto, z)) for x, z in pts]; bot = [LA.verts.new(V(x, -.02, z)) for x, z in pts]
         LA.faces.new(top); LA.faces.new(bot[::-1])
         for i in range(n): j = (i + 1) % n; LA.faces.new([bot[i], bot[j], top[j], top[i]])
+    camino = []
     for k in range(9):
-        t = (k + .5) / 9; x = 18 + (14 - 18) * t + .7 * math.sin(t * 3.1); z = 34.8 + (43.3 - 34.8) * t
+        t = (k + .5) / 9; x = 18 + (14 - 18) * t + .7 * math.sin(t * 3.1); z = 34.8 + (43.3 - 34.8) * t; camino.append((x, z))
         laja(x + (r3() - .5) * .2, z, .5 + .08 * r3())
         if k % 2 == 0: laja(x + (.75 if k % 4 == 0 else -.75), z + (r3() - .5) * .4, .16 + .06 * r3(), 6, .05)
-    # banca bajo el mamey
+    # banca bajo el mamey y la tierra pelona a su pie
     caja(MA, 8.3, 8.85, .72, .8, 39.8, 42.4); caja(MA, 8.78, 8.86, .8, 1.5, 39.85, 42.35)
     for z in (40.0, 42.2): caja(MA, 8.35, 8.8, 0, .72, z - .05, z + .05)
-    segs += T(8.6, 40.0) + T(8.6, 42.2)
+    segs += T(8.6, 40.0) + T(8.6, 42.2); mancha(MT, 6.2, 41.1, 2.0, R)
     # tendedero: dos postes, el mecate y ropa colgada
     for x in (22, 30): caja(MA, x - .08, x + .08, 0, 3.3, 45.42, 45.58); caja(MA, x - .06, x + .06, 3.1, 3.2, 45.0, 46.0)
     caja(HI, 22, 30, 3.1, 3.13, 45.49, 45.51)
@@ -175,8 +174,24 @@ def traspatio2():
     obs += T(22, 45.5) + [.3] + T(30, 45.5) + [.3]
     # tinaja junto al lavadero y agave en su maceta junto a la puerta del corredor
     tubo(BA, (35.1, 0, 37.6), (35.1, .9, 37.6), .4, .5, 14); tubo(BA, (35.1, .9, 37.6), (35.1, 1.15, 37.6), .5, .32, 14); obs += T(35.1, 37.6) + [.6]
-    tubo(BA, (21.6, 0, 35.3), (21.6, .9, 35.3), .5, .62, 14); hojas(AG, 21.6, .85, 35.3, 9, 1.2, .2, .7, .1, giro=.3); hojas(AG, 21.6, .85, 35.3, 6, .8, .16, .8, -.1, giro=.7)
-    obs += T(21.6, 35.3) + [.75]
+    tubo(BA, (21.6, 0, 35.3), (21.6, .9, 35.3), .5, .62, 14); tubo(TI, (21.6, .85, 35.3), (21.6, .87, 35.3), .56, .56, 14)
+    agave(AG, 21.6, .85, 35.3, 1.25, R); obs += T(21.6, 35.3) + [.75]
+    # matas al pie de las bardas (libran postes, pozo, plátanos y macetas) y la bugambilia de la esquina del fondo, trepada a la barda
+    for x, z, r in ((5.2, 47.2, .8), (7.6, 47.3, .65), (12.6, 47.2, .75), (16.6, 47.25, .6), (31.6, 47.2, .7),
+                    (.75, 39.3, .65), (.8, 44.2, .8), (35.2, 40.2, .6)):
+        n0 = mata(CP, x, r * .48, z, r, .82, sem=int(x * 10 + z), piso=0)
+        if R.random() < .5: flores(FL, CP, n0, 10, .055, R)
+        obs += T(x, z) + [r * .8]
+    bugambilia(CP, FL, bmn('pb_tras_tronco', 'tronco', prio=.4), .2, 47.85, R)
+    obs += T(1.4, 47.2) + [.9] + T(3.0, 47.3) + [.8]
+    # macollos de zacate al pie de las bardas, alrededor de la mancha del mamey y del pozo, y a los lados del sendero
+    pts = [(x + R.uniform(-.3, .3), 47.55) for x in (3.0, 5.8, 9.0, 10.0, 11.4, 14.5, 18.0, 30.4, 33.0, 34.6)]
+    pts += [(.5, z + R.uniform(-.3, .3)) for z in (35.2, 38.0, 41.5, 42.8, 45.6)] + [(35.5, z) for z in (39.0, 41.4, 46.6)]
+    pts += [(6.2 + math.cos(a) * 2.05, 41.1 + math.sin(a) * 2.05) for a in (.3, 1.4, 2.6, 3.5, 4.6, 5.5)]
+    pts += [(14 + math.cos(a) * 1.15, 44.6 + math.sin(a) * 1.15) for a in (.8, 2.2, 3.9, 5.2)]
+    pts += [(x + (1.1 if k % 2 else -1.1), z) for k, (x, z) in enumerate(camino) if k % 2]
+    for x, z in pts:
+        for k in range(R.randint(1, 2)): zacate(ZA, x + R.uniform(-.35, .35) * k, z + R.uniform(-.35, .35) * k, R.uniform(.32, .55), R, R.randint(10, 14))
     ex('pb_tras_barro', obs=obs); ex('pb_tras_cantera', segs=segs[:4], r=1.9); ex('pb_tras_mueble', segs=segs[4:], r=.45)
 
 def decorar():

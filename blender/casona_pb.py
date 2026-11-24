@@ -504,7 +504,7 @@ def pozo(x, z):
     tubo(CU, (x - .86, 1.35, z - .08), (x - .86, 1.35, z + .08), .03, .03, 8)
 
 def traspatio():
-    arbol('mamey', 6, 41, 2.6, 3.4, 4, prio=.5)
+    arbol('mamey', 6, 41, 3.3, 3.3, 5, prio=.5)      # sombra de la banca
     CA = bmn('pb_traspatio', 'cantera', prio=.5)
     caja(CA, 31, 34, 0, 1.0, 35.4, 36.8); caja(CA, 31.2, 33.8, 1.0, 1.2, 35.6, 36.6)
     pozo(*POZO)
@@ -721,6 +721,7 @@ def motor(sc):
     except Exception as e: print('vista', e)
 
 def deco():   # paso 9: cocina, despensa, servicio y baño (blender/casona_pb_deco.py, con los ayudantes de este archivo)
+    exec(open(os.path.join(DIR, 'blender', 'casona_plantas.py'), encoding='utf-8').read(), globals())     # matas, hojas y zacate
     exec(open(os.path.join(DIR, 'blender', 'casona_pb_deco.py'), encoding='utf-8').read(), globals()); decorar()
 
 exec(open(os.path.join(DIR, 'blender', 'casona_esc.py'), encoding='utf-8').read(), globals())   # escalera_u, quad_hueco
