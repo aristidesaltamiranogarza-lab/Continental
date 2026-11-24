@@ -74,3 +74,18 @@ Respuestas del usuario mezcladas con la recomendación de Claude (el usuario pre
 
 ## Pendiente
 - Hecho (24 nov) borrador: lámina A-02 + tablero de estilo y paleta en https://claude.ai/artifact/3gFhpi5TLmU1Kj51oteuWR . Decidido por rendimiento: andador a la plaza sí; plaza del tamaño de hoy (28×24) con la iglesia pegada al fondo; sin Calle 57 (solo barda, torres en el horizonte); baldío con hierba, agaves, barda y perro (perro solo en Completo). Original: lámina A-02 "Barrio" con el mismo estilo de plano que el anteproyecto (https://claude.ai/artifact/PX1g934RWSsWF4VdTB7Doa): manzana, plaza con kiosco, símbolos de árboles por especie, anillos de distancia de dibujo por nivel y corte calle–plaza. Parque actual en c_casa_campo.js (cx=-55, cz=-35).
+
+## Siguiente: Blender en la otra PC — tramo de referencia (paso 1 del paisaje)
+Antes de empezar: `git switch gamemash-casona && git pull`. Leer la lámina A-02 (https://claude.ai/artifact/3gFhpi5TLmU1Kj51oteuWR: planta, corte y tablero con paleta) y CASA_BLENDER.md §5 (errores ya pisados). Se corre igual que los otros niveles: `blender.exe -b --factory-startup --python blender/casona_calle.py -- vista|hornear`.
+
+Qué es: un tramo de la Calle 59 terminado y horneado con el estilo de la casona, para medir costo y aprobar el estilo antes de hacer la manzana. Coordenadas del juego (?casa=caja): fachada de la casona en z=17, banqueta de la casona 17–18.6, arroyo 18.6–28.6, banqueta de enfrente 28.6–32.6; lote de la casona x ±18. Tramo: x de −40 a 22.
+1. **Script nuevo blender/casona_calle.py** que reusa casona_pb.py como biblioteca (como casona_pa.py y casona_sm.py) y exporta `modelos/casona/calle.glb` + `calle_luz.webp`. La fachada de la casona ya está en pb.glb: no duplicarla.
+2. **Vecinas del lado de la casona** (x −40 a −18, anchos 10, 7 y 8 según A-02): fachadas contiguas de un piso, alto 5.6–6.2 (son más bajas que la casona, S=.68), pretil, ventanas con reja, puerta de madera, zoclo. Colores de la paleta: amarillo #efc675, añil #93b6cb, verde agua #9cc5b0. Bugambilia magenta #c2387a sobre una barda.
+3. **Enfrente** (x −40 a 22, desde z 32.6, fondo 12): 6–7 fachadas contiguas de colores, banqueta con guarnición y banqueta de pasta frente a una o dos casas (patrón roseta como 'pasta' de CMAT).
+4. **Laurel de la India** en la banqueta de la casona (x −30, z 17.8): tronco encalado abajo, copa de 6–8 grupos de hojas (no bola lisa), alto ~12, copa ~11 de ancho. Nombrar la copa `*_copa` (CMAT la desvanece y PASTO.viento la mece).
+5. **Poste con cables** (x −36 y −6, z 18.3) y macetas de barro (#c98f6f) junto a dos puertas. El vocho sigue en código (c_casa_vocho.js); que la luz horneada tenga su sombra suave si cabe.
+6. **Luz**: atardecer dorado, sol bajo del poniente (−X, igual que CIELO.dia), sombras largas y suaves con tono violeta (#6e5f8c); materiales casi solo color (nada de texturas ruidosas). Mapa de luz 1024 (máx. 2048) en webp.
+7. **Presupuesto** (prueba que tiene que pasar): el tramo ≤ 20 draw calls y ≤ 40 mil triángulos; calle.glb ≤ 300 KB y la luz ≤ 600 KB.
+8. **Opcional en casona_pb.py**: cambiar los conos verdes de la jardinera del traspatio (se ven como pirámides) por matas bajas o agaves; la tierra de la jardinera está a 0.7 (PASTO ya no pone matas ahí).
+
+Luego en código (cualquier PC): CCALLE (c_casa_calle.js) carga calle.glb con CMAT.aplicar y no dibuja sus vecinos de código dentro del tramo; comparar antes/después con `?cam=calle` y `?cam=calle_vecinas`, de día y de noche (de noche la fachada debe quedar del tono de la calle, solo ventanas y faroles resaltan). Mostrar preview al usuario antes de seguir con la manzana.
