@@ -75,9 +75,9 @@ function juntas(R){const W=[];
 // paso 8, la calle: CCALLE ya arma el exterior a la medida de la casona (fachada en 17, banqueta de 1.6, arroyo más abajo), así que la tira de
 // arroyo del GLB se esconde; se camina hasta la orilla de la banqueta y el poste choca. El patio de la casa vieja (CPAT) no se ve en la casona.
 // Con tu Mii en la banqueta se prende el casco (CCAS: planta alta, azotea, pérgola y tinacos).
-function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle');if(ar)ar.visible=false;
+function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle'),cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();if(ar){if(cg){ar.position.y-=.35;ar.updateMatrix()}else ar.visible=false}
  // se cruza la calle hasta la banqueta de enfrente (fachadas vecinas en 32.6): se baja al arroyo (y -.35) y se sube en las guarniciones
- F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);F.OB.push({x:11.8,z:18.3,r:.3},{x:0,z:29.05,r:.3});
+ F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);F.OB.push(...(cg?[{x:-36,z:18.3,r:.35},{x:-6,z:18.3,r:.35},{x:-30,z:18.3,r:.75}]:[{x:11.8,z:18.3,r:.3}]),{x:0,z:29.05,r:.3});
  [4.8,6.2,7.5,8.8,10.2].forEach(x=>F.OB.push({x,z:20.5,r:.75}));   // el vocho
  const ss=(e,z)=>Math.min(1,Math.max(0,(z-e+.15)/.3)),st=t=>t*t*(3-2*t);F.gy=(x,z)=>-.35*(st(ss(18.6,z))-st(ss(28.6,z)));
  if(window.CCAS)try{F.casco=CCAS.pon(F)}catch(er){console.error('[CCAS]',er)}

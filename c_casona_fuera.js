@@ -19,7 +19,7 @@ setInterval(()=>{if(performance.now()-tF>400)document.body.classList.remove('cfu
 function carga(id){if(P[id])return P[id];const g=GL[id];
  return P[id]=CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+g[0]+'.glb?v='+g[1])).then(gl=>{const r=gl.scene;
   if(window.CMAT)CMAT.aplicar(r,BASE+g[0]+'_luz.webp?v='+g[1]);if(window.CAJA&&CAJA.juntas)CAJA.juntas(r);
-  const fuera=[];r.traverse(o=>{if(/_abajo|_piso_calle$|^gata_|^accion_|^plano_/.test(o.name))fuera.push(o)});fuera.forEach(o=>o.visible=false);
+  const fuera=[],cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();r.traverse(o=>{if(cg&&/_piso_calle$/.test(o.name)){o.position.y-=.35;o.updateMatrix();return}if(/_abajo|_piso_calle$|^gata_|^accion_|^plano_/.test(o.name))fuera.push(o)});fuera.forEach(o=>o.visible=false);
   return R[id]=r}).catch(e=>{console.warn('CFUE',id,e);return null})}
 function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
  const AB=[];F.SC.traverse(o=>{if(/_abajo/.test(o.name)&&o.visible)AB.push(o)});

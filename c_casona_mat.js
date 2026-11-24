@@ -8,7 +8,7 @@
 if(typeof THREE==='undefined')return;
 const A={luz:1,copa:.28,noche:0x8c94b0,nocheExt:0x6c7898};
 // de noche (CIELO) todo lo horneado se oscurece y azula como las casas vecinas; lo de afuera más. Lámparas y faroles no.
-const EXT=/^(calle|banqueta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra)$/,NOC=[];let REG=false;
+const EXT=/^(calle|banqueta|fachada|pasta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra)$/,NOC=[];let REG=false;
 // luz de noche: <nivel>_luz_noche.webp (blender: hornear_noche); se pide la primera vez que es de noche; sin archivo se queda la de día
 const LMS=[],LMN=new Set();
 function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche()),a=new THREE.Color(A.noche),e=new THREE.Color(A.nocheExt);
@@ -121,6 +121,7 @@ function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if
   else if(n==='farol'||n==='foco')r=new THREE.MeshBasicMaterial({color:0xffd08a,toneMapped:false});
   else if(n==='hierro')r=new THREE.MeshBasicMaterial({color:0x1d1814});
   else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=new THREE.MeshBasicMaterial(o);if(luz)cubica(r)}
+  if(n==='fachada')r.vertexColors=true;
   if(n==='hamaca'||n==='persiana')r.side=THREE.DoubleSide;
   if(r.toneMapped!==false)NOC.push({m:r,c:r.color.clone(),ext:EXT.test(n)});
   return MAT[k]=r};
