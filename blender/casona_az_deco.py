@@ -96,9 +96,9 @@ def lavadero():
     x0, x1, z0, z1 = 34.2, 35.85, 25.6, 27.9
     for zz in (z0 + .15, z1 - .15): caja(CE, x0 + .1, x1, 0, .95, zz - .12, zz + .12)
     caja(CE, x0, x1, .95, 1.05, z0, z1)
-    for a, b, c, d in ((x0, x0 + .12, z0, z1), (x1 - .12, x1, z0, z1), (x0, x1, z0, z0 + .12), (x0, x1, z1 - .12, z1)): caja(CE, a, b, 1.05, 1.35, c, d)
+    for a, b, c, d in ((x0, x0 + .12, z0 + .12, z1 - .12), (x1 - .12, x1, z0 + .12, z1 - .12), (x0, x1, z0, z0 + .12)): caja(CE, a, b, 1.05, 1.35, c, d)   # el lado de z1 es el respaldo
     for k in range(6): yy = 1.08 + k * .04; caja(CE, x0 + .14, x1 - .14, yy, yy + .02, z0 + .14 + k * .14, z0 + .2 + k * .14)   # tallador
-    caja(CE, x0 + .1, x1, 1.05, 1.6, z1 - .12, z1)
+    caja(CE, x0, x1, 1.05, 1.6, z1 - .12, z1)
     tubo(CU, (33.5, 0, 28.3), (33.5, .55, 28.3), .22, .27, 14); P.anillo(CU, 33.5, 28.3, .25, .29, .52, .56, 14)
     tubo(ES, (35.6, .05, 29.3), (35.75, 2.0, 29.55), .025, .025, 6); tubo(ES, (35.55, 0, 29.25), (35.6, .4, 29.3), .12, .05, 8)
     ex('az_lavadero', segs=T(x0, z0) + T(x0, z1), r=.3)

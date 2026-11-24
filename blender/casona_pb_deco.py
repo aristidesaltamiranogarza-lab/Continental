@@ -143,8 +143,8 @@ def traspatio2():
         tubo(TR, (x, 0, z), (x, al, z), .2, .14, 8); hojas(HO, x, al - .1, z, 6, 1.9, .34, .55, .9, giro=x); obs += T(x, z) + [.45]
     # arriate de hortalizas con su borde de cantera y matitas
     x0, x1, z0, z1 = 22, 29, 39, 42.4
-    for a, b, c, d in ((x0, x1, z0, z0 + .22), (x0, x1, z1 - .22, z1), (x0, x0 + .22, z0, z1), (x1 - .22, x1, z0, z1)): caja(CA, a, b, 0, .45, c, d)
-    caja(TI, x0 + .22, x1 - .22, 0, .4, z0 + .22, z1 - .22)
+    for a, b, c, d in ((x0, x1, z0, z0 + .22), (x0, x1, z1 - .22, z1), (x0, x0 + .22, z0 + .22, z1 - .22), (x1 - .22, x1, z0 + .22, z1 - .22)): caja(CA, a, b, 0, .45, c, d)   # sin encimarse en las esquinas (parpadeaban)
+    caja(TI, x0 + .23, x1 - .23, 0, .4, z0 + .23, z1 - .23)
     for i in range(7):                       # hortalizas: lechugas (bolas bajas) y una hilera de cebollines (hojas que suben)
         for j in range(3):
             xx, zz = x0 + .85 + i * .88, z0 + .75 + j * .95

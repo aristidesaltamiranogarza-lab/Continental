@@ -91,7 +91,7 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
   - [x] 2) pérgola: cenefa de cantera de .5 alrededor del piso y sardinel de .15 con entrada en los dos lados a la azotea (ver.py -- az perg)
   - [x] 3) sótano: Póker a (20.5, 5) y Blackjack a (30.5, 5) (las sillas del BJ quedaban a .4 del muro), ya en sm.glb con -- marcas; barricas de la cava en dos estibas contra los muros de los lados (sin hornear)
   - [x] 4) salón del Catan: mesas sin MESA_J usan la silla de escala fija (MESA.sillaSola en c_casa3d.js, toda la casa); mecedoras al corredor alto asomadas al patio; aparador bajo con puertas, cajas de juegos y florero en lugar de las repisas (sin hornear)
-  - [ ] 5) jardinera: esquinas que parpadean
+  - [x] 5) jardinera: el borde de cantera del arriate ya no se encima en las esquinas (lados cortos entre los largos) y la tierra queda .01 adentro; igual el borde del lavadero de la azotea (sin hornear)
   - [ ] 6) revisar lajas al pozo
   - [ ] 7) balcón trasero
   - [ ] 8) iluminación (abajo; sol de CIELO)
@@ -111,7 +111,7 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
 - Calle: dejar cruzar la calle (al menos hasta la banqueta de enfrente) para ver la fachada completa. Ahora solo se llega a la puerta.
 - Saltar (tecla Espacio y botón en el celular).
 - Pasto: se ve feo (manchas). Opciones baratas: textura nueva sin manchas en tonos suaves más un ruido de color grande en el shader (casi sin costo); o matas de pasto en tarjetas cruzadas instanciadas solo en las orillas y alrededor de los objetos (costo bajo, se apaga en Ligero/Medio). Decidir con el usuario.
-- Jardinera de los conos: las esquinas del marco parpadean donde se cruzan las piezas (z-fighting, como pasó antes con los muros). Separar o ingletear las piezas.
+- [x] Jardinera de los conos: las esquinas del marco parpadean donde se cruzan las piezas (z-fighting, como pasó antes con los muros). Separar o ingletear las piezas.
 - Camino de piedras de la casa al pozo: ahora solo se ven sombras sueltas; hacer piedras de verdad (lajas planas en Blender, horneadas).
 - Decoración: en el salón del Catan las sillas pegadas a la mesa son las viejas gigantes (usar las de escala fija); las mecedoras se ven fuera de lugar ahí, reubicarlas. El mueble de repisas con "barras" (libros/chocolates) se ve raro: cambiarlo o quitarlo. Repasar la decoración de toda la casa.
 - Azotea de noche: el mapa de luz está horneado de día y se ven sombras de sol de noche. Hornear con una luz que sirva para ambos (cielo/luna difusa, sombras suaves) o un segundo horneado de noche, y que el sol/luna del juego coincida con el ángulo horneado.
