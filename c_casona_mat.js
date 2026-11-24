@@ -130,7 +130,7 @@ function copas(root){const out=[],b=new THREE.Box3();root.traverse(o=>{if(!o.isM
  out.push({o,m,x:(b.min.x+b.max.x)/2,z:(b.min.z+b.max.z)/2,r:Math.max(b.max.x-b.min.x,b.max.z-b.min.z)/2+.6,y:b.min.y,v:1})});return out}
 function paso(cs,yo,cam){if(!cs||!yo)return;cs.forEach(c=>{let d=Math.hypot(yo.x-c.x,yo.z-c.z)<c.r;
  if(!d&&cam){const dx=cam.position.x-yo.x,dz=cam.position.z-yo.z,dy=cam.position.y-1,t=dy>0?Math.max(0,(c.y-1)/dy):0;d=Math.hypot(yo.x+dx*t-c.x,yo.z+dz*t-c.z)<c.r-.4}
- const v=d?A.copa:1;if(Math.abs(c.v-v)<.01)return;c.v+=(v-c.v)*.18;if(Math.abs(c.v-v)<.02)c.v=v;c.m.opacity=c.v;c.m.depthWrite=c.v>.99})}
+ if(window.VIS)VIS.poner(c.o,'copa',d);const v=d?A.copa:1;if(Math.abs(c.v-v)<.01)return;c.v+=(v-c.v)*.18;if(Math.abs(c.v-v)<.02)c.v=v;c.m.opacity=c.v;c.m.depthWrite=c.v>.99})}
 
 window.CMAT={A,aplicar,copas,paso,tema};
 })();

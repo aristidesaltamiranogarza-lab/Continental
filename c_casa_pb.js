@@ -236,8 +236,9 @@ function step(now){const H3=window.CASA3D,cam=H3&&H3.cam();if(!cam)return;const 
 function corte(K,cp,av){if(!K||!av)return;const H=K.H;tv.set(av.x,1,av.z);
  for(const w of K.CORTE){let hid=false;const sc=dv.copy(cp).sub(w.p).dot(w.n),sa=q.copy(tv).sub(w.p).dot(w.n);
   if(sc>.02&&sa<-.02){q.copy(cp).lerp(tv,sc/(sc-sa));const u=dv.copy(q).sub(w.p).dot(w.d);hid=q.y<H+.3&&u>-1&&u<w.L+1}
-  if(hid!==w.hid){w.hid=hid;w.g.visible=!hid}}
- for(const r of K.RG){const v=!((K.CORTE[r.a]||{}).hid||(K.CORTE[r.b]||{}).hid);if(r.g.visible!==v)r.g.visible=v}}
+  if(hid!==w.hid){w.hid=hid;tapa(w.g,hid)}}
+ for(const r of K.RG){tapa(r.g,!!((K.CORTE[r.a]||{}).hid||(K.CORTE[r.b]||{}).hid))}}
+function tapa(g,h){if(window.VIS)VIS.poner(g,'tapa',h);else g.visible=!h}
 
 window.CPB={build,cadena,kit:kitMuros,corte,kp:()=>KP};
 })();

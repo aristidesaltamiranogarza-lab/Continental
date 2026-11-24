@@ -22,8 +22,7 @@ const visto=new WeakSet(),ST=new WeakMap(),ABRE=new WeakSet(),LIG=[];let sc=null
 
 const en=(x,z,r,e)=>x>=r[0]-e&&x<=r[1]+e&&z>=r[2]-e&&z<=r[3]+e;
 function cuarto(x,z,e,f){const R=(f||F).R;for(let i=0;i<R.length;i++)if(R[i].r.some(r=>en(x,z,r,e)))return i;return -1}
-function ligar(o,i,f){f=f||F;if(ST.has(o)){Object.assign(ST.get(o),{i,f});return}const s={v:o.visible,i,f,par:o.parent,p:[o.position.x,o.position.y,o.position.z]};ST.set(o,s);
- Object.defineProperty(o,'visible',{configurable:true,enumerable:true,get(){return s.v&&(s.i<0||!on||s.f.VIS[s.i])},set(v){s.v=v}});LIG.push(o)}
+function ligar(o,i,f){f=f||F;if(ST.has(o)){Object.assign(ST.get(o),{i,f});return}const s={i,f,par:o.parent,p:[o.position.x,o.position.y,o.position.z]};ST.set(o,s);VIS.reg(o);LIG.push(o)}
 function clasifica(o){if(ABRE.has(o)){o.children.forEach(clasifica);return}if(visto.has(o))return;const u=o.userData;
  if(u.key||u.keep||u._mrg||o.isLight||o.isCamera){visto.add(o);return}
  let luz=false;o.traverse(c=>{if(c.isLight)luz=true});if(luz){visto.add(o);return}
@@ -35,12 +34,15 @@ function scan(S){if(S!==sc){sc=S;nHijos=-1}
  if(S.children.length===nHijos&&performance.now()-tScan<2000)return;nHijos=S.children.length;tScan=performance.now();S.children.forEach(clasifica)}
 function todos(v){for(let i=0;i<F.VIS.length;i++)F.VIS[i]=v}
 // visible propio (sin el corte por cuarto) y cuarto de un objeto o de su grupo más alto
-function vis(o){const s=ST.get(o);return s?s.v:o.visible}
+function vis(o){return VIS.propio(o)}
+// motivo 'cuarto' en VIS (c_vis.js): solo cambia lo que cambió
+function sync(){for(const o of LIG){const s=ST.get(o);VIS.poner(o,'cuarto',s.i>=0&&on&&!s.f.VIS[s.i])}}
 function de(o){for(let n=o;n&&!n.isScene;n=n.parent){const s=ST.get(n);if(s)return s.i}return -1}
 
 let k=0;
 // paso(cam, tu Mii, piso): cada cuadro del piso (sin piso: la planta baja de la casa vieja)
-function paso(cam,av,id){const f=CF[id||'pb'];if(!f)return;if(f!==F){F=f;k=0}const S=window.CASA3D&&CASA3D.sc();if(!S||!cam)return;if(k++%30===0)scan(S);
+function paso(cam,av,id){paso0(cam,av,id);sync()}
+function paso0(cam,av,id){const f=CF[id||'pb'];if(!f)return;if(f!==F){F=f;k=0}const S=window.CASA3D&&CASA3D.sc();if(!S||!cam)return;if(k++%30===0)scan(S);
  const cp=cam.position,ic=cp.y<F.H?cuarto(cp.x,cp.z,0):-1;if(ic<0||!on||!F.R[ic].r.length){todos(true);return}
  todos(false);pm.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);fr.setFromProjectionMatrix(pm);
  const cola=[ic];F.VIS[ic]=true;const ia=av?cuarto(av.x,av.z,0):-1;if(ia>=0&&!F.VIS[ia]){F.VIS[ia]=true;cola.push(ia)}
@@ -67,7 +69,7 @@ function casona(id,WL,cj){const c=CC[id];if(!c||!WL||!WL.length)return;const H=c
 // el GLB de la casona es un grupo con todo: se ligan sus hijos (los muros, muebles y pisos de un solo cuarto)
 function abre(g){ABRE.add(g);nHijos=-1}
 
-window.CUA={paso,vis,de,abre,hay:id=>!!CF[id],casona,esAbre:g=>ABRE.has(g),ligar:(o,i)=>{visto.add(o);ligar(o,i,window.CASA3D&&CASA3D.piso&&CF[CASA3D.piso()])},set on(v){on=!!v},get on(){return on},
+window.CUA={paso,vis,de,abre,hay:id=>!!CF[id],casona,esAbre:g=>ABRE.has(g),ligar:(o,i)=>{visto.add(o);ligar(o,i,window.CASA3D&&CASA3D.piso&&CF[CASA3D.piso()])},set on(v){on=!!v;sync()},get on(){return on},
  dbg:()=>({cuartos:F.R.map((r,i)=>r.n+':'+(F.VIS[i]?'si':'no')).join(' '),vanos:F.V.map(v=>F.R[v.a].n+'-'+F.R[v.b].n).join(' '),ligados:LIG.filter(o=>ST.get(o).i>=0&&ST.get(o).f===F).length,
   porCuarto:F.R.map((r,i)=>r.n+'='+LIG.filter(o=>ST.get(o).i===i&&ST.get(o).f===F).length).join(' ')})};
 })();

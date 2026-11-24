@@ -41,7 +41,7 @@ function leer(root){root.updateMatrixWorld(true);
 
 // corte: líneas de muro que cruzan el segmento cámara→personaje
 function cruza(l,cx,cz,px,pz){const a=l.h?cz:cx,b=l.h?pz:px;if((a-l.c)*(b-l.c)>0)return false;const t=(l.c-a)/((b-a)||1e-6),u=l.h?cx+(px-cx)*t:cz+(pz-cz)*t;return u>l.a-.5&&u<l.b+.5}
-function corte(L,c,p){if(!c||!p)return;L.forEach(l=>{const v=!cruza(l,c.position.x,c.position.z,p.x,p.z);if(l.v!==v){l.v=v;l.ms.forEach(m=>m.visible=v)}})}
+function corte(L,c,p){if(!c||!p)return;L.forEach(l=>{const v=!cruza(l,c.position.x,c.position.z,p.x,p.z);if(l.v!==v){l.v=v;l.ms.forEach(m=>{if(window.VIS)VIS.poner(m,'tapa',!v);else m.visible=v})}})}
 
 window.MARC={leer,corte};
 })();

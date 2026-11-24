@@ -495,6 +495,12 @@ function irA(id,g){if(!ready||fBusy||!canGo(id))return;const put=()=>{const t=TB
   const p=t.door?v3(t.x-2.3,0,t.z):v3(t.x,0,t.z+(t.r||1)+1.5);solve(p);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;picked=t.door?null:g;me.pos.copy(p);me.yaw=me.g.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);me.g.position.set(p.x,GY(me.g),p.z);
   Object.assign(VT,{ox:0,oz:0,t:0,a:fpOn()?me.yaw-Math.PI:0});VW.a=VT.a;snap()};
  if(id!==FL.id)return goFloor(id,put);if(!window.CCAM){put();return render()}fBusy=true;sfx('card');CCAM.fade(1,320).then(()=>{try{put();render()}catch(e){console.error('[casa] irA',e)}return CCAM.fade(0,480)}).then(()=>{fBusy=false})}
+// marcadores de cámara (c_casa_marcacam.js): poseCam() da la pose actual; ponCam(P) la pone (cambia de piso si hace falta)
+function poseCam(){const r=v=>Math.round(v*1000)/1000,P={f:FL.id,x:r(me.pos.x),z:r(me.pos.z),yaw:r(me.yaw),fp:fpOn()?1:0};VK.forEach(q=>P[q]=r(VW[q]));return P}
+function ponCam(P){const f=P.f||'pb';if(!ready||fBusy||!canGo(f))return false;
+ const put=()=>{if(window.CAV&&!!P.fp!==fpOn())CAV.set(!!P.fp);tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;me.pos.set(P.x,0,P.z);me.yaw=me.g.rotation.y=P.yaw||0;me.g.position.set(P.x,GY(me.g),P.z);
+  VK.forEach(q=>{if(P[q]!=null)VT[q]=P[q]});snap();render()};
+ if(f!==FL.id)return goFloor(f,put);put();return true}
 // mesa(t, escena, hits, obstáculos): arma una mesa como las de la planta baja dentro de otro piso (c_casa_alta.js, c_casa_terraza.js)
 function mesaEn(t,S,h,O){const k=[SC,hits,OB];SC=S;hits=h;OB=O;try{t.r=t.r||2.2;buildTable(t)}finally{[SC,hits,OB]=k}}
 // la casa de fondo en una partida (c_casa_fondo.js). ancla(g): la mesa del juego en este piso (centro, altura de la cubierta y hacia dónde queda
@@ -524,7 +530,7 @@ function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||
  R.setRenderTarget(null);R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;R.shadowMap.autoUpdate=fzN<4;   // la sombra de la casa no se mueve: se calcula al entrar
  if(FL===PB&&window.CAMB)CAMB.step(now,16);if(FL.step)FL.step(now,16);if(window.VENT)VENT.paso(FL.id,R,cam);
  const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,cam,SC,FL.id);if(!exD){R.autoClear=false;R.clear()}R.render(SC,cam);R.autoClear=false;R.shadowMap.autoUpdate=true;return true}
-window.CASA3D={std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,myId:()=>myId,quien:id=>id===myId?me:others.get(id),otros:()=>[...others].filter(([,a])=>(a.f||'pb')===FL.id).map(([id,a])=>({id,n:a.name})),ancla,fondo,arranca,
+window.CASA3D={poseCam,ponCam,std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=>on,calidad:applyQ,R:()=>R,sc:()=>SC,cam:()=>CA,piso:()=>FL.id,ir:irA,tinfo,can:canGo,yo:()=>fzT?fzP:me&&me.pos,myId:()=>myId,quien:id=>id===myId?me:others.get(id),otros:()=>[...others].filter(([,a])=>(a.f||'pb')===FL.id).map(([id,a])=>({id,n:a.name})),ancla,fondo,arranca,
  sala:{gente:(g,n,av,yo)=>{salaPs=n&&n.length?{g,n,av:av||[],me:yo>0?yo:0}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
   sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+cp(c).x,TH+1.02,t.z+cp(c).z)):[]}}};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
