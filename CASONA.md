@@ -157,6 +157,16 @@ Juego:
 - [ ] **R8. Casino rehecho** (libertad de diseño; mostrar propuesta antes): no gusta la disposición de las mesas; sillas raras (probar otro tipo de sillas y mesas, ya hay más espacio); se ve vacío: más decoración (p. ej. tragamonedas, barra, plantas, cuadros, alfombra con zonas). La lámpara de la mesa atraviesa la cabeza del crupier (subirla o moverla). Crupieres con atuendo de crupier: camisa blanca, chaleco (rojo vino), moño negro, pantalón negro; hoy se ven raros (de playera y parados en un cajón). — 24 nov (PC, aprobado): atuendo a4 hecho con blender/crupier.py sobre chibi_prueba.glb (no con ropa.py/rig.py: la escena Chibi está en la laptop) + crupier_juntar.js; estrado con alfombra y escalón en vez del cajón; campana del Blackjack al centro del paño. Ojo laptop: si rig.py vuelve a exportar chibi_prueba.glb, después correr `blender -b --factory-startup --python blender/crupier.py -- exportar` y `node blender/crupier_juntar.js <carpeta con gltf-transform>` o se pierde el atuendo. Propuesta de distribución del casino (falta aprobar): https://claude.ai/artifact/EmmxDfesUdpzSjX2fWifX4.
 - [ ] **R9. Ruleta Rusa**: se perdió su mesa (hoy es una mesa redonda genérica), no tiene decoración, está demasiado oscura y se perdió el foco que parpadea. Recuperar mesa y foco, decorar y dar luz. — 24 nov (PC): mesa vieja de tablas, foco que se mece y parpadea (la luz del cuarto; la genérica quedaba a 5.9, arriba del techo), cenicero con humo, whisky, revólver, cajas y barril en c_casona_rr.js (RRC, vía SOTC.viste). Falta: decoración de muros en Blender (props_ruleta.py).
 
+## Siguiente (si el usuario solo dice "continua")
+No hornear nada sin que lo pida. Orden (todo en la PC, sin hornear):
+1. R3: cerrar losas/entrepisos en blender/casona_pb.py y casona_pa.py y quitar el anillo de código; revisar con renders de Blender (no horneado).
+2. R4: buscar la causa del horneado pixeleado (texeles por objeto, márgenes, UV1, filtrado) y dejar el arreglo listo para el próximo horneado.
+3. Escalera: que no se vea vacía y que lleve a algún lado (blender/casona_esc.py).
+4. R9: decoración de muros del cuarto de la Ruleta (blender/props_ruleta.py, GLB aparte; mientras, por código en c_casona_rr.js).
+Esperan aprobación (no empezar sin ella): R8 casino (propuesta: https://claude.ai/artifact/EmmxDfesUdpzSjX2fWifX4), R1 y R6 (texturas con preview).
+Listo para hornear cuando el usuario diga: pb y az (R5, R2 con noche); pa y sm (R5).
+Ver cambios en vivo: blender --factory-startup --python blender/ver.py -- pb|az. Revisar con renders guardados a archivo (el panel del navegador a veces no pinta).
+
 ## Trabajo en la laptop (decidido 24 nov 2026; leer completo antes de empezar)
 La laptop también tiene Blender (con el personaje, escena "Chibi"), pero los .blend y el horneado de la casa están en la PC. Para que nada choque:
 - Antes de empezar `git pull`; al terminar commit y push a gamemash-casona. Avisar al usuario al cerrar cada pieza para que la PC haga pull.
