@@ -16,6 +16,12 @@ let E=null;const EE=()=>E||(E=window.CAJA&&CAJA.on?{fz:17,zb:18.6,za:28.6,ze:32.
 // calle.glb (blender/casona_calle.py, horneada): con la casona arma el tramo x −43..22; ahí no van vecinas, arroyo, banquetas ni postes de código. ?calle=caja vuelve a la de código
 const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja/.test(location.search),TR=[-43,22],VC='1';
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
+// el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
+// que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
+const BV={manzana:0,enfrente:0,plaza:0,baldio:0,horizonte:0},FB={};
+const PRB=/[?&]barrio=prueba/.test(location.search);   // ?barrio=prueba: carga todas las piezas aunque BV sea 0 (probar un horneado antes de subir la versión)
+const BAR=k=>GLB()&&(BV[k]>0||PRB)&&!/[?&]barrio=caja/.test(location.search);
+const menos=(a,c,rs)=>{let o=[[a,c]];rs.forEach(r=>{if(!r)return;const n=[];o.forEach(([p,q])=>{if(r[1]<=p||r[0]>=q){n.push([p,q]);return}if(p<r[0])n.push([p,r[0]]);if(q>r[1])n.push([r[1],q])});o=n});return o};
 const dk=(c,k)=>new THREE.Color(c).multiplyScalar(k||.72).getHex();
 const ZON=[],TIN=[],VID=[],LUZ=[],NOC=new THREE.Color(0x6c7898),DIA=new THREE.Color(0xffffff);
 
@@ -23,7 +29,8 @@ const ZON=[],TIN=[],VID=[],LUZ=[],NOC=new THREE.Color(0x6c7898),DIA=new THREE.Co
 function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche());
  TIN.forEach(o=>o.m.color.copy(o.c).multiply(n?NOC:DIA));
  VID.forEach(v=>{v.a.array.set(n?v.noc:v.dia);v.a.needsUpdate=true});
- LUZ.forEach(l=>l.L.intensity=n?l.i:0);REL.value.setHex(n?A.relleno:0)}
+ LUZ.forEach(l=>l.L.intensity=n?l.i:0);REL.value.setHex(n?A.relleno:0);
+ if(FB.farolb)FB.farolb.color.setHex(n?0xffd08a:0xe6dcc6);if(FB.ventana)FB.ventana.color.setHex(n?0xffc777:0x3a3f4a)}
 // material de la casa que da a la calle o al patio: de noche se oscurece (las luces de la casa no siguen el tema)
 const tinte=m=>{TIN.push({m,c:m.color.clone()});return m};
 // vidrios (malla de LOTE con MeshBasic): el color de noche viene en los vértices (prendido u oscuro); de día todos son del color "dia"
@@ -120,22 +127,23 @@ function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=
  const plano=(Lx,x0,x1,z0,z1,y)=>{const w=x1-x0,d=z1-z0,g=new THREE.PlaneGeometry(w,d),u=g.attributes.uv;for(let i=0;i<u.count;i++)u.setXY(i,u.getX(i)*w,u.getY(i)*d);
   g.rotateX(-Math.PI/2);Lx.geo(g,0xffffff,(x0+x1)/2,y,(z0+z1)/2)};
  // arroyo, calles de las esquinas, banquetas con su guarnición
- fuera(-215,215).forEach(([a,c])=>plano(LA,a,c,ZB,ZA,YA));[[82,88],[-88,-82]].forEach(([a,c])=>{plano(LA,a,c,-75,ZB,YA);plano(LA,a,c,ZA,100,YA)});
- [[-215,-88],[-82,82],[88,215]].forEach(([a0,c0])=>{fuera(a0,c0).forEach(([a,c])=>{plano(LB,a,c,FZ,ZB,0);plano(LB,a,c,ZA,ZE,0)});const a=a0,c=c0;
-  L.box(c-a,.34,.3,0xaaa498,(a+c)/2,YA+.165,ZB-.15);L.box(c-a,.34,.3,0xaaa498,(a+c)/2,YA+.165,ZA+.15)});
- [[80,82,81.85],[88,90,88.15],[-82,-80,-81.85],[-90,-88,-88.15]].forEach(([a,c,xc])=>{plano(LB,a,c,-75,FZ,0);plano(LB,a,c,ZE,100,0);
-  L.box(.3,.34,ZB+75,0xaaa498,xc,YA+.165,(ZB-75)/2);L.box(.3,.34,100-ZA,0xaaa498,xc,YA+.165,(ZA+100)/2)});
- // tope pintado y registros
- for(let j=0;j<10;j++)L.geo(new THREE.CylinderGeometry(.5,.5,1,12).scale(1,1,.38),j%2?0x1c1c1c:0xf2c230,-36,YA,ZB+.5+j,0,Math.PI/2,0);
- [[-8,28.6],[24,26.4],[-52,30.1],[60,27.2]].forEach(([x,z])=>{z+=dz;L.cyl(.75,.75,.05,0x3c3c3e,x,YA+.02,z,16);L.cyl(.6,.6,.06,0x2c2c2e,x,YA+.025,z,16)});
+ const bM=BAR('manzana'),bE=BAR('enfrente'),T=GLB()&&TR;
+ menos(-215,215,[T,bE&&[-90,90]]).forEach(([a,c])=>plano(LA,a,c,ZB,ZA,YA));[[82,88],[-88,-82]].forEach(([a,c])=>{if(!bM)plano(LA,a,c,-75,ZB,YA);if(!bE)plano(LA,a,c,ZA,100,YA)});
+ [[-215,-88],[-82,82],[88,215]].forEach(([a0,c0])=>{menos(a0,c0,[T,bM&&[-82,82]]).forEach(([a,c])=>plano(LB,a,c,FZ,ZB,0));menos(a0,c0,[T,bE&&[-82,82]]).forEach(([a,c])=>plano(LB,a,c,ZA,ZE,0));
+  menos(a0,c0,[bM&&[-82,82]]).forEach(([a,c])=>L.box(c-a,.34,.3,0xaaa498,(a+c)/2,YA+.165,ZB-.15));menos(a0,c0,[bE&&[-82,82]]).forEach(([a,c])=>L.box(c-a,.34,.3,0xaaa498,(a+c)/2,YA+.165,ZA+.15))});
+ [[80,82,81.85],[88,90,88.15],[-82,-80,-81.85],[-90,-88,-88.15]].forEach(([a,c,xc])=>{if(!bM){plano(LB,a,c,-75,FZ,0);L.box(.3,.34,ZB+75,0xaaa498,xc,YA+.165,(ZB-75)/2)}
+  if(!bE){plano(LB,a,c,ZE,100,0);L.box(.3,.34,100-ZA,0xaaa498,xc,YA+.165,(ZA+100)/2)}});
+ // tope pintado y registros (con la acera de enfrente horneada vienen en el GLB)
+ if(!bE)for(let j=0;j<10;j++)L.geo(new THREE.CylinderGeometry(.5,.5,1,12).scale(1,1,.38),j%2?0x1c1c1c:0xf2c230,-36,YA,ZB+.5+j,0,Math.PI/2,0);
+ if(!bE)[[-8,28.6],[24,26.4],[-52,30.1],[60,27.2]].forEach(([x,z])=>{z+=dz;L.cyl(.75,.75,.05,0x3c3c3e,x,YA+.02,z,16);L.cyl(.6,.6,.06,0x2c2c2e,x,YA+.025,z,16)});
  // postes de concreto con cruceta, aisladores y lámpara; cables entre ellos (y la acometida a la casa)
- const PO=[[-75,1],[-44,1],[POS[0],1],[44,1],[75,1],[-60,-1],[-29,-1],[0,-1],[30,-1],[61,-1]].filter(([x,s])=>!(GLB()&&s>0&&x>TR[0]&&x<TR[1])),zp=s=>s>0?POS[1]:ZA+.45;
+ const PO=[[-75,1],[-44,1],[POS[0],1],[44,1],[75,1],[-60,-1],[-29,-1],[0,-1],[30,-1],[61,-1]].filter(([x,s])=>!(GLB()&&s>0&&x>TR[0]&&x<TR[1])&&!(Math.abs(x)<90&&(s>0?bM:bE))),zp=s=>s>0?POS[1]:ZA+.45;
  PO.forEach(([x,s])=>{const z=zp(s);L.cyl(.17,.26,12.2,0x9c978c,x,6.1,z,8);L.box(.16,.16,3,0x8a7a64,x,11.3,z);
   [-1.3,0,1.3].forEach(dz=>L.cyl(.05,.07,.22,0xd8d8d0,x,11.5,z+dz,6));
   L.box(.12,.12,2.6,0x8a8a84,x,10.45,z+s*1.3,0,s*.12,0);L.box(.5,.22,.95,0x5a5a58,x,10.62,z+s*2.75);VL.box(.38,.05,.75,0xfff0c8,x,10.49,z+s*2.75)});
  const P=[],cat=(a,c,sag)=>{const f=t=>[a[0]+(c[0]-a[0])*t,a[1]+(c[1]-a[1])*t-sag*4*t*(1-t),a[2]+(c[2]-a[2])*t];for(let i=0;i<10;i++)P.push(...f(i/10),...f((i+1)/10))};
  [1,-1].forEach(s=>{const z=zp(s),xs=[-215,...PO.filter(p=>p[1]===s).map(p=>p[0]).sort((a,c)=>a-c),215];
-  for(let i=0;i<xs.length-1;i++){if(GLB()&&s>0&&xs[i]<TR[1]&&xs[i+1]>TR[0])continue;[-1.3,0,1.3].forEach(dz=>cat([xs[i],11.62,z+dz],[xs[i+1],11.62,z+dz],.7));cat([xs[i],8.6,z],[xs[i+1],8.6,z],1)}});
+  for(let i=0;i<xs.length-1;i++){if(GLB()&&s>0&&xs[i]<TR[1]&&xs[i+1]>TR[0])continue;if((s>0?bM:bE)&&xs[i]<90&&xs[i+1]>-90)continue;[-1.3,0,1.3].forEach(dz=>cat([xs[i],11.62,z+dz],[xs[i+1],11.62,z+dz],.7));cat([xs[i],8.6,z],[xs[i+1],8.6,z],1)}});
  if(!GLB())cat([POS[0],8.6,POS[1]],ACO,.35);
  const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(P,3));RT.add(new THREE.LineSegments(cg,new THREE.LineBasicMaterial({color:0x161616})));
  // laurel en su cazuela, con el tronco encalado
@@ -154,10 +162,11 @@ function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=
  const mC=relleno(new THREE.MeshLambertMaterial({map:pat})),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
  const lado=(xs,s,arb,b)=>{const Lc=LOTE(),Lv=LOTE(),Lf=LOTE();xs.forEach(([a,c])=>fila(Lc,Lv,Lf,a,c,s,arb));const G=new THREE.Group();
   const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));RT.add(G);zona([G],b)};   // la casona: vecinos más bajos (S), los árboles no
- lado([[LX,80],[90,215]],1,true,[LX+.05,400,-2,80,-90,FZ-.05]);
- lado(GLB()?[[TR[0],-80],[-90,-215]]:[[-LX,-80],[-90,-215]],1,true,[-400,-LX-.05,-2,80,-90,FZ-.05]);
- lado([[-215,-90],...fuera(-80,80),[90,215]],-1,false,[-400,400,-2,80,ZE+.05,200]);
+ lado(bM?[[90,215]]:[[LX,80],[90,215]],1,true,[LX+.05,400,-2,80,-90,FZ-.05]);
+ lado(bM?[[-90,-215]]:GLB()?[[TR[0],-80],[-90,-215]]:[[-LX,-80],[-90,-215]],1,true,[-400,-LX-.05,-2,80,-90,FZ-.05]);
+ lado(bE?[[-215,-90],[90,215]]:[[-215,-90],...fuera(-80,80),[90,215]],-1,false,[-400,400,-2,80,ZE+.05,200]);
  if(GLB())tramo(RT);
+ barrio(RT);
  return RT}
 // el tramo horneado: materiales de CMAT (luz horneada), el arroyo baja a la altura del de código; la copa del laurel se esconde si tapa a tu Mii
 function tramo(RT){if(!window.CGLB||!window.CMAT)return;
@@ -165,6 +174,17 @@ function tramo(RT){if(!window.CGLB||!window.CMAT)return;
   const ar=r.getObjectByName('calle_arroyo');if(ar)ar.position.y+=YA;
   CMAT.aplicar(r,'modelos/casona/calle_luz.webp?v='+VC);RT.add(r);
   const cp=r.getObjectByName('calle_laurel_copa');if(cp)zona([cp],[-37,-23,6.6,13,14.5,28.3]);tema()}).catch(e=>console.warn('[CCALLE] calle.glb',e))}
+// el barrio horneado: CMAT con su luz (el arroyo ya viene a su altura); copas con viento; faroles de la plaza (farolb) y ventanas
+// prendidas al azar (ventana) se encienden de noche; el horizonte sin luz horneada ni niebla, con su color por vértice y tinte de noche
+function barrio(RT){if(!window.CGLB||!window.CMAT)return;
+ Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/barrio_'+k,v=BV[k]||'p'+Date.now();
+  CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;
+   r.traverse(o=>{if(o.isMesh&&o.material&&/^(farolb|ventana|horizonte)$/.test(o.material.name))esp.push([o,o.material.name])});
+   if(k!=='horizonte')CMAT.aplicar(r,u+'_luz.webp?v='+v);
+   esp.forEach(([o,n])=>{o.material=n==='horizonte'?tinte(new THREE.MeshBasicMaterial({vertexColors:true,fog:false,side:THREE.DoubleSide}))
+    :FB[n]||(FB[n]=new THREE.MeshBasicMaterial({toneMapped:false}));o.matrixAutoUpdate=false;o.updateMatrix()});
+   if(window.PASTO&&PASTO.viento)r.traverse(o=>{if(o.isMesh&&/_copa$/.test(o.name))PASTO.viento(o.material,o)});
+   RT.add(r);tema()}).catch(e=>console.warn('[CCALLE] barrio_'+k,e))})}
 
 // ---------- una fila de casas vecinas entre xa y xb; s=1 de este lado (miran a +z), s=-1 enfrente ----------
 const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c49b,0xa9d4cc,0xdcb8d8],MADS=[0x2f6b4a,0x5a3418,0x2a4f7a,0x7a2a22,0x3a2a1a],
@@ -197,5 +217,5 @@ function ventana(L,V,px,o,mad,cr,lejos,y0,wh){const ww=1.5+rnd()*.5,yc=y0+wh/2;
  L.box(ww+.8,.32,.16,cr,px,y0+wh+.3,o(.08));L.box(ww+.6,.14,.4,cr,px,y0-.07,o(.2));
  if(!lejos){const nb=Math.round(ww/.25);for(let i=1;i<nb;i++)L.box(.04,wh+.1,.04,HI,px-ww/2+i*ww/nb,yc,o(.22));[.25,.75].forEach(f=>L.box(ww+.1,.04,.04,HI,px,y0+wh*f,o(.22)))}}
 
-window.CCALLE={glb:GLB,build,fondo,zona,tinte,vidrio,luz,enMundo,tema,A};
+window.CCALLE={glb:GLB,bar:BAR,build,fondo,zona,tinte,vidrio,luz,enMundo,tema,A};
 })();

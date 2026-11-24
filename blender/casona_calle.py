@@ -71,7 +71,7 @@ def HI(): return bmn('calle_herreria', 'hierro', recalc=False, luz=False)   # CM
 def casa(x0, x1, H, col, zf, dz, huecos, fondo=12):
     global ZF, DZ
     ZF, DZ = zf, dz; fa, hi, cal = FA(), HI(), PAL['cal']
-    pieza(fa, col, cf, x0, x1, 0, H, -fondo, 0, back=True)
+    pieza(fa, col, cf, x0, x1, 0, H, -fondo, 0)          # cerrada atrás: se ve desde los patios de barrio_manzana.py
     pieza(fa, osc(col, .8), cf, x0, x1, H - .3, H, 0, .02)          # pretil, un tono abajo
     pieza(fa, cal, cf, x0, x1, H - .44, H - .3, 0, .12)              # cornisa
     pieza(fa, cal, cf, x0, x1, H - 1.0, H - .92, 0, .05)             # moldura
