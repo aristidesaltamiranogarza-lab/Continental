@@ -7,7 +7,7 @@
 // CMAT.aplicar llama PASTO.pon(root,MAT); CMAT.copas llama PASTO.viento. Ajustes en PASTO.A. ?nomatas apaga las matas.
 (function(){
 if(typeof THREE==='undefined')return;
-const A={dens:1.1,max:1800,alto:.5,viento:1,copa:.012};
+const A={dens:2.4,max:3600,chicas:.45,estorbo:40,alto:.5,viento:1,copa:.012};   // chicas: parte de matas pequeñas; estorbo: área máx. de una pieza que tapa el pasto
 const U={uT:{value:0},uV:{value:A.viento}},MATAS=[],SIN=/[?&]nomatas\b/.test(location.search);
 const tic=()=>{U.uT.value=performance.now()/1000;U.uV.value=A.viento};
 const medio=()=>window.CALIDAD==='medio';
@@ -53,16 +53,33 @@ function matas(root,ms,mPasto){let s=13;const r=()=>(s=(s*9301+49297)%233280)/23
   for(let k=0;k+2<n;k+=3){const i0=vi(k),i1=vi(k+1),i2=vi(k+2);a.fromBufferAttribute(pa,i0).applyMatrix4(M);b.fromBufferAttribute(pa,i1).applyMatrix4(M);c.fromBufferAttribute(pa,i2).applyMatrix4(M);
    const ar=new THREE.Vector3().subVectors(b,a).cross(new THREE.Vector3().subVectors(c,a)).length()/2;if(ar<1e-4)continue;area+=ar;acc.push(area);
    T.push({a:a.clone(),b:b.clone(),c:c.clone(),u:u1?[u1.getX(i0),u1.getY(i0),u1.getX(i1),u1.getY(i1),u1.getX(i2),u1.getY(i2)]:null})}}
+ // estorbos: cajas de lo que está parado sobre el pasto (jardinera, pozo, lavadero, troncos, piedras); las piezas enormes (muros juntos) no cuentan
+ const piso=T.reduce((y,t)=>Math.min(y,t.a.y),1e9),EST=[],GR={},bx=new THREE.Box3(),set=new Set(ms);
+ root.traverse(o=>{if(!o.isMesh||set.has(o)||o.isInstancedMesh||!o.geometry)return;if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();
+  bx.copy(o.geometry.boundingBox).applyMatrix4(M.multiplyMatrices(inv,o.matrixWorld));
+  if(bx.min.y>piso+1.2||bx.max.y<piso+.03)return;
+  if((bx.max.x-bx.min.x)*(bx.max.z-bx.min.z)<=A.estorbo){EST.push([bx.min.x-.12,bx.max.x+.12,bx.min.z-.12,bx.max.z+.12]);return}
+  // pieza grande y baja (tierra de jardineras, lajas): sus triángulos horizontales por encima del pasto, en una cuadrícula de 2
+  const g=o.geometry,pa=g.attributes.position,ix=g.index,n=ix?ix.count:pa.count,vi=k=>ix?ix.getX(k):k;
+  for(let k=0;k+2<n;k+=3){a.fromBufferAttribute(pa,vi(k)).applyMatrix4(M);b.fromBufferAttribute(pa,vi(k+1)).applyMatrix4(M);c.fromBufferAttribute(pa,vi(k+2)).applyMatrix4(M);
+   if(Math.max(a.y,b.y,c.y)>piso+1.2||Math.max(a.y,b.y,c.y)<piso+.02)continue;
+   const ar=(b.x-a.x)*(c.z-a.z)-(c.x-a.x)*(b.z-a.z);if(Math.abs(ar)<.01)continue;
+   const t=[a.x,a.z,b.x,b.z,c.x,c.z,ar];for(let gx=Math.floor(Math.min(a.x,b.x,c.x)/2);gx<=Math.floor(Math.max(a.x,b.x,c.x)/2);gx++)
+    for(let gz=Math.floor(Math.min(a.z,b.z,c.z)/2);gz<=Math.floor(Math.max(a.z,b.z,c.z)/2);gz++){const q=gx+','+gz;(GR[q]||(GR[q]=[])).push(t)}}});
+ const enTri=(x,z,t)=>{const s=((t[2]-x)*(t[5]-z)-(t[4]-x)*(t[3]-z))/t[6],u=((t[4]-x)*(t[1]-z)-(t[0]-x)*(t[5]-z))/t[6];return s>-.03&&u>-.03&&s+u<1.03};
+ const libre=p=>{if(EST.some(e=>p.x>e[0]&&p.x<e[1]&&p.z>e[2]&&p.z<e[3]))return false;const L=GR[Math.floor(p.x/2)+','+Math.floor(p.z/2)];return !L||!L.some(t=>enTri(p.x,p.z,t))};
  const N=Math.min(A.max,Math.round(area*A.dens));if(!N||!T.length)return null;
  const geo=mataGeo(),UV=new Float32Array(N*2),m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});
  if(mPasto&&mPasto.lightMap){m.lightMap=mPasto.lightMap;m.lightMapIntensity=mPasto.lightMapIntensity}
  geo.setAttribute('uv1',new THREE.InstancedBufferAttribute(UV,2));
  const im=new THREE.InstancedMesh(geo,m,N),q=new THREE.Quaternion(),e=new THREE.Euler(),S=new THREE.Vector3(),P=new THREE.Vector3(),col=new THREE.Color(),seco=new THREE.Color('#e8cf86');
- for(let i=0;i<N;i++){const x=r()*area;let lo=0,hi=acc.length-1;while(lo<hi){const md=(lo+hi)>>1;if(acc[md]<x)lo=md+1;else hi=md}const t=T[lo];
+ let i=0;for(let n=0;n<N*3&&i<N;n++){const x=r()*area;let lo=0,hi=acc.length-1;while(lo<hi){const md=(lo+hi)>>1;if(acc[md]<x)lo=md+1;else hi=md}const t=T[lo];
   let u=r(),v=r();if(u+v>1){u=1-u;v=1-v}const w=1-u-v;P.set(0,0,0).addScaledVector(t.a,w).addScaledVector(t.b,u).addScaledVector(t.c,v);P.y+=.01;
+  if(!libre(P))continue;
   if(t.u){UV[i*2]=t.u[0]*w+t.u[2]*u+t.u[4]*v;UV[i*2+1]=t.u[1]*w+t.u[3]*u+t.u[5]*v}
-  const k=.7+r()*.6;S.set(k,k*(.8+r()*.5),k);q.setFromEuler(e.set((r()-.5)*.15,r()*6.283,(r()-.5)*.15));im.setMatrixAt(i,new THREE.Matrix4().compose(P,q,S));
-  col.setScalar(.85+r()*.25);if(r()<.18)col.multiply(seco);im.setColorAt(i,col)}
+  const k=r()<A.chicas?.3+r()*.25:.7+r()*.6;S.set(k,k*(.8+r()*.5),k);q.setFromEuler(e.set((r()-.5)*.15,r()*6.283,(r()-.5)*.15));im.setMatrixAt(i,new THREE.Matrix4().compose(P,q,S));
+  col.setScalar(.85+r()*.25);if(r()<.18)col.multiply(seco);im.setColorAt(i,col);i++}
+ im.count=i;
  parche(m,'|mata',s=>{s.uniforms.uT=U.uT;s.uniforms.uV=U.uV;
   s.vertexShader='uniform float uT,uV;\n'+s.vertexShader.replace('#include <project_vertex>',
    '{vec4 ip=modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.);float h=position.y/'+A.alto.toFixed(3)+',h2=h*h*uV;'+
