@@ -17,6 +17,7 @@ Servidor Node sin dependencias + cliente JS puro. Arranque: `npm start`.
 - Un archivo de cliente nuevo se registra en el mapa estático de server.js (~línea 14) y en la línea de scripts de continental3d.html (antes de c_casa3d.js).
 - Sin emojis en el juego (textos, botones, nombres de bots, avisos, títulos, registros); la única excepción son los emotes del personaje. Si al tocar un archivo ves un emoji en lo que ve el jugador, quítalo (sin poner otro ícono en su lugar, salvo que haga falta; entonces UI.ico).
 - Nunca barras de scroll visibles (ui.css las oculta en todo el juego). Para indicar que algo se desliza: clase `ui-desl` (o `.ui-bd`), que desvanece el borde donde hay más (c_ui.js). El cambio de vista 2D/3D es `UI.dim(es3d,onclick)`, nunca un ojo.
+- Procesos largos (hornear, exportar): que terminen lo más rápido posible es la prioridad. Hornear solo lo que cambió, noche con menos muestras, subir cada nivel al terminar; nunca horas de espera.
 - Cambios visuales: usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).
 
 ## Gustos del usuario
