@@ -8,7 +8,7 @@
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',CR=/[?&]crudo\b/.test(location.search),VP='7',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','3','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','6','webp'],c2:Q('az')?null:['az','2','webp']};
+const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',CR=/[?&]crudo\b/.test(location.search),VP='7',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','4','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','6','webp'],c2:Q('az')?null:['az','2','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
@@ -19,7 +19,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  S.add(new THREE.HemisphereLight(0xfff4e0,0x8a7a6a,id==='cm1'?1.3:1.7));const L=new THREE.DirectionalLight(0xffffff,id==='cm1'?.6:1.4);L.position.set(-10,20,12);S.add(L);
  const sp={x:0,z:0},se={x:0,z:0,ok:0},bx=[-17.6,17.6,-12.6,16.6];
  const hb=!!(HB[id]&&window.CMAT)&&HB[id];
- const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();if(window.TRAMA&&TRAMA.on())TRAMA.paso(LIN,c,p);else MARC.corte(LIN,window.CAV&&CAV.on()&&p?{position:p}:c,p);   // R13: en primera persona no se corta nadaif(window.NIVC){NIVC.tapas(LIN);NIVC.paso(F.niv,c)}if(F.cua)CUA.paso(c,p,id);
+ const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();if(window.TRAMA&&TRAMA.on())TRAMA.paso(LIN,c,p);else MARC.corte(LIN,window.CAV&&CAV.on()&&p?{position:p}:c,p);/* R13: en primera persona no se corta nada */if(window.NIVC){NIVC.tapas(LIN);NIVC.paso(F.niv,c)}if(F.cua)CUA.paso(c,p,id);
   if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.fuera)F.fuera.paso(c,p);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
