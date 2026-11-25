@@ -23,5 +23,6 @@ function apply(CA){const n=performance.now(),dt=Math.min(.1,(n-(t0||n))/1000);t0
  F.set(-Math.sin(yaw)*Math.cos(pit),Math.sin(pit),-Math.cos(yaw)*Math.cos(pit));D.set(Math.cos(yaw),0,-Math.sin(yaw));
  P.addScaledVector(F,a*v).addScaledVector(D,l*v);P.y+=u*v;
  CA.position.copy(P);CA.lookAt(P.x+F.x,P.y+F.y,P.z+F.z);CA.updateMatrixWorld();return true}
-window.VUELO={on:()=>on,apply};
+// VUELO.pon(x, y, z, giro, inclinación): pone la cámara libre ahí (revisiones desde la consola; coordenadas del juego)
+window.VUELO={on:()=>on,apply,pon:(x,y,z,a,p)=>{on=true;ini=true;P.set(x,y,z);yaw=a||0;pit=p||0;const c=window.CASA3D&&CASA3D.cam&&CASA3D.cam();if(c&&c.far<900){c.far=900;c.updateProjectionMatrix()}}};
 })();
