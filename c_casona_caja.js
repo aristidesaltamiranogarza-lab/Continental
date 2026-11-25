@@ -34,7 +34,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   D.planos.forEach(p=>plano(H,S,hits,p,id,D));D.acciones.forEach(a=>accion(S,hits,a));
   if(hb&&id==='cm1'&&window.SOTC)try{F.sot=SOTC.pon(F,R,D,H)}catch(er){console.error('[SOTC]',er)}
   if(D.caja){const c=D.caja;bx.splice(0,4,c[0]+.4,c[1]-.4,c[2]+.4,c[3]-.4);F.cb.splice(0,4,...c)}
-  if(window.CUA&&CUA.casona&&CUA.casona(id,D.WL,D.caja)){CUA.abre(R);F.cua=1}   // paso 10: no dibuja los cuartos cerrados que no se ven
+  if(window.CUA&&CUA.casona&&CUA.casona(id,D.WL,D.caja,D)){CUA.abre(R);F.cua=1}   // paso 10: no dibuja los cuartos cerrados que no se ven
   for(const k of ['sube','baja']){const e=D.escaleras[k],to=e&&PISO[e.to];if(!to)continue;
    const l={x:e.x,z:e.z,r:e.r,ax:e.ax,az:e.az,to};links.push(l);
    D.escalones[k].forEach(o=>{o.userData.hit={t:'link',l};hits.push(o)})}

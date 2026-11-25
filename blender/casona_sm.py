@@ -235,6 +235,7 @@ def sotano_vida():
     ex('sm_vida_osc', obs=obs, segs=segs, r=.45)
 
 def marcas():
+    P.portales(N, 'nm1')
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_nm1' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:

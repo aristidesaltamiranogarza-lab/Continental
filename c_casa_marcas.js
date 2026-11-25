@@ -1,6 +1,6 @@
 // c_casa_marcas.js — MARC: lee de un GLB de Blender los marcadores (empties) y los choques (extras), sin coordenadas a mano.
 // Convención (blender/casona.py): mesa_<juego> {juego,fam,libre,r} · escalera_sube_<n>/escalera_baja_<n> {to,r,pie:[dx,dz]}
-// · llegada_<n> · llegada_escalera_<n> (donde apareces al subir o bajar) · plano_<lugar>_<n> {ry} (plano "Ir a" en el muro) · puerta_<x>_<n> · accion_<cosa>_<n> {r} (se toca: mipj abre Mi personaje, radio la música) · mallas con {seg:[ax,az,bx,bz],r} o {segs:[ax,az,bx,bz,...],r} (muros, barandales, muebles),
+// · cuarto_<id>_<n> {w,d,h} · portal_<a>_<b>_<n> {w,h,ax} (V7: CUA recorre los portales) · llegada_<n> · llegada_escalera_<n> (donde apareces al subir o bajar) · plano_<lugar>_<n> {ry} (plano "Ir a" en el muro) · puerta_<x>_<n> · accion_<cosa>_<n> {r} (se toca: mipj abre Mi personaje, radio la música) · mallas con {seg:[ax,az,bx,bz],r} o {segs:[ax,az,bx,bz,...],r} (muros, barandales, muebles),
 // {obs:[x,z,r,...]} o {tipo:'columna'|'obst',r} · escalones con {escalera:'sube'|'baja'} · muros/dinteles/antepechos se agrupan
 // en líneas para el corte (por el extra linea si lo traen; si no, por su eje) · pisos dan los límites.
 // MARC.leer(root) → {mesas,escaleras,puertas,llegada,llegadaEsc,planos,WL,OB,lineas,escalones,caja}. MARC.corte(lineas,cam,yo) esconde muros.
@@ -11,7 +11,7 @@ const w=new THREE.Vector3(),bb=new THREE.Box3();
 const pos=o=>(o.getWorldPosition(w),{x:+w.x.toFixed(3),y:+w.y.toFixed(3),z:+w.z.toFixed(3)});
 
 function leer(root){root.updateMatrixWorld(true);
- const R={mesas:[],acciones:[],escaleras:{},puertas:{},llegada:null,llegadaEsc:null,planos:[],WL:[],OB:[],lineas:[],escalones:{sube:[],baja:[]},caja:null};
+ const R={cuartos:[],portales:[],mesas:[],acciones:[],escaleras:{},puertas:{},llegada:null,llegadaEsc:null,planos:[],WL:[],OB:[],lineas:[],escalones:{sube:[],baja:[]},caja:null};
  const lin={},cj=new THREE.Box3(),peg=[];let m;
  root.traverse(o=>{const u=o.userData||{},n=o.name||'';
   if(o.isMesh){if(u.pega)peg.push(o);
@@ -30,6 +30,8 @@ function leer(root){root.updateMatrixWorld(true);
   else if(/^llegada_escalera_/.test(n))R.llegadaEsc=pos(o);
   else if(/^llegada_/.test(n))R.llegada=pos(o);
   else if((m=n.match(/^plano_(.+)_[^_]+$/))){const p=pos(o);R.planos.push({k:m[1],x:p.x,y:p.y,z:p.z,ry:+(u.ry||0)})}
+  else if((m=n.match(/^cuarto_([^_]+)_/))){const p=pos(o);R.cuartos.push({id:m[1],x:p.x,z:p.z,w:+u.w||1,d:+u.d||1,h:+u.h||3})}   // V7: cuartos y portales (blender/casona_pb.py portales)
+  else if((m=n.match(/^portal_([^_]+)_([^_]+)_/))){const p=pos(o);R.portales.push({a:m[1],b:m[2],x:p.x,z:p.z,w:+u.w||1,h:+u.h||3,ax:u.ax==='x'?'x':'z'})}
   else if((m=n.match(/^puerta_(.+)_[^_]+$/)))R.puertas[m[1]]=pos(o);
   else if((m=n.match(/^accion_(.+)_[^_]+$/))){const p=pos(o);R.acciones.push({k:m[1],x:p.x,y:p.y,z:p.z,r:+(u.r||1)})}});   // paso 9: espejo, radio (se tocan)
  // cada línea: eje y centro del cuerpo del muro (el que choca), largo de todo lo que cuelga de ella

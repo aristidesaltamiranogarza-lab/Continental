@@ -8,7 +8,7 @@
 // sacados de los muros de choque del GLB. CUA.abre(g): el GLB es un solo grupo; sus hijos se ligan uno por uno.
 (function(){
 if(typeof THREE==='undefined')return;
-const E=.4,C=.1;
+const E=.4,C=.1,A={hist:300};
 const caja=(ax,p,c,w,h)=>ax==='z'?new THREE.Box3(new THREE.Vector3(c-w/2,0,p-.3),new THREE.Vector3(c+w/2,h,p+.3)):new THREE.Box3(new THREE.Vector3(p-.3,0,c-w/2),new THREE.Vector3(p+.3,h,c+w/2));
 // piso: {R: cuartos [{n, r: rectángulos [x0,x1,z0,z1]}], V: vanos {a,b,box}, H: alto de los techos}
 function hazPiso(R,V,H){return {R,V,H,VIS:R.map(()=>true)}}
@@ -43,10 +43,14 @@ let k=0;
 // paso(cam, tu Mii, piso): cada cuadro del piso (sin piso: la planta baja de la casa vieja)
 function paso(cam,av,id){paso0(cam,av,id);sync()}
 function paso0(cam,av,id){const f=CF[id||'pb'];if(!f)return;if(f!==F){F=f;k=0}const S=window.CASA3D&&CASA3D.sc();if(!S||!cam)return;if(k++%30===0)scan(S);
- const cp=cam.position,ic=cp.y<F.H?cuarto(cp.x,cp.z,0):-1;if(ic<0||!on||!F.R[ic].r.length){todos(true);return}
- todos(false);pm.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);fr.setFromProjectionMatrix(pm);
- const cola=[ic];F.VIS[ic]=true;const ia=av?cuarto(av.x,av.z,0):-1;if(ia>=0&&!F.VIS[ia]){F.VIS[ia]=true;cola.push(ia)}
- while(cola.length){const i=cola.shift();for(const v of F.V){const j=v.a===i?v.b:v.b===i?v.a:-1;if(j<0||F.VIS[j])continue;if(fr.intersectsBox(v.box)){F.VIS[j]=true;cola.push(j)}}}}
+ const cp=cam.position,ic=cp.y<F.H?cuarto(cp.x,cp.z,0):-1,t=performance.now();if(ic<0||!on||!F.R[ic].r.length){todos(true);if(window.PORT)PORT.hist(F.HS||(F.HS={}),F.VIS,t,A.hist);return}
+ pm.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);fr.setFromProjectionMatrix(pm);
+ // V7: recorrido de portales desde el cuarto de la cámara y el de tu Mii (PORT), con histéresis para que no parpadee en las orillas
+ const ia=av?cuarto(av.x,av.z,0):-1,ve=v=>fr.intersectsBox(v.box);
+ let vis;if(window.PORT){vis=PORT.hist(F.HS||(F.HS={}),PORT.recorrer({n:F.R.length,V:F.V},[ic,ia],ve),t,A.hist)}
+ else{vis=F.R.map(()=>false);const cola=[ic];vis[ic]=true;if(ia>=0&&!vis[ia]){vis[ia]=true;cola.push(ia)}
+  while(cola.length){const i=cola.shift();for(const v of F.V){const j=v.a===i?v.b:v.b===i?v.a:-1;if(j<0||vis[j])continue;if(ve(v)){vis[j]=true;cola.push(j)}}}}
+ for(let i=0;i<vis.length;i++)F.VIS[i]=vis[i]}
 
 // casona: cuartos cerrados del anteproyecto (x, z, ancho, fondo del plano; en el juego x-18, 17-z) y alto de sus techos.
 // Patio, corredores, traspatio y azotea son abiertos: lo que está ahí siempre se dibuja (el último "cuarto", sin rectángulos, solo une vanos).
@@ -56,7 +60,7 @@ const CC={c0:[5.5,{sal:[0,0,16,10],zag:[16,0,5,10],com:[21,0,15,10],esc:[0,10,8,
 // vanos: se recorre la orilla de cada cuarto; donde no hay muro de choque (WL: [x1,z1,x2,z2,r]) por 1 o más, hay un vano hacia el cuarto
 // (o el abierto) de enfrente. Afuera de la casa (D.caja) no cuenta: la calle no se esconde.
 function dist(px,pz,l){const dx=l[2]-l[0],dz=l[3]-l[1],L=dx*dx+dz*dz,t=L?Math.max(0,Math.min(1,((px-l[0])*dx+(pz-l[1])*dz)/L)):0;return Math.hypot(px-l[0]-t*dx,pz-l[1]-t*dz)}
-function casona(id,WL,cj){const c=CC[id];if(!c||!WL||!WL.length)return;const H=c[0],R=Object.keys(c[1]).map(n=>{const[x,z,w,d]=c[1][n];return {n,r:[[x-18,x+w-18,17-z-d,17-z]]}});
+function casona(id,WL,cj,M){if(M&&M.cuartos&&M.cuartos.length&&window.PORT)return CF[id]=portales(M);const c=CC[id];if(!c||!WL||!WL.length)return;const H=c[0],R=Object.keys(c[1]).map(n=>{const[x,z,w,d]=c[1][n];return {n,r:[[x-18,x+w-18,17-z-d,17-z]]}});
  R.push({n:'abierto',r:[]});const f=hazPiso(R,[],H),ab=R.length-1,V=f.V,dentro=(x,z)=>!cj||(x>cj[0]&&x<cj[1]&&z>cj[2]&&z<cj[3]);
  const libre=(x,z)=>!WL.some(l=>dist(x,z,l)<(l[4]||.3)+.08);
  R.forEach((q,a)=>q.r.forEach(r=>{
@@ -66,10 +70,15 @@ function casona(id,WL,cj){const c=CC[id];if(!c||!WL||!WL.length)return;const H=c
     if(libre(x,z)&&dentro(ox,oz)){const j=cuarto(ox,oz,0,f);if(ini==null){ini=t;b=j}else if(j!==b){cierra(t);ini=t;b=j}}else cierra(t)}
    cierra(a1-.15)}}));
  CF[id]=f;return f}
+// V7: cuartos y portales marcados en Blender (MARC.leer: cuartos, portales); 'abierto' (patio, corredores, calle) va al final
+function portales(M){const G=PORT.grafo(M.cuartos,M.portales),H=Math.max(...M.cuartos.map(c=>c.h));
+ const R=M.cuartos.map(c=>({n:c.id,r:[[c.x-c.w/2,c.x+c.w/2,c.z-c.d/2,c.z+c.d/2]]}));R.push({n:'abierto',r:[]});
+ const V=G.V.map(v=>({a:v.a,b:v.b,box:v.p.ax==='x'?caja('x',v.p.x,v.p.z,v.p.w+.4,v.p.h):caja('z',v.p.z,v.p.x,v.p.w+.4,v.p.h)}));
+ const f=hazPiso(R,V,H);f.G=G;return f}
 // el GLB de la casona es un grupo con todo: se ligan sus hijos (los muros, muebles y pisos de un solo cuarto)
 function abre(g){ABRE.add(g);nHijos=-1}
 
-window.CUA={paso,vis,de,abre,hay:id=>!!CF[id],casona,esAbre:g=>ABRE.has(g),ligar:(o,i)=>{visto.add(o);ligar(o,i,window.CASA3D&&CASA3D.piso&&CF[CASA3D.piso()])},set on(v){on=!!v;sync()},get on(){return on},
+window.CUA={A,paso,vis,de,abre,hay:id=>!!CF[id],casona,esAbre:g=>ABRE.has(g),ligar:(o,i)=>{visto.add(o);ligar(o,i,window.CASA3D&&CASA3D.piso&&CF[CASA3D.piso()])},set on(v){on=!!v;sync()},get on(){return on},
  dbg:()=>({cuartos:F.R.map((r,i)=>r.n+':'+(F.VIS[i]?'si':'no')).join(' '),vanos:F.V.map(v=>F.R[v.a].n+'-'+F.R[v.b].n).join(' '),ligados:LIG.filter(o=>ST.get(o).i>=0&&ST.get(o).f===F).length,
   porCuarto:F.R.map((r,i)=>r.n+'='+LIG.filter(o=>ST.get(o).i===i&&ST.get(o).f===F).length).join(' ')})};
 })();

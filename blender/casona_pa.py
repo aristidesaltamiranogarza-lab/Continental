@@ -203,6 +203,7 @@ def deco():   # paso 9: tu cuarto y sala de música (blender/casona_pa_deco.py, 
     exec(open(os.path.join(DIR, 'blender', 'casona_pa_deco.py'), encoding='utf-8').read(), globals()); tu_cuarto(); sala_musica(); mas_vida()
 
 def marcas():
+    P.portales(N, 'n1')
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n1' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
@@ -251,6 +252,7 @@ def vistas(sc, carpeta):
 if __name__ == '__main__':
     arg = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     acc = arg[0] if arg else 'vista'
+    if acc == 'marcas': P.solo_marcas('pa', marcas); raise SystemExit   # V7: solo empties sobre el .blend horneado
     sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))

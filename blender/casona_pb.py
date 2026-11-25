@@ -556,7 +556,38 @@ def aire_libre(x, z):
         if ax < x < ax + w and az < z < az + d: return int(k == 'open' and not n.startswith('corredor'))
     return 0
 
+def portales(N, nv):
+    """V7: cuarto_<id>_<nivel> {w,d,h} al centro de cada cuarto cerrado y portal_<a>_<b>_<nivel> {w,h,ax} en cada vano que toca
+    un cuarto cerrado (lo abierto: patio, corredores, traspatio, calle = 'abierto'). CUA (c_casa_cuartos.js) recorre los portales.
+    (Se llaman portal_ y no puerta_ porque puerta_<x>_<n> ya existe para los vanos con nombre.)"""
+    cer = [(x, z, w, d, n.replace('_', '')) for x, z, w, d, k, tin, n in N['areas'] if k is None]
+    def de(px, pz):
+        for x, z, w, d, n in cer:
+            if x < px < x + w and z < pz < z + d: return n
+        return 'abierto'
+    for x, z, w, d, n in cer: vacio('cuarto_%s_%s' % (n, nv), x + w / 2, 0, z + d / 2, w=w, d=d, h=N['H'])
+    vistos = set()
+    for g in N['gaps']:
+        x1, z1, x2, z2 = g[:4]; cx, cz = (x1 + x2) / 2, (z1 + z2) / 2; vx = abs(x1 - x2) < .01
+        a, b = (de(cx - .6, cz), de(cx + .6, cz)) if vx else (de(cx, cz - .6), de(cx, cz + .6))
+        if a == b: continue
+        k = '%s_%s_%s' % (a, b, nv); i = 2
+        while k in vistos: k = '%s_%s_%s_%d' % (a, b, nv, i); i += 1   # dos vanos entre los mismos cuartos
+        vistos.add(k); vacio('portal_' + k, cx, 0, cz, w=round(abs(z2 - z1) if vx else abs(x2 - x1), 3), h=N['H'], ax='x' if vx else 'z')
+
+def solo_marcas(nom, fn):
+    """Rehace solo los empties del .blend ya horneado (blender/casona_<nom>.blend) y reexporta <nom>.glb, sin hornear."""
+    bpy.ops.wm.open_mainfile(filepath=os.path.join(DIR, 'blender', 'casona_%s.blend' % nom))
+    col = bpy.data.collections[nom]
+    for o in [o for o in col.objects if o.type == 'EMPTY']: bpy.data.objects.remove(o, do_unlink=True)
+    EMP.clear(); fn()
+    for nombre, (x, y, z), kv in EMP:
+        e = bpy.data.objects.new(nombre, None); e.empty_display_type = 'PLAIN_AXES'; e.location = V(x, y, z); col.objects.link(e)
+        for k, v in kv.items(): e[k] = v
+    exportar(col)
+
 def marcas():
+    portales(N, 'n0')
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n0' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
@@ -771,6 +802,7 @@ def noche(sc):
 
 def hornear_noche(sc, obs, res, mu):
     """Segundo horneado con las mismas UV: NOM_luz_noche.webp (CMAT la usa cuando CIELO está de noche)."""
+    mu = int(os.environ.get('NOCHE_MU', max(256, mu // 2)))   # noche con la mitad de muestras (luz suave, casi sin sombras duras)
     noche(sc); img = hornear(sc, obs, res, mu); guardar(img, ruta=os.path.join(SAL, NOM + '_luz_noche.webp'))
 
 def motor(sc):
@@ -1126,6 +1158,7 @@ if __name__ == '__main__':
         sc = bpy.context.scene; motor(sc); car = arg[1]
         obs = [o for o in bpy.data.collections['pb'].objects if o.type == 'MESH' and 'luz' in o.data.uv_layers]
         previa(sc, region(obs), next(p for p in (os.path.join(SAL, 'pb_luz.' + e) for e in ('webp', 'jpg')) if os.path.exists(p)), car, 'antes'); sys.exit(0)
+    if acc == 'marcas': solo_marcas('pb', marcas); sys.exit(0)   # V7: solo empties sobre el .blend horneado
     sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))
