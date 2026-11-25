@@ -98,7 +98,7 @@ def abajo():
 
 # ---------- pretil de la orilla del lote y barandal al vacío ----------
 def pretiles():
-    """Pretil de cal de 2.0 con cornisa de cantera. Esquinas: el tramo 'h' las cubre y el 'v' llega a su cara; junto al cubo de la escalera, a la cara del muro."""
+    """Pretil de cal (K pretil, 1.4) con cornisa de cantera. Esquinas: el tramo 'h' las cubre y el 'v' llega a su cara; junto al cubo de la escalera, a la cara del muro."""
     Pt = C.rect(0, 0, 36, 30) - P.W
     for (e, l, i0, i1) in C.tramos(Pt):
         L, u0, u1 = l / 10, i0 / 10, i1 / 10

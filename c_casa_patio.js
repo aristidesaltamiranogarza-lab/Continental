@@ -52,7 +52,7 @@ function fachada(Q,CC){const L=LOTE(),V=LOTE(),VL=LOTE(),o=kk=>PZ-kk,MD=0x4a2c18
 // ---------- afuera (CIELO.mundo): el patio ----------
 const MAC=[[-16.2,-27,'hoja'],[-16.2,-29.6,'sabila'],[-16.1,-40.9,'hoja'],[-7.4,-26.1,'flor'],[-1.2,-26.1,'flor'],[16.2,-26.7,'hoja'],[16.2,-29.4,'sabila'],
  [16.1,-34.5,'hoja',0x2a6fb0],[1.4,-31.3,'flor'],[16.1,-37,'flor',0xf2c230]];
-function patio(k,CC){const {ctex,pm,cal}=k,G=new THREE.Group();G.name='patio';CIELO.mundo.add(G);
+function patio(k,CC){const {ctex,pm,cal}=k,G=new THREE.Group();G.name='patio';if(!/[?&]crudo\b/.test(location.search))CIELO.mundo.add(G);   // ?crudo: sin el patio de la casa vieja
  const sr=s=>()=>(s=(s*9301+49297)%233280)/233280,tx=(key,rep,draw)=>{const t=ctex(key,256,256,draw,1);t.repeat.set(1/rep,1/rep);return t};
  const tRojo=tx('piso-rojo',3,(g,w,h)=>{const r=sr(4);g.fillStyle='#a8492f';g.fillRect(0,0,w,h);
   for(let i=0;i<1400;i++){g.fillStyle=r()<.5?'rgba(60,20,10,.12)':'rgba(255,200,170,.1)';g.fillRect(r()*w,r()*h,2,2)}
