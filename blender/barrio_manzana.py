@@ -37,21 +37,24 @@ def jardin(B):
     """Paso 3: el corazón de la manzana ya no son patios con bardas: pasto con hojas solo cerca de los caminos y un caminito curvo de laja
     que sale de la puerta trasera del jardín de la casona (x 16.5..19.5, z 48) hacia la plaza (oeste) y la entrada de la cancha (esquina NO)."""
     huecos = [(-51, 40, -23, 78), (-40, 22, -34, 40), (0, 22, 36, 48), (60.5, 44.5, 85.5, 59.5)]   # plaza e iglesia, andador, casona, cancha
-    B.suelo_partido(-51, 22, 86, 78, huecos, [])
-    for i, m in enumerate(((8.5, 56.8, 6.5, 2.6, .12), (21.2, 58.8, 3.6, 2.2, -.2), (-18.5, 55.6, 4.2, 2.6, .3), (54.2, 60.6, 3.4, 4.2, .2),
-                           (45, 49.8, 4.2, 1.2, -.05))):
-        B.mancha(*m, seed=i + 1)                                   # 3b: pasto con hojas en manchas de orilla irregular
     fa, c = B.FA(), B.osc(B.PAL['crema'], .9)   # rodapié: las bardas de la casona empiezan en 0 y el pasto está en YS
     for x0, x1, z0, z1 in ((-.15, .15, 22, 48.15), (35.85, 36.15, 22, 48.15), (-.15, 16.5, 47.85, 48.15), (19.5, 36.15, 47.85, 48.15)):
         B.pieza(fa, c, B.caja_o, x0, x1, B.YS, .02, z0, z1, (2,))
     B.pieza(fa, B.PAL['cantera'], B.caja_o, 16.5, 19.5, B.YS, 0, 47.85, 48.6, (2,))   # escalón de la puerta trasera
     # 3b: los caminitos son UNA forma (tronco desde la puerta, ramas a la plaza y a la cancha, ramal al rincón de dominó)
-    B.red([([(18, 47.6), (17.9, 49.6), (16.2, 52.0), (13, 53.3), (5, 54), (-3, 51.2), (-10, 50.4), (-17, 52.2), (-23.6, 52)], 2.6, .18, 1),
+    ln = B.red([([(18, 47.6), (17.9, 49.6), (16.2, 52.0), (13, 53.3), (5, 54), (-3, 51.2), (-10, 50.4), (-17, 52.2), (-23.6, 52)], 2.6, .18, 1),
            ([(17.9, 49.6), (19.8, 52.0), (23, 53.3), (32, 54.6), (41, 52.6), (50, 51.4), (56.5, 54), (59.2, 58.2), (62.5, 60.4)], 2.6, .18, 2),
            ([(27.6, 54.0), (27.3, 56.4), (27.0, 58.4)], 1.7, .1, 3)],
           discos=[(25.4, 60.1, 2.5), (28.9, 61.1, 2.5)], cortes=[(0, 1, 47.9), (1, 0, -23.6)])
-    for x, z in ((-12.5, 53.6), (1.5, 55.4), (36.5, 51.1), (46, 50.3), (55.4, 57.4)): B.farol(x, z, B.YS)   # a un lado, nunca en el camino
-    B.banca_conf(-4.5, 54.2, -.34, B.YS); B.banca_conf(43.5, 54.3, .13, B.YS)
+    gotas = ((8.5, 56.8, 6.5, 2.6, .12), (21.2, 58.8, 3.6, 2.2, -.2), (-18.5, 55.6, 4.2, 2.6, .3), (54.2, 60.6, 3.4, 4.2, .2), (45, 49.8, 4.2, 1.2, -.05))
+    # 3b: lomas suaves; planas cerca de muros, bardas, casona, traspatio, cancha, plaza, andador, huerto, caminitos y pasto con hojas
+    B.lomas_planas(rects=[(0, 22, 36, 48, 1.0), (35, 21, 57.5, 49.5, .5), (59.5, 43.5, 86.5, 63.2, .8), (-51, 40, -23, 78, 1.0),
+                          (-40, 22, -34, 40, 1.0), (0, 47.5, 14.5, 52.6, .8)],
+                   lineas=[(ln[0], 3.05), (ln[1], 3.05), (ln[2], 2.45)], discos=[(25.4, 60.1, 3.5), (28.9, 61.1, 3.5)], gotas=gotas)
+    B.suelo_lomas(huecos)
+    for i, m in enumerate(gotas): B.mancha(*m, seed=i + 1)                          # 3b: pasto con hojas en manchas de orilla irregular
+    for x, z in ((-12.5, 53.6), (1.5, 55.4), (36.5, 51.1), (46, 50.3), (55.4, 57.4)): B.farol(x, z, B.SUELO(x, z))   # a un lado del camino
+    B.banca_conf(-4.5, 54.2, -.34, B.SUELO(-4.5, 54.2)); B.banca_conf(43.5, 54.3, .13, B.SUELO(43.5, 54.3))
     B.mesa_domino(25.4, 60.1, .1, fichas=True); B.mesa_domino(28.9, 61.1, -.2)          # rincón de dominó bajo la ceiba
     B.huerto()                                                                           # junto a la puerta trasera, al poniente
     B.albarrada([(35.2, 58.4), (41.5, 56.5), (47.5, 55.7), (51.5, 56.6)], 31)           # albarradas que acompañan al camino
@@ -98,12 +101,12 @@ def piezas(B):
                         (10, None, None), (12, None, None), (9, None, None), (10, None, None), (12, None, None)], seed=13, patio=0, rejas=False)
     B.barda(-51, 89.8, -26, 89.8, 2.6)                                                               # detrás de la iglesia
     jardin(B)
-    B.laurel(-6, 30, .95, y0=YS, sub=2, choque=False); B.laurel(6, 62, 1.0, y0=YS, sub=2, choque=False); B.palmera(14.5, 75.5, 10, y0=YS, choque=False)
-    B.ceiba(31, 66.5, 1.0, y0=YS); B.laurel(52.5, 68.5, 1.0, y0=YS, sub=2); B.flamboyan(-11, 66, .9, y0=YS)   # 3b: sombra al centro
-    B.naranjo(46, 58, 1.1, y0=YS); B.laurel(80, 38, .95, y0=YS, sub=2, choque=False); B.laurel(80, 70, 1.0, y0=YS, sub=2, choque=False)
-    B.naranjo(-30, 32, y0=YS); B.naranjo(18, 70, y0=YS); B.naranjo(66, 68, .9, y0=YS); B.naranjo(-8, 54, y0=YS)
-    B.naranjo(-17, 70, y0=YS); B.palmera(-45, 30, 9, y0=YS, choque=False); B.naranjo(62, 28, y0=YS)
-    B.flamboyan(57, 40, y0=YS, choque=False); B.flamboyan(82, 64, .95, y0=YS, choque=False)                 # los dos de la cancha
+    B.laurel(-6, 30, .95, y0=B.SUELO(-6, 30), sub=2, choque=False); B.laurel(6, 62, 1.0, y0=B.SUELO(6, 62), sub=2, choque=False); B.palmera(14.5, 75.5, 10, y0=B.SUELO(14.5, 75.5), choque=False)
+    B.ceiba(31, 66.5, 1.0, y0=B.SUELO(31, 66.5)); B.laurel(52.5, 68.5, 1.0, y0=B.SUELO(52.5, 68.5), sub=2); B.flamboyan(-11, 66, .9, y0=B.SUELO(-11, 66))   # 3b: sombra al centro
+    B.naranjo(46, 58, 1.1, y0=B.SUELO(46, 58)); B.laurel(80, 38, .95, y0=B.SUELO(80, 38), sub=2, choque=False); B.laurel(80, 70, 1.0, y0=B.SUELO(80, 70), sub=2, choque=False)
+    B.naranjo(-30, 32, y0=B.SUELO(-30, 32)); B.naranjo(18, 70, y0=B.SUELO(18, 70)); B.naranjo(66, 68, .9, y0=B.SUELO(66, 68)); B.naranjo(-8, 54, y0=B.SUELO(-8, 54))
+    B.naranjo(-17, 70, y0=B.SUELO(-17, 70)); B.palmera(-45, 30, 9, y0=B.SUELO(-45, 30), choque=False); B.naranjo(62, 28, y0=B.SUELO(62, 28))
+    B.flamboyan(57, 40, y0=B.SUELO(57, 40), choque=False); B.flamboyan(82, 64, .95, y0=B.SUELO(82, 64), choque=False)                 # los dos de la cancha
     cancha(B)
     B.bugambilia2(-48.6, -45.6, 2.5, 21.6, 22.4, seed=21, n=18)
 
@@ -112,7 +115,7 @@ VISTAS = [('manzana_cancha', (73, 14, 34), (73, 0, 52)), ('barrio_calle', (-12, 
           ('manzana_azotea', (18, 16, 30), (30, 0, 60)), ('manzana_todo', (18, 70, -30), (18, 0, 40)),
           ('jardin_cenital', (17.5, 92, 49.5), (17.5, 0, 50)), ('jardin_puerta', (17.5, 1.6, 49), (30, 1.2, 76)),
           ('jardin_centro', (34, 1.6, 52), (10, 1.4, 77)), ('jardin_este', (40, 1.6, 50), (78, 1.2, 74)),
-          ('jardin_huerto', (16, 2.4, 56.5), (6, .4, 49.5))]
+          ('jardin_huerto', (16, 2.4, 56.5), (6, .4, 49.5)), ('jardin_lomas', (62, 1.4, 71), (5, .2, 63))]
 
 if __name__ == '__main__':
-    correr(B, piezas, VISTAS, ctx=('plaza', 'baldio', 'enfrente'), res=2048, muestras=300, topes=(18, 105000), ctx_vista=('horizonte',))
+    correr(B, piezas, VISTAS, ctx=('plaza', 'baldio', 'enfrente'), res=2048, muestras=300, topes=(18, 108000), ctx_vista=('horizonte',))

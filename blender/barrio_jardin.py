@@ -136,15 +136,15 @@ FLORES = ('mag', 'amarillo', 'blanco', 'rosa', 'lona', 'naranja')
 def arbusto(x, z, s, R, col=None):
     """Arbusto redondo de una bola (80 triángulos); los grandes, un poco aplastados y anchos."""
     fa, c = FA(), col or osc(R.choice(_hojas()), R.uniform(.88, 1.06))
-    pieza(fa, c, ico, x, YS + .42 * s, z, .62 * s * (1.15 if s > .95 else 1), 1, .8 if s <= .95 else .7)
+    pieza(fa, c, ico, x, SUELO(x, z) + .42 * s, z, .62 * s * (1.15 if s > .95 else 1), 1, .8 if s <= .95 else .7)
 
 def flores(x, z, s, R, col=None):
     """Mata baja con flores de un solo color encima."""
     fa = FA(); col = col or PAL[R.choice(FLORES)]
-    pieza(fa, osc(R.choice(_hojas()), R.uniform(.9, 1.05)), ico, x, YS + .18 * s, z, .5 * s, 1, .55)
+    pieza(fa, osc(R.choice(_hojas()), R.uniform(.9, 1.05)), ico, x, SUELO(x, z) + .18 * s, z, .5 * s, 1, .55)
     for i in range(3):
         a = i * 2.1 + R.uniform(-.4, .4); r = R.uniform(.12, .3) * s
-        pieza(fa, osc(col, R.uniform(.9, 1.05)), ico, x + math.cos(a) * r, YS + .4 * s - r * .35, z + math.sin(a) * r, .13 * s, 0)
+        pieza(fa, osc(col, R.uniform(.9, 1.05)), ico, x + math.cos(a) * r, SUELO(x, z) + .4 * s - r * .35, z + math.sin(a) * r, .13 * s, 0)
 
 def macizo(x, z, ux, uz, largo, seed, e=1.0, muro=0.0):
     """Mancha de vegetación a lo largo de (ux, uz): arbustos, a veces agave y flores (e: escala). muro: a qué distancia queda
@@ -154,7 +154,7 @@ def macizo(x, z, ux, uz, largo, seed, e=1.0, muro=0.0):
         t = (i + .5) / n - .5; j = R.uniform(-.35, .35) * e; cx, cz = x + ux * t * largo + px * j, z + uz * t * largo + pz * j
         r = R.random()
         if r < .55: arbusto(cx, cz, R.uniform(.75, 1.25) * e, R)
-        elif r < .78: agave(cx, cz, R.uniform(.7, 1.0) * e, y0=YS, col=osc(PAL['agave'], R.uniform(.9, 1.05)))
+        elif r < .78: agave(cx, cz, R.uniform(.7, 1.0) * e, y0=SUELO(cx, cz), col=osc(PAL['agave'], R.uniform(.9, 1.05)))
         else: flores(cx, cz, R.uniform(.8, 1.1) * e, R)
     if muro and R.random() < .45:
         t = R.uniform(-.3, .3); platano(x + ux * t * largo + px * (muro - .9), z + uz * t * largo + pz * (muro - .9), R, R.uniform(2.4, 3.0))
@@ -162,25 +162,25 @@ def macizo(x, z, ux, uz, largo, seed, e=1.0, muro=0.0):
 # ---------- rincón de dominó ----------
 def mesa_domino(x, z, ang=0.0, fichas=False):
     """Mesita cuadrada de concreto con cuatro bancos (mesa a 1.55 y asiento a 0.95, como las del juego)."""
-    c = lin('#d3cdc0'); s = osc(c, .86)
+    c = lin('#d3cdc0'); s = osc(c, .86); Y0 = SUELO(x, z)
     def arma():
         fa = FA()
-        pieza(fa, s, caja_o, x - .28, x + .28, YS, YS + 1.43, z - .28, z + .28, (2,))
-        pieza(fa, c, caja_o, x - .75, x + .75, YS + 1.43, YS + 1.55, z - .75, z + .75)
+        pieza(fa, s, caja_o, x - .28, x + .28, Y0, Y0 + 1.43, z - .28, z + .28, (2,))
+        pieza(fa, c, caja_o, x - .75, x + .75, Y0 + 1.43, Y0 + 1.55, z - .75, z + .75)
         for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             bx, bz = x + dx * 1.45, z + dz * 1.45; lx, lz = (.21, .65) if dx else (.65, .21)
-            pieza(fa, s, caja_o, bx - .14, bx + .14, YS, YS + .85, bz - .14, bz + .14, (2,))
-            pieza(fa, c, caja_o, bx - lx, bx + lx, YS + .85, YS + .95, bz - lz, bz + lz)
+            pieza(fa, s, caja_o, bx - .14, bx + .14, Y0, Y0 + .85, bz - .14, bz + .14, (2,))
+            pieza(fa, c, caja_o, bx - lx, bx + lx, Y0 + .85, Y0 + .95, bz - lz, bz + lz)
         if fichas:
             R = random.Random(int(x * 7 + z))
             for i in range(6):
                 fx, fz = x + R.uniform(-.45, .45), z + R.uniform(-.45, .45); a, b = (.07, .14) if i % 2 else (.14, .07)
-                pieza(fa, PAL['blanco'], caja_o, fx - a, fx + a, YS + 1.55, YS + 1.59, fz - b, fz + b, (2,))
+                pieza(fa, PAL['blanco'], caja_o, fx - a, fx + a, Y0 + 1.55, Y0 + 1.59, fz - b, fz + b, (2,))
     girado(ang, x, z, arma)
     ex_obs(NOMB + '_fachadas', x, z, 1.7)
 
 # ---------- albarradas ----------
-def albarrada(pts, seed, alto=.7):
+def albarrada(pts, seed, ah=.7):
     """Murete bajo de piedra seca que sigue una curva: tramos de ~0.5 con su propio tono, corona dispareja y piedras sueltas
     encima, en las dos orillas. Choques redondos a lo largo."""
     R, fa = random.Random(seed), FA(); c = _cr(pts, 6); L = [0.0]
@@ -192,12 +192,12 @@ def albarrada(pts, seed, alto=.7):
         return x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, -(z1 - z0) / l, (x1 - x0) / l
     sec = []
     for i in range(n + 1):
-        x, z, nx, nz = en(L[-1] * i / n); h = alto + R.uniform(-.13, .1); jb, jt = R.uniform(-.06, .06), R.uniform(-.07, .05)
-        sec.append([(x + nx * (.36 + jb) * s, z + nz * (.36 + jb) * s) for s in (1, -1)] + [(x + nx * (.2 + jt) * s, z + nz * (.2 + jt) * s) for s in (1, -1)] + [h])
+        x, z, nx, nz = en(L[-1] * i / n); h = ah + R.uniform(-.13, .1); jb, jt = R.uniform(-.06, .06), R.uniform(-.07, .05)
+        sec.append([(x + nx * (.36 + jb) * s, z + nz * (.36 + jb) * s) for s in (1, -1)] + [(x + nx * (.2 + jt) * s, z + nz * (.2 + jt) * s) for s in (1, -1)] + [h, SUELO(x, z)])
     def tramo(bm, a, b, om):
         q = []
         for e in (a, b):
-            for k, yy in ((0, YS - .02), (2, YS + e[4])):
+            for k, yy in ((0, e[5] - .02), (2, e[5] + e[4])):
                 for lado in (0, 1): q.append(V(e[k + lado][0], yy, e[k + lado][1]))
         vs = [bm.verts.new(p) for p in q]
         for k, f in enumerate(P.CARAS):
@@ -207,7 +207,7 @@ def albarrada(pts, seed, alto=.7):
         pieza(fa, osc(base, R.uniform(.72, 1.06)), tramo, sec[i], sec[i + 1], om)
     for i in range(int(L[-1] * 1.2)):
         s = R.uniform(.2, L[-1] - .2); x, z, nx, nz = en(s); j = R.choice((-1, 1)) * R.uniform(.08, .2); h = sec[round(n * s / L[-1])][4]
-        pieza(fa, osc(base, R.uniform(.7, 1.1)), ico, x + nx * j, YS + h - .02, z + nz * j, R.uniform(.15, .25), 0, .65)
+        pieza(fa, osc(base, R.uniform(.7, 1.1)), ico, x + nx * j, SUELO(x, z) + h - .02, z + nz * j, R.uniform(.15, .25), 0, .65)
     for i in range(int(L[-1] / .9) + 1):
         x, z, _, _ = en(L[-1] * i / max(1, int(L[-1] / .9))); ex_obs(NOMB + '_fachadas', x, z, .42)
 
@@ -217,39 +217,39 @@ def milpa(x0, x1, z0, z1, R):
     fa, ca, ho = FA(), lin('#7f9a4e'), lin('#6f9446')
     for x in np.arange(x0, x1 + .01, .75):
         for z in np.arange(z0, z1 + .01, .7):
-            x_, z_ = x + R.uniform(-.12, .12), z + R.uniform(-.12, .12); h = R.uniform(2.3, 2.9)
-            pieza(fa, ca, P.viga, (x_, YS, z_), (x_, YS + h, z_), .05)
+            x_, z_ = x + R.uniform(-.12, .12), z + R.uniform(-.12, .12); h = R.uniform(2.3, 2.9); g = SUELO(x_, z_)
+            pieza(fa, ca, P.viga, (x_, g, z_), (x_, g + h, z_), .05)
             for k in range(2):      # hojas largas que suben y se doblan
-                a = R.uniform(0, 6.3) + k * 3.1; y = YS + h * (.35 + .25 * k); ca_, sa_ = math.cos(a), math.sin(a); c = osc(ho, R.uniform(.88, 1.08))
+                a = R.uniform(0, 6.3) + k * 3.1; y = g + h * (.35 + .25 * k); ca_, sa_ = math.cos(a), math.sin(a); c = osc(ho, R.uniform(.88, 1.08))
                 m = (x_ + ca_ * .45, y + .45, z_ + sa_ * .45)
                 pieza(fa, c, P.viga, (x_, y, z_), m, .13, .015); pieza(fa, c, P.viga, m, (x_ + ca_ * .95, y + .1, z_ + sa_ * .95), .1, .015)
-            pieza(fa, PAL['dorado'], P.viga, (x_, YS + h, z_), (x_ + .05, YS + h + .3, z_), .03)
+            pieza(fa, PAL['dorado'], P.viga, (x_, g + h, z_), (x_ + .05, g + h + .3, z_), .03)
 
 def platano(x, z, R, h=2.7):
     """Mata de plátano: tallo grueso y seis hojas grandes arqueadas, con un racimo."""
-    fa, ho = FA(), lin('#73a04e')
-    pieza(fa, lin('#8d9a62'), P.tubo, (x, YS, z), (x, YS + h, z), .2, .14, 6)
+    fa, ho = FA(), lin('#73a04e'); g = SUELO(x, z)
+    pieza(fa, lin('#8d9a62'), P.tubo, (x, g, z), (x, g + h, z), .2, .14, 6)
     for k in range(6):
         a = k * 1.05 + R.uniform(-.25, .25); ca, sa = math.cos(a), math.sin(a)
-        m = (x + ca * .9, YS + h + .55, z + sa * .9); p = (x + ca * 1.9, YS + h + .05, z + sa * 1.9)
+        m = (x + ca * .9, g + h + .55, z + sa * .9); p = (x + ca * 1.9, g + h + .05, z + sa * 1.9)
         c = osc(ho, R.uniform(.88, 1.06))
-        pieza(fa, c, P.viga, (x, YS + h - .1, z), m, .36, .02); pieza(fa, c, P.viga, m, p, .3, .02)
-    pieza(fa, lin('#6f8a3c'), ico, x + .25, YS + h - .5, z, .22, 0, 1.4)
+        pieza(fa, c, P.viga, (x, g + h - .1, z), m, .36, .02); pieza(fa, c, P.viga, m, p, .3, .02)
+    pieza(fa, lin('#6f8a3c'), ico, x + .25, g + h - .5, z, .22, 0, 1.4)
 
 def cama(x0, x1, z0, z1, R, tipo):
     """Cama de hortalizas: bordo de block y tierra; 'chile' (matitas con chiles rojos) o 'verdura' (rosetas)."""
-    fa = FA()
-    pieza(fa, PAL['gris'], caja_o, x0, x1, YS, YS + .3, z0, z1, (2,))
-    pieza(fa, lin('#5d4838'), caja_o, x0 + .1, x1 - .1, YS + .3, YS + .33, z0 + .1, z1 - .1, (2,))
+    fa, g = FA(), SUELO((x0 + x1) / 2, (z0 + z1) / 2)
+    pieza(fa, PAL['gris'], caja_o, x0, x1, g, g + .3, z0, z1, (2,))
+    pieza(fa, lin('#5d4838'), caja_o, x0 + .1, x1 - .1, g + .3, g + .33, z0 + .1, z1 - .1, (2,))
     nx = max(1, int((x1 - x0 - .3) / .55)); nz = max(1, int((z1 - z0 - .3) / .55))
     for i in range(nx):
         for j in range(nz):
             x, z = x0 + .15 + (i + .5) * (x1 - x0 - .3) / nx, z0 + .15 + (j + .5) * (z1 - z0 - .3) / nz
             if tipo == 'chile':
-                pieza(fa, osc(lin('#4f7a3a'), R.uniform(.9, 1.1)), ico, x, YS + .55, z, .24, 0, .9)
-                if R.random() < .6: pieza(fa, PAL['lona'], ico, x + R.uniform(-.15, .15), YS + .5, z + R.uniform(-.15, .15), .06, 0, 1.8)
+                pieza(fa, osc(lin('#4f7a3a'), R.uniform(.9, 1.1)), ico, x, g + .55, z, .24, 0, .9)
+                if R.random() < .6: pieza(fa, PAL['lona'], ico, x + R.uniform(-.15, .15), g + .5, z + R.uniform(-.15, .15), .06, 0, 1.8)
             else:
-                pieza(fa, osc(lin('#7fa957'), R.uniform(.9, 1.08)), ico, x, YS + .42, z, .2, 0, .55)
+                pieza(fa, osc(lin('#7fa957'), R.uniform(.9, 1.08)), ico, x, g + .42, z, .2, 0, .55)
 
 def huerto(seed=5):
     """Huerto junto a la puerta trasera (al poniente, entre la barda de la casona y el caminito): plátanos al fondo,
@@ -260,3 +260,82 @@ def huerto(seed=5):
     cama(7.6, 12.6, 48.5, 49.4, R, 'chile'); cama(7.6, 12.6, 49.9, 50.8, R, 'verdura')
     albarrada([(13.7, 48.25), (13.6, 50.4), (11.4, 51.45)], seed + 1)
     albarrada([(9.6, 51.65), (5.2, 51.85), (1.6, 51.0), (.45, 48.3)], seed + 2)
+
+# ---------- lomas (relieve suave del jardín; no color) ----------
+# alto(x, z): ruido suave de 2 octavas (lomas cada ~15 m, hasta ~0.5), en 0 con transición de 2.5 m cerca de muros, bardas, casona,
+# traspatio, cancha, plaza e iglesia, andador, huerto, caminitos y manchas de pasto con hojas (así nada queda enterrado ni flotando).
+# Todo lo que va sobre el pasto usa SUELO(x, z). El juego recibe la rejilla de alturas en los extras de <nom>_pasto_c (CCALLE.alto).
+LOM = dict(caja=(-51, 22, 86, 78), rects=[], lineas=[], discos=[], gotas=[], cache={})
+
+def _hash(i, j, k): return (math.sin(i * 127.1 + j * 311.7 + k * 74.7) * 43758.5453) % 1.0
+
+def _vn(x, z, s, k):
+    gx, gz = x / s, z / s; i, j = math.floor(gx), math.floor(gz); fx, fz = gx - i, gz - j
+    fx, fz = fx * fx * (3 - 2 * fx), fz * fz * (3 - 2 * fz)
+    a, b, c, d = _hash(i, j, k), _hash(i + 1, j, k), _hash(i, j + 1, k), _hash(i + 1, j + 1, k)
+    return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz
+
+def _ss(a, b, t): t = min(1.0, max(0.0, (t - a) / (b - a))); return t * t * (3 - 2 * t)
+
+def _dseg(x, z, ln):
+    d = 1e9
+    for (ax, az), (bx, bz) in zip(ln, ln[1:]):
+        ex, ez = bx - ax, bz - az; L2 = ex * ex + ez * ez or 1e-9; t = min(1.0, max(0.0, ((x - ax) * ex + (z - az) * ez) / L2))
+        d = min(d, math.hypot(x - ax - t * ex, z - az - t * ez))
+    return d
+
+def alto(x, z, T=2.5):
+    k = (round(x, 2), round(z, 2))
+    if k in LOM['cache']: return LOM['cache'][k]
+    x0, z0, x1, z1 = LOM['caja']; d = min(x - x0, x1 - x, z - z0, z1 - z) - 1.0
+    for a, b, c, e, m in LOM['rects']: d = min(d, math.hypot(max(a - x, 0, x - c), max(b - z, 0, z - e)) - m)
+    for cx, cz, r in LOM['discos']: d = min(d, math.hypot(x - cx, z - cz) - r)
+    for ln, hw, bb in LOM['lineas']:
+        if bb[0] - hw - T < x < bb[2] + hw + T and bb[1] - hw - T < z < bb[3] + hw + T: d = min(d, _dseg(x, z, ln) - hw)
+    for cx, cz, rx, rz, ang in LOM['gotas']:
+        ca, sa = math.cos(ang), math.sin(ang); u, v = (x - cx) * ca + (z - cz) * sa, -(x - cx) * sa + (z - cz) * ca
+        d = min(d, (math.hypot(u / rx, v / rz) - 1.7) * min(rx, rz))
+    h = 0.0
+    if d > 0:
+        n = .65 * _vn(x + 300, z + 300, 15, 1) + .35 * _vn(x + 300, z + 300, 6.5, 2)
+        h = round(.55 * _ss(.3, .82, n) * _ss(0, T, d), 3)
+    LOM['cache'][k] = h; return h
+
+def SUELO(x, z): return YS + alto(x, z)
+
+def lomas_planas(rects=(), lineas=(), discos=(), gotas=()):
+    """Zonas que se quedan planas: rects [(x0, z0, x1, z1, margen)], lineas [(puntos, medio ancho)], discos [(x, z, r)], gotas como mancha()."""
+    LOM['rects'] += list(rects); LOM['discos'] += list(discos); LOM['gotas'] += list(gotas); LOM['cache'].clear()
+    for ln, hw in lineas:
+        LOM['lineas'].append((ln, hw, (min(p[0] for p in ln), min(p[1] for p in ln), max(p[0] for p in ln), max(p[1] for p in ln))))
+
+def suelo_lomas(huecos, paso=2.0):
+    """Pasto liso del jardín con lomas: rejilla de ~2 m (con las orillas de los huecos como líneas de la rejilla); las celdas planas
+    seguidas se juntan en un solo cuadro. Exporta la rejilla de alturas (cm) en los extras de <nom>_pasto_c."""
+    x0, z0, x1, z1 = LOM['caja']; bm = M('pasto_c', 'pasto_c', prio=.25)
+    xs = sorted({round(v, 3) for v in list(np.arange(x0, x1, paso)) + [x1] + [r[k] for r in huecos for k in (0, 2) if x0 < r[k] < x1]})
+    zs = sorted({round(v, 3) for v in list(np.arange(z0, z1, paso)) + [z1] + [r[k] for r in huecos for k in (1, 3) if z0 < r[k] < z1]})
+    VS = {}
+    def vt(x, z):
+        if (x, z) not in VS: VS[(x, z)] = bm.verts.new(V(x, YS + alto(x, z), z))
+        return VS[(x, z)]
+    def cara(vs):
+        f = bm.faces.new(vs); f.normal_update()
+        if f.normal.z < 0: f.normal_flip()
+    hueco = lambda x, z: any(r[0] <= x <= r[2] and r[1] <= z <= r[3] for r in huecos)
+    for za, zb in zip(zs, zs[1:]):
+        run = None
+        for xa, xb in list(zip(xs, xs[1:])) + [(None, None)]:
+            k = None
+            if xa is not None and not hueco((xa + xb) / 2, (za + zb) / 2):
+                k = 'plano' if not any(alto(x, z) for x in (xa, xb) for z in (za, zb)) else 'loma'
+            if run and k == 'plano': run[1] = xb; continue
+            if run: cara([vt(run[0], za), vt(run[1], za), vt(run[1], zb), vt(run[0], zb)]); run = None
+            if k == 'plano': run = [xa, xb]
+            elif k == 'loma':
+                a, b, c, d = vt(xa, za), vt(xb, za), vt(xb, zb), vt(xa, zb)      # dos triángulos por la diagonal más corta en alto
+                if abs(alto(xa, za) - alto(xb, zb)) <= abs(alto(xb, za) - alto(xa, zb)): cara([a, b, c]); cara([a, c, d])
+                else: cara([a, b, d]); cara([b, c, d])
+    nx, nz = int(math.ceil((x1 - x0) / paso)) + 1, int(math.ceil((z1 - z0) / paso)) + 1
+    v = [int(round(alto(x0 + i * paso, z0 + j * paso) * 100)) for j in range(nz) for i in range(nx)]
+    P.ex(NOMB + '_pasto_c', alto=dict(x0=x0, z0=z0, paso=paso, nx=nx, nz=nz, v=v))

@@ -243,7 +243,7 @@ const dms=()=>dmsPj||(avYa()&&(dmsPj=Math.max(...Object.values(DCLIP).map(n=>AV.
 const dancing=(a,now)=>{const t=now-a.danceT,D=dms();return a.dance&&t>=0&&t<D&&a.w<.3?Math.min(1,t/300,(D-t)/300):0};
 function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,bt=now/1000*Math.PI*2*1.1,clip=AV.dur(DCLIP[a.dance])?DCLIP[a.dance]:null;
  AV.emote(a.g,clip&&dancing(a,now+300)>0?clip:null);const dn=clip?0:dancing(a,now);   // el clip se va con un fundido de .3 s que acaba justo al terminar el baile
- AV.mueve(a.g,{w,ph:a.ph,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y=-Math.abs(Math.sin(a.ph))*.1*w+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
+ AV.mueve(a.g,{w,ph:a.ph,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y+=-Math.abs(Math.sin(a.ph))*.1*w+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
 function pose(a,now,lookDown){if(a.g.userData.vacio)return;if(a.g.userData.av)return posePj(a,now);const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
  u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650)+Math.abs(Math.sin(bt))*.12*dn;u.body.rotation.x=.06*w;
  u.body.rotation.z=Math.sin(bt)*(disco?.06:.14)*dn;u.body.rotation.y=Math.sin(bt/2)*(disco?.5:.3)*dn;u.head.rotation.z=-Math.sin(bt)*.18*dn;
@@ -359,7 +359,8 @@ const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>0;   // AH: cuánto adelante de tu 
 const EL=()=>por?.78:.62,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // punto de la casa al centro de la pantalla
 function center(V){const p=me.pos;return v3(p.x+V.ox-Math.sin(V.a)*AH(),0,p.z+V.oz-Math.cos(V.a)*AH())}
-function applyCam(){if(window.VUELO&&VUELO.on()&&VUELO.apply(CA))return;if(fpOn())return CAV.apply(CA,me.pos,VW);if(segOn())return CSEG.apply(CA,me.pos,VW,selOff);   // seguimiento (c_casa_seg.js)
+function applyCam(){applyCam0();if(window.VUELO&&VUELO.on())return;const g=me&&FL&&FL.gy?FL.gy(me.pos.x,me.pos.z):0;if(g){CA.position.y+=g;CA.updateMatrixWorld()}}   // la cámara sube y baja con el suelo (lomas, guarniciones), en todos sus modos
+function applyCam0(){if(window.VUELO&&VUELO.on()&&VUELO.apply(CA))return;if(fpOn())return CAV.apply(CA,me.pos,VW);if(segOn())return CSEG.apply(CA,me.pos,VW,selOff);   // seguimiento (c_casa_seg.js)
  const c=center(VW).add(selOff),a=VW.a,d=(por?20:14)/VW.k,el=EL()+VW.t;
  CA.position.set(c.x+Math.sin(a)*Math.cos(el)*d,Math.sin(el)*d+1.9,c.z+Math.cos(a)*Math.cos(el)*d);CA.lookAt(c.x,1.9,c.z);CA.updateMatrixWorld()}
 function clampV(){if(fpOn())return CAV.clamp(VT);if(segOn())return CSEG.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.1-EL(),Math.min(1.45-EL(),VT.t));

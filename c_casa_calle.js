@@ -18,7 +18,10 @@ const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
 // el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
 // que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
-const BV={manzana:3,enfrente:1,plaza:1,baldio:1,horizonte:1,parque:1},FB={},VIEJO=[];   // VIEJO: vecinos de código (se quitan cuando carga el barrio horneado)
+const BV={manzana:4,enfrente:1,plaza:1,baldio:1,horizonte:1,parque:1},FB={},VIEJO=[];   // VIEJO: vecinos de código (se quitan cuando carga el barrio horneado)
+let AL=null;   // rejilla de alturas de las lomas del jardín (extras 'alto' de manzana_pasto_c, en cm, coordenadas del plano)
+function alto(x,z){if(!AL)return 0;const fx=(x+18-AL.x0)/AL.paso,fz=(17-z-AL.z0)/AL.paso;if(!(fx>=0&&fz>=0&&fx<AL.nx-1&&fz<AL.nz-1))return 0;
+ const i=fx|0,j=fz|0,u=fx-i,w=fz-j,v=AL.v,n=AL.nx,a=v[j*n+i],b=v[j*n+i+1],c=v[j*n+n+i],d=v[j*n+n+i+1];return(a+(b-a)*u+(c-a)*w+(a-b-c+d)*u*w)/100}
 const CRU=/[?&]crudo\b/.test(location.search),PRB=CRU||/[?&]barrio=prueba/.test(location.search);   // ?crudo: GLB sin hornear de modelos/casona/crudo/
    // ?barrio=prueba: carga todas las piezas aunque BV sea 0 (probar un horneado antes de subir la versión)
 const BAR=k=>GLB()&&(BV[k]>0||PRB)&&!/[?&]barrio=caja/.test(location.search);
@@ -189,7 +192,7 @@ function recorta(r){r.updateMatrixWorld(true);r.traverse(o=>{if(!o.isMesh||!/_(c
  if(q.length<I.count){g.setIndex(q);g.computeBoundingSphere()}})}
 function barrio(RT){if(!window.CGLB||!window.CMAT)return;const ks=Object.keys(BV).filter(BAR);let n=0;
  Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/'+(CRU?'crudo/':'')+'barrio_'+k,v=BV[k]||'p'+Date.now();
-  CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;
+  CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;r.traverse(o=>{const a=o.userData&&o.userData.alto;if(a&&a.v)AL=a});
    r.traverse(o=>{if(o.isMesh&&o.material&&/^(farolb|ventana|horizonte)$/.test(o.material.name))esp.push([o,o.material.name])});
    if(k!=='horizonte')CMAT.aplicar(r,CRU?null:u+'_luz.webp?v='+v);
    esp.forEach(([o,n])=>{o.material=n==='horizonte'?tinte(new THREE.MeshBasicMaterial({vertexColors:true,fog:false,side:THREE.DoubleSide}))
@@ -228,5 +231,5 @@ function ventana(L,V,px,o,mad,cr,lejos,y0,wh){const ww=1.5+rnd()*.5,yc=y0+wh/2;
  L.box(ww+.8,.32,.16,cr,px,y0+wh+.3,o(.08));L.box(ww+.6,.14,.4,cr,px,y0-.07,o(.2));
  if(!lejos){const nb=Math.round(ww/.25);for(let i=1;i<nb;i++)L.box(.04,wh+.1,.04,HI,px-ww/2+i*ww/nb,yc,o(.22));[.25,.75].forEach(f=>L.box(ww+.1,.04,.04,HI,px,y0+wh*f,o(.22)))}}
 
-window.CCALLE={glb:GLB,bar:BAR,build,fondo,zona,tinte,vidrio,luz,enMundo,tema,A};
+window.CCALLE={glb:GLB,bar:BAR,build,fondo,zona,tinte,vidrio,luz,enMundo,tema,A,alto};
 })();
