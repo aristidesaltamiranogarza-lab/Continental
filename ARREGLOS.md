@@ -37,6 +37,20 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Lomas suaves en el pasto (relieve, no color; "ruido pero de altura, tipo minecraft pero a menor escala"): suelo_lomas() en barrio_jardin.py (rejilla de 2 m, ruido de 2 octavas, hasta 0.55, planas con transición de 2.5 m junto a muros, bardas, casona, traspatio, cancha, plaza, andador, huerto, caminitos y pasto con hojas); lo que va encima usa SUELO(x, z). La rejilla de alturas va en los extras 'alto' de manzana_pasto_c: CCALLE.alto → F.gy (c_casona_caja.js); el personaje ya conserva esa altura bajo el balanceo del paso (posePj) y la cámara la sigue en todos sus modos (applyCam). De paso ya funciona la bajada al arroyo de la calle.
 - Hecho en blender/barrio_jardin.py: red() une todos los caminitos (campo de distancia + contorno: una sola forma, ramal y rincón de dominó bajo la ceiba); mancha() pasto con hojas de orilla irregular 1 cm sobre el liso (sin sombra ni oscurecer su orilla al hornear, barrio_lib.armar); matas del juego con el mismo tinte de mundo que el suelo (c_pasto.js TINTE); ceiba, laurel y flamboyán al centro; macizos con plátanos al pie de los muros; dos albarradas y el huerto cerrado por otra. Vistas jardin_* en barrio_manzana.py. Tope de la manzana 108000 (macetas de patio más ligeras para compensar). GLB crudo exportado (BV manzana 4); falta hornear (paso 6).
 
+## 3c. Revisión del usuario del 3b (25 nov; hacer antes del horneado del paso 6)
+- [ ] Calidad: lo nuevo del 3b quedó más chafa que los árboles de antes (a esos se les dedicó mucho tiempo con referencias). Igualar esa calidad:
+  - [ ] Plátanos (macizos al pie de los muros y huerto): hojas de tablas planas; rehacerlos con la calidad de los árboles buenos
+  - [ ] Milpa: cañas de caja con hojas de tabla; rehacer
+  - [ ] Arbustos: icosaedros facetados oscuros; rehacer con la calidad de las copas (nubes fundidas, como arbol_ramas)
+- [ ] Bases blancas de los árboles (laurel y otros con pie encalado): quitar la pieza de base; pintar de blanco (cal) la parte baja del tronco con color por vértice. Solo en los árboles que hoy tienen base blanca
+- [ ] Cancha de fútbol: el círculo central y las rayas están levantados (vigas); bajarlos al nivel del pasto
+- [ ] Muros traseros de las casas que se ven desde el jardín: demasiado planos, se ven feos; darles detalle (volúmenes, aplanado, remates, tinacos, etc.)
+- [ ] Duda del usuario: el camino de la calle a la iglesia (andador x −40..−34) se marcó hecho en el paso 3, pero en el juego se ve solo verde. Revisar que exista y se vea
+- [ ] Banca del traspatio: moverla pegada a la pared (hoy mira directo al árbol)
+- [ ] Bancas cafés (de madera): cambiarles un poco la posición
+- [ ] Patio de juegos del parque: más detalle
+- [ ] Letras de MÉRIDA: rehacerlas; lo ideal es una tipografía convertida a 3D (después)
+
 ## 4. Objetos del barrio (Blender)
 - [ ] Rehacer las sillas confidentes blancas (medio; preview)
 - [ ] Rehacer la fuente (medio; preview)
