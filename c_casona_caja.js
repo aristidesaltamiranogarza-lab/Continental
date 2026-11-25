@@ -8,7 +8,7 @@
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',CR=/[?&]crudo\b/.test(location.search),VP='9',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','5','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','9','webp'],c2:Q('az')?null:['az','4','webp']};
+const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',CR=/[?&]crudo\b/.test(location.search),VP='9',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','5','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','9','webp'],c2:Q('az')?null:['az','5','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
