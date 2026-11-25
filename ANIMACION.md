@@ -1,0 +1,37 @@
+# Animación del personaje
+
+Meta: animaciones como de juego bien hecho (quieto, caminar, sentarse, brincar, cartas, repartir, pistola a la sien, cargar al gato).
+
+## Cómo se trabaja (acordado con el usuario, 25 nov 2026)
+1. **Movimientos de cuerpo completo (quieto, caminar, correr, brincar, sentarse): nunca a mano.** Se toman del Universal Animation Library de Quaternius (CC0) y se pasan al Rig con `blender/anim_retarget.py`.
+2. **Poses propias del juego (cartas, repartir, pistola, gato): por objetivos de la mano (IK) y empties**, no por ángulos a ojo. Accesorios pegados a la mano (Rig_Agarre, Sien_I/D ya existen).
+3. **Revisar siempre con imágenes antes de enseñar**: `look` del MCP de Blender en modo `frames` (8 cuadros de lado, y 4 de frente y 3/4). Arreglar y volver a ver.
+4. **Por etapas**: primero 3–5 poses clave para que el usuario las apruebe (barato cambiar), después tiempos y pulido.
+5. Encima, por código en c_avatar.js: mezclas suaves, voltear la cabeza; nada de topes por juego.
+
+## Escala (decidida)
+- Chibi: 2.5 de alto en su .blend × AV.K 0.8 = **2.0** en el juego (hasta el pelo). Cadera 0.82, rodilla 0.45, tobillo 0.12 (unidades del .blend).
+- Sillas de **mesa de juego: 0.95** (banco alto, pies en el aro). **Asientos de descanso (bancas, sillones, mecedoras, confidentes, sillas sueltas): 0.6**, pies colgando un poco. Pies planos solo con 0.27 (descartado: muebles de muñecas). Ya cambiados en los scripts de casona/barrio (falta hornear).
+
+## Archivos
+- Escena del personaje: **`C:\Users\aris1\OneDrive\Documentos\Untitled.blend`** (escena Chibi; objetos Rig, Frente, Ropa_n, Peinado_n, Rig_Pistola). Abrir con Blender 5.2. El MCP de Blender se conecta ahí (si dice addon viejo: `uvx mcp-for-blender install-addon`, reactivar el addon y Start MCP Server).
+- Paquete: `blender/anim_src/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb` (sin root motion; `_RM` lo trae). No se sube (está en .gitignore); si falta, el usuario lo tiene en Descargas (`Universal Animation Library[Standard].zip`).
+  Clips útiles: Idle_Loop, Walk_Loop, Walk_Formal_Loop, Jog_Fwd_Loop, Sprint_Loop, Jump_Start/Loop/Land, Sitting_Enter / Sitting_Idle_Loop / Sitting_Exit / Sitting_Talking_Loop, Idle_Talking_Loop, PickUp_Table, Interact, Pistol_*, Dance_Loop, Hit_*, Death01, Crouch_*.
+- `blender/anim_retarget.py`: con la escena Chibi abierta, vía MCP:
+  `exec(open(r'C:/Users/aris1/code/Continental/blender/anim_retarget.py', encoding='utf-8').read(), {'PRM': {'ABRE': 18.0}})`
+  (para revisar sin exportar: `{'EXPORTA': False, 'VER': 'Camina', 'ABRE': 18.0}` y luego `look` frames con Rig_Pistola oculto; al final quitar la acción del Rig y volver a mostrar Rig_Pistola).
+  - `K['CLIPS']`: nombre en el juego → clip del paquete. Agregar uno = una línea.
+  - Método: cada hueso copia el giro en el mundo del suyo, medido desde el reposo; brazos/piernas se alinean antes a la dirección de reposo del maniquí (el chibi está en A abierta 24°). Cadera sube y baja a escala de la pierna.
+  - Ajustes: `PESO` {'columna': .5, 'cabeza': .35} (cabeza grande: inclinarla parece mirar al piso), `ABRE` 18° (los brazos no cruzan la panza; el default del archivo es 10, usar 18).
+  - Exporta `modelos/personaje/anim.glb` (~72 KB, solo huesos y las acciones nuevas vía pistas NLA). No toca chibi.glb ni la cadena rig.py → crupier.py → crupier_juntar.js.
+- `c_avatar.js`: carga anim.glb junto con chibi.glb (`URL_ANIM ?v=1`, subir al reexportar; `CAPA=['Quieto','Camina']`). `capa()` arma interpolantes por hueso de HM (sin dedos), `capaPon()` mezcla encima del mixer al inicio de `mov()`: Quieto con peso idl·(1−w), Camina con peso w y tiempo = ph/2π ciclos (misma cadencia que antes). Saludo y baile por código van encima. Si anim.glb no carga, queda el paso/respiro a mano. HM ahora incluye manos y pies; la posición de la cadera se guarda/restaura (u.tocP).
+
+## Hecho
+- [x] Asientos de descanso a 0.6 (commit d3227b2).
+- [x] Quieto y Camina en el juego (commit 64ddbdc). Revisado en Blender; en el juego solo por datos (sin probar en teléfono).
+
+## Siguiente
+- [ ] Sentarse: Sitting_Enter / Sitting_Idle_Loop / Sitting_Exit sobre asiento 0.6 (y ver cómo queda en sillas 0.95 de mesa, donde hoy se sienta por código en `sentar()` doblando muslos/rodillas 90°).
+- [ ] Posible: patinan un poco los pies (paso del chibi ~0.84 por ciclo vs ~2.0 de avance por ciclo en c_casa3d.js `ph+=mv*3.1`); c_casa3d.js además sube/baja el cuerpo por código (`-|sin ph|*.1*w`), doble con el de la cadera del clip.
+- [ ] Brincar, correr.
+- [ ] Poses del juego por IK: cartas en la mano, repartir, pistola a la sien (ya hay PistolaSien en rig.py), cargar al gato (falló antes por poner ángulos a ojo).
