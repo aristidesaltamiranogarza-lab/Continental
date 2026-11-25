@@ -77,6 +77,30 @@ def trasera(x0, x1, H, col, zb, db, R):
             pieza(fa, cal, cf, a - .12, b + .12, y0 - .12, y0, 0, .1); pieza(fa, cal, cf, a - .12, b + .12, y1, y1 + .16, 0, .06)
     if R.random() < .5:      # bajada de agua
         u = x0 + .4 if R.random() < .5 else x1 - .4; pieza(fa, PAL['gris'], cf, u - .07, u + .07, 0, H - .3, .02, .16)
+    # 3c: que no se vea plano — zoclo gastado, castillos en las orillas, cornisa y remate del pretil, aplanado caído o manchas
+    # de humedad abajo, a veces un cuarto de azotea con su ventanita, tinaco sobre base de block y varillas que asoman.
+    pieza(fa, osc(col, .78), cf, x0, x1, 0, .5, 0, .03)
+    for a in (x0, x1 - .24): pieza(fa, osc(col, .92), cf, a, a + .24, .5, H - .42, 0, .04)
+    pieza(fa, cal, cf, x0, x1, H - .42, H - .3, 0, .09); pieza(fa, cal, cf, x0 - .02, x1 + .02, H - .05, H + .03, -.29, .04)
+    for _ in range(R.randint(1, 2)):
+        for _i in range(6):
+            u = R.uniform(x0 + .5, x1 - 1.6); wu = R.uniform(.6, 1.4)
+            if all(abs(u + wu / 2 - v) > wu / 2 + .8 for v in us): break
+        else: continue
+        y0 = R.uniform(.55, .9); pieza(fa, PAL['gris'] if R.random() < .4 else osc(col, .74), cf, u, u + wu, y0, y0 + R.uniform(.35, .8), 0, .012)
+    if w >= 7 and R.random() < .4:      # cuarto de azotea, metido del muro de atrás
+        wc = R.uniform(2.6, 3.4); a = R.uniform(x0 + .6, x1 - .6 - wc); b = a + wc
+        pieza(fa, osc(col, 1.04), cf, a, b, H - .3, H + 1.9, -3.6, -1.2); pieza(fa, cal, cf, a - .06, b + .06, H + 1.9, H + 2.0, -3.66, -1.14)
+        m = (a + b) / 2; pieza(fa, PAL['vidrio'], cf, m - .35, m + .35, H + .7, H + 1.4, -1.25, -1.19)
+        pieza(fa, cal, cf, m - .45, m + .45, H + .58, H + .7, -1.2, -1.1)
+        u = a + .7 if R.random() < .5 else b - .7; yb = H + 2.0
+    else: u, yb = R.uniform(x0 + 1, x1 - 1), H - .3
+    if R.random() < .6:      # tinaco negro sobre su base
+        z = ZF - DZ * 2.0; pieza(fa, PAL['gris'], cf, u - .45, u + .45, yb, yb + .3, -2.45, -1.55)
+        pieza(fa, PAL['tinaco'], P.tubo, (u, yb + .3, z), (u, yb + 1.35, z), .5, .46, 8)
+    if R.random() < .45:     # varillas del castillo que nunca se colaron
+        hi = HI(); a = x0 + .12 if R.random() < .5 else x1 - .12
+        for k in (-.05, .05): pieza(hi, None, P.viga, (a + k, H, ZF - DZ * .1), (a + k * 1.6, H + .7, ZF - DZ * .1), .012)
 
 def tendedero(xa, xb, z, R):
     fa, hi = FA(), HI()

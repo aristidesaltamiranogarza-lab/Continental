@@ -174,11 +174,14 @@ def _arbol(*a, **k): return P.arbol_ramas(*a, **k)     # árbol de ramas lisas c
 
 def laurel(cx, cz, s=1.0, lean=(0, 0), y0=0.0, sub=3, choque=True):
     """Laurel de la India: tronco encalado abajo que se abre a ~4.5 en 4 ramas con nubes de hojas planas (alto ~12·s, ancho ~13·s), cargado hacia lean."""
-    TR, CP, fa = _tr(), _cp('laurel', 'copa'), FA(); R = random.Random(int(cx * 7 + cz * 13 + 1))
-    if choque: ex_obs(NOMB + '_tronco', cx, cz, .75 * s)
-    pieza(fa, PAL['cal'], P.tubo, (cx, y0, cz), (cx, y0 + .36 * s, cz), .78 * s, .61 * s, 12)     # encalado: sigue el pie ensanchado
-    pieza(fa, PAL['cal'], P.tubo, (cx, y0 + .34 * s, cz), (cx, y0 + 1.4 * s, cz), .61 * s, .565 * s, 12)
-    _arbol(R, TR, [(CP, 1)], cx, cz, s, y0, 11.2, 5.2, 5, (6.4, 9.8), (4.0, 5.4), (2.3, 3.0), sub, .62, lean, rtr=.55)
+    CP, fa = _cp('laurel', 'copa'), FA(); R = random.Random(int(cx * 7 + cz * 13 + 1))
+    if choque: ex_obs(NOMB + '_fachadas', cx, cz, .75 * s)
+    n0 = len(fa.faces); cl = fa.loops.layers.float_color.get('Col') or fa.loops.layers.float_color.new('Col')
+    _arbol(R, fa, [(CP, 1)], cx, cz, s, y0, 11.2, 5.2, 5, (6.4, 9.8), (4.0, 5.4), (2.3, 3.0), sub, .62, lean, rtr=.55, tr_col=lin('#8c7666'))
+    fa.faces.ensure_lookup_table(); h = V(0, y0 + 1.4 * s, 0).z   # encalado pintado en el mismo tronco (color por vértice), sin pieza aparte
+    for f in fa.faces[n0:]:
+        if f.calc_center_median().z < h:
+            for lp in f.loops: lp[cl] = (*PAL['cal'], 1)
 
 def flamboyan(cx, cz, s=1.0, y0=0.0, choque=True):
     """Sombrilla: tronco corto que se abre bajo en 5 ramas casi horizontales; nubes muy planas, casi todas rojas (~16 de ancho, ~9 de alto)."""
@@ -311,19 +314,27 @@ def farol(x, z, y0=0.0):
     pieza(lu, None, P.tubo, (x, y0 + 3.6, z), (x, y0 + 4.25, z), .2, .26, 4)
     pieza(hi, None, P.tubo, (x, y0 + 4.25, z), (x, y0 + 4.6, z), .32, .05, 4)
 
+_SILLA = []
 def banca_conf(x, z, ang=0.0, y0=0.0):
-    """Banca confidente de concreto blanco: dos asientos que se miran de frente, con el respaldo en S entre los dos.
-    Asiento a 0.95 (la silla de la referencia), respaldo hasta 1.85; mide 2.4 x 1.0. Sin girar: largo en x."""
+    """Silla confidente de concreto blanco (props/silla_confidente.obj, de silla_confidente.py): dos asientos que se miran,
+    pies sobre x, asiento a 0.95; mide 2.3 x 1.3 x 1.4. Sin girar: largo en x. Caras suaves (se hornea sin facetas)."""
+    if not _SILLA:
+        import os
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'props', 'silla_confidente.obj')) as f:
+            for ln in f:
+                t = ln.split()
+                if t and t[0] == 'v': _SILLA.append(tuple(map(float, t[1:])))
+                elif t and t[0] == 'f': _SILLA.append([int(k) - 1 for k in t[1:]])
     def arma():
-        fa = FA(); c = PAL['blanco']; s = osc(c, .9)
-        pieza(fa, c, caja_o, x - 1.2, x, y0 + .82, y0 + .95, z - .5, z + .02)
-        pieza(fa, c, caja_o, x, x + 1.2, y0 + .82, y0 + .95, z - .02, z + .5)
-        pieza(fa, c, caja_o, x - 1.2, x - .08, y0 + .95, y0 + 1.85, z + .02, z + .16)
-        pieza(fa, c, caja_o, x + .08, x + 1.2, y0 + .95, y0 + 1.85, z - .16, z - .02)
-        pieza(fa, c, caja_o, x - .1, x + .1, y0 + .82, y0 + 1.85, z - .16, z + .16)
-        for xa, xb, za, zb in ((x - 1.2, x - 1.05, z - .45, z + .1), (x + 1.05, x + 1.2, z - .1, z + .45)):
-            pieza(fa, s, caja_o, xa, xb, y0, y0 + .82, za, zb)
-        pieza(fa, s, caja_o, x - .14, x + .14, y0, y0 + .82, z - .3, z + .3)
+        bm = FA(); cl = bm.loops.layers.float_color.get('Col') or bm.loops.layers.float_color.new('Col')
+        o = V(x, y0, z); vs = [bm.verts.new((o.x + a, o.y + b, o.z + c)) for a, b, c in (q for q in _SILLA if isinstance(q, tuple))]
+        col = (*PAL['blanco'], 1)
+        for q in _SILLA:
+            if isinstance(q, list):
+                try: f = bm.faces.new([vs[k] for k in q])
+                except ValueError: continue
+                f.smooth = True
+                for lp in f.loops: lp[cl] = col
     girado(ang, x, z, arma)
 
 def kiosco(cx, cz, y0=0.0):

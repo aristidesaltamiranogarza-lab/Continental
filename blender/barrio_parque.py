@@ -1,8 +1,8 @@
 # blender/barrio_parque.py — parque nuevo frente a la casona (CASONA.md "Barrio", P2): detrás de las casas de enfrente, con entrada
 # desde la banqueta donde estaba la casa terracota (x 15..24, frente al zaguán). Kiosco (movido de la plaza, P1) con su plaza redonda
 # de pasta, andadores en cruz con guarnición, pasto, árboles del kit, faroles, bancas de parque, carrito de marquesitas, juegos
-# infantiles (columpio, resbaladilla, sube y baja) y las letras de MÉRIDA de colores sobre base gris. Las sillas confidentes se piden
-# aparte: aquí solo queda su lugar libre junto al kiosco. Low-poly, color por vértice, sin texturas nuevas. Exporta barrio_parque.glb.
+# infantiles (columpio, resbaladilla, sube y baja) y las letras de MÉRIDA de colores sobre base gris. Sillas confidentes en el
+# anillo del kiosco (props/silla_confidente.obj). Low-poly, color por vértice, sin texturas nuevas. Exporta barrio_parque.glb.
 #   blender -b --factory-startup --python blender/barrio_parque.py -- vista|hornear|exportar   (ver blender/barrio_lib.py)
 import os, math
 D = next(d for d in [os.getcwd()] + ([os.path.dirname(os.path.dirname(os.path.abspath(__file__)))] if '__file__' in globals() else []) if os.path.isfile(os.path.join(d, 'blender', 'casona.py')))
@@ -68,6 +68,29 @@ def juegos(x, z):
     B.pieza(fa, B.PAL['verde'], P.viga, (sx, .25, z - 2.0), (sx, .95, z + 2.0), .3, .07)
     for dz in (-1.7, 1.7): B.pieza(hi, None, P.viga, (sx - .2, .55 + dz * .175 + .25, z + dz), (sx + .2, .55 + dz * .175 + .25, z + dz), .03)
     B.ex_obs(B.NOMB + '_fachadas', x - 3.5, z, 2.2); B.ex_obs(B.NOMB + '_fachadas', rx, z, 1.6); B.ex_obs(B.NOMB + '_fachadas', sx, z, 1.2)
+    # 3c: más detalle — guarnición del arenero, A del columpio con tirante y remates de color, barandales y techito en la
+    # resbaladilla, asas del sube y baja, carrusel de mano, bote de basura y una banca para los papás
+    for a_, b_, c_, d_ in ((x - 7.15, x + 7.15, z - 5.15, z - 4.95), (x - 7.15, x + 7.15, z + 4.95, z + 5.15),
+                           (x - 7.15, x - 6.95, z - 4.95, z + 4.95), (x + 6.95, x + 7.15, z - 4.95, z + 4.95)):
+        B.pieza(fa, B.PAL['cantera'], B.caja_o, a_, b_, 0, .22, c_, d_)
+    for dx in (-5.5, -1.5):
+        B.pieza(hi, None, P.viga, (x + dx, 1.1, z - .66), (x + dx, 1.1, z + .66), .04)
+        B.pieza(fa, B.PAL['lona'], B.ico, x + dx, 3.25, z, .13, 1, suave=True)
+    for dx in (-.42, .42):
+        B.pieza(hi, None, P.viga, (rx + dx, .9, z - 2.25), (rx + dx, 3.0, z - 1.2), .03)        # barandal de la escalera
+        B.pieza(hi, None, P.viga, (rx + dx, 2.1, z - 1.2), (rx + dx, 3.2, z - 1.2), .035)       # postes del techito
+        B.pieza(hi, None, P.viga, (rx + dx, 2.1, z - .45), (rx + dx, 3.2, z - .45), .035)
+    B.pieza(fa, B.PAL['azul'], P.tubo, (rx, 3.2, z - .82), (rx, 3.9, z - .82), .78, .02, 4)        # techito de cuatro aguas
+    B.pieza(fa, B.PAL['naranja'], B.caja_o, rx - .5, rx + .5, 2.1, 2.55, z - 1.24, z - 1.18)          # pretil del descanso
+    for dz in (-1.7, 1.7): B.pieza(fa, B.osc(B.PAL['verde'], .8), B.caja_o, sx - .25, sx + .25, .55 + dz * .175 + .02, .55 + dz * .175 + .1, z + dz - .2, z + dz + .2)
+    cx_, cz_ = x - 3.5, z - 3.4                                                                       # carrusel de mano
+    B.pieza(hi, None, P.viga, (cx_, 0, cz_), (cx_, .9, cz_), .07)
+    B.pieza(fa, B.PAL['amarillo'], P.tubo, (cx_, .3, cz_), (cx_, .4, cz_), 1.15, 1.15, 16)
+    for k in range(4):
+        a_ = k * math.pi / 2 + .4; ex, ez = cx_ + math.cos(a_) * .95, cz_ + math.sin(a_) * .95
+        B.pieza(hi, None, P.viga, (ex, .4, ez), (ex, .95, ez), .03); B.pieza(hi, None, P.viga, (ex, .95, ez), (cx_, .9, cz_), .03)
+    B.bote(x + 7.6, z - 3.5, 0, B.PAL['verde']); banca(x - 1.0, z - 6.2, math.pi)
+    B.ex_obs(B.NOMB + '_fachadas', cx_, cz_, 1.2)
 
 # letras de MÉRIDA: cajas en una cuadrícula de letra (u a lo ancho en el sentido de lectura, v alto); s = trazo
 _s, _W, _H = .34, 1.3, 2.0
@@ -119,8 +142,13 @@ def piezas(B):
     for x, z in ((EX[0] - .4, -20), (EX[1] + .4, -26), (EX[0] - .4, -33), (EX[1] + .4, -38)): B.farol(x, z, YP)
     for a in (45, 135, 225, 315):
         r = math.radians(a); B.farol(CX + math.cos(r) * (RP - .6), CZ + math.sin(r) * (RP - .6), .1)
-    # bancas de parque a los lados de los andadores (el anillo junto al kiosco queda libre para las confidentes)
-    for x in (4, 10, 30, 36): banca(x, CZ - 3.0, 0.0); banca(x, CZ + 3.0, math.pi)
+    # bancas de parque a los lados del andador, alternadas (no se miran de frente) y un poco giradas
+    for x, z, a in ((3.0, -2.7, .05), (9.0, -2.85, -.08), (30.5, -2.75, .07), (36.5, -2.65, -.04),     # fuera del anillo del kiosco
+                    (0.0, 3.3, math.pi - .06), (6.0, 3.1, math.pi + .05), (33.5, 3.2, math.pi - .05), (39.5, 3.4, math.pi + .08)):
+        banca(x, CZ + z, a)
+    # sillas confidentes en el anillo del kiosco, junto al andador de lado a lado
+    for g in (22.5, 157.5, 202.5, 337.5):
+        r = math.radians(g); B.banca_conf(CX + math.cos(r) * 7.2, CZ + math.sin(r) * 7.2, r + math.pi / 2, .1)
     banca(EX[0] - 1.8, -42, -math.pi / 2); banca(EX[1] + 1.8, -42, math.pi / 2)
     # árboles (el laurel de barrio_enfrente en (−2, −50) y el de (43, −45) ya están: se dejan libres)
     B.laurel(6, -34, 1.0); B.laurel(34, -64, .95)

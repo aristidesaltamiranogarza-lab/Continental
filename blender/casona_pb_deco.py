@@ -162,10 +162,10 @@ def traspatio2():
         t = (k + .5) / 9; x = 18 + (14 - 18) * t + .7 * math.sin(t * 3.1); z = 34.8 + (43.3 - 34.8) * t; camino.append((x, z))
         laja(x + (r3() - .5) * .2, z, .5 + .08 * r3())
         if k % 2 == 0: laja(x + (.75 if k % 4 == 0 else -.75), z + (r3() - .5) * .4, .16 + .06 * r3(), 6, .05)
-    # banca bajo el mamey y la tierra pelona a su pie
-    caja(MA, 8.3, 8.85, .72, .8, 39.8, 42.4); caja(MA, 8.78, 8.86, .8, 1.5, 39.85, 42.35)
-    for z in (40.0, 42.2): caja(MA, 8.35, 8.8, 0, .72, z - .05, z + .05)
-    segs += T(8.6, 40.0) + T(8.6, 42.2); mancha(MT, 6.2, 41.1, 2.0, R)
+    # banca pegada a la barda del fondo, entre las matas, mirando a la casa; tierra pelona bajo el mamey
+    caja(MA, 8.75, 11.35, .72, .8, 47.2, 47.78); caja(MA, 8.8, 11.3, .8, 1.5, 47.7, 47.78)
+    for x in (8.95, 11.15): caja(MA, x - .05, x + .05, 0, .72, 47.25, 47.73)
+    segs += T(8.95, 47.5) + T(11.15, 47.5); mancha(MT, 6.2, 41.1, 2.0, R)
     # tendedero: dos postes, el mecate y ropa colgada
     for x in (22, 30): caja(MA, x - .08, x + .08, 0, 3.3, 45.42, 45.58); caja(MA, x - .06, x + .06, 3.1, 3.2, 45.0, 46.0)
     caja(HI, 22, 30, 3.1, 3.13, 45.49, 45.51)
@@ -185,7 +185,7 @@ def traspatio2():
     bugambilia(CP, FL, bmn('pb_tras_tronco', 'tronco', prio=.4), .2, 47.85, R)
     obs += T(1.4, 47.2) + [.9] + T(3.0, 47.3) + [.8]
     # macollos de zacate al pie de las bardas, alrededor de la mancha del mamey y del pozo, y a los lados del sendero
-    pts = [(x + R.uniform(-.3, .3), 47.55) for x in (3.0, 5.8, 9.0, 10.0, 11.4, 14.5, 20.6, 30.4, 33.0, 34.6)]
+    pts = [(x + R.uniform(-.3, .3), 47.55) for x in (3.0, 5.8, 8.4, 11.8, 14.5, 20.6, 30.4, 33.0, 34.6)]
     pts += [(.5, z + R.uniform(-.3, .3)) for z in (35.2, 38.0, 41.5, 42.8, 45.6)] + [(35.5, z) for z in (39.0, 41.4, 46.6)]
     pts += [(6.2 + math.cos(a) * 2.05, 41.1 + math.sin(a) * 2.05) for a in (.3, 1.4, 2.6, 3.5, 4.6, 5.5)]
     pts += [(14 + math.cos(a) * 1.15, 44.6 + math.sin(a) * 1.15) for a in (.8, 2.2, 3.9, 5.2)]

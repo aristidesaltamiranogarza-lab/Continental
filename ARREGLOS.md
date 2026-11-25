@@ -38,24 +38,25 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - Hecho en blender/barrio_jardin.py: red() une todos los caminitos (campo de distancia + contorno: una sola forma, ramal y rincón de dominó bajo la ceiba); mancha() pasto con hojas de orilla irregular 1 cm sobre el liso (sin sombra ni oscurecer su orilla al hornear, barrio_lib.armar); matas del juego con el mismo tinte de mundo que el suelo (c_pasto.js TINTE); ceiba, laurel y flamboyán al centro; macizos con plátanos al pie de los muros; dos albarradas y el huerto cerrado por otra. Vistas jardin_* en barrio_manzana.py. Tope de la manzana 108000 (macetas de patio más ligeras para compensar). GLB crudo exportado (BV manzana 4); falta hornear (paso 6).
 
 ## 3c. Revisión del usuario del 3b (25 nov; hacer antes del horneado del paso 6)
-- [ ] Calidad: lo nuevo del 3b quedó más chafa que los árboles de antes (a esos se les dedicó mucho tiempo con referencias). Igualar esa calidad:
-  - [ ] Plátanos (macizos al pie de los muros y huerto): hojas de tablas planas; rehacerlos con la calidad de los árboles buenos
-  - [ ] Milpa: cañas de caja con hojas de tabla; rehacer
-  - [ ] Arbustos: icosaedros facetados oscuros; rehacer con la calidad de las copas (nubes fundidas, como arbol_ramas)
-- [ ] Bases blancas de los árboles (laurel y otros con pie encalado): quitar la pieza de base; pintar de blanco (cal) la parte baja del tronco con color por vértice. Solo en los árboles que hoy tienen base blanca
-- [ ] Cancha de fútbol: el círculo central y las rayas están levantados (vigas); bajarlos al nivel del pasto
-- [ ] Muros traseros de las casas que se ven desde el jardín: demasiado planos, se ven feos; darles detalle (volúmenes, aplanado, remates, tinacos, etc.)
-- [ ] Duda del usuario: el camino de la calle a la iglesia (andador x −40..−34) se marcó hecho en el paso 3, pero en el juego se ve solo verde. Revisar que exista y se vea
-- [ ] Banca del traspatio: moverla pegada a la pared (hoy mira directo al árbol)
-- [ ] Bancas cafés (de madera): cambiarles un poco la posición
-- [ ] Patio de juegos del parque: más detalle
+- [x] Calidad: lo nuevo del 3b quedó más chafa que los árboles de antes (a esos se les dedicó mucho tiempo con referencias). Igualar esa calidad:
+  - [x] Plátanos (macizos al pie de los muros y huerto): hojas de tablas planas; rehacerlos con la calidad de los árboles buenos
+  - [x] Milpa: cañas de caja con hojas de tabla; rehacer
+  - [x] Arbustos: icosaedros facetados oscuros; rehacer con la calidad de las copas (nubes fundidas, como arbol_ramas)
+- [x] Bases blancas de los árboles (laurel y otros con pie encalado): quitar la pieza de base; pintar de blanco (cal) la parte baja del tronco con color por vértice. Solo en los árboles que hoy tienen base blanca
+- [x] Cancha de fútbol: el círculo central y las rayas están levantados (vigas); bajarlos al nivel del pasto
+- [x] Muros traseros de las casas que se ven desde el jardín: demasiado planos, se ven feos; darles detalle (volúmenes, aplanado, remates, tinacos, etc.)
+- [x] Duda del usuario: el camino de la calle a la iglesia (andador x −40..−34) se marcó hecho en el paso 3, pero en el juego se ve solo verde. Revisar que exista y se vea — existe en barrio_plaza.py; la plaza del juego se horneó (06:20) antes de agregarlo (10:26): aparece al hornear la plaza
+- [x] Banca del traspatio: moverla pegada a la pared (hoy mira directo al árbol)
+- [x] Bancas cafés (de madera): cambiarles un poco la posición
+- [x] Patio de juegos del parque: más detalle
 - [ ] Letras de MÉRIDA: rehacerlas; lo ideal es una tipografía convertida a 3D (después)
+- Hecho 3c: barrio_plantas.py (plátanos con hojas curvas, hoja seca, racimo e hijuelo; milpa con hojas que cuelgan, espiga y elote; arbustos de nube con textura de copa), laurel pintado de cal, cancha al ras, muros traseros con zoclo, castillos, cornisa, cuarto de azotea, tinaco y varillas (barrio_trasera.py), banca del traspatio en la barda del fondo (casona_pb_deco.py), bancas cafés alternadas, juegos con guarnición, techito, carrusel, bote y banca. Tope de la manzana: 118k (antes 108k). Falta hornear manzana, parque, plaza y pb (paso 6).
 
 ## 4. Objetos del barrio (Blender)
-- [ ] Rehacer las sillas confidentes blancas (medio; preview)
+- [x] Rehacer las sillas confidentes blancas (medio; preview) — modelo descargado en props/silla_confidente.obj (blender/silla_confidente.py lo prepara: 1144 triángulos); manzana, plaza y 4 en el kiosco del parque
 - [ ] Rehacer la fuente (medio; preview)
 - [ ] Iglesia con más detalle; cruz y esquinas encimadas se atraviesan: unir en una sola malla (medio; preview)
-- [ ] Árboles inclinados que se salen de su base blanca (bajo)
+- [x] Árboles inclinados que se salen de su base blanca (bajo) — ya no hay base: la cal va pintada en el tronco (3c)
 - [ ] Palmeras: la base se despega (bajo)
 - El vocho se queda como está.
 

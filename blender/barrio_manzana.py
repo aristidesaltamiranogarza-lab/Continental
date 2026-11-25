@@ -8,6 +8,7 @@ exec(open(os.path.join(D, 'blender', 'barrio_lib.py'), encoding='utf-8').read())
 B = cargar('manzana')
 exec(open(os.path.join(D, 'blender', 'barrio_trasera.py'), encoding='utf-8').read(), B.__dict__)   # paso 3: jardín del barrio
 exec(open(os.path.join(D, 'blender', 'barrio_jardin.py'), encoding='utf-8').read(), B.__dict__)    # paso 3b: llenarlo
+exec(open(os.path.join(D, 'blender', 'barrio_plantas.py'), encoding='utf-8').read(), B.__dict__)    # 3c: plátanos, milpa y arbustos buenos
 
 def cancha(B):
     """P3: cancha de fútbol rápido entre los patios (x 61..85, z 45..59): pasto con franjas y rayas blancas, dos porterías,
@@ -19,9 +20,13 @@ def cancha(B):
     for a, b, c, d in ((x0, x1, z0, z0 + r), (x0, x1, z1 - r, z1), (x0, x0 + r, z0, z1), (x1 - r, x1, z0, z1), (cx - r / 2, cx + r / 2, z0, z1),
                        (x0, x0 + 3.5, cz - 4, cz - 4 + r), (x0, x0 + 3.5, cz + 4 - r, cz + 4), (x0 + 3.5 - r, x0 + 3.5, cz - 4, cz + 4),
                        (x1 - 3.5, x1, cz - 4, cz - 4 + r), (x1 - 3.5, x1, cz + 4 - r, cz + 4), (x1 - 3.5, x1 - 3.5 + r, cz - 4, cz + 4)):
-        B.pieza(fa, bl, B.caja_o, a, b, Y, Y + .02, c, d)
-    pts = [(cx + math.cos(i * math.pi / 16) * 2.5, Y + .025, cz + math.sin(i * math.pi / 16) * 2.5) for i in range(33)]
-    for a, b in zip(pts, pts[1:]): B.pieza(fa, bl, P.viga, a, b, .09, .09)   # círculo central (sección cuadrada: se ve igual desde cualquier lado)
+        B.pieza(fa, bl, B.caja_o, a, b, Y, Y + .012, c, d)   # rayas pintadas, al ras del pasto
+    cl = fa.loops.layers.float_color.get('Col') or fa.loops.layers.float_color.new('Col')   # círculo central: anillo plano pintado (no viga)
+    an = [[fa.verts.new(P.V(cx + math.cos(i * math.pi / 24) * r2, Y + .012, cz + math.sin(i * math.pi / 24) * r2)) for i in range(48)] for r2 in (2.5 - r / 2, 2.5 + r / 2)]
+    for i in range(48):
+        f = fa.faces.new((an[0][i], an[1][i], an[1][(i + 1) % 48], an[0][(i + 1) % 48])); f.normal_update()
+        if f.normal.z < 0: f.normal_flip()
+        for lp in f.loops: lp[cl] = (*bl, 1)
     for x, s in ((x0, -1), (x1, 1)):   # porterías: postes y travesaño blancos, red al fondo (hierro delgado)
         for z in (cz - 1.8, cz + 1.8): B.pieza(fa, bl, B.caja_o, x - .06, x + .06, Y, Y + 2.4, z - .06, z + .06)
         B.pieza(fa, bl, B.caja_o, x - .06, x + .06, Y + 2.3, Y + 2.42, cz - 1.86, cz + 1.86)
@@ -118,4 +123,4 @@ VISTAS = [('manzana_cancha', (73, 14, 34), (73, 0, 52)), ('barrio_calle', (-12, 
           ('jardin_huerto', (16, 2.4, 56.5), (6, .4, 49.5)), ('jardin_lomas', (62, 1.4, 71), (5, .2, 63))]
 
 if __name__ == '__main__':
-    correr(B, piezas, VISTAS, ctx=('plaza', 'baldio', 'enfrente'), res=2048, muestras=300, topes=(18, 108000), ctx_vista=('horizonte',))
+    correr(B, piezas, VISTAS, ctx=('plaza', 'baldio', 'enfrente'), res=2048, muestras=300, topes=(18, 118000), ctx_vista=('horizonte',))
