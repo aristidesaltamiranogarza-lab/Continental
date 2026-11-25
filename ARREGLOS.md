@@ -62,11 +62,11 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 
 ## 5. Sótano y planta baja (Blender)
 - [x] Sótano: círculos de luz en el techo sin lámpara (luces POINT a 2.85 de lamparas() en casona_sm.py sin pieza); cubo blanco flotando en la entrada (sm_focos de la barra); en el billar, lámpara encima de un cuadro (bajo–medio)
-- [ ] Barra oscura y rara sobre los vanos del balcón en la fachada (franja horneada en el muro; revisar dintel/cerramiento) (bajo)
+- [x] Barra oscura y rara sobre los vanos del balcón en la fachada (bajo) — losa y ménsulas del balcón terminan 2 cm dentro del muro (casona_pa.py); revisar al hornear
 - [x] Plantas que aún usan las texturas viejas (macetas de pb/pa/az): pasarlas a las del kit (barrio_kit.py) (bajo) — macetón con nube fundida; mamey y árbol del patio con sub 3
-- [ ] Árbol de estilo viejo, sin acabar, junto a la casa (pb_tras_* o mamey de casona_pb.py, o del barrio): cambiarlo por uno del kit (bajo)
+- [x] Árbol de estilo viejo, sin acabar, junto a la casa (pb_tras_* o mamey de casona_pb.py, o del barrio): cambiarlo por uno del kit (bajo) — era el plátano del traspatio: ahora como el del barrio (casona_plantas.platano)
 - [x] Tiras LED cálidas y tenues en el sótano y zonas oscuras (emisivo horneado, sin costo) (medio) — pasillo y cava (sm_led)
-- [ ] Barrotes del balcón de la planta alta que asoman en el techo de la planta baja (bajo)
+- [x] Barrotes del balcón de la planta alta que asoman en el techo de la planta baja (bajo) — eran franjas horneadas: el techo llegaba al eje del muro; ahora termina 2 cm dentro (techos() de pb y sm); revisar al hornear
 - [ ] Escaleras: el horneado se ve pixeleado donde llega poca luz (más densidad ahí)
 
 ## 6. Horneado final

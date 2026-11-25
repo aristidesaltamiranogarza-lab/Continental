@@ -55,17 +55,43 @@ def zacate(bm, x, z, alto, R, nb=13, y=0.0):
         hoja(bm, (x + math.cos(a) * d, y, z + math.sin(a) * d), a, h * (.75 - .45 * f) * R.uniform(.8, 1.2), R.uniform(.09, .13), h, h * (.6 - .4 * f),
              n=2, grueso=.02, forma='brizna', lados=3)
 
-def platano(TL, HO, SE, x, z, al, R):
-    """Mata de plátano: tallo verde que adelgaza, 7 hojas grandes arqueadas, una enrollada al centro y 1-2 secas colgando."""
-    tubo(TL, (x, 0, z), (x, al, z), .2, .13, 10); g0 = R.uniform(0, 6.28)
-    for k in range(7):
-        a = g0 + k * 2 * math.pi / 7 + R.uniform(-.25, .25); y = al - R.uniform(.05, .35)
-        hoja(HO, (x + math.cos(a) * .08, y, z + math.sin(a) * .08), a, R.uniform(1.5, 2.0), R.uniform(.62, .78), R.uniform(.35, .65), R.uniform(.9, 1.5),
-             n=6, grueso=.03)
-    hoja(HO, (x, al - .1, z), g0, .15, .12, 1.0, -.05, n=3, grueso=.05, forma='punta')
-    for k in range(R.randint(1, 2)):
-        a = g0 + R.uniform(0, 6.28)
-        hoja(SE, (x + math.cos(a) * .12, al - .4, z + math.sin(a) * .12), a, R.uniform(.25, .4), .26, .05, R.uniform(1.1, 1.5), n=4, grueso=.02)
+def hoja_v(bm, x, y, z, a, L, W, sube, cae, seg=4, dobla=.22):
+    """Hoja grande del estilo del barrio (barrio_plantas._hoja, sin color por vértice): sube y cae en arco, sección en V abierta,
+    dos caras separadas 1.2 cm, caras suaves."""
+    ca, sa = math.cos(a), math.sin(a); px, pz = -sa, ca; fil = []
+    for i in range(seg + 1):
+        t = i / seg; d = L * t; h = y + sube * math.sin(math.pi * min(t / .55, 1) / 2) - cae * max(0, (t - .45) / .55) ** 1.6
+        w = math.sin(math.pi * (.08 + .92 * t)) ** .7 * W / 2; cx, cz = x + ca * d, z + sa * d; ho = h - dobla * w
+        fil.append([(cx - px * w, ho, cz - pz * w), (cx, h, cz), (cx + px * w, ho, cz + pz * w)])
+    for e, sg in ((.006, 1), (-.006, -1)):
+        vs = [[bm.verts.new(V(p[0], p[1] + e, p[2])) for p in f] for f in fil]
+        for i in range(seg):
+            for j in range(2):
+                q = (vs[i][j], vs[i + 1][j], vs[i + 1][j + 1], vs[i][j + 1])
+                f = bm.faces.new(q if sg > 0 else q[::-1]); f.normal_update()
+                if (f.normal.z < 0) == (sg > 0): f.normal_flip()
+                f.smooth = True
+
+def _suave(bm, n0):
+    bm.faces.ensure_lookup_table()
+    for f in bm.faces[n0:]: f.smooth = True
+
+def platano(TL, HO, SE, x, z, al, R, hijo=True):
+    """Mata de plátano (como la del barrio, barrio_plantas.platano): tallo suave que adelgaza, 6 hojas grandes arqueadas que cuelgan,
+    una hoja seca pegada al tallo, a veces el racimo y un hijuelo al pie."""
+    n0 = len(TL.faces); tubo(TL, (x, -.05, z), (x, al * .55, z), .19, .15, 8); tubo(TL, (x, al * .55, z), (x, al, z), .15, .11, 8); _suave(TL, n0)
+    n = 6 if hijo else 3; b0 = R.uniform(0, 6.3)
+    for k in range(n):
+        a = b0 + k * 2 * math.pi / n + R.uniform(-.25, .25)
+        hoja_v(HO, x, al - .05 + R.uniform(0, .3), z, a, R.uniform(1.9, 2.3) * al / 2.7, R.uniform(.55, .7), R.uniform(.5, .9), R.uniform(.9, 1.5))
+    a = b0 + R.uniform(0, 6.3); hoja_v(SE, x + math.cos(a) * .12, al * .8, z + math.sin(a) * .12, a, .9, .4, .05, 1.3, seg=3, dobla=.1)
+    if hijo and R.random() < .55:   # racimo verde colgando
+        a = R.uniform(0, 6.3); ca, sa = math.cos(a), math.sin(a); t1 = (x + ca * .45, al - .35, z + sa * .45)
+        n0 = len(TL.faces); tubo(TL, (x + ca * .1, al - .1, z + sa * .1), t1, .04, .035, 6)
+        bmesh.ops.create_icosphere(TL, subdivisions=1, radius=.2, matrix=Matrix.Translation(V(t1[0], t1[1] - .32, t1[2])) @ Matrix.Diagonal((1, 1, 1.7, 1)))
+        _suave(TL, n0)
+    if hijo and R.random() < .35:
+        a = R.uniform(0, 6.3); platano(TL, HO, SE, x + math.cos(a) * .55, z + math.sin(a) * .55, al * R.uniform(.35, .5), random.Random(R.random()), hijo=False)
 
 def agave(bm, x, y, z, s, R):
     """Agave: tres coronas de pencas gruesas y agudas, más paradas hacia el centro."""

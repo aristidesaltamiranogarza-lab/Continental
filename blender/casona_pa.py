@@ -115,8 +115,9 @@ def balcon_trasero():
 def balcones():
     hb = C.K['barandal']; HI, PM = bmn('pa_balcon_rej', 'hierro', luz=False), bmn('pa_balcon_pasamanos', 'madera'); segs = []
     for j, (bx, bz, bw, bd) in enumerate(N['balc']):
-        caja(bmn('pa_balcon_%d' % j, 'cantera'), bx, bx + bw, -.3, 0, bz, bz + bd)
-        caja(bmn('pa_balcon_mensulas', 'cantera'), bx + .3, bx + .6, -.75, -.3, bz + .1, 0); caja(bmn('pa_balcon_mensulas', 'cantera'), bx + bw - .6, bx + bw - .3, -.75, -.3, bz + .1, 0)
+        zf = bz + bd - (K['t'] / 2 - .02)    # termina 2 cm dentro del muro (en el eje se horneaba una barra oscura sobre los vanos)
+        caja(bmn('pa_balcon_%d' % j, 'cantera'), bx, bx + bw, -.3, 0, bz, zf)
+        caja(bmn('pa_balcon_mensulas', 'cantera'), bx + .3, bx + .6, -.75, -.3, bz + .1, zf); caja(bmn('pa_balcon_mensulas', 'cantera'), bx + bw - .6, bx + bw - .3, -.75, -.3, bz + .1, zf)
         x0, x1, z0 = bx + .06, bx + bw - .06, bz + .06
         for a, b, c, d in ((x0, z0, x1, z0), (x0, z0, x0, 0), (x1, z0, x1, 0)):
             ln = math.hypot(c - a, d - b); nb = max(2, int(ln / .17))

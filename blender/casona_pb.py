@@ -544,9 +544,21 @@ def pisos():
         else: quad('pb_piso_cuarto', 'cuarto', x, z, x1, z1)
 
 def techos():
+    """Techo de cada cuarto y corredor. Termina 2 cm dentro del muro (no en su eje): la tira metida en el muro se horneaba negra y se
+    corría al techo como franja oscura junto a los muros. Donde dos corredores se tocan no hay muro: una tira tapa la junta."""
+    e = K['t'] / 2 - .02; y = K['H'] - .02
     for x, z, w, d, k, tin, n in N['areas']:
         if k is None or (k == 'open' and n.startswith('corredor')):
-            (quad_hueco if n == 'escalera' and N['sube'] else quad)('pb_techo', 'techo', x, z, x + w, z + d, K['H'] - .02, arriba=False, prio=.9)
+            (quad_hueco if n == 'escalera' and N['sube'] else quad)('pb_techo', 'techo', x + e, z + e, x + w - e, z + d - e, y, arriba=False, prio=.9)
+    cor = [a[:4] for a in N['areas'] if a[4] == 'open' and a[6].startswith('corredor')]
+    for i, (ax, az, aw, ad) in enumerate(cor):
+        for bx, bz, bw, bd in cor[i + 1:]:
+            for L in {az, az + ad} & {bz, bz + bd}:          # comparten una línea z: junta a lo largo de x
+                u0, u1 = max(ax, bx) + e, min(ax + aw, bx + bw) - e
+                if u1 - u0 > .05: quad('pb_techo', 'techo', u0, L - e, u1, L + e, y, arriba=False, prio=.9)
+            for L in {ax, ax + aw} & {bx, bx + bw}:          # comparten una línea x: junta a lo largo de z
+                u0, u1 = max(az, bz) + e, min(az + ad, bz + bd) - e
+                if u1 - u0 > .05: quad('pb_techo', 'techo', L - e, u0, L + e, u1, y, arriba=False, prio=.9)
 
 def escalera(): escalera_u('pb', 'n0')   # escalera en U (blender/casona_esc.py)
 

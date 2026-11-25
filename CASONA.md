@@ -227,11 +227,12 @@ Juego:
 ## Siguiente (si el usuario solo dice "continua")
 Orden decidido el 25 nov (y 25 nov tarde: antes de todo, la sección "Barrio: parque nuevo", P1–P5): **el horneado va al final** (casa: pb, pa, sm, az; barrio: manzana, enfrente, plaza, baldío; horizonte solo `-- exportar`). Antes, en este orden:
 1. ~~R1 y R6~~ hecho 25 nov (copas hojitas; sótano cal y Ruleta tabique, falta hornear sm).
-2. V7 portales (cuartos y puertas como empties en Blender, CUA por portales, tests/casona_vis.js): toca los GLB, así que va antes del horneado.
-3. R13 (muros que pierden textura en primera persona) y fachada de noche más brillante que las vecinas.
+2. ~~V7 portales~~ hecho (ver V7 arriba).
+3. ~~R13~~ hecho; la fachada de noche se arregla con el horneado de noche.
 4. ~~R11 retoque de la mujer~~ hecho (de7a2ee y siguientes).
-5. Saltar (Espacio y botón en el celular) y service worker (sw.js con caché por versión de modelos).
-6. Hornear todo (avisar tiempo antes; revisar R4 de cerca), cuantizar, subir BV del barrio en c_casa_calle.js.
+5. ~~Saltar y service worker~~ hecho (af9122c).
+5b. ~~ARREGLOS §4 y §5~~ hecho 26 nov en la laptop (fuente, iglesia unida, palmeras, lámparas y LED del sótano, macetones, plátano del traspatio; techos y losa del balcón terminan 2 cm dentro del muro: quita las franjas oscuras del techo de PB y la barra sobre los balcones). Queda solo letras de MÉRIDA (después).
+6. **Lo que sigue: hornear todo en la PC** (pb, pa, sm, az, plaza, manzana, parque, enfrente; avisar tiempo antes; revisar R4 de cerca y que ya no haya franjas en techos de PB) (avisar tiempo antes; revisar R4 de cerca), cuantizar, subir BV del barrio en c_casa_calle.js.
 Nota: el commit del barrio (dc4ec44) remite a una sección "Barrio" de CASONA.md que no llegó; pedirla a la laptop o seguir los scripts y c_casa_calle.js (?barrio=prueba).
 
 ## Siguiente (detalle anterior)
@@ -251,8 +252,7 @@ Ver cambios en vivo: blender --factory-startup --python blender/ver.py -- pb|az.
 ## Trabajo en la laptop (decidido 24 nov 2026; leer completo antes de empezar)
 La laptop también tiene Blender (con el personaje, escena "Chibi"), pero los .blend y el horneado de la casa están en la PC. Para que nada choque:
 - Antes de empezar `git pull`; al terminar commit y push a gamemash-casona. Avisar al usuario al cerrar cada pieza para que la PC haga pull.
-- **En la PC NO se editan** blender/casona_calle.py, barrio_*.py, props_*.py ni ropa.py/rig.py: ahí solo se hornea y se integra.
-- **En la laptop NO se tocan** blender/casona*.py (salvo casona_calle.py, que ahora es de la laptop), casona_*_deco.py, ver.py ni modelos/casona/*.glb / *_luz.*: son de la PC (hornear, rincones, entrepisos: R2–R5).
+- **(25 nov, cambia lo de abajo) En la PC solo se hornea.** Todo lo demás (casona*.py, barrio_*.py, props, código, GLB crudos en modelos/casona/crudo/) se hace en la laptop. Lo horneado (modelos/casona/*.glb y *_luz.*) solo lo sube la PC.
 - **Medidas (lo más importante, sin excepciones):** 1 unidad de Blender = 1 unidad de la casa (no metros). Personaje de pie 2.1 (en el juego MII.K=0.8; medir el chibi en Blender y convertir con ese factor, nunca a ojo), cubierta de mesa 1.55, radio de mesa 2.2, silla a la cadera del sentado (asiento de la ref ~0.95), puerta 3.6, escalón 0.35, barandal 2.0, sótano libre 3.2. Cada script nuevo arma su propio maniquí de 2.1 con mesa y silla de referencia (copiar referencia() de blender/casona.py; no se exporta) y modela junto a él. Origen de cada pieza en el piso (y=0) al centro de su base, frente hacia +Z del juego. Antes de entregar, imprimir la caja de cada pieza y compararla con estas medidas.
 - Estilo: el de la casa (low-poly, cantos suaves, materiales con nombres de CMAT en c_casona_mat.js cuando existan para que la luz y colores casen); sin texturas pintadas nuevas sin aprobación (mostrar preview).
 - Libertad creativa: el usuario la da; se puede rehacer lo que haga falta (casino, sillas, mesas, decoración). Mostrar propuesta/captura antes del commit de arte nuevo.
@@ -263,3 +263,13 @@ Orden en la laptop:
 3. **Texturas nuevas (R1 copas, R6 muros del sótano)**: como archivos aparte, con preview; la PC las aplica al hornear.
 4. **Código (R7, R9)**: techo que falta en la entrada; foco que parpadea, luz y decoración de la Ruleta. Es código puro, se puede hacer en cualquier máquina.
 5. **Barrio completo (casona_landscape.md)**: se modela aquí y se hornea en la PC. La laptop es dueña de blender/casona_calle.py y de los scripts nuevos del barrio (blender/barrio_*.py: manzana, enfrente, plaza con iglesia y fuente, baldío, horizonte); la PC no los edita, solo corre `-- hornear`, cuantiza (`node glb_cuantizar.js`) y sube calle.glb/barrio*.glb + su luz. Seguir la lámina A-02 (https://claude.ai/artifact/3gFhpi5TLmU1Kj51oteuWR) y lo decidido en casona_landscape.md (paleta, presupuestos, Medio sin pasto 3D). Mismas coordenadas que casona_calle.py (fachada de la casona en z=0 de Blender = z 17 del juego, lote x 0..36); antes de cada pieza nueva comprobar con el maniquí y con pb.glb importado que encaja con la fachada y la banqueta. En la laptop se revisa en vivo (`blender --factory-startup --python blender/ver.py -- calle`) y con capturas; la laptop no sube GLB ni mapas de luz del barrio (los genera la PC al hornear). Al dejar algo listo, anotarlo aquí como "Listo para hornear: <script> (<qué cambió>)" para que la PC sepa qué hornear; la PC lo borra al subir el horneado. Mostrar preview al usuario antes de pasar de la esquina de referencia a la manzana.
+
+### Barrio (laptop, 24 nov 2026): listo para hornear
+Hecho en la laptop todo el barrio de A-02 (sin hornear; vistas sin luz revisadas). Scripts: blender/barrio_lib.py (cargar/correr: reusa casona_calle.py como biblioteca) y barrio_kit.py (casas cerradas atrás con azotea y tinacos, filas con patio, calles laterales, laurel/flamboyán/ceiba/palmera/naranjo, agaves, bugambilia, kiosco, fuente, bancas confidente, faroles, postes, tope, triciclo, puesto).
+- Listo para hornear: barrio_manzana.py (este lado de la Calle 59 fuera del tramo, filas de las calles 62 y 60, fila del fondo de espaldas, patios interiores, flamboyanes de la cancha, calles laterales de este lado).
+- Listo para hornear: barrio_enfrente.py (arroyo de x −72 a 108 fuera del tramo, acera de enfrente con pasta, esquinas, laureles, tope, triciclo, puesto, calles laterales de ese lado).
+- Listo para hornear: barrio_plaza.py (andador, plaza con kiosco, fuente, bancas, faroles, ceiba, flamboyán, laureles; atrio e iglesia).
+- Listo para hornear: barrio_baldio.py (hierba, bardas, bugambilia, agaves; empty baldio_perro para el perro de Completo).
+- Listo para exportar (sin luz): barrio_horizonte.py (`-- exportar`; una malla con color por vértice).
+- Listo para hornear: casona_calle.py (casas del tramo cerradas atrás: se ven desde los patios).
+En la PC, por pieza: `blender.exe -b --factory-startup --python blender/barrio_<pieza>.py -- hornear` (día y noche con la mitad de muestras; `-- hornear 2048 300 dia` solo día) → `node glb_cuantizar.js modelos/casona/barrio_<pieza>.glb --sin-uv0=fachada,hierro --sin-luz=hierro` → subir barrio_<pieza>.glb, barrio_<pieza>_luz.webp y _luz_noche.webp → en c_casa_calle.js subir BV.<pieza> (0 = aún va la de código; cada horneado nuevo, +1). Con BV>0 el código quita lo que esa pieza reemplaza (calles, banquetas, postes, vecinos, el parque de CAMPO); `?barrio=caja` vuelve a todo de código. Presupuestos (los imprime cada script): manzana 10 mallas/36 mil triángulos, enfrente 10/23 mil, plaza 14/16 mil, baldío 3/2.5 mil, horizonte 1/950.

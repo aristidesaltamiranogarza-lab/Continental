@@ -83,7 +83,8 @@ def pisos():
 
 def techos():
     for x, z, w, d, k, tin, n in N['areas']:
-        if k is None: (P.quad_hueco if n == 'escalera' else quad)('sm_techo', 'techo', x, z, x + w, z + d, H - .02, arriba=False, prio=.9)
+        if k is None:   # 2 cm dentro del muro, no en su eje (la tira dentro del muro se horneaba negra y se corría al techo)
+            e = K['t'] / 2 - .02; (P.quad_hueco if n == 'escalera' else quad)('sm_techo', 'techo', x + e, z + e, x + w - e, z + d - e, H - .02, arriba=False, prio=.9)
 
 def escalera(): P.escalera_u('sm', 'nm1', 'piedra')   # escalera en U (blender/casona_esc.py)
 
