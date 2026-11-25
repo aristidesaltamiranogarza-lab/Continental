@@ -7,7 +7,7 @@
 // CMAT.aplicar llama PASTO.pon(root,MAT); CMAT.copas llama PASTO.viento. Ajustes en PASTO.A. ?nomatas apaga las matas.
 (function(){
 if(typeof THREE==='undefined')return;
-const A={dens:2.4,max:3600,chicas:.45,estorbo:40,alto:.5,viento:1,copa:.012};   // chicas: parte de matas pequeñas; estorbo: área máx. de una pieza que tapa el pasto
+const A={dens:2.4,max:3600,chicas:.45,estorbo:40,alto:.5,viento:1,copa:.012,copas:0};   // chicas: parte de matas pequeñas; estorbo: área máx. de una pieza que tapa el pasto
 const U={uT:{value:0},uV:{value:A.viento},uHo:{value:new THREE.Vector3()}},HO={x:0,z:0,r:0},MATAS=[],SIN=/[?&]nomatas\b/.test(location.search);
 const tic=()=>{U.uT.value=performance.now()/1000;U.uV.value=A.viento};
 const medio=()=>window.CALIDAD==='medio';
@@ -98,7 +98,7 @@ function pon(root,MAT){engancha();const ms=[];let mp=null;
  if(ms.length)matas(root,ms,mp)}
 
 // viento en copas: desplaza por altura sobre el suelo, con fase por posición
-function viento(m,o){if(!m||m.userData.viento)return;m.userData.viento=1;
+function viento(m,o){if(!A.copas||!m||m.userData.viento)return;   // A.copas: 0 = árboles quietosm.userData.viento=1;
  parche(m,'|viento',s=>{s.uniforms.uT=U.uT;s.uniforms.uV=U.uV;
   s.vertexShader='uniform float uT,uV;\n'+s.vertexShader.replace('#include <project_vertex>',
    '{vec4 wp=modelMatrix*vec4(position,1.);float h=max(wp.y-1.2,0.)*'+A.copa.toFixed(4)+'*uV;'+
