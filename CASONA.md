@@ -148,6 +148,7 @@ Comandos (desde la carpeta del repo, en bash; en PowerShell anteponer `& "C:\Pro
 - casa: `blender -b --factory-startup --python blender/casona_<pb|pa|sm|az|calle>.py -- hornear` (2048, 1000; noche a 500). pb y pa se hornearon antes de V7: después `-- marcas` en cada uno (mete cuarto_/portal_ al GLB sin hornear).
 - barrio: `blender -b --factory-startup --python blender/barrio_<manzana|enfrente|plaza|baldio|parque>.py -- hornear 2048 1000`; horizonte: `-- exportar`. Después `node glb_cuantizar.js` (ver su cabecera) y subir BV en c_casa_calle.js.
 - Estado:
+  - [x] cuantizado (glb_cuantizar.js, sin opciones): sm 1.47→0.79 MB (v5), pa 2.50→1.36 MB (v8); probados en el juego: mesas, choques, líneas, escaleras, portales y luz iguales. Los crudos no se cuantizan (Lambert usa normales).
   - [x] calle (25 nov noche): horneada 1000 (sin noche, como antes), sin la casa terracota (entrada al parque); revisada desde la banqueta: limpia. VC=2. CCALLE quita lo viejo de código (vecinos, campo, patio y traspatio viejos, casas lejanas) cuando carga todo el barrio horneado (quitaViejo en c_casa_calle.js).
   - [x] pa (25 nov noche): horneado 1000 (noche 500), `-- marcas` con cuartos y portales; revisado en primera persona (biblioteca, corredor alto, vanos y columnas): limpio. v7 (CAJA y CFUE).
   - [x] sm (25 nov noche): horneado 1000 muestras, techo a 11.7 tx/m, con cuartos y portales (V7); revisado en primera persona (arco del casino, rincones de la cantina y el billar, techo): limpio. v4.
