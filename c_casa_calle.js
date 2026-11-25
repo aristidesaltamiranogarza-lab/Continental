@@ -14,12 +14,13 @@ let EXT=null,REG=false,rs=11;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280,pi
 // medidas del exterior: la casa vieja (fachada en 19.3, lote ±17.3) o la casona (?casa=caja: fachada en 17, lote ±18, banqueta de 1.6 como la del GLB, vecinos más bajos S)
 let E=null;const EE=()=>E||(E=window.CAJA&&CAJA.on?{fz:17,zb:18.6,za:28.6,ze:32.6,lx:18,lau:null,pos:[11.8,18.3],aco:[13.2,9.4,17.06],S:.68,zt:-31.4}:{fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:17.3,lau:LAU,pos:POS,aco:[15.4,8.1,FZ+.06],S:1,zt:-42.4});
 // calle.glb (blender/casona_calle.py, horneada): con la casona arma el tramo x −43..22; ahí no van vecinas, arroyo, banquetas ni postes de código. ?calle=caja vuelve a la de código
-const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja/.test(location.search),TR=[-43,22],VC='1';
+const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search),TR=[-43,22],VC='1';
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
 // el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
 // que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
 const BV={manzana:0,enfrente:0,plaza:0,baldio:0,horizonte:0},FB={};
-const PRB=/[?&]barrio=prueba/.test(location.search);   // ?barrio=prueba: carga todas las piezas aunque BV sea 0 (probar un horneado antes de subir la versión)
+const CRU=/[?&]crudo\b/.test(location.search),PRB=CRU||/[?&]barrio=prueba/.test(location.search);   // ?crudo: GLB sin hornear de modelos/casona/crudo/
+   // ?barrio=prueba: carga todas las piezas aunque BV sea 0 (probar un horneado antes de subir la versión)
 const BAR=k=>GLB()&&(BV[k]>0||PRB)&&!/[?&]barrio=caja/.test(location.search);
 const menos=(a,c,rs)=>{let o=[[a,c]];rs.forEach(r=>{if(!r)return;const n=[];o.forEach(([p,q])=>{if(r[1]<=p||r[0]>=q){n.push([p,q]);return}if(p<r[0])n.push([p,r[0]]);if(q>r[1])n.push([r[1],q])});o=n});return o};
 const dk=(c,k)=>new THREE.Color(c).multiplyScalar(k||.72).getHex();
@@ -170,17 +171,17 @@ function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=
  return RT}
 // el tramo horneado: materiales de CMAT (luz horneada), el arroyo baja a la altura del de código; la copa del laurel se esconde si tapa a tu Mii
 function tramo(RT){if(!window.CGLB||!window.CMAT)return;
- CGLB.cargador().then(Ld=>Ld.loadAsync('modelos/casona/calle.glb?v='+VC)).then(gl=>{const r=gl.scene;r.name='calle_glb';
+ CGLB.cargador().then(Ld=>Ld.loadAsync(CRU?'modelos/casona/crudo/calle.glb?v=c'+Date.now():'modelos/casona/calle.glb?v='+VC)).then(gl=>{const r=gl.scene;r.name='calle_glb';
   const ar=r.getObjectByName('calle_arroyo');if(ar)ar.position.y+=YA;
-  CMAT.aplicar(r,'modelos/casona/calle_luz.webp?v='+VC);RT.add(r);
+  CMAT.aplicar(r,CRU?null:'modelos/casona/calle_luz.webp?v='+VC);RT.add(r);
   const cp=r.getObjectByName('calle_laurel_copa');if(cp)zona([cp],[-37,-23,6.6,13,14.5,28.3]);tema()}).catch(e=>console.warn('[CCALLE] calle.glb',e))}
 // el barrio horneado: CMAT con su luz (el arroyo ya viene a su altura); copas con viento; faroles de la plaza (farolb) y ventanas
 // prendidas al azar (ventana) se encienden de noche; el horizonte sin luz horneada ni niebla, con su color por vértice y tinte de noche
 function barrio(RT){if(!window.CGLB||!window.CMAT)return;
- Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/barrio_'+k,v=BV[k]||'p'+Date.now();
+ Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/'+(CRU?'crudo/':'')+'barrio_'+k,v=BV[k]||'p'+Date.now();
   CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;
    r.traverse(o=>{if(o.isMesh&&o.material&&/^(farolb|ventana|horizonte)$/.test(o.material.name))esp.push([o,o.material.name])});
-   if(k!=='horizonte')CMAT.aplicar(r,u+'_luz.webp?v='+v);
+   if(k!=='horizonte')CMAT.aplicar(r,CRU?null:u+'_luz.webp?v='+v);
    esp.forEach(([o,n])=>{o.material=n==='horizonte'?tinte(new THREE.MeshBasicMaterial({vertexColors:true,fog:false,side:THREE.DoubleSide}))
     :FB[n]||(FB[n]=new THREE.MeshBasicMaterial({toneMapped:false}));o.matrixAutoUpdate=false;o.updateMatrix()});
    if(window.PASTO&&PASTO.viento)r.traverse(o=>{if(o.isMesh&&/_copa$/.test(o.name))PASTO.viento(o.material,o)});

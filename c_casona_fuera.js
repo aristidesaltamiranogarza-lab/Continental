@@ -4,7 +4,7 @@
 // (dentro serían un techo encima). En la planta baja reemplaza al casco de cajas (CCAS) en cuanto cargan. Los GLB se cargan la primera vez que hacen falta.
 (function(){
 if(typeof THREE==='undefined')return;
-const BASE='modelos/casona/',GL={c0:['pb','7'],c1:['pa','6'],c2:['az','2']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
+const BASE='modelos/casona/',CRU=/[?&]crudo\b/.test(location.search),GL={c0:['pb','7'],c1:['pa','6'],c2:['az','2']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
 const R={},P={};
 // entre la planta baja (muros hasta 5.5) y la alta (piso en 5.8), en los GLB sin entrepiso (antes de hornear R3): franja de muro y cornisa de cantera
 // y lo mismo entre la planta alta (muros hasta 10.0) y la azotea (piso en 10.3)
@@ -17,8 +17,8 @@ function losa(y0,y1){if(!window.LOTE)return null;const L=LOTE(),h=.15,b=(x0,x1,z
 let tF=0;const st=document.createElement('style');st.textContent='body.cfue-fuera .h3sign{visibility:hidden!important}';document.head.appendChild(st);
 setInterval(()=>{if(performance.now()-tF>400)document.body.classList.remove('cfue-fuera')},500);
 function carga(id){if(P[id])return P[id];const g=GL[id];
- return P[id]=CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+g[0]+'.glb?v='+g[1])).then(gl=>{const r=gl.scene;
-  if(window.CMAT)CMAT.aplicar(r,BASE+g[0]+'_luz.webp?v='+g[1]);if(window.CAJA&&CAJA.juntas)CAJA.juntas(r);
+ return P[id]=CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(CRU?'crudo/'+g[0]+'.glb?v=c'+Date.now():g[0]+'.glb?v='+g[1]))).then(gl=>{const r=gl.scene;
+  if(window.CMAT)CMAT.aplicar(r,CRU?null:BASE+g[0]+'_luz.webp?v='+g[1]);if(window.CAJA&&CAJA.juntas)CAJA.juntas(r);
   const fuera=[],cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();r.traverse(o=>{if(cg&&/_piso_calle$/.test(o.name)){o.position.y-=.35;o.updateMatrix();return}if(/_abajo|_arriba|_piso_calle$|^gata_|^accion_|^plano_/.test(o.name))fuera.push(o)});fuera.forEach(o=>o.visible=false);
   return R[id]=r}).catch(e=>{console.warn('CFUE',id,e);return null})}
 function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;

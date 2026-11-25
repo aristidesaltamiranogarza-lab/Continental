@@ -8,7 +8,7 @@
 // desde otro nivel apareces en llegada_escalera; planos enmarcados (plano_<lugar>) con la planta del nivel que abren "Ir a" (CIR).
 (function(){
 if(typeof THREE==='undefined')return;
-const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',VP='7',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','3','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','6','webp'],c2:Q('az')?null:['az','2','webp']};
+const ON=!/[?&]casa=(vieja|glb)\b/.test(location.search),V='4',BASE='modelos/casona/',CR=/[?&]crudo\b/.test(location.search),VP='7',Q=k=>new RegExp('[?&]'+k+'=caja\\b').test(location.search),HB={cm1:Q('sm')?null:['sm','3','webp'],c0:Q('pb')?null:['pb',VP,'webp'],c1:Q('pa')?null:['pa','6','webp'],c2:Q('az')?null:['az','2','webp']};
 const NV={cm1:'nm1',c0:'n0',c1:'n1',c2:'n2'},PISO={};Object.keys(NV).forEach(k=>PISO[NV[k]]=k);
 const FEL={c:['#2f9a62','#0f4a2d'],t:['#3d84cc','#123a68'],k:['#a8343f','#4a1218'],f:['#b9ad90','#6e6450']};
 const FS={};
@@ -24,8 +24,8 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);const PR=F.pr={glb:0,luz:hb?0:1,re:0};F.prog=()=>({p:PR.glb*.75+PR.luz*.25,re:PR.re});let gOK=0,lOK=!hb;const fin=()=>{if(gOK&&lOK)ok()};
- bajaGLB(BASE+(hb?hb[0]+'.glb?v='+hb[1]:NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);if(window.VIS)VIS.grandes(R);if(window.NIVC)F.niv=NIVC.preparar(R,id);
-  if(hb){CMAT.aplicar(R,BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1],()=>{PR.luz=1;lOK=1;fin()},n=>{PR.re=n});F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
+ bajaGLB(BASE+(hb?(CR?'crudo/'+hb[0]+'.glb?v=c'+Date.now():hb[0]+'.glb?v='+hb[1]):NV[id]+'.glb?v='+V),PR).then(gl=>{const R=gl.scene;S.add(R);if(window.VIS)VIS.grandes(R);if(window.NIVC)F.niv=NIVC.preparar(R,id);
+  if(hb){CMAT.aplicar(R,CR?null:BASE+hb[0]+'_luz.'+hb[2]+'?v='+hb[1],()=>{PR.luz=1;lOK=1;fin()},n=>{PR.re=n});F.copas=CMAT.copas(R);juntas(R)}else R.traverse(o=>{if(o.isMesh)o.material=mat(o.material)});
   for(const n in PEGA){const o=R.getObjectByName(n);if(o)o.userData.pega=PEGA[n]}
   const D=MARC.leer(R);
   WL.push(...D.WL);OB.push(...D.OB);LIN.push(...D.lineas);

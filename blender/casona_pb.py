@@ -18,7 +18,7 @@ def _raiz():   # carpeta del repo: junto a este archivo, o la carpeta actual (bl
 DIR = _raiz()
 C = types.ModuleType('casona'); C.__file__ = os.path.join(DIR, 'blender', 'casona.py'); exec(open(os.path.join(DIR, 'blender', 'casona.py'), encoding='utf-8').read(), C.__dict__)
 N = C.NIV['n0']
-SAL = os.path.join(DIR, 'modelos', 'casona')
+SAL = os.environ.get('CASONA_SAL') or os.path.join(DIR, 'modelos', 'casona')   # CASONA_SAL=modelos/casona/crudo: exportar sin hornear (?crudo)
 K = dict(H=N['H'], t=C.K['t'], LAM=1.3, ROD=.1, PUERTA=C.K['puerta'], SILL=.5, TOP=4.2, SPRING=3.1, COL=.52, RES=2048, SAMPLES=1000)
 ARCOS = dict(zaguan=4.6, patio=4.6, salon=4.8, comedor=4.8)      # vanos con arco: altura de la clave
 LLEGADA = (18.5, 3.5)                                             # llegas por el zaguán
