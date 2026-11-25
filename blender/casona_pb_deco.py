@@ -285,10 +285,10 @@ def comedor_vida():
 
 def corredores_vida():
     obs = []
-    acapulco('pb_corr', 26.7, 21.2, -math.pi / 2 - .35); acapulco('pb_corr', 26.7, 23.4, -math.pi / 2 + .35, 'cordel2')
+    # sin sillas Acapulco (25 nov: las quitó el usuario); queda la mesita con su jarra
     MA = bmn('pb_corr_mesita', 'madera'); tubo(MA, (26.9, 0, 22.3), (26.9, .55, 22.3), .05, .05, 8); tubo(MA, (26.9, .55, 22.3), (26.9, .6, 22.3), .32, .32, 16)
     tubo(bmn('pb_corr_jarra', 'barro'), (26.9, .6, 22.3), (26.9, .85, 22.3), .07, .1, 10)
-    obs += T(26.7, 21.2) + [.5] + T(26.7, 23.4) + [.5] + T(26.9, 22.3) + [.35]
+    obs += T(26.9, 22.3) + [.35]
     jaula('pb_corr', 8.6, 17.3); obs += T(8.6, 17.3) + [.35]
     HI = bmn('pb_corr_banca', 'hierro', luz=False); MB = bmn('pb_corr_banca_mad', 'madera')
     caja(MB, 21.4, 23.6, .5, .56, 33.3, 33.8); caja(MB, 21.4, 23.6, .7, 1.2, 33.74, 33.8)
