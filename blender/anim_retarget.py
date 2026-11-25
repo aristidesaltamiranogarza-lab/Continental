@@ -9,11 +9,12 @@ from mathutils import Matrix, Vector, Quaternion
 
 K = dict(
     SRC=r'C:/Users/aris1/code/Continental/blender/anim_src/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb',
-    CLIPS={'Quieto': 'Idle_Loop', 'Camina': 'Walk_Loop'},   # nombre en el juego -> acción del paquete
+    CLIPS={'Quieto': 'Idle_Loop', 'Camina': 'Walk_Loop', 'Sentarse': 'Sitting_Enter', 'Sentado': 'Sitting_Idle_Loop',
+           'Levantarse': 'Sitting_Exit', 'Trota': 'Jog_Fwd_Loop'},   # nombre en el juego -> acción del paquete
     RIG='Rig', GLB=r'C:/Users/aris1/code/Continental/modelos/personaje/anim.glb', EXPORTA=True,
     # cuánto del giro del original se queda (el chibi tiene la cabeza grande: inclinarla se ve como mirar al piso)
     PESO={'columna': .5, 'cabeza': .35},
-    ABRE=10.0,   # grados que se abren los brazos (hacia afuera) para que las manos no crucen la panza
+    ABRE=18.0,   # grados que se abren los brazos (hacia afuera) para que las manos no crucen la panza
     VER=None)   # nombre de una acción nueva para dejarla puesta en el Rig (revisar con look); None = deja lo que había
 K.update(globals().get('PRM', {}))
 

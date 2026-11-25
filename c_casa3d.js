@@ -247,7 +247,7 @@ const dms=()=>dmsPj||(avYa()&&(dmsPj=Math.max(...Object.values(DCLIP).map(n=>AV.
 const dancing=(a,now)=>{const t=now-a.danceT,D=dms();return a.dance&&t>=0&&t<D&&a.w<.3?Math.min(1,t/300,(D-t)/300):0};
 function posePj(a,now){const w=a.w,wt=(now-a.waveT)/2200,sal=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,bt=now/1000*Math.PI*2*1.1,clip=AV.dur(DCLIP[a.dance])?DCLIP[a.dance]:null;
  AV.emote(a.g,clip&&dancing(a,now+300)>0?clip:null);const dn=clip?0:dancing(a,now);   // el clip se va con un fundido de .3 s que acaba justo al terminar el baile
- AV.mueve(a.g,{w,ph:a.ph,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y+=-Math.abs(Math.sin(a.ph))*.1*w+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
+ AV.mueve(a.g,{w,ph:a.ph,tr:1,sal,dn,disco:a.dance=='🕺',bt,t:now});a.g.position.y+=-(a.g.userData.av&&a.g.userData.av.capa?0:Math.abs(Math.sin(a.ph))*.1*w)+Math.abs(Math.sin(bt))*.1*dn}   // baja con el paso abierto (pies en el piso)
 function pose(a,now,lookDown){if(a.g.userData.vacio)return;if(a.g.userData.av)return posePj(a,now);const u=a.g.userData,w=a.w,ph=a.ph,wt=(now-a.waveT)/2200,wave=wt>=0&&wt<1?Math.sin(wt*Math.PI):0,dn=dancing(a,now),disco=a.dance=='🕺',bt=now/1000*Math.PI*2*1.1;
  u.body.position.y=Math.abs(Math.sin(ph))*.06*w+.012*Math.sin(now/650)+Math.abs(Math.sin(bt))*.12*dn;u.body.rotation.x=.06*w;
  u.body.rotation.z=Math.sin(bt)*(disco?.06:.14)*dn;u.body.rotation.y=Math.sin(bt/2)*(disco?.5:.3)*dn;u.head.rotation.z=-Math.sin(bt)*.18*dn;
@@ -307,7 +307,7 @@ function walk(dt,now){if(window.SENT&&SENT.paso(me,keys.size||(window.JOY&&JOY.o
   if(panned()){const dx=p.x-q.x,dz=p.z-q.z;VT.ox-=dx;VT.oz-=dz;VW.ox-=dx;VW.oz-=dz}a.yaw=Math.atan2(dir.x,dir.z);a.danceT=-1e9;if(!moved){moved=true;render()}
   // atorado contra una silla o mueble camino a una mesa: ya llegó
   if(tgt){stuck=mv<sp*.3?stuck+1:0;if(stuck>8)arrive()}}
- a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*3.1;
+ a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*4;
  // mirar hacia la mesa al llegar
  const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);if(fpOn()&&!mv)a.yaw=VW.a+Math.PI;   // en primera persona miras hacia donde ve la cámara
  turn(a,a.yaw);a.g.position.set(p.x,GY(a.g)+(FL.gy?FL.gy(p.x,p.z):0)+(window.JOY&&JOY.sy?JOY.sy(now):0),p.z);pose(a,now,!!sel);
@@ -320,7 +320,7 @@ function walk(dt,now){if(window.SENT&&SENT.paso(me,keys.size||(window.JOY&&JOY.o
 // (antes corrían al punto y se quedaban quietos hasta la otra muestra: se veían trabados)
 function walkOthers(dt,now){const f=1-Math.exp(-dt/110),t=performance.now();others.forEach((a,id)=>{a.g.visible=(a.f||'pb')===FL.id&&!(window.BJ3&&BJ3.sentado(id))&&!(window.PK3&&PK3.sentado(id))&&!(window.BIJ&&BIJ.oculto(id));const q=a.pos.clone();
  if(a.fr)a.pos.lerpVectors(a.fr,a.to,Math.min(1,(t-a.t0)/a.dur));else a.pos.lerp(a.to,f);const mv=q.distanceTo(a.pos);   // solo se ven los de tu piso
- a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*3.1;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g)+(FL.gy?FL.gy(a.pos.x,a.pos.z):0),a.pos.z);pose(a,now,false)});
+ a.w+=((mv>.002?1:0)-a.w)*.15;a.ph+=mv*4;if(mv>.02)a.danceT=-1e9;if(mv>.002)a.tyaw=Math.atan2(a.pos.x-q.x,a.pos.z-q.z);turn(a,a.tyaw);a.g.position.set(a.pos.x,GY(a.g)+(FL.gy?FL.gy(a.pos.x,a.pos.z):0),a.pos.z);pose(a,now,false)});
  seated.forEach(s=>{if(!s.av)poseSeated(s,now)});if(window.OCUP)OCUP.paso(now)}
 function arrive(){const g=tgtG,l=tgtL,t=g&&TB.find(x=>x.g===g);tgt=null;stuck=0;tgtL=null;if(tgtG){closed=null;tgtG=null}if(window.SENT)SENT.llega(me);
  if(t&&t.to&&canGo(t.to))goFloor(t.to);else if(l)goFloor(l.to)}

@@ -29,9 +29,11 @@ Meta: animaciones como de juego bien hecho (quieto, caminar, sentarse, brincar, 
 ## Hecho
 - [x] Asientos de descanso a 0.6 (commit d3227b2).
 - [x] Quieto y Camina en el juego (commit 64ddbdc). Revisado en Blender; en el juego solo por datos (sin probar en teléfono).
+- [x] Sentarse, Sentado, Levantarse y Trota (anim.glb ?v=2). `AV.sentar(p,si,anim)`: anim=true (asientos de la casa, c_casa_sentar.js) toca Sentarse/Levantarse; la cadera solo se desliza al frente/atrás (el clip baja 0.30 a su silla; en asientos de 0.6 la cadera sentada queda a la altura de parado). Sentado es el primer cuadro, quieto (el loop solo mueve 2–3°; así no se anima cada cuadro). En la mesa (pose que no es Reposo) solo las piernas, las manos siguen con las cartas. Reemplaza el doblez por código (queda si no carga anim.glb).
+- [x] Pies que patinaban: la casa va a 5.2/s (trote para un personaje de 2.0), así que ahí se usa Trota (`AV.mueve({tr:1})`, avanza 1.57 por ciclo) y `ph+=mv*4` (2π/4 = 1.57). Quitado el sube/baja por código cuando hay clips.
 
 ## Siguiente
-- [ ] Sentarse: Sitting_Enter / Sitting_Idle_Loop / Sitting_Exit sobre asiento 0.6 (y ver cómo queda en sillas 0.95 de mesa, donde hoy se sienta por código en `sentar()` doblando muslos/rodillas 90°).
-- [ ] Posible: patinan un poco los pies (paso del chibi ~0.84 por ciclo vs ~2.0 de avance por ciclo en c_casa3d.js `ph+=mv*3.1`); c_casa3d.js además sube/baja el cuerpo por código (`-|sin ph|*.1*w`), doble con el de la cadera del clip.
-- [ ] Brincar, correr.
+- [ ] Revisar en teléfono: sentarse/levantarse en asientos de la casa y el trote al caminar (solo revisado en Blender y por datos).
+- [ ] Levantarse: SENT.paso te pone 1.2 al frente de golpe y el clip solo avanza 0.18; si se nota el salto, deslizar el grupo durante el clip.
+- [ ] Brincar.
 - [ ] Poses del juego por IK: cartas en la mano, repartir, pistola a la sien (ya hay PistolaSien en rig.py), cargar al gato (falló antes por poner ángulos a ojo).

@@ -13,7 +13,7 @@ function toca(ray){let best=null,bd=1e9;L.forEach(o=>{if(!vis(o))return;const r=
  pend=best;return best?spot(best).p.setY(0):null}   // caminas al asiento mismo (solve te deja junto a él)
 function llega(a){const o=pend;pend=null;if(!o||!a)return false;const s=spot(o);if(Math.hypot(a.pos.x-s.p.x,a.pos.z-s.p.z)>3.2)return false;
  const h=o.userData.sent.h,g=a.g,b=s.p.clone().addScaledVector(s.f,-.25);on={s};a.pos.set(s.p.x,a.pos.y,s.p.z);a.yaw=s.yaw;g.rotation.y=s.yaw;a.w=0;
- if(g.userData.av&&window.AV){AV.sentar(g,true);AV.pose(g,'Reposo',0);g.position.set(b.x,h-.7,b.z)}else g.position.set(s.p.x,h+.25,s.p.z);return true}
-function paso(a,mover){if(!on)return false;if(!mover)return true;const s=on.s;on=null;if(a){a.pos.set(s.front.x,a.pos.y,s.front.z);if(a.g.userData.av&&window.AV)AV.sentar(a.g,false)}return false}
+ if(g.userData.av&&window.AV){AV.sentar(g,true,true);AV.pose(g,"Reposo",0);g.position.set(b.x,h-.7,b.z)}else g.position.set(s.p.x,h+.25,s.p.z);return true}
+function paso(a,mover){if(!on)return false;if(!mover)return true;const s=on.s;on=null;if(a){a.pos.set(s.front.x,a.pos.y,s.front.z);if(a.g.userData.av&&window.AV)AV.sentar(a.g,false,true)}return false}
 window.SENT={reg,toca,llega,paso,sentado:()=>!!on,lista:()=>L};
 })();

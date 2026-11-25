@@ -8,7 +8,7 @@
 const URL_GLB=new URL('modelos/personaje/chibi.glb?v=11',location.href).href;
 // animaciones de cuerpo completo (blender/anim_retarget.py, Universal Animation Library CC0): Quieto y Camina se mezclan por código
 // encima de la pose (CAPA); si no carga, se usa el respiro y el paso hechos a mano
-const URL_ANIM=new URL('modelos/personaje/anim.glb?v=1',location.href).href,CAPA=['Quieto','Camina'];   // ?v: subir al cambiar el GLB (se guarda en caché un año)
+const URL_ANIM=new URL('modelos/personaje/anim.glb?v=2',location.href).href,CAPA=['Quieto','Camina','Trota','Sentarse','Sentado','Levantarse'];   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],
@@ -74,8 +74,18 @@ function capa(p,clips){const o={};for(const n of CAPA){const c=clips[n];if(!c)re
   o[n]={d:c.duration,h}}return o}
 const qc=new THREE.Quaternion(),vc=new THREE.Vector3();
 // mezcla el clip n al tiempo t con peso w sobre lo que dejó el mixer
-function capaPon(u,n,t,w){if(w<.002)return;const c=u.capa[n];t=((t%c.d)+c.d)%c.d;
- for(const [b,it,ps] of c.h){const v=it.evaluate(t);if(ps)b.position.lerp(vc.fromArray(v),w);else b.quaternion.slerp(qc.fromArray(v),w)}}
+// rel: la cadera se mueve al frente/atrás lo que le falta para llegar al final del clip (Sentarse/Levantarse: el último cuadro es donde queda);
+// la altura no: el clip baja 0.30 a su silla, pero en asientos de 0.6 la cadera sentada queda a la altura de parado. f: filtro de huesos
+function capaPon(u,n,t,w,rel,f){if(w<.002)return;const c=u.capa[n];t=((t%c.d)+c.d)%c.d;
+ for(const [b,it,ps] of c.h){if(f&&!f(b.name))continue;const v=it.evaluate(t);
+  if(!ps)b.quaternion.slerp(qc.fromArray(v),w);else if(!rel)b.position.lerp(vc.fromArray(v),w);
+  else{vc.fromArray(v);const e=it.evaluate(c.d);vc.x-=e[0];vc.y=0;vc.z-=e[2];b.position.addScaledVector(vc,w)}}}
+// sentado con los clips: quieto en el primer cuadro de 'Sentado' (no se anima cada cuadro); en la mesa (pose que no es Reposo) solo las piernas,
+// para que las manos sigan con las cartas. u.tran: Sentarse o Levantarse en curso (AV.sentar(p,si,true)).
+const PIER=n=>/^(muslo|pierna|pie)_/.test(n);
+function sit(u,dt){const C=u.capa,tr=u.tran;
+ if(tr){tr.t+=dt;const d=C[tr.n].d;if(tr.t<d){capaPon(u,tr.n,tr.t,Math.min(1,tr.t/.15,tr.n==='Levantarse'?(d-tr.t)/.15:1),true);return}u.tran=null}
+ if(u.sentado)capaPon(u,'Sentado',0,1,true,u.nomPose==='Reposo'?null:PIER)}
 let base=null;
 function crear(cod){return listo().then(b=>{base=b;return crearYa(cod)})}
 
@@ -87,11 +97,11 @@ const QS=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.
 function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.quaternion.copy(q);if(u.tocP)u.tocP[0].position.copy(u.tocP[1]);
  pesa(u,dt);u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-(m&&m.dn||0)):0;
  u.ti=(u.ti||Math.random()*30)+dt;u.idl=(u.idl||0)+(ob-(u.idl||0))*Math.min(1,dt*6);
- if(!u.sentado&&!u.mov&&!u.ges&&u.idl<.002){u.toc=null;if(u.post)u.post(dt);return}
+ if(!u.sentado&&!u.tran&&!u.mov&&!u.ges&&u.idl<.002){u.toc=null;if(u.post)u.post(dt);return}
  if(!u.toc){u.toc=new Map();for(const n of HM){const b=p.getObjectByName(n);if(b)u.toc.set(b,new THREE.Quaternion())}}
  for(const [b,q] of u.toc)q.copy(b.quaternion);
  if(u.capa){if(!u.tocP){const b=p.getObjectByName('cadera');u.tocP=b&&[b,new THREE.Vector3()]}if(u.tocP)u.tocP[1].copy(u.tocP[0].position)}
- if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QR);if(r)r.quaternion.multiply(QS)}
+ if(u.capa&&u.capa.Sentado)sit(u,dt);else if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QR);if(r)r.quaternion.multiply(QS)}
  if(u.mov||u.idl>=.002)mov(p,u);if(u.ges)ges(p,u);if(u.post)u.post(dt)}
 // parado en 'Reposo' (sin sentar ni bailar) respira: pecho y hombros suben, se mece un poco, ladea la cabeza y de vez en cuando voltea;
 // Los brazos se acercan al cuerpo (la pose de Blender los trae abiertos 24°), un poco al frente y con el codo flojo; eso se queda
@@ -109,7 +119,7 @@ function ejes(p){const h={};p.updateMatrixWorld(true);p.getWorldQuaternion(qb).i
  return h}
 function gira(h,n,i,a){const x=h[n];if(x&&a)x.b.quaternion.premultiply(qa.setFromAxisAngle(x.e[i],a))}
 function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w0=m.w||0,ph=m.ph||0,C=u.capa,w=C?0:w0,dn=m.dn||0,bt=m.bt||0,sal=(m.sal||0)*(1-dn),dc=!!m.disco;
- if(C){const k=u.idl||0;capaPon(u,'Quieto',u.ti,k*(1-w0));capaPon(u,'Camina',ph/(2*Math.PI)*C.Camina.d,w0)}   // clips primero; saludo y baile van encima
+ if(C){const k=u.tran?0:u.idl||0;capaPon(u,'Quieto',u.ti,k*(1-w0));const tr=m.tr||0;capaPon(u,'Camina',ph/(2*Math.PI)*C.Camina.d,w0*(1-tr));capaPon(u,'Trota',ph/(2*Math.PI)*C.Trota.d,w0*tr)}   // m.tr 0–1: trote (la casa va a 5.2/s: con Camina patinan los pies)   // clips primero; saludo y baile van encima
  gira(h,'columna',0,.08*w);gira(h,'cadera',2,S(bt)*(dc?.06:.14)*dn);gira(h,'cadera',1,S(bt/2)*(dc?.5:.3)*dn);
  for(const [l,s] of [['I',1],['D',-1]]){
   let q=s*S(ph)*.5*w,k=Math.max(0,s*Math.cos(ph))*.7*w;   // muslo al frente y rodilla doblada mientras la pierna avanza
@@ -140,7 +150,7 @@ function ges(p,u){const g=u.ges,h=u.ej||(u.ej=ejes(p));gira(h,'cabeza',1,g.cy||0
  for(const l of 'ID'){let o=0;for(const n in GE)if(n!=='cartas'&&GE[n][l])o+=g[n]||0;const r=[0,0,0,0];
   for(const n in GE){const v=GE[n][l];let w=g[n]||0;if(n==='cartas')w*=Math.max(0,1-o);if(w&&v)for(let j=0;j<4;j++)r[j]+=v[j]*w}
   gira(h,'brazo_'+l,0,r[0]);gira(h,'brazo_'+l,2,r[1]);gira(h,'antebrazo_'+l,0,r[2]);gira(h,'antebrazo_'+l,2,r[3])}}
-function sentar(p,si){const u=p.userData.av;if(!u)return;u.sentado=!!si;if(si&&!u.hueso){u.hueso={};for(const n of ['muslo_D','muslo_I','pierna_D','pierna_I'])u.hueso[n]=p.getObjectByName(n)}despierta(p,40)}
+function sentar(p,si,anim){const u=p.userData.av;if(!u)return;u.sentado=!!si;const C=u.capa,nt=si?'Sentarse':'Levantarse';u.tran=anim&&C&&C[nt]?{n:nt,t:0}:null;if(si&&!u.hueso){u.hueso={};for(const n of ['muslo_D','muslo_I','pierna_D','pierna_I'])u.hueso[n]=p.getObjectByName(n)}despierta(p,u.tran?C[nt].d*1000+60:40)}
 function despierta(p,ms){const u=p.userData.av;upd(p,0);u.hasta=Math.max(u.hasta,performance.now()+ms);vivos.add(p);if(!raf){t0=performance.now();raf=requestAnimationFrame(paso)}}
 function paso(t){const dt=Math.min(.1,(t-t0)/1000);t0=t;
  for(const p of vivos){const u=p.userData.av;upd(p,dt);if(t>u.hasta&&!quieto(u)&&u.idl<.002)vivos.delete(p)}
