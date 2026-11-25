@@ -899,7 +899,7 @@ def _sel(obs):
     for o in obs: o.select_set(True)
     bpy.context.view_layer.objects.active = obs[0]
 
-def _pasadas(sc, img, muestras, sel, n=5):
+def _pasadas(sc, img, muestras, sel, n=2):   # R4: cada llamada a bake cuesta ~1 min fijo (escena y BVH); 5 pasadas tiraban ~3 min
     """Hornea en n pasadas con semilla distinta y las promedia (igual a una sola de 'muestras'); imprime el avance."""
     import numpy as np, time
     n = max(1, min(n, muestras)); acc = None; t0 = time.time()
