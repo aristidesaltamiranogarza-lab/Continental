@@ -14,7 +14,7 @@ Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles
 - Plantas con texturas viejas, árbol viejo junto a la casa y luces del sótano vienen de los GLB: pasaron a los pasos 4 y 5.
 
 ## 2. Horneado menos pixeleado sin rehornear
-- [ ] Leer la luz horneada con filtro bicúbico en c_casona_mat.js (CMAT); comparar antes/después en el teléfono (bajo–medio)
+- [x] Leer la luz horneada con filtro bicúbico en c_casona_mat.js (CMAT); comparar antes/después en el teléfono (bajo–medio). Ya existía la bicúbica; ahora también en muros vistos de lado, con textureGrad (sin rayas de mip) y dithering (sin escalones en lo oscuro). Falta que el usuario lo vea en el teléfono; lo que siga pixeleado es del horneado (paso 6, R4).
 
 ## 3. Parte trasera del barrio (Blender; vista con ver.py antes de hornear)
 - [ ] Quitar las bardas sin sentido (alto, todo el paso)

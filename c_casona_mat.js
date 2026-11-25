@@ -119,11 +119,14 @@ function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if
  // sin luzUrl (?crudo, GLB sin hornear): Lambert con las luces de la escena
  if(!CR)(function va(n){new THREE.ImageLoader().load(luzUrl+(n?'&r='+n:''),im=>{lm.image=im;lm.needsUpdate=true;LQ.dia=im;LMT.value.set(im.width,im.height);tema();if(fin)fin()},undefined,
   e=>{console.warn('[CMAT] luz '+luzUrl+' falló, reintento '+(n+1),e);if(falla)falla(n+1);if(n<8)setTimeout(()=>va(n+1),Math.min(15000,1000*2**n));else if(fin)fin()})})(0);lm.flipY=false;lm.channel=1;lm.colorSpace=THREE.SRGBColorSpace;
- // de cerca (un texel de luz > 1 pixel) la luz va con B-spline bicúbica (4 lecturas bilineales): sin bloques ni escalones
- const cubica=r=>{r.extensions={derivatives:true};r.customProgramCacheKey=()=>'lmc';r.onBeforeCompile=s=>{s.uniforms.lmT=LMT;
-  s.fragmentShader='uniform vec2 lmT;\nvec4 lmC(sampler2D t,vec2 uv){vec2 q=uv*lmT,d=max(abs(dFdx(q)),abs(dFdy(q)));if(max(d.x,d.y)>1.)return texture2D(t,uv);'+
+ // de cerca (un texel de luz > 1 pixel en algún eje, también muros vistos de lado) la luz va con B-spline bicúbica (4 lecturas
+ // bilineales): sin bloques ni escalones. textureGrad con la derivada real del UV: sin rayas de mip en los bordes de texel.
+ // dithering: sin escalones de color en lo oscuro (escaleras, rincones).
+ const cubica=r=>{r.extensions={derivatives:true};r.dithering=true;r.customProgramCacheKey=()=>'lmc2';r.onBeforeCompile=s=>{s.uniforms.lmT=LMT;
+  s.fragmentShader='uniform vec2 lmT;\n#if __VERSION__>=300\n#define LMG(p) textureGrad(t,p,dx,dy)\n#else\n#define LMG(p) texture2D(t,p)\n#endif\n'+
+   'vec4 lmC(sampler2D t,vec2 uv){vec2 dx=dFdx(uv),dy=dFdy(uv),q=uv*lmT,d=max(abs(dx),abs(dy))*lmT;if(min(d.x,d.y)>1.)return texture2D(t,uv);'+
    'q-=.5;vec2 i=floor(q),f=q-i,f2=f*f,f3=f2*f,w0=(1.-3.*f+3.*f2-f3)/6.,w1=(4.-6.*f2+3.*f3)/6.,w3=f3/6.,w2=1.-w0-w1-w3,g0=w0+w1,g1=w2+w3,'+
-   'p0=(i+w1/g0-.5)/lmT,p1=(i+w3/g1+1.5)/lmT;return g0.y*(g0.x*texture2D(t,p0)+g1.x*texture2D(t,vec2(p1.x,p0.y)))+g1.y*(g0.x*texture2D(t,vec2(p0.x,p1.y))+g1.x*texture2D(t,p1));}\n'+
+   'p0=(i+w1/g0-.5)/lmT,p1=(i+w3/g1+1.5)/lmT;return g0.y*(g0.x*LMG(p0)+g1.x*LMG(vec2(p1.x,p0.y)))+g1.y*(g0.x*LMG(vec2(p0.x,p1.y))+g1.x*LMG(p1));}\n'+
    s.fragmentShader.replace('texture2D( lightMap, vLightMapUv )','lmC( lightMap, vLightMapUv )')}};
  const material=(m,luz)=>{const n=(m&&m.name)||'x',k=n+(luz?'+':'');if(MAT[k])return MAT[k];let r;
   if(n==='arbotante')r=new THREE.MeshBasicMaterial({color:0xffe2b0,toneMapped:false});
