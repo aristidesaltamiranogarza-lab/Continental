@@ -159,7 +159,7 @@ Juego:
 - [x] **R9. Ruleta Rusa**: se perdió su mesa (hoy es una mesa redonda genérica), no tiene decoración, está demasiado oscura y se perdió el foco que parpadea. Recuperar mesa y foco, decorar y dar luz. — 24 nov (PC): mesa vieja de tablas, foco que se mece y parpadea (la luz del cuarto; la genérica quedaba a 5.9, arriba del techo), cenicero con humo, whisky, revólver, cajas y barril en c_casona_rr.js (RRC, vía SOTC.viste). Falta: decoración de muros en Blender (props_ruleta.py).
 
 - [x] **R10. Escalera en U sin sentido** (capturas 24 nov, PB y sótano): los dos tramos suben hacia el fondo; el tramo 2 empieza en el aire a ~2.5 m del lado del hueco y no hay descanso que los una; bajo el tramo 2 el hueco muestra el pasto verde (el suelo de afuera) en vez del tramo que baja; panza escalonada sin zanca; el techo encima del tramo 1 queda a la altura de la cabeza. Revisar sentido de tramos y descanso en casona_esc.py.
-- [ ] **R11. Personaje mujer**: de lado hay piezas fuera de lugar; retocar el modelo (blender/cuerpo_m.py, ropa.py).
+- [x] **R11. Personaje mujer**: de lado hay piezas fuera de lugar; retocar el modelo (blender/cuerpo_m.py, ropa.py).
 - [x] **R12. Casino** (amplía R8): mesas de Blackjack y Póker más pegadas a la pared, quitar espacio muerto, más decoración; probar una ruleta de casino con su máquina.
   - Hecho 24 nov (noche, PC, sin hornear): Póker (19, 2.8) y Blackjack (30.2, 1.8) contra el muro de la calle con el crupier de espaldas al muro (SOTC ry=PI en los dos); ruleta automática al centro (24.8, 6.5) con rueda que gira, bola que cae cada ~10 s (tocar el paño la tira) y 7 sillas; 9 tragamonedas con banco (4 en el muro del oriente, 5 en el del pasillo; tocar la pantalla = tirada, tres iguales = foco que parpadea) en c_casona_casino.js (CASC, empties sot_ruleta_casino y sot_traga1..9 de SOT). Silla de casino nueva para todas las mesas (CAS3.silla: pie cromado, asiento redondo, respaldo bajo curvo). En casona_sm.py casino(): alfombras por zona con filo, caja con reja junto a la puerta, mueble de bebidas con espejo, plantas, cuadros, focos y sombras (px_sm) en el lugar nuevo. sm.glb ya trae los empties nuevos (`-- marcas`); las sombras horneadas aún son las viejas (sombra redonda del Póker en el centro) hasta hornear sm.
   - R9 muros (24 nov, sin hornear): sotano_vida() en casona_sm.py: repisa vieja con latas y botellas, cartel y reloj parado. También cantina (diana, cuadros, perchero con sombreros, mesa de dominó), billar (mesa alta, cuadros, planta), pasillo (cuadros, banca, plantas) y cava (mesa de cata con vela).
@@ -173,7 +173,7 @@ Orden decidido el 25 nov: **el horneado va al final** (casa: pb, pa, sm, az; bar
 1. ~~R1 y R6~~ hecho 25 nov (copas hojitas; sótano cal y Ruleta tabique, falta hornear sm).
 2. V7 portales (cuartos y puertas como empties en Blender, CUA por portales, tests/casona_vis.js): toca los GLB, así que va antes del horneado.
 3. R13 (muros que pierden textura en primera persona) y fachada de noche más brillante que las vecinas.
-4. R11 retoque de la mujer (blender/cuerpo_m.py, ropa.py).
+4. ~~R11 retoque de la mujer~~ hecho (de7a2ee y siguientes).
 5. Saltar (Espacio y botón en el celular) y service worker (sw.js con caché por versión de modelos).
 6. Hornear todo (avisar tiempo antes; revisar R4 de cerca), cuantizar, subir BV del barrio en c_casa_calle.js.
 Nota: el commit del barrio (dc4ec44) remite a una sección "Barrio" de CASONA.md que no llegó; pedirla a la laptop o seguir los scripts y c_casa_calle.js (?barrio=prueba).
