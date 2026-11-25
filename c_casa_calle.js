@@ -162,7 +162,7 @@ function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=
  // los vecinos: de este lado (con árboles en sus patios) y enfrente; cada bloque se esconde si tapa a tu Mii
  const mC=relleno(new THREE.MeshLambertMaterial({map:pat})),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
  const lado=(xs,s,arb,b)=>{const Lc=LOTE(),Lv=LOTE(),Lf=LOTE();xs.forEach(([a,c])=>fila(Lc,Lv,Lf,a,c,s,arb));const G=new THREE.Group();
-  const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));RT.add(G);zona([G],b)};   // la casona: vecinos más bajos (S), los árboles no
+  const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));if(!CRU)RT.add(G);zona([G],b)};   // ?crudo: sin los vecinos de código   // la casona: vecinos más bajos (S), los árboles no
  lado(bM?[[90,215]]:[[LX,80],[90,215]],1,true,[LX+.05,400,-2,80,-90,FZ-.05]);
  lado(bM?[[-90,-215]]:GLB()?[[TR[0],-80],[-90,-215]]:[[-LX,-80],[-90,-215]],1,true,[-400,-LX-.05,-2,80,-90,FZ-.05]);
  lado(bE?[[-215,-90],[90,215]]:[[-215,-90],...fuera(-80,80),[90,215]],-1,false,[-400,400,-2,80,ZE+.05,200]);

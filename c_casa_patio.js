@@ -114,7 +114,7 @@ function patio(k,CC){const {ctex,pm,cal}=k,G=new THREE.Group();G.name='patio';CI
  // la copa del flamboyán se esconde si tapa a tu Mii (como las paredes)
  const cop=Ff.mesh(mF);G.add(cop);CC.zona([cop],[FL[0]-8.2,FL[0]+8.2,6.4,11.6,FL[1]-8.2,FL[1]+8.2]);
  // detrás de la barda: copas de árboles (uno de jacaranda, uno de flamboyán) y una palmera; se esconde si tapa a tu Mii
- const T=new THREE.Group();T.name='tras';CIELO.mundo.add(T);
+ const T=new THREE.Group();T.name='tras';if(!/[?&]crudo\b/.test(location.search))CIELO.mundo.add(T);
  [[-26,-47],[-13,-49],[-2,-46.5],[11,-51],[22,-47],[33,-52],[-35,-53]].forEach(([x,z],i)=>{const h=6+rnd()*2.5,fl=i===1?[0x8a6ccf,0x9b7fd9]:i===4?ROJ:null;
   L2.cyl(.3,.4,h,0x6b5a48,x,h/2,z,7);for(let j=0;j<7;j++)F2.bola(1.9+rnd(),1.2,.9,1.2,fl&&j%2?pick(fl):pick(VERD),x+(rnd()-.5)*4,h+rnd()*2.6,z+(rnd()-.5)*4)});
  {let p=[6,0,-46.5];for(let i=0;i<4;i++)p=L2.rama(0x8a7a62,p[0],p[1],p[2],3.4,.28,.22,0,.06+i*.05,8);

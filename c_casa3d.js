@@ -357,7 +357,7 @@ const selOff=v3(0,0,0),selT=v3(0,0,0),AH=()=>0;   // AH: cuánto adelante de tu 
 const EL=()=>por?.78:.62,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // punto de la casa al centro de la pantalla
 function center(V){const p=me.pos;return v3(p.x+V.ox-Math.sin(V.a)*AH(),0,p.z+V.oz-Math.cos(V.a)*AH())}
-function applyCam(){if(fpOn())return CAV.apply(CA,me.pos,VW);if(segOn())return CSEG.apply(CA,me.pos,VW,selOff);   // seguimiento (c_casa_seg.js)
+function applyCam(){if(window.VUELO&&VUELO.on()&&VUELO.apply(CA))return;if(fpOn())return CAV.apply(CA,me.pos,VW);if(segOn())return CSEG.apply(CA,me.pos,VW,selOff);   // seguimiento (c_casa_seg.js)
  const c=center(VW).add(selOff),a=VW.a,d=(por?20:14)/VW.k,el=EL()+VW.t;
  CA.position.set(c.x+Math.sin(a)*Math.cos(el)*d,Math.sin(el)*d+1.9,c.z+Math.cos(a)*Math.cos(el)*d);CA.lookAt(c.x,1.9,c.z);CA.updateMatrixWorld()}
 function clampV(){if(fpOn())return CAV.clamp(VT);if(segOn())return CSEG.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.1-EL(),Math.min(1.45-EL(),VT.t));

@@ -9,7 +9,7 @@ const Y=-.4,CR=0xefe6d2,CAN=0xd9ccb2,HI=0x2a2a2c,MAD=0x7a4a2a,TRO=0x6b4a2e,CAL=0
 const HO=[0x4a7a3a,0x3d6b35,0x5a8a40,0x55803a];
 let rs=23;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280,pick=a=>a[(rnd()*a.length)|0];
 const BAR=k=>!!(window.CCALLE&&CCALLE.bar&&CCALLE.bar(k));   // piezas del barrio horneadas (c_casa_calle.js BV): su parte de código no va
-const L=LOTE(),F=LOTE(),G=new THREE.Group();G.name='campo';CIELO.mundo.add(G);
+const L=LOTE(),F=LOTE(),G=new THREE.Group();G.name='campo';if(!/[?&]crudo\b/.test(location.search))CIELO.mundo.add(G);   // ?crudo: sin campo de código (va el barrio)
 // árbol: tronco (encalado abajo si es laurel) que se abre en ramas con nubes de hojas planas en las puntas y cielo entre ellas.
 // Forma con su propio azar (por x,z) para no mover lo que sigue de rnd(); lejos: sin nubes extra (menos triángulos).
 function arbol(x,z,k,laurel,lejos){k=k||1;const c=pick(HO);let q=Math.abs((x*73+z*131)|0)%233280;const r2=()=>(q=(q*9301+49297)%233280)/233280;
