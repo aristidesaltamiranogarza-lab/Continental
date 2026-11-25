@@ -1,7 +1,8 @@
 // c_av2d.js — AV2D: el personaje de c_avatar.js dibujado en 2D (sombra plana en dos tonos, contorno y líneas entre piezas).
 //   AV2D.retrato('s1p3c1b2n1a2d3-2051',{tam:256,plano:'busto',giro:.3,pose:'Reposo',fondo:'#d9a441'}).then(cv=>...)
 //   plano: 'cara' | 'busto' | 'cuerpo'.  pose: una pose o un emote del GLB (emote en el segundo t).  AV2D.galeria() o ?av2d
-//   extra(p,THREE): se llama ya puesta la pose (mover huesos, colgar objetos). marco:[y0,y1] recorte en metros (centrado en x=0).
+//   extra(p,THREE): se llama ya puesta la pose (mover huesos, colgar objetos). marco:[y0,y1] recorte en metros (centrado en x=0,
+//   o en cx: número o fn(caja)). lineasCara: contorno también en nariz, cejas y boca.
 (function(){
 const S=4,TINTA='#3A2416';   // S: sobremuestreo (se dibuja grande y se reduce, eso da el suavizado)
 let R=null;
@@ -17,7 +18,7 @@ function motor(){if(R)return R;const T=THREE,cv=document.createElement('canvas')
 function ponPose(p,nom,t){const u=p.userData.av;if(!nom)return;
  AV.pose(p,nom,0);if(u.nomPose===nom)return;   // era pose
  if(AV.emote(p,nom,.02)){for(const n in u.acc){const a=u.acc[n];if(a.dedo)continue;if(a.getClip().name===nom){a.setEffectiveWeight(1);a.time=t||0}else a.stop()}}}
-function materiales(p){const T=THREE,R=motor(),toon=new Map(),ids=new Map();let i=0;const lista=[];
+function materiales(p,lineasCara){const T=THREE,R=motor(),toon=new Map(),ids=new Map();let i=0;const lista=[];
  p.traverse(o=>{if(!o.isMesh||!o.visible)return;const ms=Array.isArray(o.material)?o.material:[o.material];
   for(const m of ms){if(toon.has(m))continue;i++;
    toon.set(m,new T.MeshToonMaterial({color:m.color?m.color.clone():0xffffff,map:m.map||null,gradientMap:R.g,transparent:m.transparent,opacity:m.opacity,alphaTest:m.alphaTest,side:m.side}));
@@ -26,7 +27,7 @@ function materiales(p){const T=THREE,R=motor(),toon=new Map(),ids=new Map();let 
   lista.push([o,o.material])});
  // rasgos de la cara (ojos, cejas, boca, nariz) cuentan como piel: sin líneas alrededor, que se vean limpios
  const piel=[...ids.keys()].find(m=>m.name==='av_piel'),rasgo=(o,x)=>piel&&(/^(Cejas|Nariz|Boca)/.test(o.name)||/^av_(ojo|boca)$/.test(x.name));
- const usa=(mp,cara)=>{for(const [o,m] of lista){const f=x=>mp.get(cara&&rasgo(o,x)?piel:x);o.material=Array.isArray(m)?m.map(f):f(m)}};
+ const usa=(mp,cara)=>{for(const [o,m] of lista){const f=x=>mp.get(cara&&!lineasCara&&rasgo(o,x)?piel:x);o.material=Array.isArray(m)?m.map(f):f(m)}};
  return {toon:()=>usa(toon),id:()=>usa(ids,1),fin:()=>{for(const [o,m] of lista)o.material=m;for(const m of toon.values())m.dispose();for(const m of ids.values())m.dispose()}}}
 const PLANO={cara:.43,busto:.6,cuerpo:1};
 // centro horizontal de la cabeza: solo los vértices visibles por encima de y (los brazos y el giro no la empujan a un lado)
@@ -36,9 +37,9 @@ async function retrato(cod,o={}){const T=THREE;o={tam:256,plano:'busto',giro:.3,
  p.rotation.y=o.giro;ponPose(p,o.pose,o.t);u.mixer.update(0);p.updateMatrixWorld(true);if(o.extra){o.extra(p,T);p.updateMatrixWorld(true)}
  const box=new T.Box3(),vis=x=>{for(;x;x=x.parent)if(!x.visible)return false;return true};p.traverse(m=>{if(m.isMesh&&vis(m))box.expandByObject(m,true)});   // solo lo visible (los peinados y prendas ocultos no cuentan)
  const alto=box.max.y-box.min.y,fr=PLANO[o.plano]||.6;
- let y1=box.max.y+alto*.02,y0=box.max.y-alto*fr-(fr>=1?alto*.02:0);if(o.marco)[y0,y1]=typeof o.marco=="function"?o.marco(box):o.marco;const lado=(y1-y0)*(1+o.borde*4),cx=o.marco?0:fr<1?cxCab(p,box.max.y-alto*.35,vis):(box.min.x+box.max.x)/2,cy=(y0+y1)/2;
+ let y1=box.max.y+alto*.02,y0=box.max.y-alto*fr-(fr>=1?alto*.02:0);if(o.marco)[y0,y1]=typeof o.marco=="function"?o.marco(box):o.marco;const lado=(y1-y0)*(1+o.borde*4),cx=o.marco?(typeof o.cx==='function'?o.cx(box):o.cx||0):fr<1?cxCab(p,box.max.y-alto*.35,vis):(box.min.x+box.max.x)/2,cy=(y0+y1)/2;
  const c=R.cam;c.left=cx-lado/2;c.right=cx+lado/2;c.top=cy+lado/2;c.bottom=cy-lado/2;c.position.set(0,0,box.max.z+10);c.near=.01;c.far=box.max.z-box.min.z+20;c.updateProjectionMatrix();
- R.esc.add(p);const big=o.tam*S;R.ren.setSize(big,big,false);const mt=materiales(p);
+ R.esc.add(p);const big=o.tam*S;R.ren.setSize(big,big,false);const mt=materiales(p,o.lineasCara);
  const lienzo=()=>{const k=document.createElement('canvas');k.width=k.height=big;return k};
  mt.toon();R.ren.render(R.esc,c);const col=lienzo();col.getContext('2d').drawImage(R.ren.domElement,0,0);
  mt.id();R.ren.render(R.esc,c);const idc=lienzo(),ix=idc.getContext('2d');ix.drawImage(R.ren.domElement,0,0);

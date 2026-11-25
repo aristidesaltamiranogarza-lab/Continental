@@ -19,7 +19,7 @@ K2 = dict(
     DOBLADILLO=(0.008, 2.2),     # dobladillo de la playera
     PUNO=(0.008, 2.0, 0.93),     # punos: radio, alto/grueso, donde (0 hombro, 1 muneca)
     BASTILLA=(0.007, 2.0, 0.165), # bastilla del pantalon: radio, alto/grueso, z
-    BOLSA_ATRAS=(0.055, 0.75, 0.87, 0.045, 0.004),   # centro x, z abajo, z arriba, medio ancho, grosor
+    BOLSA_ATRAS=(0.068, 0.75, 0.87, 0.04, 0.004),   # centro x, z abajo, z arriba, medio ancho, grosor
     CARGO=(0.012, 0.03),         # cargo: inflado arriba / abajo
     CARGO_BOLSA=(0.50, 0.66, 0.05, 0.008),           # bolsa lateral: z abajo, z arriba, medio ancho (en y), grosor
     CARGO_PUNO=(0.012, 2.0, 0.17),
@@ -102,7 +102,8 @@ def parche_dir(bm, T, punto, d, ancho, alto, grosor, nu=6, nv=4, base=0.003):
         for i in range(nu + 1):
             u = -1 + 2 * i / nu; v = j / nv; q = punto(u, v)
             hit = T.ray_cast(q - d * 0.5, d)
-            p, n = (hit[0], hit[1]) if hit[0] is not None else (q, -d)
+            if hit[0] is None: hit = T.find_nearest(q)   # el rayo se fue por un hueco: lo mas cercano
+            p, n = hit[0], hit[1]
             g = grosor * (0.6 + 0.4 * math.sqrt(max(0.0, 1 - u * u)))
             fa.append(bm.verts.new(p + n * (base + g))); fb.append(bm.verts.new(p + n * base))
         arr.append(fa); aba.append(fb)

@@ -8,7 +8,8 @@ const PAL=['pelo','piel','ropa','ropa'];
 const NOM={a:{1:'Manga larga',2:'Sudadera',3:['Camisa','Blusa'],4:'Crupier',5:'Playera',6:'Chamarra',7:'Vestido'},
  d:{1:'Pantalón',2:'Short',3:'Falda',4:'Cargo'},p:'Peinado',c:'Cejas',b:'Boca',n:'Nariz'};
 // recorte de cada miniatura: centro y medio alto (fracción del alto sin pelo), giro, y si se esconde el pelo
-const REC={p:{plano:'cara',giro:.55},c:{c:.835,w:.06,giro:0,calvo:1},b:{c:.725,w:.045,giro:0,calvo:1},n:{c:.75,w:.05,giro:.6,calvo:1},
+// (pz: se encuadra en esa pieza, pad = cuantas veces su tamano)
+const REC={p:{plano:'cara',giro:.55},c:{pz:'Cejas',pad:1.25,giro:0,calvo:1},b:{pz:'Boca',pad:2.6,giro:0,calvo:1},n:{pz:'Nariz',pad:1.9,giro:.85,calvo:1,lineas:1,tono:.86},
  a:{c:.5,w:.19,giro:.35,calvo:1},a7:{c:.4,w:.27,giro:.35,calvo:1},d:{c:.22,w:.23,giro:.35,calvo:1}};
 let el=null,o=null,tab='pelo',r3=null,raf=0,ang=.5,giro=false,arr=null,prev='',gen=0;
 const I=n=>window.UI&&UI.ico?UI.ico(n):'';
@@ -24,7 +25,7 @@ function css(){if(document.getElementById('mjCss'))return;const s=document.creat
 .mj-rb.on{background:var(--ui-accent);color:var(--ui-on);border-color:transparent}
 .mj .ui-seg button{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:800}
 .mj .ui-seg button svg{width:20px;height:20px;flex:none}
-.mj-c{flex:1;min-height:0;overflow:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:flex;flex-direction:column;gap:14px;padding:2px}
+.mj-c{flex:1;min-height:0;overflow:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:flex;flex-direction:column;gap:14px;padding:7px}
 .mj-g{display:flex;flex-direction:column;gap:6px}
 .mj-ops{display:flex;flex-wrap:wrap;gap:8px}
 .mj-op{position:relative;width:64px;height:64px;border-radius:16px;border:1px solid var(--ui-line);background:var(--ui-field);cursor:pointer;padding:0;overflow:hidden;flex:none}
@@ -55,7 +56,7 @@ const vars=(k,v)=>{const x={...o,col:o.col.slice()};if('cbn'.includes(k)){x.p=1;
 const llave=(c,r)=>c+'|'+r;
 function op(k,v,big){const r=k==='a'&&v===7?'a7':k,c=vars(k,v),src=cache.get(llave(c,r)),on=o[k]===v,off=k==='d'&&o.a===7;
  return `<button type="button" class="mj-op ${big?'big':''} ${on?'on':''} ${off?'off':''} ${src?'ok':''}" data-c="${c}" data-r="${r}" aria-pressed="${on}" aria-label="${nom(k,v)}" title="${nom(k,v)}" onclick="MIPJ.pon('${k}',${v})">${src?`<img alt="" src="${src}">`:''}</button>`}
-const ops=(k,lista,big)=>`<div class="mj-ops ui-desl">${lista.map(v=>op(k,v,big)).join('')}</div>`;
+const ops=(k,lista,big)=>`<div class="mj-ops">${lista.map(v=>op(k,v,big)).join('')}</div>`;
 const n=(k,m)=>Array.from({length:m},(_,i)=>i+1);
 const sw=(i,t)=>`<div class="mj-ops">${AV.PAL[PAL[i]].map((c,j)=>`<button type="button" class="mj-sw ${o.col[i]===j?'on':''}" style="background:${c}" aria-label="${t} ${j+1}" aria-pressed="${o.col[i]===j}" onclick="MIPJ.col(${i},${j})"></button>`).join('')}</div>`;
 const grp=(t,h)=>`<div class="mj-g"><span class="ui-lbl">${t}</span>${h}</div>`;
@@ -73,12 +74,22 @@ function cambia(){pinta();if(r3&&r3.p)AV.cambiar(r3.p,cod())}
 
 // ---------- miniaturas (una a la vez; si cambia algo, la tanda vieja se abandona) ----------
 const calvo=p=>p.traverse(x=>{if(/^Pelo_/.test(x.name))x.visible=false});
+// la nariz es del mismo material que la cara: en su miniatura va un tono más oscura (así tiene contorno)
+function entona(p,pz,k){const re=new RegExp('^'+pz+'_');p.traverse(m=>{if(m.isMesh&&(re.test(m.name)||re.test(m.parent&&m.parent.name||''))){
+ const f=x=>{x=x.clone();x.name='';if(x.color)x.color.multiplyScalar(k);return x};m.material=Array.isArray(m.material)?m.material.map(f):f(m.material)}})}
+// caja en el mundo de la pieza visible cuyo nombre empieza con pz (la pieza o su padre, si tiene varias mallas)
+function caja(p,pz){const b=new THREE.Box3(),re=new RegExp('^'+pz+'_'),vis=x=>{for(;x;x=x.parent)if(!x.visible)return false;return true};
+ p.updateMatrixWorld(true);p.traverse(m=>{if(m.isMesh&&vis(m)&&(re.test(m.name)||re.test(m.parent&&m.parent.name||'')))b.expandByObject(m,true)});return b}
 async function miniaturas(){if(!window.AV2D)return;const g=++gen,tam=Math.round(72*Math.min(2,devicePixelRatio||1));
  for(const b of [...el.querySelectorAll('.mj-op:not(.ok)')]){if(g!==gen||!el)return;
   const c=b.dataset.c,r=b.dataset.r,k=llave(c,r);let src=cache.get(k);
   if(!src){const R=REC[r];
-   const ops={tam,giro:R.giro,linea:.008,borde:.01,extra:R.calvo?calvo:null};
-   if(R.plano)ops.plano=R.plano;else ops.marco=box=>{const h=box.max.y-box.min.y;return [box.min.y+h*(R.c-R.w),box.min.y+h*(R.c+R.w)]};
+   const ops={tam,giro:R.giro,linea:.008,borde:.01,lineasCara:!!R.lineas,extra:R.calvo?calvo:null};
+   if(R.plano)ops.plano=R.plano;
+   else if(R.pz){let pb=null;ops.extra=p=>{calvo(p);if(R.tono)entona(p,R.pz,R.tono);pb=caja(p,R.pz)};
+    ops.marco=()=>{const c=pb.getCenter(new THREE.Vector3()),z=pb.getSize(new THREE.Vector3()),s=Math.max(z.x,z.y)*R.pad/2;return [c.y-s,c.y+s]};
+    ops.cx=()=>pb.getCenter(new THREE.Vector3()).x}
+   else ops.marco=box=>{const h=box.max.y-box.min.y;return [box.min.y+h*(R.c-R.w),box.min.y+h*(R.c+R.w)]};
    try{const cv=await AV2D.retrato(c,ops);src=cv.toDataURL('image/png');cache.set(k,src);if(cache.size>160)cache.delete(cache.keys().next().value)}catch(e){console.warn('[MIPJ] miniatura',e);return}}
   if(g!==gen||!el)return;
   for(const x of el.querySelectorAll(`.mj-op[data-r="${r}"]`))if(x.dataset.c===c&&!x.classList.contains('ok')){x.classList.add('ok');x.innerHTML=`<img alt="" src="${src}">`}
