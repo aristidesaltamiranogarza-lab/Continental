@@ -27,14 +27,14 @@ Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles
 
 ## 3b. Llenar el jardín del barrio (el área vacía detrás de la casona, no el traspatio; esfuerzo alto, que quede muy bien)
 En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cenital y a la altura de la gente antes de subir. Poco peso (celular débil).
-- [ ] Arreglar el camino: el tramo de la bifurcación junto a la puerta trasera se ve cortado (dos cintas encimadas con orillas en pico); unirlo en una sola forma con orillas suaves
-- [ ] La zona con hojas de pasto se ve como rectángulo amarillento de orilla recta: forma irregular y mismo tono que pasto_c
-- [ ] Vegetación en manchas en las orillas (matas, agaves, flores), sobre todo al pie de los muros traseros de los vecinos
-- [ ] Dos o tres árboles grandes más (laurel, ceiba) para dar sombra al centro, hoy lo más vacío
-- [ ] Rincón de juego bajo un árbol grande: una o dos mesitas de concreto con bancos (dominó), a un lado del camino
-- [ ] Albarradas: muretes bajos de piedra seca con curvas que acompañen al camino y separen zonas sin parecer bardas
-- [ ] Huerto cerca de la puerta trasera: camas de hortalizas, milpa, chiles y un par de plátanos
-- Orden: vegetación y árboles primero (baratos), luego el rincón de juego, al final albarradas y huerto si aún se ve vacío.
+- [x] Arreglar el camino: el tramo de la bifurcación junto a la puerta trasera se ve cortado (dos cintas encimadas con orillas en pico); unirlo en una sola forma con orillas suaves
+- [x] La zona con hojas de pasto se ve como rectángulo amarillento de orilla recta: forma irregular y mismo tono que pasto_c
+- [x] Vegetación en manchas en las orillas (matas, agaves, flores), sobre todo al pie de los muros traseros de los vecinos
+- [x] Dos o tres árboles grandes más (laurel, ceiba) para dar sombra al centro, hoy lo más vacío
+- [x] Rincón de juego bajo un árbol grande: una o dos mesitas de concreto con bancos (dominó), a un lado del camino
+- [x] Albarradas: muretes bajos de piedra seca con curvas que acompañen al camino y separen zonas sin parecer bardas
+- [x] Huerto cerca de la puerta trasera: camas de hortalizas, milpa, chiles y un par de plátanos
+- Hecho en blender/barrio_jardin.py: red() une todos los caminitos (campo de distancia + contorno: una sola forma, ramal y rincón de dominó bajo la ceiba); mancha() pasto con hojas de orilla irregular 1 cm sobre el liso (sin sombra ni oscurecer su orilla al hornear, barrio_lib.armar); matas del juego con el mismo tinte de mundo que el suelo (c_pasto.js TINTE); ceiba, laurel y flamboyán al centro; macizos con plátanos al pie de los muros; dos albarradas y el huerto cerrado por otra. Vistas jardin_* en barrio_manzana.py. Tope de la manzana 105000 (macetas de patio más ligeras para compensar). GLB crudo exportado (BV manzana 3); falta hornear (paso 6).
 
 ## 4. Objetos del barrio (Blender)
 - [ ] Rehacer las sillas confidentes blancas (medio; preview)

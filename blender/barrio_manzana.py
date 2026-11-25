@@ -7,6 +7,7 @@ D = next(d for d in [os.getcwd()] + ([os.path.dirname(os.path.dirname(os.path.ab
 exec(open(os.path.join(D, 'blender', 'barrio_lib.py'), encoding='utf-8').read())
 B = cargar('manzana')
 exec(open(os.path.join(D, 'blender', 'barrio_trasera.py'), encoding='utf-8').read(), B.__dict__)   # paso 3: jardín del barrio
+exec(open(os.path.join(D, 'blender', 'barrio_jardin.py'), encoding='utf-8').read(), B.__dict__)    # paso 3b: llenarlo
 
 def cancha(B):
     """P3: cancha de fútbol rápido entre los patios (x 61..85, z 45..59): pasto con franjas y rayas blancas, dos porterías,
@@ -36,18 +37,33 @@ def jardin(B):
     """Paso 3: el corazón de la manzana ya no son patios con bardas: pasto con hojas solo cerca de los caminos y un caminito curvo de laja
     que sale de la puerta trasera del jardín de la casona (x 16.5..19.5, z 48) hacia la plaza (oeste) y la entrada de la cancha (esquina NO)."""
     huecos = [(-51, 40, -23, 78), (-40, 22, -34, 40), (0, 22, 36, 48), (60.5, 44.5, 85.5, 59.5)]   # plaza e iglesia, andador, casona, cancha
-    zonas = [(8, 48, 30, 58), (-23, 47, -13, 57), (52, 52, 60.5, 63)]
-    B.suelo_partido(-51, 22, 86, 78, huecos, zonas)
+    B.suelo_partido(-51, 22, 86, 78, huecos, [])
+    for i, m in enumerate(((8.5, 56.8, 6.5, 2.6, .12), (21.2, 58.8, 3.6, 2.2, -.2), (-18.5, 55.6, 4.2, 2.6, .3), (54.2, 60.6, 3.4, 4.2, .2),
+                           (45, 49.8, 4.2, 1.2, -.05))):
+        B.mancha(*m, seed=i + 1)                                   # 3b: pasto con hojas en manchas de orilla irregular
     fa, c = B.FA(), B.osc(B.PAL['crema'], .9)   # rodapié: las bardas de la casona empiezan en 0 y el pasto está en YS
     for x0, x1, z0, z1 in ((-.15, .15, 22, 48.15), (35.85, 36.15, 22, 48.15), (-.15, 16.5, 47.85, 48.15), (19.5, 36.15, 47.85, 48.15)):
         B.pieza(fa, c, B.caja_o, x0, x1, B.YS, .02, z0, z1, (2,))
     B.pieza(fa, B.PAL['cantera'], B.caja_o, 16.5, 19.5, B.YS, 0, 47.85, 48.6, (2,))   # escalón de la puerta trasera
-    cw = B.sendero([(18, 48.2), (17.2, 50.5), (13, 53.2), (5, 54), (-3, 51.2), (-10, 50.4), (-17, 52.2), (-23.6, 52)], seed=1)
-    ce = B.sendero([(18.8, 50.4), (23, 53.2), (32, 54.6), (41, 52.6), (50, 51.4), (56.5, 54), (59.2, 58.2), (62.5, 60.4)], y=B.YS + .05, seed=2)
-    for c, t, d in ((cw, .3, 2.3), (cw, .78, -2.3), (ce, .28, -2.3), (ce, .62, 2.3), (ce, .9, -2.4)): B.farol(*B.al_lado(c, t, d), B.YS)   # a un lado, nunca en el camino
-    for c, t, d in ((cw, .52, -2.4), (ce, .45, 2.5)):
-        x, z = B.al_lado(c, t, d); (x0, z0), (x1, z1) = c[int(t * (len(c) - 1))], c[int(t * (len(c) - 1)) + 1]
-        B.banca_conf(x, z, -math.atan2(z1 - z0, x1 - x0), B.YS)
+    # 3b: los caminitos son UNA forma (tronco desde la puerta, ramas a la plaza y a la cancha, ramal al rincón de dominó)
+    B.red([([(18, 47.6), (17.9, 49.6), (16.2, 52.0), (13, 53.3), (5, 54), (-3, 51.2), (-10, 50.4), (-17, 52.2), (-23.6, 52)], 2.6, .18, 1),
+           ([(17.9, 49.6), (19.8, 52.0), (23, 53.3), (32, 54.6), (41, 52.6), (50, 51.4), (56.5, 54), (59.2, 58.2), (62.5, 60.4)], 2.6, .18, 2),
+           ([(27.6, 54.0), (27.3, 56.4), (27.0, 58.4)], 1.7, .1, 3)],
+          discos=[(25.4, 60.1, 2.5), (28.9, 61.1, 2.5)], cortes=[(0, 1, 47.9), (1, 0, -23.6)])
+    for x, z in ((-12.5, 53.6), (1.5, 55.4), (36.5, 51.1), (46, 50.3), (55.4, 57.4)): B.farol(x, z, B.YS)   # a un lado, nunca en el camino
+    B.banca_conf(-4.5, 54.2, -.34, B.YS); B.banca_conf(43.5, 54.3, .13, B.YS)
+    B.mesa_domino(25.4, 60.1, .1, fichas=True); B.mesa_domino(28.9, 61.1, -.2)          # rincón de dominó bajo la ceiba
+    B.huerto()                                                                           # junto a la puerta trasera, al poniente
+    B.albarrada([(35.2, 58.4), (41.5, 56.5), (47.5, 55.7), (51.5, 56.6)], 31)           # albarradas que acompañan al camino
+    B.albarrada([(-21.5, 49.2), (-15, 47.7), (-8.5, 47.9), (-3.6, 49.1)], 32)
+    for i, (x, z, ux, uz, l) in enumerate((   # vegetación en manchas al pie de los muros traseros (el muro queda del lado (−uz, ux))
+            (-19, 76.8, 1, 0, 6), (-7, 76.8, 1, 0, 4), (5, 76.8, 1, 0, 6.5), (22, 76.8, 1, 0, 5), (34, 76.8, 1, 0, 6), (45, 76.8, 1, 0, 4),
+            (58, 76.8, 1, 0, 6.5), (69, 76.8, 1, 0, 4.5), (80, 76.8, 1, 0, 5.5), (84.8, 27, 0, -1, 5), (84.8, 37, 0, -1, 4), (84.8, 69, 0, -1, 4.5),
+            (84.8, 75, 0, -1, 3), (62, 23.2, -1, 0, 4), (72, 23.2, -1, 0, 5), (81, 23.2, -1, 0, 4), (-49.8, 27, 0, 1, 4), (-49.8, 36.5, 0, 1, 3),
+            (-1.2, 26.5, 0, -1, 4), (-1.2, 41, 0, -1, 5), (-20, 23.2, -1, 0, 4), (-11, 23.2, -1, 0, 4))):
+        B.macizo(x, z, ux, uz, l, 100 + i, 1.2, 1.2)
+    for i, (x, z, ux, uz, l) in enumerate(((22.6, 61.4, 0, 1, 2), (31.6, 59.0, .2, 1, 1.8), (44, 57.8, 1, -.15, 3), (-6.5, 56.2, 1, .3, 2.2))):
+        B.macizo(x, z, ux, uz, l, 140 + i)                                              # orillas del rincón, la albarrada y la banca
 
 def piezas(B):
     P, PAL, YS, YA = B.P, B.PAL, B.YS, B.YA
@@ -82,9 +98,10 @@ def piezas(B):
                         (10, None, None), (12, None, None), (9, None, None), (10, None, None), (12, None, None)], seed=13, patio=0, rejas=False)
     B.barda(-51, 89.8, -26, 89.8, 2.6)                                                               # detrás de la iglesia
     jardin(B)
-    B.laurel(-6, 30, .95, y0=YS, sub=2, choque=False); B.laurel(6, 62, 1.0, y0=YS, sub=2, choque=False); B.palmera(28, 68, 10, y0=YS, choque=False)
+    B.laurel(-6, 30, .95, y0=YS, sub=2, choque=False); B.laurel(6, 62, 1.0, y0=YS, sub=2, choque=False); B.palmera(14.5, 75.5, 10, y0=YS, choque=False)
+    B.ceiba(31, 66.5, 1.0, y0=YS); B.laurel(52.5, 68.5, 1.0, y0=YS, sub=2); B.flamboyan(-11, 66, .9, y0=YS)   # 3b: sombra al centro
     B.naranjo(46, 58, 1.1, y0=YS); B.laurel(80, 38, .95, y0=YS, sub=2, choque=False); B.laurel(80, 70, 1.0, y0=YS, sub=2, choque=False)
-    B.naranjo(40, 72, y0=YS); B.naranjo(-30, 32, y0=YS); B.naranjo(18, 70, y0=YS); B.naranjo(66, 68, .9, y0=YS); B.naranjo(-8, 54, y0=YS)
+    B.naranjo(-30, 32, y0=YS); B.naranjo(18, 70, y0=YS); B.naranjo(66, 68, .9, y0=YS); B.naranjo(-8, 54, y0=YS)
     B.naranjo(-17, 70, y0=YS); B.palmera(-45, 30, 9, y0=YS, choque=False); B.naranjo(62, 28, y0=YS)
     B.flamboyan(57, 40, y0=YS, choque=False); B.flamboyan(82, 64, .95, y0=YS, choque=False)                 # los dos de la cancha
     cancha(B)
@@ -92,7 +109,10 @@ def piezas(B):
 
 VISTAS = [('manzana_cancha', (73, 14, 34), (73, 0, 52)), ('barrio_calle', (-12, 2.2, -6.5), (60, 3.2, -7)), ('barrio_plaza_azotea', (6, 13.5, 22), (-37, 3, 56)),
           ('manzana_calle', (54, 2.4, -13), (70, 4, 2)), ('manzana_oeste', (-40, 2.4, -13), (-55, 4, 4)),
-          ('manzana_azotea', (18, 16, 30), (30, 0, 60)), ('manzana_todo', (18, 70, -30), (18, 0, 40))]
+          ('manzana_azotea', (18, 16, 30), (30, 0, 60)), ('manzana_todo', (18, 70, -30), (18, 0, 40)),
+          ('jardin_cenital', (17.5, 92, 49.5), (17.5, 0, 50)), ('jardin_puerta', (17.5, 1.6, 49), (30, 1.2, 76)),
+          ('jardin_centro', (34, 1.6, 52), (10, 1.4, 77)), ('jardin_este', (40, 1.6, 50), (78, 1.2, 74)),
+          ('jardin_huerto', (16, 2.4, 56.5), (6, .4, 49.5))]
 
 if __name__ == '__main__':
-    correr(B, piezas, VISTAS, ctx=('plaza', 'baldio', 'enfrente'), res=2048, muestras=300, topes=(18, 90000), ctx_vista=('horizonte',))
+    correr(B, piezas, VISTAS, ctx=('plaza', 'baldio', 'enfrente'), res=2048, muestras=300, topes=(18, 105000), ctx_vista=('horizonte',))

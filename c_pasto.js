@@ -18,6 +18,10 @@ function parche(m,key,fn){const prev=m.onBeforeCompile,pk=Object.prototype.hasOw
 
 const RUIDO='float pH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n'+
  'float pN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(pH(i),pH(i+vec2(1,0)),f.x),mix(pH(i+vec2(0,1)),pH(i+vec2(1,1)),f.x),f.y);}\n';
+// tinte de mundo (parches secos, manchas y verdes): el mismo en el suelo y en las matas, para que las zonas con hojas tengan el tono del pasto liso
+const TINTE='{float n1=pN(vPW*.07),n2=pN(vPW*.29+17.),n3=pN(vPW*1.1+5.);float seco=smoothstep(.5,.85,n1*.65+n2*.35);vec3 c=diffuseColor.rgb;'+
+ 'c=mix(c,c*vec3(1.3,1.13,.74),seco*.8);c=mix(c,c*vec3(1.12,.98,.86),smoothstep(.78,.95,n2)*.6);'+
+ 'c=mix(c,c*vec3(.84,.93,.82),smoothstep(.55,.85,1.-n1)*.45*(1.-seco));c*=.95+.1*n3;diffuseColor.rgb=c;}';
 
 // textura: base apagada y briznas cortas de bajo contraste, que se repite sin costura
 function textura(g,w,h){let s=7;const r=()=>(s=(s*9301+49297)%233280)/233280;
@@ -31,13 +35,10 @@ function textura(g,w,h){let s=7;const r=()=>(s=(s*9301+49297)%233280)/233280;
 function suelo(m){if(m.userData.pasto)return;m.userData.pasto=1;
  parche(m,'|pasto',s=>{
   s.vertexShader='varying vec2 vPW;\n'+s.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvPW=(modelMatrix*vec4(transformed,1.)).xz;');
-  s.uniforms.uHo=U.uHo;s.fragmentShader='varying vec2 vPW;\nuniform vec3 uHo;\n'+RUIDO+s.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif(uHo.z>0.&&distance(vPW,uHo.xy)<uHo.z)discard;').replace('#include <map_fragment>','#include <map_fragment>\n'+
-   '{float n1=pN(vPW*.07),n2=pN(vPW*.29+17.),n3=pN(vPW*1.1+5.);float seco=smoothstep(.5,.85,n1*.65+n2*.35);vec3 c=diffuseColor.rgb;'+
-   'c=mix(c,c*vec3(1.3,1.13,.74),seco*.8);c=mix(c,c*vec3(1.12,.98,.86),smoothstep(.78,.95,n2)*.6);'+
-   'c=mix(c,c*vec3(.84,.93,.82),smoothstep(.55,.85,1.-n1)*.45*(1.-seco));c*=.95+.1*n3;diffuseColor.rgb=c;}')})}
+  s.uniforms.uHo=U.uHo;s.fragmentShader='varying vec2 vPW;\nuniform vec3 uHo;\n'+RUIDO+s.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif(uHo.z>0.&&distance(vPW,uHo.xy)<uHo.z)discard;').replace('#include <map_fragment>','#include <map_fragment>\n'+TINTE)})}
 
 // una mata: 5 hojas, cada una con 3 triángulos (base, doblez y punta); color de la raíz a la punta
-function mataGeo(){const P=[],C=[],ba=new THREE.Color('#5d7a40'),pu=new THREE.Color('#b9bb72'),me=ba.clone().lerp(pu,.55);
+function mataGeo(){const P=[],C=[],ba=new THREE.Color('#5e7c44'),pu=new THREE.Color('#a4ae6c'),me=ba.clone().lerp(pu,.55);
  for(let i=0;i<5;i++){const a=i/5*Math.PI*2+(i%2)*.4,ca=Math.cos(a),sa=Math.sin(a),px=-sa,pz=ca,h=A.alto*(.75+.25*((i*37)%5)/4),w=.035,ab=.05+.04*(i%3);
   const p=(o,y,wd)=>[ca*o+px*wd,y,sa*o+pz*wd],
    b0=p(0,0,-w),b1=p(0,0,w),m0=p(ab,h*.55,-w*.7),m1=p(ab,h*.55,w*.7),t=p(ab*2.6,h,0);
@@ -72,17 +73,18 @@ function matas(root,ms,mPasto){let s=13;const r=()=>(s=(s*9301+49297)%233280)/23
  const geo=mataGeo(),UV=new Float32Array(N*2),m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});
  if(mPasto&&mPasto.lightMap){m.lightMap=mPasto.lightMap;m.lightMapIntensity=mPasto.lightMapIntensity}
  geo.setAttribute('uv1',new THREE.InstancedBufferAttribute(UV,2));
- const im=new THREE.InstancedMesh(geo,m,N),q=new THREE.Quaternion(),e=new THREE.Euler(),S=new THREE.Vector3(),P=new THREE.Vector3(),col=new THREE.Color(),seco=new THREE.Color('#e8cf86');
+ const im=new THREE.InstancedMesh(geo,m,N),q=new THREE.Quaternion(),e=new THREE.Euler(),S=new THREE.Vector3(),P=new THREE.Vector3(),col=new THREE.Color();
  let i=0;for(let n=0;n<N*3&&i<N;n++){const x=r()*area;let lo=0,hi=acc.length-1;while(lo<hi){const md=(lo+hi)>>1;if(acc[md]<x)lo=md+1;else hi=md}const t=T[lo];
   let u=r(),v=r();if(u+v>1){u=1-u;v=1-v}const w=1-u-v;P.set(0,0,0).addScaledVector(t.a,w).addScaledVector(t.b,u).addScaledVector(t.c,v);P.y+=.01;
   if(!libre(P))continue;
   if(t.u){UV[i*2]=t.u[0]*w+t.u[2]*u+t.u[4]*v;UV[i*2+1]=t.u[1]*w+t.u[3]*u+t.u[5]*v}
   const k=r()<A.chicas?.3+r()*.25:.7+r()*.6;S.set(k,k*(.8+r()*.5),k);q.setFromEuler(e.set((r()-.5)*.15,r()*6.283,(r()-.5)*.15));im.setMatrixAt(i,new THREE.Matrix4().compose(P,q,S));
-  col.setScalar(.85+r()*.25);if(r()<.18)col.multiply(seco);im.setColorAt(i,col);i++}
+  col.setScalar(.9+r()*.18);r();im.setColorAt(i,col);i++}   // lo seco lo pone TINTE por zona (como al suelo), no al azar por mata
  im.count=i;
  parche(m,'|mata',s=>{s.uniforms.uT=U.uT;s.uniforms.uV=U.uV;
-  s.vertexShader='uniform float uT,uV;\n'+s.vertexShader.replace('#include <project_vertex>',
-   '{vec4 ip=modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.);float h=position.y/'+A.alto.toFixed(3)+',h2=h*h*uV;'+
+  s.fragmentShader='varying vec2 vPW;\n'+RUIDO+s.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n'+TINTE);
+  s.vertexShader='uniform float uT,uV;\nvarying vec2 vPW;\n'+s.vertexShader.replace('#include <project_vertex>',
+   '{vec4 ip=modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.);vPW=ip.xz;float h=position.y/'+A.alto.toFixed(3)+',h2=h*h*uV;'+
    'transformed.x+=(sin(uT*2.1+ip.x*.6+ip.z*.4)*.06+sin(uT*5.3+ip.z*1.7)*.015)*h2;transformed.z+=sin(uT*1.7+ip.x*.3-ip.z*.5)*.045*h2;}\n#include <project_vertex>')});
  im.name='pasto_matas';im.frustumCulled=false;im.matrixAutoUpdate=false;im.onBeforeRender=tic;im.visible=!medio()&&!SIN;
  if(window.CMAT&&CMAT.noc)CMAT.noc(m,true);

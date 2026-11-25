@@ -114,4 +114,13 @@ def vida_patio(x0, x1, za, zb, R, tend=True):
     if R.random() < .4:
         c = PAL[R.choice(('blanco', 'lona', 'azul'))]; xs = x1 - 1.6
         silla(xs, za + s * 1.6, R.uniform(-.5, .5) + (math.pi if s > 0 else 0), c); silla(xs - 1.1, za + s * 1.8, R.uniform(-.5, .5) + (math.pi if s > 0 else 0), c)
-    for i in range(R.randint(1, 3)): maceta(R.uniform(x0 + .5, x1 - .5), zb - s * .5, YS, R.choice(('mata', 'agave', 'mata')))
+    for i in range(R.randint(1, 3)): maceta_l(R.uniform(x0 + .5, x1 - .5), zb - s * .5, YS, R.choice(('mata', 'agave', 'mata')))
+
+def maceta_l(x, z, y0=0.0, tipo='mata'):
+    """Maceta de patio más ligera que la de la calle (casi no se ve tras las bardas): barro de 7 lados, dos bolas o cinco pencas."""
+    fa = FA(); pieza(fa, PAL['barro'], P.tubo, (x, y0, z), (x, y0 + .5, z), .2, .3, 7)
+    if tipo == 'mata':
+        for dx, dz, dy, r in ((0, 0, .92, .36), (.2, -.08, .76, .28)): pieza(fa, PAL['hoja'], ico, x + dx, y0 + dy, z + dz, r, 1, .85)
+    else:
+        for i in range(5):
+            a = i * 2 * math.pi / 5; pieza(fa, PAL['agave'], P.viga, (x, y0 + .45, z), (x + math.cos(a) * .45, y0 + 1.2, z + math.sin(a) * .45), .06, .02)
