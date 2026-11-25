@@ -9,7 +9,7 @@ Este archivo es el plan. Al terminar un paso, marcarlo `[x]` con el commit.
 Casona yucateca con **patio central** y corredores de arcos. **Una sola escalera** (junto al zaguán, crujía izquierda) une los cuatro niveles; al salir de ella en cada piso está el plano para ir a una mesa. Cada nivel es su escena y la escalera es un portal, como hoy. Todo detrás de `?casa=glb` hasta que supere a la casa actual.
 
 ## Escala (no negociable)
-Unidades de la casa, no metros. Personaje de pie ~2.1 (`MII.K`=0.8), cubierta de mesa a 1.55 del piso, radio de mesa 2.2, silla a la cadera del sentado (0.95, solo en mesas de juego). Asientos de descanso (bancas, sillones, mecedoras, confidentes, sillas sueltas) a 0.6: los pies cuelgan un poco. El chibi mide 2.0 hasta el pelo (2.5 en su .blend x 0.8). Nada se escala por cuarto ni por juego. En Blender siempre hay un maniquí de 2.1 con mesa y silla. Puerta 3.6, escalón 0.35, barandal 2.0.
+Unidades de la casa, no metros. Personaje de pie ~2.1 (`MII.K`=0.8), cubierta de mesa a 1.55 del piso, radio de mesa 2.2, silla a la cadera del sentado (0.95, en mesas de juego y en las sillas confidentes del barrio, que van a escala). Asientos de descanso (bancas, sillones, mecedoras, sillas sueltas) a 0.6: los pies cuelgan un poco. El chibi mide 2.0 hasta el pelo (2.5 en su .blend x 0.8). Nada se escala por cuarto ni por juego. En Blender siempre hay un maniquí de 2.1 con mesa y silla. Puerta 3.6, escalón 0.35, barandal 2.0.
 Alturas libres: sótano 3.2, planta baja 5.5 (hoy 9), alta 4.2. Niveles: N−1 −3.50, N0 ±0, N+1 +5.80, N+2 +10.30.
 
 ## Distribución (lote 36 × 48; x de 0 a 36, z de 0 en la fachada hacia atrás)

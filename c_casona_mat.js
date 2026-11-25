@@ -8,7 +8,7 @@
 if(typeof THREE==='undefined')return;
 const A={luz:1,copa:.28,noche:0x8c94b0,nocheExt:0x6c7898};
 // de noche (CIELO) todo lo horneado se oscurece y azula como las casas vecinas; lo de afuera más. Lámparas y faroles no.
-const EXT=/^(calle|banqueta|fachada|pasta|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra|hoja|hoja_c|hoja_seca|agave|zacate|flor|tallo)$/,NOC=[];let REG=false;
+const EXT=/^(calle|banqueta|fachada|pasta|plaza|pasto|copa|tronco|barda|porton|laja|persiana|tierra|piedra|hoja|hoja_c|hoja_seca|agave|zacate|flor|tallo)$/,NOC=[];let REG=false;
 // luz de noche: <nivel>_luz_noche.webp (blender: hornear_noche); se pide la primera vez que es de noche; sin archivo se queda la de día
 const LMS=[],LMN=new Set();
 function tema(){const n=!!(window.CIELO&&CIELO.noche&&CIELO.noche()),a=new THREE.Color(A.noche),e=new THREE.Color(A.nocheExt);
@@ -26,6 +26,11 @@ function texturas(ctex){if(TX)return TX;
   g.fillStyle=a;g.fillRect(x,y,s,s);[[0,0],[s,0],[0,s],[s,s]].forEach(([u,v])=>{g.fillStyle=b;g.beginPath();g.arc(x+u,y+v,s*.38,0,7);g.fill();g.fillStyle=c;g.beginPath();g.arc(x+u,y+v,s*.15,0,7);g.fill()});
   g.fillStyle=d;g.beginPath();g.moveTo(x+s/2,y+s*.33);g.lineTo(x+s*.67,y+s/2);g.lineTo(x+s/2,y+s*.67);g.lineTo(x+s*.33,y+s/2);g.closePath();g.fill();
   g.strokeStyle='rgba(60,40,20,.12)';g.lineWidth=2;g.strokeRect(x+1,y+1,s-2,s-2);g.restore()}};
+ // plaza: octágono de cantera clara con taco de barro donde se juntan cuatro (piso de plaza; la roseta es de la casa). 2x2 celdas
+ const octa=(a,a2,b,j)=>(g,w,h)=>{const n=2,s=w/n,k=s*.29,p=2;g.fillStyle=j;g.fillRect(0,0,w,h);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const X=x*s,Y=y*s;g.fillStyle=(x+y)%2?a2:a;g.beginPath();g.moveTo(X+k,Y+p);g.lineTo(X+s-k,Y+p);g.lineTo(X+s-p,Y+k);g.lineTo(X+s-p,Y+s-k);
+   g.lineTo(X+s-k,Y+s-p);g.lineTo(X+k,Y+s-p);g.lineTo(X+p,Y+s-k);g.lineTo(X+p,Y+k);g.closePath();g.fill()}
+  g.fillStyle=b;for(let y=0;y<=n;y++)for(let x=0;x<=n;x++){const X=x*s,Y=y*s,r=k-p*1.5;g.beginPath();g.moveTo(X,Y-r);g.lineTo(X+r,Y);g.lineTo(X,Y+r);g.lineTo(X-r,Y);g.closePath();g.fill()}};
  const cenefa=(g,w,h)=>{g.fillStyle='#b98c78';g.fillRect(0,0,w,h);g.fillStyle='#ece2cf';g.beginPath();g.moveTo(w/2,8);g.lineTo(w-8,h/2);g.lineTo(w/2,h-8);g.lineTo(8,h/2);g.closePath();g.fill();
   g.fillStyle='#7e9c84';g.beginPath();g.moveTo(w/2,h*.3);g.lineTo(w*.7,h/2);g.lineTo(w/2,h*.7);g.lineTo(w*.3,h/2);g.closePath();g.fill();g.strokeStyle='rgba(40,20,10,.2)';g.lineWidth=2;g.strokeRect(1,1,w-2,h-2)};
  const mosaico=(g,w,h)=>{const n=4,s=w/n;for(let j=0;j<n;j++)for(let i=0;i<n;i++){g.fillStyle=(i+j)%2?'#c9a28a':'#ece2d4';g.fillRect(i*s,j*s,s,s)}
@@ -97,6 +102,7 @@ function texturas(ctex){if(TX)return TX;
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.08)','rgba(120,100,70,.06)',1400,1,3),1/2)},   // aplanado fino y parejo (antes óvalos grandes que se veían como manchas)
   cantera:{map:T('cantera',512,512,ruido('#e7dac4','rgba(120,95,60,.07)','rgba(255,248,232,.12)',1600,2,4),1/2)},   // 512: de cerca, la de 256 se veía pixeleada en arcos y marcos
   pasta:{map:T('pasta',256,256,roseta('#ece5d4','#bccab2','#d9ad94','#bccab2'),1/1.2)},
+  plaza:{map:T('plaza',256,256,octa('#ebe1cd','#e4d8c1','#c4805f','#bba98d'),1/1.8)},   // celda de 0.9
   corredor:{map:T('corredor',256,256,roseta('#e6d2bb','#d4b48f','#c98f6c','#d4b48f'),1/1.2)},
   cenefa:{map:T('cenefa',128,128,cenefa,1/.8)},mosaico:{map:T('mosaico',256,256,mosaico,1/1.6)},
   laja:{map:T('laja',256,256,laja,1/3)},cuarto:{map:T('cuarto',128,128,cuarto,1)},

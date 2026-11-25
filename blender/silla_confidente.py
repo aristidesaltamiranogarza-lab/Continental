@@ -1,14 +1,14 @@
 # blender/silla_confidente.py — prepara la silla confidente (MeridaChairs.blend, descargado) para el barrio:
-# la gira con los dos pies sobre x, centrada, asiento a 0.6 (medida fija de los asientos de descanso), la reduce y la guarda en props/silla_confidente.obj.
-#   blender -b <ruta>/MeridaChairs.blend --python blender/silla_confidente.py -- [proporción=0.12] [png]
+# la gira con los dos pies sobre x, centrada, asiento a 0.95 (a escala, como las sillas de las mesas; 25 nov: a 0.6 se veían chiquitas), la reduce y la guarda en props/silla_confidente.obj.
+#   blender -b <ruta>/MeridaChairs.blend --python blender/silla_confidente.py -- [proporción=1] [png]   (1 = el modelo completo; solo quedan 4 en el barrio)
 # barrio_kit.banca_conf la lee (solo v/f, sin texturas: color por vértice como todo el barrio).
 import bpy, bmesh, math, sys, os
 from mathutils import Vector, Matrix
 
 ARG = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-RAT = float(ARG[0]) if ARG else .12
+RAT = float(ARG[0]) if ARG and ARG[0] != 'png' else 1.0
 SALIDA = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'props', 'silla_confidente.obj')
-ASIENTO = .6
+ASIENTO = .95
 
 o = next(x for x in bpy.data.objects if x.type == 'MESH')
 bm = bmesh.new(); bm.from_mesh(o.data)
@@ -23,11 +23,12 @@ s = ASIENTO / zs[-1]                      # cara de arriba más alta del cojín 
 M = Matrix.Scale(s, 4) @ Matrix.Rotation(-math.atan2(d.y, d.x), 4, 'Z') @ Matrix.Translation(-Vector((c.x, c.y, 0)))
 bmesh.ops.transform(bm, matrix=M, verts=bm.verts)
 bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=.004)
+bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')   # el .obj lleva solo triángulos
 me = bpy.data.meshes.new('silla'); bm.to_mesh(me); bm.free()
 ob = bpy.data.objects.new('silla', me); bpy.context.scene.collection.objects.link(ob)
 for x in list(bpy.data.objects):
     if x is not ob and x.type == 'MESH': bpy.data.objects.remove(x)
-md = ob.modifiers.new('dec', 'DECIMATE'); md.ratio = RAT; md.use_collapse_triangulate = True
+if RAT < 1: md = ob.modifiers.new('dec', 'DECIMATE'); md.ratio = RAT; md.use_collapse_triangulate = True
 dg = bpy.context.evaluated_depsgraph_get(); ev = ob.evaluated_get(dg); m2 = ev.to_mesh()
 vs = [v.co for v in m2.vertices]
 print('silla: %d triangulos, %.2f x %.2f x %.2f' % (len(m2.polygons), *(max(v[i] for v in vs) - min(v[i] for v in vs) for i in range(3))))

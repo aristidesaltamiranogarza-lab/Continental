@@ -24,7 +24,7 @@ ARCOS = dict(zaguan=4.6, patio=4.6, salon=4.8, comedor=4.8)      # vanos con arc
 LLEGADA = (18.5, 3.5)                                             # llegas por el zaguán
 GATA = (10.2, 23.8, math.pi / 2)                                  # junto a la hamaca, mirando al patio
 ARBOL = (20.8, 25.6, 3.4)
-COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), cantera=(.8, .7, .55), pasta=(.78, .72, .6),
+COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), cantera=(.8, .7, .55), pasta=(.78, .72, .6), plaza=(.84, .78, .68),
              cenefa=(.55, .38, .3), mosaico=(.7, .62, .52), corredor=(.75, .6, .45), laja=(.64, .61, .55), pasto=(.3, .45, .22),
              cuarto=(.8, .77, .7), techo=(.8, .74, .62), madera=(.3, .18, .1), bejuco=(.75, .6, .38), porton=(.32, .2, .12),
              persiana=(.18, .36, .26), hierro=(.05, .05, .05), tapete=(.5, .2, .15), hamaca=(.7, .35, .3), tronco=(.35, .25, .18),
@@ -37,7 +37,7 @@ PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para l
 PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, escalon=float(os.environ.get('R4_ESC', 2)), techo=float(os.environ.get('R4_TECHO', 1)))   # R4: techo .5 -> 1 (rincones techo-muro a 16 cm por texel)   # techo: ver techos() (antes .3 x .5 = 2 texeles por unidad)   # escalon 2: la escalera quedaba pixeleada en lo oscuro
 MUROS = ('muro', 'lambrin', 'cantera', 'cenefa', 'barda')   # piezas que se meten unas en otras (ver _dentro)
 FUERA = .1
-ARQ = ('muro', 'techo', 'lambrin', 'cantera', 'escalon', 'pasto', 'corredor', 'cuarto', 'barda', 'rod', 'pasta', 'azulejo', 'laja', 'cenefa', 'porton', 'persiana', 'mosaico', 'banqueta', 'calle', 'tierra')   # R4: arquitectura (lo demás es decoración)
+ARQ = ('muro', 'techo', 'lambrin', 'cantera', 'escalon', 'pasto', 'corredor', 'cuarto', 'barda', 'rod', 'pasta', 'plaza', 'azulejo', 'laja', 'cenefa', 'porton', 'persiana', 'mosaico', 'banqueta', 'calle', 'tierra')   # R4: arquitectura (lo demás es decoración)
 
 def V(x, y, z): return Vector((x - 18, z - 17, y))        # plano (x, alto, z) -> Blender
 def VB(v): return Vector((v[0], v[2], v[1]))               # vector del plano -> Blender

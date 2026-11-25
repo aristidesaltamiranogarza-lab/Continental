@@ -50,7 +50,7 @@ def jardin(B):
     ln = B.red([([(18, 47.6), (17.9, 49.6), (16.2, 52.0), (13, 53.3), (5, 54), (-3, 51.2), (-10, 50.4), (-17, 52.2), (-23.6, 52)], 2.6, .18, 1),
            ([(17.9, 49.6), (19.8, 52.0), (23, 53.3), (32, 54.6), (41, 52.6), (50, 51.4), (56.5, 54), (59.2, 58.2), (62.5, 60.4)], 2.6, .18, 2),
            ([(27.6, 54.0), (27.3, 56.4), (27.0, 58.4)], 1.7, .1, 3)],
-          discos=[(25.4, 60.1, 2.5), (28.9, 61.1, 2.5)], cortes=[(0, 1, 47.9), (1, 0, -23.6)])
+          discos=[(25.4, 60.1, 2.5), (28.9, 61.1, 2.5), (-22.2, 52, 2.1)], cortes=[(0, 1, 47.9), (1, 0, -22.6)])   # la rama de la plaza se abre a 4 m y acaba en el remate de cantera (x −22.6)
     gotas = ((8.5, 56.8, 6.5, 2.6, .12), (21.2, 58.8, 3.6, 2.2, -.2), (-15.8, 55.6, 4.2, 2.6, .3), (54.2, 60.6, 3.4, 4.2, .2), (45, 49.8, 4.2, 1.2, -.05),
              (-20.8, 45.0, 2.0, 4.6, .08), (-20.8, 59.6, 2.0, 4.2, -.1), (-46.0, 38.2, 4.2, 1.7, .05), (-28.5, 38.2, 4.0, 1.7, -.05))   # orillas de la plaza: el pasto con hojas no corta en cuadro
     # 3b: lomas suaves; planas cerca de muros, bardas, casona, traspatio, cancha, plaza, andador, huerto, caminitos y pasto con hojas
@@ -60,7 +60,7 @@ def jardin(B):
     B.suelo_lomas(huecos)
     for i, m in enumerate(gotas): B.mancha(*m, seed=i + 1)                          # 3b: pasto con hojas en manchas de orilla irregular
     for x, z in ((-12.5, 53.6), (1.5, 55.4), (36.5, 51.1), (46, 50.3), (55.4, 57.4)): B.farol(x, z, B.SUELO(x, z))   # a un lado del camino
-    B.banca_conf(-4.5, 54.2, -.34, B.SUELO(-4.5, 54.2)); B.banca_conf(43.5, 54.3, .13, B.SUELO(43.5, 54.3))
+    # sin confidentes en la manzana (25 nov: eran demasiadas; quedan 2 en la plaza y 2 en el parque)
     B.mesa_domino(25.4, 60.1, .1, fichas=True); B.mesa_domino(28.9, 61.1, -.2)          # rincón de dominó bajo la ceiba
     B.huerto()                                                                           # junto a la puerta trasera, al poniente
     B.albarrada([(35.2, 58.4), (41.5, 56.5), (47.5, 55.7), (51.5, 56.6)], 31)           # albarradas que acompañan al camino

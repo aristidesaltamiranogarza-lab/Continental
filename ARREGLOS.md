@@ -49,7 +49,7 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Banca del traspatio: moverla pegada a la pared (hoy mira directo al árbol)
 - [x] Bancas cafés (de madera): cambiarles un poco la posición
 - [x] Patio de juegos del parque: más detalle
-- [ ] Letras de MÉRIDA: rehacerlas; lo ideal es una tipografía convertida a 3D (después)
+- [x] Letras de MÉRIDA: rehacerlas con tipografía en 3D — hecho en c4b033c (letras_merida.py: Arial Black extruida, grecas, acento y base)
 - [x] Piso del terreno con llantas, agaves y piedras (baldío/lote junto a la casa, 25 nov, captura del usuario): el pasto y la tierra se enciman raro (franjas que parpadean, z-fighting); separar alturas o juntar en una sola malla — el pasto del jardín (manzana) pasaba por debajo del baldío: hueco en suelo_lomas; manchas de tierra a .03
 - [x] Barda de esa zona: la textura de manchas (óvalos oscuros grandes) se ve fea; cambiarla por un aplanado más fino y parejo — CMAT barda: grano fino (1400 puntos de 1–3 px)
 - [x] Planta alta vista desde la planta baja (25 nov, captura del usuario): en PB, con la cámara de arriba, se ve un pedazo de la planta alta encima (franja superior con el piso de madera, el barandal y las etiquetas Continental/Uno de PA) cortado a la mitad de la pantalla. Revisar el corte/ocultado de PA cuando estás en PB (MARC.corte / CPB.corte, goFloor) → causa: el fondo (calle.glb, con los cuartos del frente de PA) dejaba su profundidad; ahora con tu Mii adentro se borra (c_casa_calle.js fondo). No se pudo reproducir en el navegador: confirmar en teléfono
@@ -58,7 +58,7 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 
 ## 4. Objetos del barrio (Blender)
 - [x] Rehacer las sillas confidentes blancas (medio; preview) — modelo descargado en props/silla_confidente.obj (blender/silla_confidente.py lo prepara: 1144 triángulos); manzana, plaza y 4 en el kiosco del parque
-- [ ] Sillas confidentes a escala (25 nov, usuario: "muy chiquitas", "demasiadas", muy simplificadas). Plan: asiento a 0.95 como las sillas de mesa (x1.6: 2.3 de largo, 1.45 de alto), dejar 4 de 14 (2 en el kiosco del parque, 2 en la plaza; quitar las 2 de la manzana) y reducir menos (~2500 triángulos, menos que hoy en total). Rehornear parque y plaza (manzana solo si se quitan sus 2). Esperando el visto bueno del usuario antes de Blender.
+- [x] Sillas confidentes a escala (25 nov, usuario: "muy chiquitas", "demasiadas", muy simplificadas): el modelo completo que dio el usuario (4580 triángulos, sin reducir), asiento a 0.95 como las sillas de mesa (2.25 x 1.27 x 1.41); quedan 4 de 14 (2 en la plaza, 2 en el kiosco del parque, ninguna en la manzana). Plaza (misma captura): piso nuevo de octágono y taco (CMAT 'plaza'; la roseta de pasta queda para la casa) también en el círculo del parque, guarnición de cantera en la orilla de los dos círculos, y el brazo del este acaba en un remate de cantera donde empieza la laja (se encimaban 60 cm; la laja se abre a 4 m para llegar al mismo ancho). Exportado en crudo (?crudo); falta solo el horneado final
 - [x] Rehacer la fuente (medio; preview) — pila de ocho lados con pretil, balaustre, dos tazas y piña (barrio_kit.fuente)
 - [x] Iglesia con más detalle; cruz y esquinas encimadas se atraviesan: unir en una sola malla (medio; preview) — B.unido (boolean exacta); portada, reloj, campanas, pináculos, contrafuertes
 - [x] Árboles inclinados que se salen de su base blanca (bajo) — ya no hay base: la cal va pintada en el tronco (3c)
@@ -75,7 +75,7 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Escaleras: el horneado se ve pixeleado donde llega poca luz (más densidad ahí) — PRIO_MAT escalon 2 (R4_ESC); falta verlo en el horneado
 
 ## 6. Horneado final
-- [ ] Hornear solo lo que cambió (barrio, sm, pb), noche con menos muestras; avisar plan y tiempo antes (~10 min por nivel); subir cada nivel al terminar; revisar dinteles, cantos y rincones (R4)
+- [ ] Hornear solo lo que cambió (barrio, sm, pb), noche con menos muestras; SOLO cuando el usuario diga que todo está terminado (barrio: plaza, parque y manzana cambiaron el 25 nov); subir cada nivel al terminar; revisar dinteles, cantos y rincones (R4)
 
 ## Notas
 - Fortnite usa luz en tiempo real (Lumen), no sirve en Androids débiles. Lo útil para nosotros: densidad de luz pareja (más en rincones y escaleras), denoiser, filtro suave al leer (paso 2) y la oclusión de rincones aparte.

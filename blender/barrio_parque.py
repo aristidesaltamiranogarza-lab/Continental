@@ -125,7 +125,8 @@ def piezas(B):
     # andadores en cruz (de la entrada al kiosco, y de lado a lado) con guarnición de cantera
     for a, b, c, d in ((EX[0], EX[1], CZ + RP - .5, Z0), (EX[0], EX[1], Z1, CZ - RP + .5), (X0, CX - RP + .5, CZ - 2, CZ + 2), (CX + RP - .5, X1, CZ - 2, CZ + 2)):
         B.losa('andador', 'banqueta', a, b, min(c, d), max(c, d), YP, prio=.5)
-    B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS, CZ), (CX, .1, CZ), RP, RP, 32)
+    B.pieza(B.M('plaza', 'plaza', prio=.7), None, P.tubo, (CX, YS, CZ), (CX, .1, CZ), RP, RP, 48)   # octágono y taco, como la plaza
+    B.pieza(B.M('cantera', 'cantera'), None, P.anillo, CX, CZ, RP - .3, RP + .06, YS - .02, .115, 64)   # guarnición en la orilla
     B.kiosco(CX, CZ, .1)
     # faroles: en la entrada, en el andador y en la plaza del kiosco
     for x, z in ((EX[0] - .4, -20), (EX[1] + .4, -26), (EX[0] - .4, -33), (EX[1] + .4, -38)): B.farol(x, z, YP)
@@ -136,7 +137,7 @@ def piezas(B):
                     (0.0, 3.3, math.pi - .06), (6.0, 3.1, math.pi + .05), (33.5, 3.2, math.pi - .05), (39.5, 3.4, math.pi + .08)):
         banca(x, CZ + z, a)
     # sillas confidentes en el anillo del kiosco, junto al andador de lado a lado
-    for g in (22.5, 157.5, 202.5, 337.5):
+    for g in (22.5, 202.5):   # 2, frente a frente (eran 4)
         r = math.radians(g); B.banca_conf(CX + math.cos(r) * 7.2, CZ + math.sin(r) * 7.2, r + math.pi / 2, .1)
     banca(EX[0] - 1.8, -42, -math.pi / 2); banca(EX[1] + 1.8, -42, math.pi / 2)
     # árboles (el laurel de barrio_enfrente en (−2, −50) y el de (43, −45) ya están: se dejan libres)

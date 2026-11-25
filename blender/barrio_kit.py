@@ -339,7 +339,7 @@ def farol(x, z, y0=0.0):
 _SILLA = []
 def banca_conf(x, z, ang=0.0, y0=0.0):
     """Silla confidente de concreto blanco (props/silla_confidente.obj, de silla_confidente.py): dos asientos que se miran,
-    pies sobre x, asiento a 0.6; mide 1.45 x 0.8 x 0.9. Sin girar: largo en x. Caras suaves (se hornea sin facetas)."""
+    pies sobre x, asiento a 0.95 (a escala); mide ~2.3 x 1.3 x 1.4. Sin girar: largo en x. Caras suaves (se hornea sin facetas)."""
     if not _SILLA:
         import os
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'props', 'silla_confidente.obj')) as f:

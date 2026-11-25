@@ -1,6 +1,6 @@
 # blender/barrio_plaza.py — andador, plaza e iglesia (lámina A-02; plaza del tamaño de la de código, 28 × 24, juego cx −55, cz −35).
 # Andador entre dos vecinas (x −39..−35, de la banqueta a la plaza) con sus bardas y faroles; plaza con kiosco al centro, plaza redonda de
-# pasta con 8 bancas confidente, andadores en cruz, fuente a la entrada, faroles, dos laureles, un flamboyán y una ceiba; atrio con cruz
+# octágono y taco con 2 sillas confidentes, andadores en cruz, fuente a la entrada, faroles, dos laureles, un flamboyán y una ceiba; atrio con cruz
 # y la iglesia al fondo mirando a la plaza (dos torres con cupulín, espadaña, almenas y cúpula). Exporta barrio_plaza.glb.
 #   blender -b --factory-startup --python blender/barrio_plaza.py -- vista|hornear|exportar   (ver blender/barrio_lib.py)
 import os, math
@@ -108,9 +108,13 @@ def piezas(B):
     for x0, x1 in ((-51, -40), (-34, -23)):
         for z0, z1 in ((40, 50), (54, 64)): B.cuadrante('pasto', 'pasto', x0, x1, z0, z1, CX, CZ, RP, YS)
     for a, b in ((-51, -40), (-34, -23)): B.losa('banqueta', 'banqueta', a, b, 50, 54, YP)
-    B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS - .02, CZ), (CX, YS + .1, CZ), RP, RP, 32)
+    # remate de cantera al final del brazo del este: ahí empieza el caminito de laja de la manzana (antes se encimaban 60 cm)
+    B.losa('cantera', 'cantera', -23, -22.6, 49.8, 54.2, YP + .03)
+    # piso de octágono y taco (CMAT 'plaza'; la roseta de pasta es de la casa) y guarnición de cantera en la orilla
+    B.pieza(B.M('plaza', 'plaza', prio=.7), None, P.tubo, (CX, YS - .02, CZ), (CX, YS + .1, CZ), RP, RP, 48)
+    B.pieza(B.M('cantera', 'cantera'), None, P.anillo, CX, CZ, RP - .3, RP + .06, YS - .02, YS + .115, 64)
     B.fuente(CX, CZ, YS + .1)   # P1: el kiosco se fue al parque nuevo (barrio_parque.py); la fuente queda al centro de la plaza
-    for i in range(8):
+    for i in (0, 4):   # solo 2 confidentes, frente a frente (eran 8, chiquitas)
         a = i * math.pi / 4 + math.pi / 8; B.banca_conf(CX + math.cos(a) * 8.2, CZ + math.sin(a) * 8.2, a + math.pi / 2, YS + .1)
     for x, z in ((-41.2, 41.0), (-32.8, 62.9), (-50.4, 49.3), (-23.6, 54.7)): B.farol(x, z, YS)   # junto a los andadores, no en ellos
     B.laurel(-46, 44.5, 1.0, y0=YS); B.laurel(-28, 44.5, 1.0, y0=YS); B.flamboyan(-28, 59.5, 1.0, y0=YS); B.ceiba(-46, 59.5, .95, y0=YS)
