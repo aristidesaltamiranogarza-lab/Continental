@@ -33,6 +33,15 @@ def piezas(B):
     # árboles: laureles en la banqueta cargados hacia la calle, y detrás de la fila (A-02) más sencillos
     B.laurel(-30, -13.6, 1.0, lean=(0, 1), y0=YE); B.laurel(54, -13.6, 1.0, lean=(0, 1), y0=YE)
     for x, z in ((-42, -46), (-2, -50), (43, -45), (80, -50)): B.laurel(x, z, .9, y0=YS, sub=2, choque=False)
+    # P4: relleno ligero detrás de la fila fuera del parque (barrio_parque.py ocupa x −12..52): naranjos, matas, agaves y un tendedero
+    for x, z in ((-52, -62), (-26, -40), (-34, -70), (64, -40), (88, -66), (70, -74)): B.naranjo(x, z, .9, y0=YS)
+    for x, z in ((-58, -36), (-46, -34), (-20, -58), (-16, -76), (58, -60), (76, -36), (94, -44), (92, -78)): B.mata(x, z, 1.2, y0=YS)
+    for x, z in ((-50, -44), (-30, -52), (-22, -32), (62, -52), (84, -40), (96, -58)): B.agave(x, z, .9, y0=YS)
+    hi, fa = B.HI(), B.FA()
+    for x in (-40, -32): B.pieza(hi, None, P.viga, (x, YS, -36), (x, YS + 2.6, -36), .05)
+    B.pieza(hi, None, P.viga, (-40, YS + 2.5, -36), (-32, YS + 2.5, -36), .012)
+    for i, c in enumerate(('blanco', 'azul', 'lona', 'amarillo', 'blanco')):
+        xa = -39.2 + i * 1.5; B.pieza(fa, B.PAL[c], B.caja_o, xa, xa + 1.0, YS + 1.6, YS + 2.5, -36.03, -35.97)
     # en la calle: tope, coladeras, triciclo, puesto de la esquina, botes y macetas
     B.tope(60, -11.55, -1.65)
     for x, z in ((64, -10.9), (-42, -10.9), (-50, -2.3), (90, -2.3)): B.coladera(x, z)

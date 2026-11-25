@@ -18,7 +18,7 @@ const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
 // el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
 // que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
-const BV={manzana:0,enfrente:0,plaza:0,baldio:0,horizonte:0},FB={};
+const BV={manzana:0,enfrente:0,plaza:0,baldio:0,horizonte:0,parque:0},FB={};
 const CRU=/[?&]crudo\b/.test(location.search),PRB=CRU||/[?&]barrio=prueba/.test(location.search);   // ?crudo: GLB sin hornear de modelos/casona/crudo/
    // ?barrio=prueba: carga todas las piezas aunque BV sea 0 (probar un horneado antes de subir la versión)
 const BAR=k=>GLB()&&(BV[k]>0||PRB)&&!/[?&]barrio=caja/.test(location.search);

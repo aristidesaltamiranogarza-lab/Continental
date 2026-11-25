@@ -82,8 +82,7 @@ def piezas(B):
     B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS, CZ), (CX, .1, CZ), RP, RP, 32)
     B.barda(-23, 40, -23, 78)
     for a, b in ((-51, -39), (-35, -23)): B.barda(a, 40, b, 40)
-    B.kiosco(CX, CZ, .1)
-    B.fuente(CX, 43.4, .06)
+    B.fuente(CX, CZ, .1)   # P1: el kiosco se fue al parque nuevo (barrio_parque.py); la fuente queda al centro de la plaza
     for i in range(8):
         a = i * math.pi / 4 + math.pi / 8; B.banca_conf(CX + math.cos(a) * 8.2, CZ + math.sin(a) * 8.2, a + math.pi / 2, .1)
     for x, z in ((CX, 40.6), (CX, 63.4), (-50.4, CZ), (-23.6, CZ)): B.farol(x, z, .06)

@@ -122,6 +122,7 @@ def enfrente():
     x = -22
     for i, (w, c, H) in enumerate(ENF):
         x0, x1, m = x, x + w, x + w / 2
+        if c == 'terra': x = x1; continue   # P2: aquí entra el parque (barrio_parque.py), frente al zaguán
         if w >= 11: hu = [('v', x0 + 1.8), ('v', x0 + 4.2), ('p', m + 1.4), ('v', x1 - 1.8)]
         elif w >= 8: hu = [('v', x0 + 1.7), ('p', m + (.4 if i % 2 else -.4)), ('v', x1 - 1.7)]
         else: hu = [('p', x0 + 2.1), ('v', x1 - 2.1)]

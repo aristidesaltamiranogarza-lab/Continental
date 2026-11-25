@@ -2,10 +2,34 @@
 # (x −62..−25 y 36..98), banqueta de este lado, postes, las filas de las calles 62 y 60, la fila del fondo (de espaldas, sin Calle 57),
 # patios interiores con bardas, cuartitos, tinacos y árboles (A-02), y las calles laterales hasta el fondo. Exporta barrio_manzana.glb.
 #   blender -b --factory-startup --python blender/barrio_manzana.py -- vista|hornear|exportar   (ver blender/barrio_lib.py)
-import os
+import os, math
 D = next(d for d in [os.getcwd()] + ([os.path.dirname(os.path.dirname(os.path.abspath(__file__)))] if '__file__' in globals() else []) if os.path.isfile(os.path.join(d, 'blender', 'casona.py')))
 exec(open(os.path.join(D, 'blender', 'barrio_lib.py'), encoding='utf-8').read())
 B = cargar('manzana')
+
+def cancha(B):
+    """P3: cancha de fútbol rápido entre los patios (x 61..85, z 45..59): pasto con franjas y rayas blancas, dos porterías,
+    gradita de tres escalones del lado del fondo y barda baja alrededor con entradas en las esquinas. Ligera: cajas planas."""
+    P, fa, Y = B.P, B.FA(), B.YS + .02; x0, x1, z0, z1 = 61, 85, 45, 59; bl = B.PAL['blanco']; cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
+    P.quad('manzana_cancha', 'pasto', x0 - .5, z0 - .5, x1 + .5, z1 + .5, y=Y, prio=.3)
+    for i in range(0, 12, 2): B.pieza(fa, B.lin('#5e8c45'), B.caja_o, x0 + i * 2, x0 + i * 2 + 2, Y, Y + .01, z0, z1)   # franjas
+    r = .08
+    for a, b, c, d in ((x0, x1, z0, z0 + r), (x0, x1, z1 - r, z1), (x0, x0 + r, z0, z1), (x1 - r, x1, z0, z1), (cx - r / 2, cx + r / 2, z0, z1),
+                       (x0, x0 + 3.5, cz - 4, cz - 4 + r), (x0, x0 + 3.5, cz + 4 - r, cz + 4), (x0 + 3.5 - r, x0 + 3.5, cz - 4, cz + 4),
+                       (x1 - 3.5, x1, cz - 4, cz - 4 + r), (x1 - 3.5, x1, cz + 4 - r, cz + 4), (x1 - 3.5, x1 - 3.5 + r, cz - 4, cz + 4)):
+        B.pieza(fa, bl, B.caja_o, a, b, Y, Y + .02, c, d)
+    pts = [(cx + math.cos(i * math.pi / 12) * 2.5, Y + .01, cz + math.sin(i * math.pi / 12) * 2.5) for i in range(25)]
+    for a, b in zip(pts, pts[1:]): B.pieza(fa, bl, P.viga, a, b, .08, .01)   # círculo central
+    for x, s in ((x0, -1), (x1, 1)):   # porterías: postes y travesaño blancos, red al fondo (hierro delgado)
+        for z in (cz - 1.8, cz + 1.8): B.pieza(fa, bl, B.caja_o, x - .06, x + .06, Y, Y + 2.4, z - .06, z + .06)
+        B.pieza(fa, bl, B.caja_o, x - .06, x + .06, Y + 2.3, Y + 2.42, cz - 1.86, cz + 1.86)
+        B.pieza(B.HI(), None, P.viga, (x + s * 1.0, Y, cz - 1.8), (x + s * 1.0, Y, cz + 1.8), .03)
+        for z in (cz - 1.8, cz + 1.8): B.pieza(B.HI(), None, P.viga, (x, Y + 2.4, z), (x + s * 1.0, Y, z), .03)
+    for i in range(3):   # gradita
+        B.pieza(fa, B.PAL['gris'], B.caja_o, 66, 80, B.YS, Y + .45 * (i + 1), z1 + 1.0 + i * .7, z1 + 1.7 + i * .7)
+    for xa, za, xb, zb in ((x0 - 1, z0 - 1, x1 - 2, z0 - 1), (x0 + 2, z1 + 3.4, x1 + 1, z1 + 3.4), (x0 - 1, z0 - 1, x0 - 1, z1 - 2), (x1 + 1, z0 + 2, x1 + 1, z1 + 3.4)):
+        B.barda(xa, za, xb, zb, 1.0, e=.15)
+    B.ex_obs(B.NOMB + '_fachadas', cx, z1 + 2.2, 1.2)
 
 def piezas(B):
     P, PAL, YS, YA = B.P, B.PAL, B.YS, B.YA
@@ -52,9 +76,10 @@ def piezas(B):
     B.naranjo(40, 72, y0=YS); B.naranjo(-30, 32, y0=YS); B.naranjo(18, 70, y0=YS); B.naranjo(66, 68, .9, y0=YS); B.naranjo(-8, 54, y0=YS)
     B.naranjo(-17, 70, y0=YS); B.palmera(-45, 30, 9, y0=YS, choque=False); B.naranjo(62, 28, y0=YS)
     B.flamboyan(57, 40, y0=YS, choque=False); B.flamboyan(82, 64, .95, y0=YS, choque=False)                 # los dos de la cancha
+    cancha(B)
     B.bugambilia2(-48.6, -45.6, 2.5, 21.6, 22.4, seed=21, n=18)
 
-VISTAS = [('barrio_calle', (-12, 2.2, -6.5), (60, 3.2, -7)), ('barrio_plaza_azotea', (6, 13.5, 22), (-37, 3, 56)),
+VISTAS = [('manzana_cancha', (73, 14, 34), (73, 0, 52)), ('barrio_calle', (-12, 2.2, -6.5), (60, 3.2, -7)), ('barrio_plaza_azotea', (6, 13.5, 22), (-37, 3, 56)),
           ('manzana_calle', (54, 2.4, -13), (70, 4, 2)), ('manzana_oeste', (-40, 2.4, -13), (-55, 4, 4)),
           ('manzana_azotea', (18, 16, 30), (30, 0, 60)), ('manzana_todo', (18, 70, -30), (18, 0, 40))]
 
