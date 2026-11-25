@@ -14,7 +14,15 @@ const M={
  calle_vecinas:{f:'c0',x:14,z:22,yaw:Math.PI,fp:0,ox:0,oz:0,k:.8,a:.6,t:0},
  alta_patio:{f:'c1',x:-8,z:0,yaw:1.57,fp:0,ox:0,oz:0,k:1,a:-1.57,t:0},
  sotano:{f:'cm1',x:0,z:5,yaw:Math.PI,fp:0,ox:0,oz:0,k:1,a:0,t:0},
- azotea:{f:'c2',x:0,z:0,yaw:Math.PI,fp:0,ox:0,oz:0,k:.9,a:.5,t:0}
+ azotea:{f:'c2',x:0,z:0,yaw:Math.PI,fp:0,ox:0,oz:0,k:.9,a:.5,t:0},
+ // casos reportados (25 nov): la azotea o la planta alta tapaban a tu Mii, el cubo de la escalera en el sótano, el jardín desde la azotea
+ pb_patio_lejos:{f:'c0',x:-8,z:5,yaw:0,fp:0,ox:0,oz:0,k:.6,a:0,t:0},
+ pb_cerca:{f:'c0',x:-8,z:5,yaw:0,fp:0,ox:0,oz:0,k:3,a:0,t:0},
+ pb_primera:{f:'c0',x:-8,z:5,yaw:0,fp:1,ox:0,oz:0,k:1,a:0,t:0},
+ alta_corredor:{f:'c1',x:-8,z:-4,yaw:0,fp:0,ox:0,oz:0,k:1,a:0,t:0},
+ alta_lejos:{f:'c1',x:-8,z:0,yaw:0,fp:0,ox:0,oz:0,k:.6,a:-1.57,t:0},
+ sotano_billar:{f:'cm1',x:-12,z:-3,yaw:Math.PI,fp:0,ox:0,oz:0,k:1,a:0,t:0},
+ azotea_jardin:{f:'c2',x:0,z:-11.5,yaw:0,fp:0,ox:0,oz:0,k:1,a:0,t:0}
 };
 const LS='casa_marcacam';let loc={};try{loc=JSON.parse(localStorage.getItem(LS)||'{}')||{}}catch(e){}
 const todas=()=>Object.assign({},M,loc),nombres=()=>Object.keys(todas());let i=-1;

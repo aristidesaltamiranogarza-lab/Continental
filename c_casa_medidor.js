@@ -27,6 +27,7 @@ function pinta(fps){const R=window.CASA3D&&CASA3D.R&&CASA3D.R(),I=R&&R.info,M=pe
  h+='<div>'+seg(nav())+' <i>s página ·</i> '+seg(t1)+' <i>s 1ª imagen</i></div>';
  if(G){h+='<div>'+(G.listo==null?'…':seg(G.listo))+' <i>s modelos del piso</i>'+(G.copias?' <i>·</i> '+G.copias[0]+' <i>copias en</i> '+G.copias[1]:'')+'</div>';
   if(G.sinHD)h+='<div class="m-mal">Solo Medio: '+G.sinHD+'</div>'}
+ try{const C=window.CASA3D;if(C&&C.on()&&C.poseCam){const P=C.poseCam(),f=v=>+(+v).toFixed(2);h+='<div><i>toma</i> '+P.f+' '+f(P.x)+','+f(P.z)+' <i>a</i>'+f(P.a)+' <i>k</i>'+f(P.k)+' <i>t</i>'+f(P.t)+(P.ox||P.oz?' <i>o</i>'+f(P.ox)+','+f(P.oz):'')+'</div>'}}catch(e){}
  el.innerHTML=h}
 function tick(now){raf=requestAnimationFrame(tick);if(last)peor=Math.max(peor,now-last);last=now;fr++;
  if(now-t0>=1000){pinta(Math.round(fr*1000/(now-t0)));fr=0;t0=now;peor=0}}

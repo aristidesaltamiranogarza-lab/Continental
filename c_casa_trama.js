@@ -25,10 +25,17 @@ function viste(o,l,on){if(!o.isMesh)return;
  if(on){const m0=Array.isArray(o.material)?o.material[0]:o.material;if(!ORIG.has(o)||!(m0&&m0.userData.trF)){ORIG.set(o,o.material);o.material=Array.isArray(o.material)?o.material.map(m=>copia(m,l)):copia(o.material,l)}}
  else if(ORIG.has(o)){o.material=ORIG.get(o);ORIG.delete(o)}}
 function fade(o,f){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.userData.trF)m.userData.trF.value=f})}
-// ¿el segmento cámara→(pies..cabeza) cruza la línea l por debajo de su alto?
-function tapa(l,c,p){const a=l.h?c.z:c.x,b=l.h?p.z:p.x;if((a-l.c)*(b-l.c)>0)return false;
- const t=(l.c-a)/((b-a)||1e-6),u=l.h?c.x+(p.x-c.x)*t:c.z+(p.z-c.z)*t;if(u<l.a-.3||u>l.b+.3)return false;
- if(l.y0==null)return true;const y1=c.y+(p.y-c.y)*t,y2=c.y+(p.y+A.alto-c.y)*t;return Math.min(y1,y2)<l.y1&&Math.max(y1,y2)>l.y0}
+// ¿el muro l (caja: largo a..b, grueso t alrededor de c, alto y0..y1) se mete entre la cámara y tu Mii? Rayos de la cámara a 5 puntos
+// de tu Mii (pies, medio, cabeza y sus dos lados), contra la caja con grueso: un muro casi paralelo a la vista también tapa (antes era una línea).
+const RM=.35;
+function caja(l,c,q,f){const hw=Math.max(.1,Math.min(.6,(l.t||.3)/2)),
+ lo=[l.h?l.a-.1:l.c-hw,l.y0==null?-1e9:l.y0,l.h?l.c-hw:l.a-.1],hi=[l.h?l.b+.1:l.c+hw,l.y0==null?1e9:l.y1,l.h?l.c+hw:l.b+.1],
+ o=[c.x,c.y,c.z],d=[q.x-c.x,q.y-c.y,q.z-c.z];let t0=0,t1=f;
+ for(let i=0;i<3;i++){if(Math.abs(d[i])<1e-9){if(o[i]<lo[i]||o[i]>hi[i])return false;continue}
+  let u=(lo[i]-o[i])/d[i],v=(hi[i]-o[i])/d[i];if(u>v){const w=u;u=v;v=w}if(u>t0)t0=u;if(v<t1)t1=v;if(t0>t1)return false}
+ return true}
+function tapa(l,c,p){const dx=p.x-c.x,dz=p.z-c.z,L=Math.hypot(dx,dz)||1,sx=-dz/L*RM,sz=dx/L*RM,f=1-RM/Math.max(RM*2,Math.hypot(dx,p.y+1-c.y,dz));
+ return [[0,.15,0],[0,1,0],[0,A.alto,0],[sx,1,sz],[-sx,1,-sz]].some(o=>caja(l,c,{x:p.x+o[0],y:p.y+o[1],z:p.z+o[2]},f))}
 const v1=new THREE.Vector3(),v2=new THREE.Vector3(),DB=new THREE.Vector2();let t0=0;
 function centro(cam,p){const H=window.CASA3D,R=H&&H.R&&H.R();if(!R)return;R.getDrawingBufferSize(DB);
  v1.set(p.x,p.y,p.z).project(cam);v2.set(p.x,p.y+A.alto,p.z).project(cam);

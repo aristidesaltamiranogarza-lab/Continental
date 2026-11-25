@@ -43,7 +43,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
   if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D);asientos(S)}
   if(hb&&id==='c1'&&window.PERROS){PERROS.zona('c1',{P:S,std:H.std,OB,hits});F.perros=1}   // Harry y Mapacha en el balcón trasero
-  if(hb&&id!=='cm1'&&window.CFUE)try{F.fuera=CFUE.pon(F)}catch(er){console.error('[CFUE]',er)}
+  if(hb&&window.CFUE)try{F.fuera=CFUE.pon(F)}catch(er){console.error('[CFUE]',er)}
   F.marcas=D;CAJA.listos[id]=true;gOK=1;fin()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}
 
