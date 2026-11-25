@@ -18,8 +18,8 @@ const out=(res,o,c=200)=>{res.writeHead(c,{'Content-Type':'application/json','Ca
 const rnd=n=>Array.from({length:n},()=>ALF[Math.random()*32|0]).join('');
 const body=req=>new Promise(r=>{let b='';req.on('data',d=>{b+=d;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{r(JSON.parse(b||'{}'))}catch(e){r({})}})});
 // personaje (formato de c_avatar.js): s1p3c1b2n1a2d3-2051; si viene mal o no viene, uno al azar
-const AVRE=/^s[12]p[1-7]c[1-3]b[1-3]n[1-3]a[1-3]d[1-3]-[0-7][0-7][0-9][0-9]$/,ri=n=>cr.randomInt(n),
- avAzar=()=>'s'+(1+ri(2))+'p'+(1+ri(7))+'c'+(1+ri(3))+'b'+(1+ri(3))+'n'+(1+ri(3))+'a'+(1+ri(3))+'d'+(1+ri(3))+'-'+ri(8)+ri(8)+ri(10)+ri(10),
+const AVRE=/^s[12]p[1-7]c[1-3]b[1-3]n[1-3]a[1-7]d[1-4]-[0-7][0-7][0-9][0-9]$/,ri=n=>cr.randomInt(n),
+ avAzar=(s=1+ri(2),u=l=>l[ri(l.length)])=>'s'+s+'p'+(1+ri(7))+'c'+(1+ri(3))+'b'+(1+ri(3))+'n'+(1+ri(3))+'a'+u(s===2?[1,2,3,5,6,7]:[1,2,3,5,6])+'d'+u(s===2?[1,2,3,4]:[1,2,4])+'-'+ri(8)+ri(8)+ri(10)+ri(10),
  avOk=c=>AVRE.test(String(c||''))?String(c):avAzar();
 const meOf=b=>String(b&&b.me||'').replace(/[^a-z0-9]/gi,'').slice(0,24)||null;
 const mkP=(tok,name,av,me)=>({tok,me:me||null,id:cr.randomBytes(4).toString('hex'),name:String(name||'Jugador').trim().slice(0,14)||'Jugador',av:avOk(av),seen:Date.now()});

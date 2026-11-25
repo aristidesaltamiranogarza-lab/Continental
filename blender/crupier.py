@@ -285,7 +285,7 @@ def colores():
 
 
 def ver(sufijo):
-    vis = {'Base', 'Pelo_2', 'Cejas_1', 'Boca_1', 'Nariz_1', 'Mangas_1', 'Arriba_4' + sufijo, 'Abajo_1' + sufijo}
+    vis = {'Base', 'Cuerpo' + sufijo, 'Pelo_2', 'Cejas_1', 'Boca_1', 'Nariz_1', 'Mangas_1', 'Arriba_4' + sufijo, 'Abajo_1' + sufijo}
     return vis
 
 

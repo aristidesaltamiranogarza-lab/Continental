@@ -24,10 +24,12 @@ K = dict(
     CURL0=(22, 24, 16), CURL1=(66, 60, 50), PULG0=(18, 38, 12, 12), PULG1=(-4, 62, 22, 16),
     # nivel de subdivision para el juego (las piezas que no salen aqui no tienen subsurf)
     NIVEL={'Pelo': 0, 'Nariz': 0, 'Manos': 1, 'Brazos': 1, 'Pantalon': 1, 'Playera': 1, 'Short': 1, 'Piernas': 1,
-           'Brazos_M': 1, 'Pantalon_M': 1, 'Short_M': 1, 'Piernas_M': 1},   # Playera_M ya viene subdividida
+           'Brazos_M': 1, 'Pantalon_M': 1, 'Short_M': 1, 'Piernas_M': 1, 'BrazoPiel': 1, 'BrazoPiel_M': 1, 'Manos_M': 1},   # Playera_M ya viene subdividida
     DECIMA={'Pelo': 0.5},          # reduccion (simetrica en X) antes del grosor, solo en la copia de juego
     DECIMA_FIN={'Brazos': 0.62},   # reduccion despues de la subdivision (mangas: lo mas caro de cada prenda)
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
+    CABEZA=0.88,       # escala de la cabeza (cara, pelo) alrededor del cuello; el crupier la hereda
+    FALDA_Z=(0.97, 0.80),   # falda y vestido: de aqui hacia abajo pasan de la cadera a los muslos (se doblan al sentarse)
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
     SUBE=0.035,   # mano mas arriba en la cacha (hacia el martillo), para que el pulgar lo alcance
     # PistolaSien: el canon apunta a la sien (alto = grados hacia arriba); el alcance sale de ladear tronco y cabeza
@@ -35,14 +37,16 @@ K = dict(
     PS_PUNTO=(1.0, -0.12, -0.45), PS_ALTO=range(-10, 16, 5), PS_FRENTE=range(-20, 21, 10),
     PS_TRONCO=(0,), PS_HOMBRO=(0, 15, 30), PS_CABEZA=(0, -10, -20, -30),
     # piezas del juego: parte de Frente -> objeto (las que no salen van a 'Base'); lo actual es la opcion 1
-    ROPA=range(2, 4),                      # figuras Ropa_n de ropa.py: parte -> pieza (Piernas es una sola, sin numero)
+    ROPA=range(1, 8),                      # figuras Ropa_n de ropa.py y ropa2.py: parte -> pieza (Piernas es una sola, sin numero)
     ROPA_PIEZA={'Playera': 'Arriba', 'Brazos': 'Mangas', 'Capucha': 'Arriba', 'Bolsa': 'Arriba', 'Cordones': 'Arriba',
                 'Cuello': 'Arriba', 'Botones': 'Arriba', 'Pantalon': 'Abajo', 'Short': 'Abajo', 'Falda': 'Abajo',
-                'Piernas': 'Piernas'},
+                'Piernas': 'Piernas', 'Ribete': 'Arriba', 'Cierre': 'Arriba', 'Vestido': 'Arriba', 'Puno': 'Mangas',
+                'BrazoPiel': 'Mangas', 'Bastilla': 'Abajo', 'Bolsillo': 'Abajo'},
     CARAS=range(2, 4),                     # opciones de cara.py (Cara_n_Cejas/_Boca/_Nariz) -> piezas Cejas_n, Boca_n, Nariz_n
     PEINADOS=range(2, 8), TOL_SIEN=0.01,   # sien mas lejos que esto de la del peinado 1 -> pose nueva          # peinados de pelos.py (Peinado_n_Pelo / _Extra) -> piezas Pelo_n
     PIEZA={'Pelo': 'Pelo_1', 'Cejas': 'Cejas_1', 'Boca': 'Boca_1', 'Nariz': 'Nariz_1',
-           'Playera': 'Arriba_1', 'Brazos': 'Mangas_1', 'Pantalon': 'Abajo_1'},   # mangas: pieza propia (Mangas_n), sin version M
+           'Playera': 'Arriba_1', 'Brazos': 'Mangas_1', 'Pantalon': 'Abajo_1',
+           'Manos': 'Cuerpo', 'Zapatos': 'Cuerpo', 'Suelas': 'Cuerpo'},   # mangas: pieza propia (Mangas_n / Mangas_n_M); Cuerpo_M de Mujer
     # material de Frente -> material de ranura en el GLB (copias; av_pelo/piel/arriba/abajo cambian de color)
     MAT={'chibi_pelo': 'av_pelo', 'chibi_piel': 'av_piel', 'chibi_playera': 'av_arriba', 'chibi_pantalon': 'av_abajo',
          'chibi_ojo': 'av_ojo', 'chibi_boca': 'av_boca', 'chibi_suela': 'av_suela', 'chibi_zapato': 'av_zapato',
@@ -172,12 +176,16 @@ for n in K['CARAS']:
     for t in ('Cejas', 'Boca', 'Nariz'): fuentes.append((bpy.data.objects['Cara_%d_%s' % (n, t)], '%s_%d' % (t, n), t, '%s_%d' % (t, n)))
 for fig, m, ns in (('Ropa_%d', '', K['ROPA']), ('Mujer', '_M', [1]), ('RopaM_%d', '_M', K['ROPA'])):
     for n in ns:
-        for o in sorted(bpy.data.objects[fig % n if '%' in fig else fig].children, key=lambda o: o.name):
+        E = bpy.data.objects.get(fig % n if '%' in fig else fig)
+        if not E: continue
+        for o in sorted(E.children, key=lambda o: o.name):
             t = o.name.rsplit('_', 1)[1]; pz = K['ROPA_PIEZA'].get(t)
+            if fig == 'Mujer' and t in ('Manos', 'Zapatos', 'Suelas'): pz = 'Cuerpo'
             if not pz: continue
-            if pz == 'Mangas':     # una pieza por malla de mangas (blusa y cuerpo M usan las de la playera)
+            if pz == 'Cuerpo': fuentes.append((o, t + m, t + m, 'Cuerpo' + m)); continue
+            if pz == 'Mangas':     # una pieza por juego de mangas (la blusa usa las de la playera)
                 if any(f[0].data == o.data for f in fuentes): continue
-                pieza = 'Mangas_%d' % n; fuentes.append((o, 'Brazos_%d' % n, 'Brazos', pieza)); continue
+                pieza = 'Mangas_%d%s' % (n, m); fuentes.append((o, '%s_%d%s' % (t, n, m), t, pieza)); continue
             pieza = pz + m if pz == 'Piernas' else '%s_%d%s' % (pz, n, m)
             if pz == 'Piernas' and any(f[3] == pieza for f in fuentes): continue
             fuentes.append((o, '%s_%d%s' % (t, n, m), t + m, pieza))
@@ -205,6 +213,12 @@ for o, suf, cl, _ in fuentes:
     me.name = 'Rig_' + suf; ob = bpy.data.objects.new('Rig_' + suf, me); col.objects.link(ob)
     ob.matrix_world = arm.matrix_world.copy(); partes[suf] = ob
 dg.update()
+if K['CABEZA'] != 1:      # cabeza mas chica: todo lo que va pegado a ella, alrededor del cuello
+    _P = V((0, 0, K['CUELLO']))
+    for suf, ob in partes.items():
+        if CL[suf] in ('Cabeza', 'Boca', 'Cejas', 'Nariz', 'Ojos', 'Pelo', 'Extra', 'Piel'):
+            for v in ob.data.vertices: v.co = _P + (v.co - _P) * K['CABEZA']
+    C.z = K['CUELLO'] + (C.z - K['CUELLO']) * K['CABEZA']
 
 def bvh_de(*nombres):
     vs, ps = [], []
@@ -225,13 +239,32 @@ auto = {'Playera': ['cadera', 'columna'],
         'Pantalon': ['cadera'] + lista(('muslo', 'pierna')),
         'Brazos': lista(('hombro', 'brazo', 'antebrazo')),
         'Manos': lista(('mano', 'dedos1', 'dedos2', 'dedos3', 'pulgar1', 'pulgar2'))}
-for _t in ('Short', 'Falda', 'Piernas'): auto[_t] = auto['Pantalon']
+for _t in ('Short', 'Falda', 'Piernas', 'Bastilla', 'Bolsillo'): auto[_t] = auto['Pantalon']
+for _t in ('Ribete', 'Cierre', 'Vestido'): auto[_t] = auto['Playera']
+for _t in ('Puno', 'BrazoPiel'): auto[_t] = auto['Brazos']
+def falda_pesos(ob):
+    # de FALDA_Z[0] hacia abajo, lo que tenia (cadera) se va pasando a los muslos: al sentarse queda sobre las piernas
+    z0, z1 = K['FALDA_Z']; gi = {g.index: g for g in ob.vertex_groups}
+    mI = ob.vertex_groups.get('muslo_I') or ob.vertex_groups.new(name='muslo_I')
+    mD = ob.vertex_groups.get('muslo_D') or ob.vertex_groups.new(name='muslo_D')
+    for v in ob.data.vertices:
+        if v.co.z >= z0: continue
+        t = (lambda u: u * u * (3 - 2 * u))(max(0.0, min(1.0, (z0 - v.co.z) / (z0 - z1))))
+        viejo = [(gi[g.group], g.weight) for g in v.groups]
+        tot = sum(w for _, w in viejo if not _.name.startswith('muslo')) or 1.0
+        for g, w in viejo:
+            if g.name.startswith('muslo'): g.remove([v.index])
+            else: g.add([v.index], w / tot * (1 - t), 'REPLACE')
+        lado = max(0.0, min(1.0, 0.5 + v.co.x / 0.16))
+        if t * lado > 0: mI.add([v.index], t * lado, 'REPLACE')
+        if t * (1 - lado) > 0: mD.add([v.index], t * (1 - lado), 'REPLACE')
 for suf, ob in partes.items():
     if CL[suf] in auto:
         for b in ad.bones: b.use_deform = b.name in auto[CL[suf]]
         for o in bpy.context.selected_objects: o.select_set(False)
         ob.select_set(True); arm.select_set(True); bpy.context.view_layer.objects.active = arm
         bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+        if CL[suf] in ('Falda', 'Vestido'): falda_pesos(ob)
         sin = [v for v in ob.data.vertices if sum(g.weight for g in v.groups) < 1e-3]
         if sin: print('sin peso', suf, len(sin))
     else:
