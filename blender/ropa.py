@@ -26,14 +26,15 @@ K = dict(
     BOTONES=(1.50, 1.08, 4, 0.017),      # z arriba, z abajo, cuantos, radio
     FALDON=0.04,                         # cuanto bajan el frente y la espalda de la blusa respecto a los lados
     # short: corte, vuelo (escala del grosor de la pierna en el borde)
-    SHORT_Z=0.60, SHORT_Z_M=0.55, SHORT_VUELO=1.12,   # en M mas largo: la prenda de arriba llega a 0.62
+    SHORT_Z=0.60, SHORT_Z_M=0.60, SHORT_VUELO=1.12,
     # falda: (z, escala x, escala y) sobre la cadera del pantalon (rx 0.192, ry 0.125); tablones; doble capa
     FALDA=[(1.03, 0.97, 0.99), (0.96, 1.04, 1.08), (0.86, 1.2, 1.3), (0.74, 1.38, 1.52), (0.62, 1.52, 1.7),
            (0.52, 1.6, 1.8)],
-    # M: queda dentro de la prenda de arriba de la mujer (que abre hasta z 0.62) y se abre abajo
-    FALDA_M=[(1.03, 0.97, 0.99), (0.9, 1.0, 1.02), (0.75, 1.2, 1.15), (0.62, 1.42, 1.3), (0.46, 1.62, 1.62)],
+    # M: la cadera de pantalon_m es mas ancha (CADERA de cuerpo_m.py)
+    FALDA_M=[(1.03, 1.06, 1.0), (0.96, 1.15, 1.1), (0.86, 1.3, 1.32), (0.74, 1.44, 1.52), (0.62, 1.56, 1.7),
+             (0.52, 1.62, 1.8)],
     FALDA_SEG=40, FALDA_ANILLOS=8, TABLONES=(8, 0.03), FALDA_GROSOR=0.007,
-    PIERNAS=(0.70, 0.80),                # z de arriba, grosor (escala alrededor del centro de cada pierna)
+    PIERNAS=(0.70, 0.80), PIERNAS_M=0.92,                # z de arriba, grosor (escala alrededor del centro de cada pierna)
     X0=-9.0, X0_M=-11.9, DX=-1.45)       # x de la figura Ropa_n = X0 + DX*(n-2) (RopaM_n con X0_M)
 K.update(globals().get('PRM', {}))
 
@@ -159,15 +160,15 @@ PX = 0.096          # centro de cada pierna en x
 
 def bm_me(me): bm = bmesh.new(); bm.from_mesh(me); return bm
 
-# mangas de la sudadera (las mismas para H y M: la mujer usa las mangas de Frente)
-bm = bm_de('Brazos'); tm = t_manga(bm); p0, p1 = K['PUNO_T']
-inflar(bm, lambda v: K['SUD_MANGA'] + (K['SUD_PUNO'] - K['SUD_MANGA']) * suave((tm[v] - p0) / (p1 - p0)))
-sud_mangas = malla('ropa_sudadera_mangas', bm, M_ARRIBA)
+def mangas(me, sf):   # mangas de la sudadera sobre los brazos de cada cuerpo
+    bm = bm_me(me); tm = t_manga(bm); p0, p1 = K['PUNO_T']
+    inflar(bm, lambda v: K['SUD_MANGA'] + (K['SUD_PUNO'] - K['SUD_MANGA']) * suave((tm[v] - p0) / (p1 - p0)))
+    return malla('ropa_sudadera_mangas' + sf, bm, M_ARRIBA)
 
 def ropa(c):
     """c: sf (sufijo de mallas), playera, pantalon (mallas del cuerpo), nivel (subdivision del torso para
     proyectar), faldon, short_z, falda (perfil). Devuelve {n: {parte: malla}}."""
-    sf = c['sf']
+    sf = c['sf']; sud_mangas = mangas(c['brazos'], sf)
     # ---------- 2: sudadera ----------
     bm = bm_me(c['playera']); z1, z0 = K['RESORTE_Z']
     inflar(bm, lambda v: K['SUD_RESORTE'] + (K['SUD_TORSO'] - K['SUD_RESORTE']) * suave((v.co.z - z0) / (z1 - z0)))
@@ -254,7 +255,7 @@ def ropa(c):
     bmesh.ops.delete(bm, geom=list(cadera), context='VERTS')
     cortar(bm, K['PIERNAS'][0], quitar_abajo=False)
     for v in bm.verts:
-        cx = math.copysign(PX, v.co.x); s = K['PIERNAS'][1]
+        cx = math.copysign(PX, v.co.x); s = c['piernas']
         v.co.x = cx + (v.co.x - cx) * s; v.co.y *= s
     piernas = malla('ropa_piernas' + sf, bm, M_PIEL)
 
@@ -294,9 +295,11 @@ def ropa(c):
 col = bpy.data.collections.get('Ropa')
 if not col: col = bpy.data.collections.new('Ropa'); bpy.context.scene.collection.children.link(col)
 CUERPOS = [dict(sf='', playera=bpy.data.objects['Frente_Playera'].data, pantalon=bpy.data.objects['Frente_Pantalon'].data,
-                nivel=1, faldon=K['FALDON'], short_z=K['SHORT_Z'], falda=K['FALDA'], fig='Ropa', fuente='Frente', x0=K['X0']),
+                brazos=bpy.data.objects['Frente_Brazos'].data,
+                nivel=1, faldon=K['FALDON'], short_z=K['SHORT_Z'], piernas=K['PIERNAS'][1], falda=K['FALDA'], fig='Ropa', fuente='Frente', x0=K['X0']),
            dict(sf='_m', playera=bpy.data.meshes['playera_m'], pantalon=bpy.data.meshes['pantalon_m'],
-                nivel=0, faldon=0, short_z=K['SHORT_Z_M'], falda=K['FALDA_M'], fig='RopaM', fuente='Mujer', x0=K['X0_M'])]
+                brazos=bpy.data.meshes['brazos_m'],
+                nivel=0, faldon=K['FALDON'], short_z=K['SHORT_Z_M'], piernas=K['PIERNAS_M'], falda=K['FALDA_M'], fig='RopaM', fuente='Mujer', x0=K['X0_M'])]
 SUAVE = ('Playera', 'Brazos', 'Short', 'Piernas')     # llevan subdivision como las de Frente
 for c in CUERPOS:
     fuente = bpy.data.objects[c['fuente']]
@@ -311,6 +314,7 @@ for c in CUERPOS:
             if not cp:
                 cp = o.copy(); cp.name = nm; col.objects.link(cp)
                 cp.parent = E; cp.matrix_parent_inverse = o.matrix_parent_inverse.copy()
+            cp.data = o.data          # las copias siguen al cuerpo actual (manos, zapatos, pelo de Mujer)
         for suf, me in partes.items():
             nm = '%s_%s' % (nmE, suf); o = bpy.data.objects.get(nm)
             if not o: o = bpy.data.objects.new(nm, me); col.objects.link(o)
