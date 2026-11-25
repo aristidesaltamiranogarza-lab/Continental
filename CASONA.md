@@ -169,6 +169,16 @@ Juego:
 - R6 sigue: la textura de sillares del sótano se ve muy fea (va después).
 
 ## Siguiente (si el usuario solo dice "continua")
+Orden decidido el 25 nov: **el horneado va al final** (casa: pb, pa, sm, az; barrio: manzana, enfrente, plaza, baldío; horizonte solo `-- exportar`). Antes, en este orden:
+1. R1 y R6: proponer texturas nuevas (copas sin manchas; muros del sótano) con vista previa; no aplicar sin aprobación.
+2. V7 portales (cuartos y puertas como empties en Blender, CUA por portales, tests/casona_vis.js): toca los GLB, así que va antes del horneado.
+3. R13 (muros que pierden textura en primera persona) y fachada de noche más brillante que las vecinas.
+4. R11 retoque de la mujer (blender/cuerpo_m.py, ropa.py).
+5. Saltar (Espacio y botón en el celular) y service worker (sw.js con caché por versión de modelos).
+6. Hornear todo (avisar tiempo antes; revisar R4 de cerca), cuantizar, subir BV del barrio en c_casa_calle.js.
+Nota: el commit del barrio (dc4ec44) remite a una sección "Barrio" de CASONA.md que no llegó; pedirla a la laptop o seguir los scripts y c_casa_calle.js (?barrio=prueba).
+
+## Siguiente (detalle anterior)
 No hornear nada sin que lo pida. Hecho el 24 nov en la laptop, sin hornear (la PC hace git pull antes de tocar blender/casona*.py):
 - R3: P.entrepiso() en casona_pb.py (canto de losa y cornisa) lo usan casona_pa.py y casona_az.py; c_casona_fuera.js deja su franja de código solo mientras el GLB no traiga pa_entrepiso/az_entrepiso.
 - R4: causa encontrada: la mitad de las caras (cantos, molduras, jambas, bajo dinteles) tenían un lado de 1-2 texeles y el techo 2 texeles/unidad. uv_luz estira cada isla a MIN_TX=4 texeles de ancho y reempaca; techo con prio .9 (5.7 tx/u). Se nota hasta el próximo horneado.
