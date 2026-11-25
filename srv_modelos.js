@@ -22,14 +22,18 @@ function envia(req,res,f,tipo,cache){
 // los .glb (y .gltf/.bin/.json) van comprimidos si el navegador acepta br o gzip: un GLB de la casona baja de 1.7 MB a ~250 KB.
 // Se comprime una vez por archivo y versión (tamaño+fecha) y se guarda en memoria; con Range se manda tal cual. Las texturas ya vienen comprimidas.
 const ZIP=new Set(['.glb','.gltf','.bin','.json']),ZC=new Map();
+const BRQ=q=>({params:{[zlib.constants.BROTLI_PARAM_QUALITY]:q}}),MEJ=[];let mejOc=false;
+function mejora(){if(mejOc||!MEJ.length)return;mejOc=true;const m=MEJ.shift();zlib.brotliCompress(m.buf,BRQ(11),(e,z)=>{if(!e&&ZC.get(m.k)===m.ent&&m.ent.b)m.ent.b=z;mejOc=false;setTimeout(mejora,100)})}
 function comprimido(req,res,f,tipo,cache){const ae=req.headers['accept-encoding']||'',enc=/\bbr\b/.test(ae)?'br':/\bgzip\b/.test(ae)?'gzip':'';
  if(!enc||req.headers.range)return envia(req,res,f,tipo,cache);
  fs.stat(f,(e,st)=>{if(e||!st.isFile())return envia(req,res,f,tipo,cache);const tag='"'+st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36)+'-'+enc+'"',k=f+'|'+enc,h={'Content-Type':tipo,'Cache-Control':cache,'ETag':tag,'Vary':'Accept-Encoding'};
   if(req.headers['if-none-match']===tag){res.writeHead(304,h);return res.end()}
   const manda=b=>{h['Content-Encoding']=enc;h['Content-Length']=b.length;res.writeHead(200,h);res.end(req.method==='HEAD'?undefined:b)};
   const c=ZC.get(k);if(c&&c.tag===tag){if(c.b)return manda(c.b);return c.p.then(manda,()=>envia(req,res,f,tipo,cache))}
-  const p=new Promise((ok,no)=>fs.readFile(f,(e2,buf)=>{if(e2)return no(e2);(enc==='br'?zlib.brotliCompress:zlib.gzip)(buf,enc==='br'?{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:11}}:{level:9},(e3,z)=>e3?no(e3):ok(z))}));
-  const ent={tag,p,b:null};ZC.set(k,ent);p.then(z=>{ent.b=z;manda(z)},()=>{ZC.delete(k);envia(req,res,f,tipo,cache)})})}
+  const ent={tag,p:null,b:null};
+  // brotli 11 tarda ~7 s por GLB (más en el servidor y en cada reinicio): primero va en calidad 5 (~70 ms) y la 11 se hace después, de uno en uno
+  const p=ent.p=new Promise((ok,no)=>fs.readFile(f,(e2,buf)=>{if(e2)return no(e2);(enc==='br'?zlib.brotliCompress:zlib.gzip)(buf,enc==='br'?BRQ(5):{level:6},(e3,z)=>{if(e3)return no(e3);ok(z);if(enc==='br'){MEJ.push({k,ent,buf});mejora()}})}));
+  ZC.set(k,ent);p.then(z=>{ent.b=z;manda(z)},()=>{ZC.delete(k);envia(req,res,f,tipo,cache)})})}
 
 // /modelos/...: solo archivos dentro de la carpeta; el catálogo se revalida siempre y los modelos se guardan un año
 // (el cliente pide cada modelo con ?h=<huella del catálogo>, así un modelo regenerado nunca sale viejo de la caché)

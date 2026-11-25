@@ -123,8 +123,8 @@ function muestra(H,S,OB,g,x,z,fe){const G=new THREE.Group();G.position.set(x,0,z
  H.cyl(2.2,2.2,.12,fl,0,1.5,0,G,32);H.cyl(.35,.5,1.45,wd,0,.72,0,G,12);OB.push({x,z,r:2.7})}
 
 // al entrar a la casa con ?casa=caja, directo a la planta baja de la maqueta
-function arranque(){const H=window.CASA3D;if(H&&H.on&&H.on()&&H.piso&&H.piso()==='pb'&&window.casaPiso){casaPiso('c0');return}setTimeout(arranque,400)}
+function arranque(){const H=window.CASA3D;if(H&&H.on&&H.on()&&H.R&&H.R()&&H.yo&&H.yo()&&H.piso&&H.piso()==='pb'&&window.casaPiso){casaPiso('c0');return}setTimeout(arranque,100)}
 const M={};Object.keys(NV).forEach(id=>{M[id]={ok:()=>ON&&!!(window.CASA3D&&CASA3D.mesa&&window.CGLB&&window.MARC),piso:()=>piso(id)}});
 window.CAJA={on:ON,NV,listos:{},piso,M,juntas};
-if(ON)setTimeout(arranque,600);
+if(ON)setTimeout(arranque,0);   // la casa vieja ya no se dibuja (c_casa3d.js): cuanto antes se pide la planta baja de la casona
 })();

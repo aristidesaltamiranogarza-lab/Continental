@@ -46,6 +46,10 @@ function subeGeo(){if(!geoQ)return;if(geoQ.sc===SC||!geoQ.l.length){geoQ=null;pr
 const t0=performance.now(); const fc=ch.map(o=>{o.layers.enable(31);const f=o.frustumCulled;o.frustumCulled=false;return f});const st=R.getScissorTest(),ac=R.autoClear,au=R.shadowMap.autoUpdate;
  try{R.setScissorTest(true);R.setScissor(0,0,1,1);R.autoClear=true;R.shadowMap.autoUpdate=false;R.render(geoQ.sc,geoCam)}catch(e){console.warn('[subeGeo]',e)}
  R.setScissorTest(st);R.autoClear=ac;R.shadowMap.autoUpdate=au;ch.forEach((o,i)=>{o.layers.disable(31);o.frustumCulled=fc[i]});geoMx=Math.max(geoMx,performance.now()-t0)}
+// antes de mostrar un piso: compila sus shaders sin trabar la página y sube sus texturas una por vuelta (tope 8 s)
+function precarga(sc){if(!sc||!R)return;const t0=performance.now(),ts=new Set();sc.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>{for(const k in m){const t=m[k];if(t&&t.isTexture)ts.add(t)}})});const L=[...ts];
+ const tex=()=>new Promise(ok=>{const va=()=>{if(!L.length||performance.now()-t0>8000)return ok();try{R.initTexture(L.shift())}catch(e){}setTimeout(va,0)};va()});
+ const c=R.compileAsync?R.compileAsync(sc,CA).catch(()=>{}):Promise.resolve();return Promise.race([c,new Promise(r=>setTimeout(r,8000))]).then(tex)}
 function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=true;tgt=tgtG=tgtL=null;keys.clear();sel=null;closed=null;sfx('card');
  // ya en negro: se arma el piso (la primera vez), se pasa todo a su escena y se compilan sus materiales antes de que se vea
  const sw=()=>{const nf=id==='pb'?PB:fmod(id).piso();if(!nf)return render();FLS[nf.id]=nf;const from=FL.id;tgt=tgtG=tgtL=null;keys.clear();if(FL===PB)Object.assign(PB,{SC,TB,OB,hits});FL=nf;({SC,TB,OB,hits}=nf);LK=nf.links||[];if(window.CGLB)CGLB.piso(nf.id);
@@ -53,7 +57,7 @@ function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=tr
   Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA);subeTex(SC)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
  // pisos que cargan su GLB (CAJA: F.listo): se espera en negro a que estén, para aparecer en su llegada y junto a la mesa (tope 5 s)
- CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return f&&f.listo&&(window.CCARGA?CCARGA.espera(f):Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))]))}).catch(e=>console.error('[casa] carga',e))
+ CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return Promise.resolve(f&&f.listo&&(window.CCARGA?CCARGA.espera(f):Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))]))).then(()=>f&&precarga(f.SC))}).catch(e=>console.error('[casa] carga',e))
   .then(()=>{try{sw()}catch(e){console.error('[casa] piso '+id,e)}return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
 // full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
@@ -493,7 +497,7 @@ function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready
  if(fire){fire.light.intensity=16+5*Math.sin(now*.013)+3*Math.sin(now*.031+1);fire.flames.forEach((f,i)=>{f.scale.y=1+.18*Math.sin(now*.02+i*1.7);f.scale.x=f.scale.z=1+.08*Math.sin(now*.017+i)})}
  if(disco){const any=[me,...others.values()].some(a=>dancing(a,now)>0);disco.lvl+=((any?1:0)-disco.lvl)*.05;disco.ball.rotation.y+=dt*(.0004+.0016*disco.lvl);
   disco.dl.forEach((l,i)=>{const a=now/900+i*2.09;l.position.set(Math.cos(a)*5,2.5,-4+Math.sin(a)*3.5);l.intensity=22*disco.lvl})}
- try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,/^(sot|cm1)$/.test(FL.id));if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();subeGeo()}catch(e){if(!loop.e)console.error(loop.e=e)}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
+ try{ prearma(now);if(window.CUB3)CUB3.step(now,toPx,W,/^(sot|cm1)$/.test(FL.id));if(window.JG3)JG3.step(now,toPx,W,FL.id);if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.SOT)SOT.seatTick(now);labels();tags(now);etq();subeGeo()}catch(e){if(!loop.e)console.error(loop.e=e)}if(FL===PB&&window.CAJA&&CAJA.on){R.setRenderTarget(null);R.setClearColor(0x1a120c,1);R.clear();return}if(window.VENT)VENT.paso(FL.id,R,CA);const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);R.render(SC,CA);if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 home=function(){if(window.BIEN&&BIEN.pend())return origHome();   // primero la bienvenida (c_bienvenida.js)
  if(!active())return origHome()+(on?'':`<div class="ui lb lb-casa"><button class="ui-btn sec full" onclick="casaToggle()">${window.UI?UI.ico('casa'):''}Entrar a la casa 3D</button></div>`);
  try{init();return hud()}catch(e){console.warn('Casa 3D:',e);on=false;return origHome()}};
