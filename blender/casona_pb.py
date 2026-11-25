@@ -576,14 +576,18 @@ def portales(N, nv):
         vistos.add(k); vacio('portal_' + k, cx, 0, cz, w=round(abs(z2 - z1) if vx else abs(x2 - x1), 3), h=N['H'], ax='x' if vx else 'z')
 
 def solo_marcas(nom, fn):
-    """Rehace solo los empties del .blend ya horneado (blender/casona_<nom>.blend) y reexporta <nom>.glb, sin hornear."""
+    """Pone o mueve los empties de fn() en el .blend ya horneado (blender/casona_<nom>.blend) y reexporta <nom>.glb, sin hornear.
+    No borra los demás empties (escaleras, cubos de escalera: los crean otras funciones); solo los cuarto_/portal_ viejos."""
     bpy.ops.wm.open_mainfile(filepath=os.path.join(DIR, 'blender', 'casona_%s.blend' % nom))
     col = bpy.data.collections[nom]
-    for o in [o for o in col.objects if o.type == 'EMPTY']: bpy.data.objects.remove(o, do_unlink=True)
-    EMP.clear(); fn()
+    for o in [o for o in col.objects if o.type == 'EMPTY' and o.name.startswith(('cuarto_', 'portal_'))]: bpy.data.objects.remove(o, do_unlink=True)
+    EMP.clear(); fn(); n0 = len([o for o in col.objects if o.type == 'EMPTY'])
     for nombre, (x, y, z), kv in EMP:
-        e = bpy.data.objects.new(nombre, None); e.empty_display_type = 'PLAIN_AXES'; e.location = V(x, y, z); col.objects.link(e)
+        e = bpy.data.objects.get(nombre)
+        if e is None: e = bpy.data.objects.new(nombre, None); e.empty_display_type = 'PLAIN_AXES'; col.objects.link(e)
+        e.location = V(x, y, z)
         for k, v in kv.items(): e[k] = v
+    print('marcas: %d empties antes, %d después' % (n0, len([o for o in col.objects if o.type == 'EMPTY'])))
     exportar(col)
 
 def marcas():
