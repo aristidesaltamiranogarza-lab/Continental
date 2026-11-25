@@ -510,6 +510,20 @@ def traspatio():
     CA = bmn('pb_traspatio', 'cantera', prio=.5)
     caja(CA, 31, 34, 0, 1.0, 35.4, 36.8); caja(CA, 31.2, 33.8, 1.0, 1.2, 35.6, 36.6)
     pozo(*POZO)
+    # puerta trasera al jardín del barrio (vano de la barda, x 16.5..19.5, z 48): antes la barda solo se cortaba. Pilastras de cantera
+    # con capitel, dintel y cornisa a 2.5 (pasa el personaje de 2.1) y dos hojas de madera abiertas hacia el traspatio.
+    PO = bmn('pb_porton_t', 'porton', prio=.5); obs = []
+    for a, b in ((16.0, 16.6), (19.4, 20.0)):
+        caja(CA, a, b, 0, 2.6, 47.72, 48.28); caja(CA, a - .06, b + .06, 2.75, 2.86, 47.66, 48.34)
+        caja(CA, a - .04, b + .04, 0, .3, 47.68, 48.32); obs += T((a + b) / 2, 48) + [.42]
+    caja(CA, 16.0, 20.0, 2.5, 2.75, 47.76, 48.24); caja(CA, 15.94, 20.06, 2.75, 2.86, 47.66, 48.34)
+    caja(CA, 16.6, 19.4, -.02, .04, 47.78, 48.22)   # umbral al ras
+    for x, s in ((16.62, 1), (19.38, -1)):
+        x0, x1 = sorted((x, x + s * .07))
+        caja(PO, x0, x1, .05, 2.42, 46.35, 47.72)
+        for y in (.35, 1.2, 2.05): xa, xb = sorted((x + s * .07, x + s * .1)); caja(PO, xa, xb, y, y + .12, 46.4, 47.67)   # travesaños
+        obs += T(x + s * .05, 46.7) + [.2] + T(x + s * .05, 47.3) + [.2]
+    ex('pb_porton_t', obs=obs)
     ex('pb_traspatio', segs=T(31.5, 36.1) + T(33.5, 36.1), r=.85, obs=T(14, 44.6) + [1.1] + T(6, 41) + [.7])
 
 def entrepiso(pre, y0=-.32, y1=0.0):

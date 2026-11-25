@@ -70,6 +70,9 @@ def arqueria():
         prisma(bmn(base, 'muro'), e, L, P.limpio(p), -o, o)
         caja_l(bmn(base + '_cor', 'cantera'), e, L, cs[0] - cw - .1, cs[-1] + cw + .1, H - .2, K['H'] + .03 - P.dv(e), -o - .1, o + .1)
         ex(base, linea=lid); ex(base + '_cor', linea=lid)
+    # cornisa del muro del fondo (z=30) del lado del patio, de esquina a esquina sobre las columnas 12 y 24: los otros tres lados ya la tenían
+    bb, ll = P.linea_de('h', 30, 18); h = K['t'] / 2
+    caja_l(bmn(bb + '_cor', 'cantera'), 'h', 30, 12 - cw - .1, 24 + cw + .1, K['H'] - .2, K['H'] + .03, -h - .12, -h + .02); ex(bb + '_cor', linea=ll)
 
 def barandal():
     """Herrería de 2.0 entre columnas en los tres lados del vacío (el cuarto es el muro del fondo) y pasamanos de madera."""
@@ -100,17 +103,72 @@ def balcon_trasero():
         for yy in (.2, .9): caja_l(HI, e, L, a, b, yy - .025, yy + .025, -.025, .025)
         caja_l(PM, e, L, a, b, hb - .08, hb, -.07, .07); segs += P.LT(e, L, a) + P.LT(e, L, b)
     ex('pa_balcon_t_pasamanos', segs=segs, r=.3)
-    MT, HO = bmn('pa_balcon_t_macetas', 'barro'), bmn('pa_balcon_t_hojas', 'copa'); obs = []
-    for mx in (1.2, 7.0, 13.0, 23.0, 29.0, 34.8):
-        mz = 33.1; tubo(MT, (mx, 0, mz), (mx, .7, mz), .28, .38, 14); P.anillo(MT, mx, mz, .3, .42, .7, .78, 14)
-        for k in range(5):
-            an = k * 2 * math.pi / 5
-            bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.34, matrix=P.Matrix.Translation(P.V(mx + math.cos(an) * .22, 1.02 + .12 * (k % 2), mz + math.sin(an) * .22)) @ P.Matrix.Diagonal((1, 1, .8, 1)))
-        obs += T(mx, mz) + [.55]
+    obs = balcon_t_plantas()
     MA = bmn('pa_balcon_t_banca', 'madera')
     caja(MA, 16.2, 19.8, .52, .6, 32.6, 33.2); caja(MA, 16.2, 19.8, .6, 1.25, 33.12, 33.2)
     for xx in (16.4, 19.6): caja(MA, xx - .05, xx + .05, 0, .52, 32.65, 33.15)
     ex('pa_balcon_t_macetas', obs=obs); ex('pa_balcon_t_banca', segs=T(16.4, 32.9) + T(19.6, 32.9), r=.4)
+
+P.COLOR.update(tierra=(.3, .22, .15), hoja=(.3, .5, .22), agave=(.36, .5, .44), helecho=(.26, .5, .2), lengua=(.24, .4, .22),
+               flor2=(.86, .58, .14), cuero=(.6, .38, .2), talavera=(.88, .86, .8))
+def balcon_t_plantas():
+    """Plantas del balcón trasero (antes macetas de bolas): macetas de barro de varios tamaños junto al barandal y al muro, con
+    bugambilia, agave, helecho, lengua de suegra y matas con flor; macetas colgadas del muro, una mesita con dos equipales y lugar
+    para la cama de Harry y Mapacha (c_casa_perros.js, al oriente). Puertas en z=30: x 2.5-5, 9-11, 25-27, 30.5-33; columnas en x 12 y 24."""
+    import random
+    if not hasattr(P, 'mata'): exec(open(os.path.join(DIR, 'blender', 'casona_plantas.py'), encoding='utf-8').read(), P.__dict__)
+    R = random.Random(30); obs = []
+    BA, TI, TA = bmn('pa_balcon_t_macetas', 'barro'), bmn('pa_balcon_t_tierra', 'tierra', prio=.4), bmn('pa_balcon_t_talavera', 'talavera')
+    CP, FL, F2 = bmn('pa_balcon_t_hojas', 'copa', prio=.5), bmn('pa_balcon_t_flor', 'flor', prio=.5), bmn('pa_balcon_t_flor2', 'flor2', prio=.5)
+    AG, HE, LE = bmn('pa_balcon_t_agave', 'agave', prio=.5), bmn('pa_balcon_t_helecho', 'helecho', prio=.5), bmn('pa_balcon_t_lengua', 'lengua', prio=.5)
+    HI = bmn('pa_balcon_t_colg', 'hierro', luz=False)
+    def maceta(x, z, r0, r1, al, y0=0.0, bm=BA):
+        tubo(bm, (x, y0, z), (x, y0 + al, z), r0, r1, 16); P.anillo(bm, x, z, r1 - .03, r1 + .04, y0 + al - .07, y0 + al, 16)
+        tubo(TI, (x, y0 + al - .06, z), (x, y0 + al - .04, z), r1 - .02, r1 - .02, 16); return y0 + al - .05
+    def helecho(x, y, z, s):
+        for k in range(14):
+            a = k * 2.39996; P.hoja(HE, (x, y, z), a, .5 * s * R.uniform(.8, 1.15), .1 * s, .22 * s, .42 * s, n=5, grueso=.02, forma='lanza', lados=3)
+    def lengua(x, y, z, s):
+        for k in range(9):
+            a = k * 2.39996; d = .05 * (k % 3)
+            P.hoja(LE, (x + math.cos(a) * d, y, z + math.sin(a) * d), a, .08 * s, .1 * s, s * R.uniform(.7, 1.0), -.05 * s, n=3, grueso=.03, forma='punta')
+    def mata_flor(x, y, z, r, bf, nf, sem):
+        n0 = P.mata(CP, x, y + r * .45, z, r, .85, sem=sem, piso=y); P.flores(bf, CP, n0, nf, .055, R)
+    # junto al barandal (z 33.15): grandes y variadas, con el respaldo de la banca libre (x 16.2..19.8)
+    y = maceta(1.2, 33.1, .3, .42, .8); mata_flor(1.2, y, 33.1, .55, FL, 22, 1); obs += T(1.2, 33.1) + [.6]
+    y = maceta(6.6, 33.2, .26, .36, .55); P.agave(AG, 6.6, y, 33.2, .95, R); obs += T(6.6, 33.2) + [.55]
+    y = maceta(7.6, 33.25, .16, .22, .35); lengua(7.6, y, 33.25, .7); obs += T(7.6, 33.25) + [.3]
+    y = maceta(11.4, 33.15, .2, .3, .95); helecho(11.4, y, 33.15, 1.1); obs += T(11.4, 33.15) + [.5]
+    for x, z, s in ((13.9, 33.25, 1.0), (14.6, 33.3, .75), (14.3, 32.75, .6)):   # tres macetitas juntas
+        y = maceta(x, z, .13 * s + .03, .19 * s + .04, .3 * s + .05, bm=TA); mata_flor(x, y, z, .2 * s + .05, F2 if s < .9 else FL, 6, int(x * 10))
+    obs += T(14.3, 33.1) + [.6]
+    y = maceta(21.6, 33.2, .2, .26, .5, bm=TA); lengua(21.6, y, 33.2, 1.0); obs += T(21.6, 33.2) + [.35]
+    y = maceta(26.2, 33.1, .3, .4, .7); mata_flor(26.2, y, 33.1, .5, F2, 18, 2); obs += T(26.2, 33.1) + [.55]
+    y = maceta(29.6, 33.2, .26, .36, .55); P.agave(AG, 29.6, y, 33.2, 1.05, R); obs += T(29.6, 33.2) + [.55]
+    y = maceta(34.9, 33.1, .3, .42, .8); mata_flor(34.9, y, 33.1, .55, FL, 22, 3); obs += T(34.9, 33.1) + [.6]
+    # junto al muro (z 30.6), entre las puertas
+    y = maceta(7.0, 30.6, .22, .32, .9); helecho(7.0, y, 30.6, 1.0); obs += T(7.0, 30.6) + [.5]
+    y = maceta(14.8, 30.6, .3, .4, .65); P.agave(AG, 14.8, y, 30.6, 1.2, R); obs += T(14.8, 30.6) + [.6]
+    y = maceta(28.7, 30.6, .2, .28, .55, bm=TA); lengua(28.7, y, 30.6, 1.15); obs += T(28.7, 30.6) + [.4]
+    # macetas colgadas del muro: ménsula de hierro, tres cadenas y helecho que cae
+    for x in (1.3, 7.0, 14.8, 21.0, 28.7):
+        yc, zc = 2.35, 30.6
+        P.caja(HI, x - .02, x + .02, yc + .25, yc + .29, 30.15, zc + .02); P.caja(HI, x - .02, x + .02, yc - .1, yc + .29, 30.15, 30.19)
+        for k in range(3):
+            a = k * 2.094; P.tubo(HI, (x, yc + .27, zc), (x + math.cos(a) * .17, yc - .02, zc + math.sin(a) * .17), .006, .006, 4)
+        y = maceta(x, zc, .12, .19, .22, y0=yc - .2); helecho(x, y, zc, .75)
+    # mesita de herrería con cubierta de talavera y dos equipales (sillas de cuero redondas), entre la columna y la puerta
+    mx, mz = 20.6, 31.4
+    P.tubo(HI, (mx, 0, mz), (mx, .68, mz), .03, .03, 8); P.tubo(HI, (mx, 0, mz), (mx, .03, mz), .26, .26, 14)
+    P.tubo(TA, (mx, .68, mz), (mx, .72, mz), .42, .42, 20)
+    CU = bmn('pa_balcon_t_equipal', 'cuero')
+    for dx in (-.85, .85):
+        cx = mx + dx; P.tubo(CU, (cx, 0, mz), (cx, .22, mz), .3, .24, 16); P.tubo(CU, (cx, .22, mz), (cx, .48, mz), .24, .32, 16)
+        P.anillo(CU, cx, mz, .26, .33, .48, .56, 16)
+        a, b = sorted((cx + (.2 if dx > 0 else -.2), cx + (.3 if dx > 0 else -.3))); P.caja(CU, a, b, .5, 1.0, mz - .26, mz + .26)   # respaldo del lado de afuera
+    P.tubo(BA, (mx + .1, .72, mz), (mx + .1, .92, mz), .07, .05, 10)   # jarrito
+    obs += T(mx, mz) + [.5] + T(mx - .85, mz) + [.38] + T(mx + .85, mz) + [.38]
+    return obs
 
 def balcones():
     hb = C.K['barandal']; HI, PM = bmn('pa_balcon_rej', 'hierro', luz=False), bmn('pa_balcon_pasamanos', 'madera'); segs = []

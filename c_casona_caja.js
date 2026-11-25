@@ -20,7 +20,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
  const sp={x:0,z:0},se={x:0,z:0,ok:0},bx=[-17.6,17.6,-12.6,16.6];
  const hb=!!(HB[id]&&window.CMAT)&&HB[id];
  const F={id,SC:S,TB,OB,hits,links,WL,bx,k:1,ext:id!=='cm1',spawn:from=>from in NV&&se.ok?{x:se.x,z:se.z,yaw:Math.PI/2}:{x:sp.x,z:sp.z,yaw:-Math.PI/2},step:()=>{const c=H.cam&&H.cam(),p=H.yo&&H.yo();if(window.TRAMA&&TRAMA.on())TRAMA.paso(LIN,c,p);else MARC.corte(LIN,window.CAV&&CAV.on()&&p?{position:p}:c,p);/* R13: en primera persona no se corta nada */if(window.NIVC){NIVC.tapas(LIN);NIVC.paso(F.niv,c)}if(F.cua)CUA.paso(c,p,id);
-  if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.fuera)F.fuera.paso(c,p);if(F.sot)F.sot.step();if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
+  if(F.copas)CMAT.paso(F.copas,p,c);if(F.casco)F.casco.paso(p);if(F.fuera)F.fuera.paso(c,p);if(F.sot)F.sot.step();if(F.perros)PERROS.step(performance.now(),0,'c1');if(F.gata){const n=performance.now();GATA.paso(F.gata,n,Math.min(50,n-(F.tg||n)));F.tg=n}}};
  F.cb=[bx[0]-.4,bx[1]+.4,bx[2]-.4,bx[3]+.4];
  const MAT={},mat=m=>{const n=(m&&m.name)||'x';return MAT[n]||(MAT[n]=new THREE.MeshLambertMaterial({color:m&&m.color?m.color.clone():0xcccccc}))};
  let ok;F.listo=new Promise(r=>ok=r);const PR=F.pr={glb:0,luz:hb?0:1,re:0};F.prog=()=>({p:PR.glb*.75+PR.luz*.25,re:PR.re});let gOK=0,lOK=!hb;const fin=()=>{if(gOK&&lOK)ok()};
@@ -42,6 +42,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
    if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe,aire:m.aire};TB.push(t);H.mesa(t,S,hits,OB);if(F.sot&&F.sot.viste)F.sot.viste(t)}
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
   if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D);asientos(S)}
+  if(hb&&id==='c1'&&window.PERROS){PERROS.zona('c1',{P:S,std:H.std,OB,hits});F.perros=1}   // Harry y Mapacha en el balcón trasero
   if(hb&&id!=='cm1'&&window.CFUE)try{F.fuera=CFUE.pon(F)}catch(er){console.error('[CFUE]',er)}
   F.marcas=D;CAJA.listos[id]=true;gOK=1;fin()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}

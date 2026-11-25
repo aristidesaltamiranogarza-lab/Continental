@@ -162,10 +162,10 @@ def traspatio2():
         t = (k + .5) / 9; x = 18 + (14 - 18) * t + .7 * math.sin(t * 3.1); z = 34.8 + (43.3 - 34.8) * t; camino.append((x, z))
         laja(x + (r3() - .5) * .2, z, .5 + .08 * r3())
         if k % 2 == 0: laja(x + (.75 if k % 4 == 0 else -.75), z + (r3() - .5) * .4, .16 + .06 * r3(), 6, .05)
-    # banca pegada a la barda del fondo, entre las matas, mirando a la casa; tierra pelona bajo el mamey
-    caja(MA, 8.75, 11.35, .52, .6, 47.2, 47.78); caja(MA, 8.8, 11.3, .6, 1.3, 47.7, 47.78)
-    for x in (8.95, 11.15): caja(MA, x - .05, x + .05, 0, .52, 47.25, 47.73)
-    segs += T(8.95, 47.5) + T(11.15, 47.5); mancha(MT, 6.2, 41.1, 2.0, R)
+    # banca pegada al muro de la casona, mirando al traspatio y al mamey (antes en la barda del fondo); tierra pelona bajo el mamey
+    caja(MA, 6.7, 9.3, .52, .6, 34.2, 34.78); caja(MA, 6.75, 9.25, .6, 1.3, 34.2, 34.28)
+    for x in (6.9, 9.1): caja(MA, x - .05, x + .05, 0, .52, 34.25, 34.73)
+    segs += T(6.9, 34.5) + T(9.1, 34.5); mancha(MT, 6.2, 41.1, 2.0, R)
     # tendedero: dos postes, el mecate y ropa colgada
     for x in (22, 30): caja(MA, x - .08, x + .08, 0, 3.3, 45.42, 45.58); caja(MA, x - .06, x + .06, 3.1, 3.2, 45.0, 46.0)
     caja(HI, 22, 30, 3.1, 3.13, 45.49, 45.51)
