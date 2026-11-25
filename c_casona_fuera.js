@@ -22,7 +22,8 @@ function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
   const cf=c&&fuera(c.position.x,c.position.z),pf=p&&fuera(p.x,p.z);
   const pat=!pf&&!!window.PATV&&PATV.dentro(p);   // desde el patio y sus corredores siempre se ven los de arriba (PATV corta el lado de la cámara)
   capas.forEach(L=>{const ver=L.arriba?!!(pf&&cf)||pat:!!cf;if(L.arriba&&window.PATV)PATV.paso(L.k,Y[L.k]-Y[id],c,p,pat);
-   if(ver&&!L.G){if(!L.pedido){L.pedido=1;carga(L.k).then(r=>{if(!r)return;L.G=r.clone();L.G.position.y=Y[L.k]-Y[id];L.G.visible=false;L.G.name='casona-fuera-'+L.k;F.SC.add(L.G)})}return}
+   if(ver&&!L.G){if(!L.pedido){L.pedido=1;carga(L.k).then(r=>{if(!r)return;L.G=window.JUNTA?JUNTA.de(r):r.clone();   // copia juntada por material (menos llamadas de dibujo)
+   L.G.position.y=Y[L.k]-Y[id];L.G.visible=false;L.G.name='casona-fuera-'+L.k;F.SC.add(L.G)})}return}
    if(L.G){L.G.visible=ver;if(ver){if(L.arriba)arriba=true;else abajo=true}}});
   if(pf){tF=performance.now();document.body.classList.add('cfue-fuera')}
   AB.forEach(o=>o.visible=!abajo);
