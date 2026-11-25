@@ -17,7 +17,7 @@ function carga(id){if(P[id])return P[id];const g=GL[id];
 function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
  const AB=[],AR=[];F.SC.traverse(o=>{if(/_abajo/.test(o.name)&&o.visible)AB.push(o);if(/_escalera_arriba/.test(o.name))AR.push(o)});   // _arriba: el cubo de la escalera de arriba visto por el hueco
  const capas=ORDEN.filter(k=>k!==id).map(k=>({k,arriba:Y[k]>Y[id],G:null,pedido:0}));
- const fuera=(x,z)=>x<-18.2||x>18.2||z>17.1||z<-13.2;
+ const zf=id==='c0'?-17.2:-13.2,fuera=(x,z)=>x<-18.2||x>18.2||z>17.1||z<zf;   // la planta baja llega a z 34 del plano (cuarto libre, servicio, corredor norte); las de arriba a 30
  function paso(c,p){let abajo=false,arriba=false;
   const cf=c&&fuera(c.position.x,c.position.z),pf=p&&fuera(p.x,p.z);
   const pat=!pf&&!!window.PATV&&PATV.dentro(p);   // desde el patio y sus corredores siempre se ven los de arriba (PATV corta el lado de la cámara)

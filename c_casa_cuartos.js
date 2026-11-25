@@ -28,7 +28,9 @@ function clasifica(o){if(ABRE.has(o)){o.children.forEach(clasifica);return}if(vi
  let luz=false;o.traverse(c=>{if(c.isLight)luz=true});if(luz){visto.add(o);return}
  bb.setFromObject(o);if(bb.isEmpty())return;visto.add(o);   // modelo que aún no carga: se revisa luego
  const cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2,i=cuarto(cx,cz,C);if(i<0||!F.R[i].r.length)return;
- if(!F.R[i].r.some(r=>en(bb.min.x,bb.min.z,r,E)&&en(bb.max.x,bb.max.z,r,E)))return;ligar(o,i)}
+ if(!F.R[i].r.some(r=>en(bb.min.x,bb.min.z,r,E)&&en(bb.max.x,bb.max.z,r,E)))return;
+ // muro entre dos cuartos (llegan al eje del muro): se mete en el otro, no se liga (si no, desde el otro se borraba)
+ if(F.R.some((q,j)=>j!==i&&q.r.some(r=>bb.max.x>r[0]+.05&&bb.min.x<r[1]-.05&&bb.max.z>r[2]+.05&&bb.min.z<r[3]-.05)))return;ligar(o,i)}
 function scan(S){if(S!==sc){sc=S;nHijos=-1}
  for(const o of LIG){const s=ST.get(o),p=s.p;if(s.i>=0&&(o.parent!==s.par||o.position.x!==p[0]||o.position.y!==p[1]||o.position.z!==p[2]))s.i=-1}
  if(S.children.length===nHijos&&performance.now()-tScan<2000)return;nHijos=S.children.length;tScan=performance.now();S.children.forEach(clasifica)}

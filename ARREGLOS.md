@@ -6,13 +6,12 @@ Esfuerzo: bajo / medio / alto. Juntar todo lo de Blender y hornear una sola vez 
 Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles quietos: PASTO.A.copas = 0 (c_pasto.js).
 
 ## 1. Código, sin hornear
-- [ ] Los otros pisos no desaparecen estando dentro de la casa (medio)
-- [ ] Paredes que se borran en primera persona: baño, pared interior de la escalera del sótano, "pared sólida" en la escalera. Es el culling (CUA, c_casa_cuartos.js); casi todo está bien, solo atinarle (medio)
-- [ ] El pozo se ve desde lejos y a través de las paredes (bajo)
-- [ ] Ruleta Rusa: cajas de código atravesadas que no reciben luz y resaltan; quitarlas (bajo)
-- [ ] Plantas que aún usan las texturas viejas: cambiarlas por las del kit (bajo)
-- [ ] Árbol de estilo viejo, sin acabar, junto a la casa: quitarlo (bajo)
-- [ ] Sótano: círculos de luz en el techo sin lámpara; cubo blanco (lámpara) flotando en la entrada; en el billar, lámpara encima de un cuadro (bajo–medio; si vienen del GLB, pasan al paso 5)
+- [x] Los otros pisos no desaparecen estando dentro de la casa (CFUE tomaba como fuera z 30–34 de la planta baja)
+- [x] Paredes que se borran en primera persona (CUA ligaba el muro compartido a un solo cuarto; ya no se liga lo que se mete en otro): baño, pared interior de la escalera del sótano, "pared sólida" en la escalera. Es el culling (CUA, c_casa_cuartos.js); casi todo está bien, solo atinarle (medio)
+- [x] El pozo se ve desde lejos y a través de las paredes (el tiro va con stencil a su boca)
+- [x] Ruleta Rusa: cajas de código atravesadas que no reciben luz y resaltan; quitarlas (bajo)
+- [x] Árbol que atraviesa la pared en la planta alta (copa negra): los árboles del barrio que entran en la huella de la casona se recortan al cargar (CCALLE recorta)
+- Plantas con texturas viejas, árbol viejo junto a la casa y luces del sótano vienen de los GLB: pasaron a los pasos 4 y 5.
 
 ## 2. Horneado menos pixeleado sin rehornear
 - [ ] Leer la luz horneada con filtro bicúbico en c_casona_mat.js (CMAT); comparar antes/después en el teléfono (bajo–medio)
@@ -23,6 +22,7 @@ Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles
 - [ ] Caminitos que unan casa, cancha de fútbol (hoy no se llega), iglesia y parque
 - [ ] Camino de la iglesia terminado y más ancho; postes de luz fuera del camino
 - [ ] Límites para caminar por todo eso en el juego (c_casona_caja.js, F.bx2)
+- [ ] Que se vea como la plaza (comparación del usuario): suelo café liso sin textura; bardas iguales en altura y color, sin remate, aplanado ni zoclo; nada de vida (macetas, tendederos, tinacos, sillas, caminos); luz horneada borrosa con sombras grandes sin contacto y rincones sin oclusión; cuartito de caja lisa con puerta plana sin marco; muros traseros de los vecinos lisos, sin ventanas, con una franja verde arriba; naranjo de bolas con naranjas cúbicas (alto)
 - Necesita: aprobación de la vista/planta antes de seguir
 
 ## 4. Objetos del barrio (Blender)
@@ -34,6 +34,10 @@ Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles
 - El vocho se queda como está.
 
 ## 5. Sótano y planta baja (Blender)
+- [ ] Sótano: círculos de luz en el techo sin lámpara (luces POINT a 2.85 de lamparas() en casona_sm.py sin pieza); cubo blanco flotando en la entrada (sm_focos de la barra); en el billar, lámpara encima de un cuadro (bajo–medio)
+- [ ] Barra oscura y rara sobre los vanos del balcón en la fachada (franja horneada en el muro; revisar dintel/cerramiento) (bajo)
+- [ ] Plantas que aún usan las texturas viejas (macetas de pb/pa/az): pasarlas a las del kit (barrio_kit.py) (bajo)
+- [ ] Árbol de estilo viejo, sin acabar, junto a la casa (pb_tras_* o mamey de casona_pb.py, o del barrio): cambiarlo por uno del kit (bajo)
 - [ ] Tiras LED cálidas y tenues en el sótano y zonas oscuras (emisivo horneado, sin costo) (medio)
 - [ ] Barrotes del balcón de la planta alta que asoman en el techo de la planta baja (bajo)
 - [ ] Escaleras: el horneado se ve pixeleado donde llega poca luz (más densidad ahí)

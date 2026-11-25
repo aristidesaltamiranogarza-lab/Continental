@@ -28,7 +28,13 @@ function junta(gs){const M=THREE.BufferGeometryUtils||window.BufferGeometryUtils
 // el exterior (CIELO.fondo) se dibuja antes con su suelo en y=0: el tiro va primero y pasa siempre la profundidad (escribiéndola), el agua
 // después; todo lo de la casa que esté delante (brocal, pasto con su hoyo) lo vuelve a tapar
 function hondo(tiro,agua,propio){if(tiro){if(!propio){const m0=tiro.material,m=m0.clone();m.onBeforeCompile=m0.onBeforeCompile;m.customProgramCacheKey=m0.customProgramCacheKey;
-  if(window.CMAT&&CMAT.noc)CMAT.noc(m,false);tiro.material=m}tiro.renderOrder=-10;tiro.material.depthFunc=THREE.AlwaysDepth}if(agua)agua.renderOrder=-9}
+  if(window.CMAT&&CMAT.noc)CMAT.noc(m,false);tiro.material=m}tiro.renderOrder=-10;tiro.material.depthFunc=THREE.AlwaysDepth;boca(tiro)}if(agua){agua.renderOrder=-9;sten(agua.material)}}
+// el tiro pasa siempre la profundidad: solo donde se ve la boca (stencil 1), si no se veía a lo lejos y a través de los muros; luego se borra el stencil
+function sten(m){Object.assign(m,{stencilWrite:true,stencilRef:1,stencilFunc:THREE.EqualStencilFunc,stencilFail:THREE.KeepStencilOp,stencilZFail:THREE.KeepStencilOp,stencilZPass:THREE.KeepStencilOp})}
+function boca(t){sten(t.material);const g=t.geometry;g.computeBoundingBox();const b=g.boundingBox,r=Math.max(b.max.x-b.min.x,b.max.z-b.min.z)/2,d=new THREE.CircleGeometry(r,28);d.rotateX(-Math.PI/2);
+ d.translate((b.min.x+b.max.x)/2,b.max.y,(b.min.z+b.max.z)/2);const op={colorWrite:false,depthWrite:false,stencilWrite:true,stencilFunc:THREE.AlwaysStencilFunc,stencilZPass:THREE.ReplaceStencilOp};
+ const pon=new THREE.Mesh(d,new THREE.MeshBasicMaterial(Object.assign({stencilRef:1},op))),qui=new THREE.Mesh(d,new THREE.MeshBasicMaterial(Object.assign({stencilRef:0,depthTest:false},op)));
+ pon.renderOrder=-11;qui.renderOrder=-8;[pon,qui].forEach(m=>{m.name='pozo_boca';m.frustumCulled=false;t.add(m);m.updateMatrix();m.matrixAutoUpdate=t.matrixAutoUpdate})}
 function pon(root,MAT){if(!root||!root.getObjectByName('pb_traspatio')&&!root.getObjectByName('pb_pozo'))return;
  if(root.getObjectByName('pb_pozo')){hondo(root.getObjectByName('pb_pozo_tiro'),root.getObjectByName('pb_pozo_agua'));return}
  const ca=MAT&&(MAT['cantera+']||MAT.cantera),ma=MAT&&(MAT['madera+']||MAT.madera),mapa=ca&&ca.map,G=new THREE.Group();G.name='pozo_codigo';G.position.set(P.x,0,P.z);

@@ -181,6 +181,12 @@ function tramo(RT){if(!window.CGLB||!window.CMAT)return;
 // casas y árboles lejanos de CIELO. Si una pieza falla, lo viejo se queda de respaldo.
 function quitaViejo(){VIEJO.forEach(g=>{if(g.parent)g.parent.remove(g)});VIEJO.length=0;const C=window.CIELO;if(!C||!C.mundo)return;
  C.mundo.children.filter(o=>/^(campo|patio|tras)$/.test(o.name)).forEach(o=>C.mundo.remove(o));(C.lejos||[]).forEach(o=>{if(o&&o.parent)o.parent.remove(o)})}
+// árboles del barrio que se meten en la casona (copas negras a través de los muros de la planta alta): fuera sus triángulos dentro de la huella
+const HUE=[-18.35,18.35,-17.3,17.2],vR=new THREE.Vector3();
+function recorta(r){r.updateMatrixWorld(true);r.traverse(o=>{if(!o.isMesh||!/_(copa|tronco)$/.test(o.name))return;const g=o.geometry,P=g.attributes.position,I=g.index;if(!I)return;
+ const dentro=new Uint8Array(P.count);for(let i=0;i<P.count;i++){vR.fromBufferAttribute(P,i).applyMatrix4(o.matrixWorld);dentro[i]=vR.x>HUE[0]&&vR.x<HUE[1]&&vR.z>HUE[2]&&vR.z<HUE[3]?1:0}
+ const q=[];for(let t=0;t<I.count;t+=3){const a=I.getX(t),b=I.getX(t+1),c=I.getX(t+2);if(!(dentro[a]||dentro[b]||dentro[c]))q.push(a,b,c)}
+ if(q.length<I.count){g.setIndex(q);g.computeBoundingSphere()}})}
 function barrio(RT){if(!window.CGLB||!window.CMAT)return;const ks=Object.keys(BV).filter(BAR);let n=0;
  Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/'+(CRU?'crudo/':'')+'barrio_'+k,v=BV[k]||'p'+Date.now();
   CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;
@@ -189,7 +195,7 @@ function barrio(RT){if(!window.CGLB||!window.CMAT)return;const ks=Object.keys(BV
    esp.forEach(([o,n])=>{o.material=n==='horizonte'?tinte(new THREE.MeshBasicMaterial({vertexColors:true,fog:false,side:THREE.DoubleSide}))
     :FB[n]||(FB[n]=new THREE.MeshBasicMaterial({toneMapped:false}));o.matrixAutoUpdate=false;o.updateMatrix()});
    if(window.PASTO&&PASTO.viento)r.traverse(o=>{if(o.isMesh&&/_copa$/.test(o.name))PASTO.viento(o.material,o)});
-   RT.add(r);tema();if(++n===ks.length&&!CRU)quitaViejo()}).catch(e=>console.warn('[CCALLE] barrio_'+k,e))})}
+   recorta(r);RT.add(r);tema();if(++n===ks.length&&!CRU)quitaViejo()}).catch(e=>console.warn('[CCALLE] barrio_'+k,e))})}
 
 // ---------- una fila de casas vecinas entre xa y xb; s=1 de este lado (miran a +z), s=-1 enfrente ----------
 const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c49b,0xa9d4cc,0xdcb8d8],MADS=[0x2f6b4a,0x5a3418,0x2a4f7a,0x7a2a22,0x3a2a1a],

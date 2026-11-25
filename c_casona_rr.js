@@ -1,8 +1,8 @@
 // c_casona_rr.js — RRC: la Ruleta Rusa en el cuarto oscuro del sótano de la casona (CASONA.md R9). SOTC.viste(t) lo llama sobre la mesa
 // de la casa (c_casa3d.js buildTable): esconde la mesa genérica (y su luz, que quedaba arriba del techo) y pone la de la Ruleta de siempre:
 // tablas viejas rayadas con cuatro patas (una chueca), el foco desnudo colgando de su cable que se mece y a veces parpadea (la única luz del
-// cuarto), cenicero con colillas y cigarro que humea, whisky con su vaso y el revólver. En las esquinas del cuarto (muros de MARC) cajas
-// y un barril. RRC.pon(t,H,F,D) → paso() para cada cuadro; RRC.A: ajustes.
+// cuarto), cenicero con colillas y cigarro que humea, whisky con su vaso y el revólver. (Sin cajas en las esquinas: atravesaban los muros.)
+// RRC.pon(t,H,F,D) → paso() para cada cuadro; RRC.A: ajustes.
 (function(){
 if(typeof THREE==='undefined')return;
 const PI=Math.PI,rnd=(a,b)=>a+Math.random()*(b-a),V2=THREE.Vector2;
@@ -62,25 +62,12 @@ function foco(G,H){const pv=new THREE.Group();pv.position.set(0,A.HT,0);G.add(pv
  const lt=new THREE.PointLight(0xffc47e,A.LUZ,A.DIST,1.5);lt.position.y=-L-.16;lt.userData.keep=true;pv.add(lt);
  return {pv,gm,lt,x:0,z:0,vx:0,vz:0,fl:-1e9,next:performance.now()+3000}}
 
-// cajas y un barril en las esquinas del cuarto: el cuarto se mide con los muros (MARC) desde el centro de la mesa
-function cuarto(G,H,T,t,D,OB){const WL=(D&&D.WL)||[];
- const rayo=(dx,dz)=>{let best=6;for(const [x1,z1,x2,z2,e] of WL){const ex=x2-x1,ez=z2-z1,den=dx*ez-dz*ex;if(Math.abs(den)<1e-9)continue;
-   const qx=x1-t.x,qz=z1-t.z,s=(qx*ez-qz*ex)/den,u=(qx*dz-qz*dx)/den;if(s>.5&&u>=0&&u<=1)best=Math.min(best,s-(e||.3)/2)}return best};
- const x0=-rayo(-1,0),x1=rayo(1,0),z0=-rayo(0,-1),z1=rayo(0,1);
- const cj=H.std(0xffffff,.85,{map:T.caja});
- const caja=(x,z,s,y,ry)=>{const b=H.box(s,s,s,cj,x,y+s/2,z,G);b.rotation.y=ry;b.castShadow=b.receiveShadow=true;return b};
- const cx=x0+.6,cz=z0+.6;caja(cx,cz,.8,0,.1);caja(cx+.05,cz,.62,.8,-.15);caja(cx+.95,cz-.05,.7,0,.5);OB.push({x:t.x+cx+.4,z:t.z+cz,r:.85});
- const bx=x1-.6,bz=z0+.6,pr=[[0,0],[.3,0],[.36,.25],[.38,.5],[.36,.75],[.3,1],[0,1]].map(p=>new V2(p[0],p[1]));
- const ba=new THREE.Mesh(new THREE.LatheGeometry(pr,18),H.std(0x4a3020,.8));ba.position.set(bx,0,bz);ba.castShadow=true;G.add(ba);
- const fe=H.std(0x2a2a2c,.5,{metalness:.6});[.12,.88].forEach(y=>{const h=new THREE.Mesh(new THREE.TorusGeometry(.345,.018,6,24),fe);h.rotation.x=PI/2;h.position.set(bx,y,bz);G.add(h)});
- OB.push({x:t.x+bx,z:t.z+bz,r:.55})}
 
 function pon(t,H,F,D){const G=t.G;if(!G||!H)return null;
  const hit=(G.children.find(o=>o.userData&&o.userData.hit)||{userData:{}}).userData.hit||{t:'table',g:'ruleta'};
  // fuera la mesa genérica: cubierta, aro, pie, cartitas y su luz (a 5.9, arriba del techo del sótano)
  G.children.forEach(o=>{if(o.isPointLight||(o.isMesh&&/Cylinder|Torus/.test(o.geometry.type))||(t.deco||[]).includes(o))o.visible=false});
  const T=texturas(H);mesa(G,H,T,t.r,hit,F.hits);const o=cosas(G,H,T),b=foco(G,H);
- try{cuarto(G,H,T,t,D,F.OB)}catch(e){console.warn('[RRC] cuarto',e)}
  const RRS=window.RRS,pj=new THREE.Vector3();let tA=0;
  function paso(){const now=performance.now(),s=Math.min(.05,(now-(tA||now))/1000);tA=now;
   b.vx+=(-11*b.x-.25*b.vx)*s;b.vz+=(-11*b.z-.25*b.vz)*s;b.x+=b.vx*s;b.z+=b.vz*s;b.pv.rotation.set(b.x+.012*Math.sin(now/1700),0,b.z+.01*Math.sin(now/2300));
