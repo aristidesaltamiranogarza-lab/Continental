@@ -103,8 +103,8 @@ def suelo():
     for a, b in ((XA, 0), (36, XB)):
         quad('calle_banqueta', 'banqueta', a, -1.6, b, 0, prio=.5); quad('calle_arroyo', 'calle', a, -11.6, b, -1.6, prio=.35)
     quad('calle_arroyo', 'calle', 0, -11.6, 36, -3, prio=.35)
-    for i in range(6):                      # paso de cebra del zaguán a la entrada del parque (x 17.5..21.5; paso 3)
-        x = 16.7 + i * .95; pieza(FA(), lin('#ece6d8'), caja_o, x, x + .5, 0, .012, -11.3, -1.9, (2,))
+    for i in range(10):                     # paso de cebra del zaguán a la entrada del parque (x 17.5..21.5; paso 3): franjas paralelas a la calle
+        z = -2.1 - i * .93; pieza(FA(), lin('#ece6d8'), caja_o, 16.9, 22.1, 0, .012, z - .5, z, (2,))
     cortes = [XA]
     for a, b in PASTA: cortes += [a, b]
     cortes.append(XB)
