@@ -78,7 +78,7 @@ function juntas(R){const W=[];
 // Con tu Mii en la banqueta se prende el casco (CCAS: planta alta, azotea, pérgola y tinacos).
 function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle'),cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();if(ar){if(cg){ar.position.y-=.35;ar.updateMatrix()}else ar.visible=false}
  // se cruza la calle hasta la banqueta de enfrente (fachadas vecinas en 32.6): se baja al arroyo (y -.35) y se sube en las guarniciones
- F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);if(cg){F.bx2=[-42,21,17.2,32.2];F.cb[0]=Math.min(F.cb[0],-43);F.cb[1]=Math.max(F.cb[1],22)}   // calle.glb: se camina todo su tramo
+ F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);if(cg){F.bx2=[[-42,21,17.2,32.2],[-87,87,19.6,37],[-89.7,-80.3,-47,37],[80.3,89.7,-47,37],[-89.7,-41,-47,-23],[41,89.7,-47,-23]];F.cb.splice(0,4,Math.min(F.cb[0],-90),Math.max(F.cb[1],90),Math.min(F.cb[2],-48),Math.max(F.cb[3],38))}   // calle.glb: su tramo, la calle entera, las de las esquinas y por detrás de las cuadras al parque (izq.) y a la cancha (der.)
  F.OB.push(...(cg?[{x:-36,z:18.3,r:.35},{x:-6,z:18.3,r:.35},{x:-30,z:18.3,r:.75}]:[{x:11.8,z:18.3,r:.3}]),{x:0,z:29.05,r:.3});
  [4.8,6.2,7.5,8.8,10.2].forEach(x=>F.OB.push({x,z:20.5,r:.75}));   // el vocho
  const ss=(e,z)=>Math.min(1,Math.max(0,(z-e+.15)/.3)),st=t=>t*t*(3-2*t);F.gy=(x,z)=>-.35*(st(ss(18.6,z))-st(ss(28.6,z)));
