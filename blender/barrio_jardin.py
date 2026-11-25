@@ -86,21 +86,7 @@ def red(lineas, discos=(), k=.9, cortes=(), y=None, paso=.12, n='sendero', m='la
     for lz in _contornos(f, xs, zs):
         s = _simple(lz)
         if len(s) > 3: P.plano(bm, s, y)
-    sigue_rampas(bm, y - YS)
     return [[(x, z) for x, z, _ in l] for l in lns]
-
-def sigue_rampas(bm, sobre):
-    """Lo plano que cae en una rampa de LOM (orilla de la plaza o del andador) se corta cada .5 m y sube con el pasto (queda 'sobre' encima)."""
-    import bmesh
-    for a, b, c, e, yy, w in LOM['rampas']:
-        for k in range(1, int(w / .5) + 1):
-            for co, no in (((c + k * .5 - 18, 0, 0), (1, 0, 0)), ((a - k * .5 - 18, 0, 0), (1, 0, 0)),
-                           ((0, b - k * .5 - 17, 0), (0, 1, 0)), ((0, e + k * .5 - 17, 0), (0, 1, 0))):
-                g = bm.verts[:] + bm.edges[:] + bm.faces[:]
-                if g: bmesh.ops.bisect_plane(bm, geom=g, plane_co=co, plane_no=no)
-    for v in bm.verts:
-        s = SUELO(v.co.x + 18, v.co.y + 17) + sobre
-        if s > v.co.z: v.co.z = s
 
 # ---------- pasto con hojas ----------
 def _crc(pts, n):
@@ -279,7 +265,7 @@ def huerto(seed=5):
 # alto(x, z): ruido suave de 2 octavas (lomas cada ~15 m, hasta ~0.5), en 0 con transición de 2.5 m cerca de muros, bardas, casona,
 # traspatio, cancha, plaza e iglesia, andador, huerto, caminitos y manchas de pasto con hojas (así nada queda enterrado ni flotando).
 # Todo lo que va sobre el pasto usa SUELO(x, z). El juego recibe la rejilla de alturas en los extras de <nom>_pasto_c (CCALLE.alto).
-LOM = dict(caja=(-51, 22, 86, 78), rects=[], lineas=[], discos=[], gotas=[], rampas=[], cache={})
+LOM = dict(caja=(-51, 22, 86, 78), rects=[], lineas=[], discos=[], gotas=[], cache={})
 
 def _hash(i, j, k): return (math.sin(i * 127.1 + j * 311.7 + k * 74.7) * 43758.5453) % 1.0
 
@@ -313,16 +299,13 @@ def alto(x, z, T=2.5):
     if d > 0:
         n = .65 * _vn(x + 300, z + 300, 15, 1) + .35 * _vn(x + 300, z + 300, 6.5, 2)
         h = round(.55 * _ss(.3, .82, n) * _ss(0, T, d), 3)
-    for a, b, c, e, yy, w in LOM['rampas']:   # rampas: el pasto sube suave hasta el nivel yy de lo que está encima (plaza, andador)
-        dd = math.hypot(max(a - x, 0, x - c), max(b - z, 0, z - e))
-        if dd < w: h = max(h, round((yy - YS) * _ss(0, 1, 1 - dd / w), 3))
     LOM['cache'][k] = h; return h
 
 def SUELO(x, z): return YS + alto(x, z)
 
-def lomas_planas(rects=(), lineas=(), discos=(), gotas=(), rampas=()):
+def lomas_planas(rects=(), lineas=(), discos=(), gotas=()):
     """Zonas que se quedan planas: rects [(x0, z0, x1, z1, margen)], lineas [(puntos, medio ancho)], discos [(x, z, r)], gotas como mancha()."""
-    LOM['rects'] += list(rects); LOM['discos'] += list(discos); LOM['gotas'] += list(gotas); LOM['rampas'] += list(rampas); LOM['cache'].clear()
+    LOM['rects'] += list(rects); LOM['discos'] += list(discos); LOM['gotas'] += list(gotas); LOM['cache'].clear()
     for ln, hw in lineas:
         LOM['lineas'].append((ln, hw, (min(p[0] for p in ln), min(p[1] for p in ln), max(p[0] for p in ln), max(p[1] for p in ln))))
 
@@ -332,9 +315,6 @@ def suelo_lomas(huecos, paso=2.0):
     x0, z0, x1, z1 = LOM['caja']; bm = M('pasto_c', 'pasto_c', prio=.25)
     xs = sorted({round(v, 3) for v in list(np.arange(x0, x1, paso)) + [x1] + [r[k] for r in huecos for k in (0, 2) if x0 < r[k] < x1]})
     zs = sorted({round(v, 3) for v in list(np.arange(z0, z1, paso)) + [z1] + [r[k] for r in huecos for k in (1, 3) if z0 < r[k] < z1]})
-    rx = [r[k] + s * j * .75 for r in LOM['rampas'] for k, s in ((0, -1), (2, 1)) for j in range(1, int(r[5] / .75) + 1)]   # rampas: rejilla fina
-    rz = [r[k] + s * j * .75 for r in LOM['rampas'] for k, s in ((1, -1), (3, 1)) for j in range(1, int(r[5] / .75) + 1)]
-    xs = sorted(set(xs) | {round(v, 3) for v in rx if x0 < v < x1}); zs = sorted(set(zs) | {round(v, 3) for v in rz if z0 < v < z1})
     VS = {}
     def vt(x, z):
         if (x, z) not in VS: VS[(x, z)] = bm.verts.new(V(x, YS + alto(x, z), z))

@@ -82,7 +82,7 @@ function calle(F,R,D){const ar=R.getObjectByName('pb_piso_calle'),cg=window.CCAL
  F.bx[3]=32.2;F.cb[3]=Math.max(F.cb[3],33);if(cg){F.bx2=[[-42,21,17.2,32.2],[-87,87,19.6,37],[-89.7,-80.3,-47,37],[80.3,89.7,-47,37],[-69,68,-47,-5],[-44,68,-61,-47],[-58,-52,-5,19.6],[-.2,3.2,36,45],[-29.7,33.7,44.9,90.7]];F.cb.splice(0,4,Math.min(F.cb[0],-90),Math.max(F.cb[1],90),Math.min(F.cb[2],-62),Math.max(F.cb[3],91))}   // calle.glb: su tramo, la calle entera, las de las esquinas y por detrás de las cuadras al parque (izq.) y a la cancha (der.); paso 3: jardín detrás de la casona hasta la plaza y la cancha (sin la iglesia) y el andador de 6
  F.OB.push(...(cg?[{x:-36,z:18.3,r:.35},{x:-6,z:18.3,r:.35},{x:-30,z:18.3,r:.75}]:[{x:11.8,z:18.3,r:.3}]),{x:0,z:29.05,r:.3});
  [4.8,6.2,7.5,8.8,10.2].forEach(x=>F.OB.push({x,z:20.5,r:.75}));   // el vocho
- const ss=(e,z)=>Math.min(1,Math.max(0,(z-e+.15)/.3)),st=t=>t*t*(3-2*t);F.gy=(x,z)=>-.35*(st(ss(18.6,z))-st(ss(28.6,z)))+(window.CCALLE&&CCALLE.alto?CCALLE.alto(x,z):0);   // + lomas del jardín (3b)
+ const ss=(e,z)=>Math.min(1,Math.max(0,(z-e+.15)/.3)),st=t=>t*t*(3-2*t);F.gy=(x,z)=>-.35*(st(ss(18.6,z))-st(ss(28.6,z)))+jardin(x,z)+(window.CCALLE&&CCALLE.alto?CCALLE.alto(x,z):0);   // + lomas del jardín (3b)
  if(window.CCAS)try{F.casco=CCAS.pon(F)}catch(er){console.error('[CCAS]',er)}
  if(window.CIELO&&CIELO.pisos)CIELO.mundo.children.forEach(o=>{if((o.name==='patio'||o.name==='tras')&&!o.userData.casona){o.userData.casona=1;CIELO.pisos(o,p=>!(p in PISO_ID))}})}
 const PISO_ID={cm1:1,c0:1,c1:1,c2:1};
@@ -91,6 +91,16 @@ const PEGA={pb_coc_campana:[13.8,7],pb_coc_cobre:[11.2,7]};
 
 // cosas que se tocan (accion_<k> del GLB): el espejo y el ropero de tu cuarto abren Mi personaje; la radio de la sala de música cambia el volumen
 const ACC={mipj:()=>{if(window.MIPJ)MIPJ.abrir()},radio:()=>{if(window.musCyc)musCyc()}};
+// nivel base del suelo detrás de la casona (plano: X=x+18, Z=17-z). El pasto del jardín, la plaza y el andador desde z 22 están en
+// YS (−.35; antes se caminaba en 0 y el personaje flotaba); la casona y el andador entre casas en 0; escalones del andador, puerta
+// trasera y atrio de la iglesia (.3) con transición suave. Datos: blender/barrio_plaza.py y barrio_manzana.py.
+function jardin(x,z){const X=x+18,Z=17-z,L=(a,b,t)=>a+(b-a)*Math.min(1,Math.max(0,t));
+ if(!(X>-51&&X<86&&Z>22&&Z<78))return 0;
+ if(X>-40&&X<-34&&Z<22.8)return L(0,-.29,(Z-22)/.8);                                  // andador: baja dos escalones
+ if(X>-50&&X<-26&&Z>62.5&&Z<68)return Z>64?.3:L(-.29,.3,(Z-62.5)/1.5);              // escalones y atrio
+ if(X>-51&&X<-23&&Z>40&&Z<62.5||X>-40&&X<-34)return -.29;                            // plaza y andador al ras del pasto
+ if(X>0&&X<36&&Z<48.8)return Z<48?0:L(0,-.35,(Z-48)/.8);                             // casona y su puerta trasera
+ return -.35}
 function accion(S,hits,a){const f=ACC[a.k.replace(/\d+$/,'')];if(!f)return;const m=new THREE.Mesh(new THREE.SphereGeometry(a.r,10,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
  m.position.set(a.x,a.y,a.z);m.userData.hit={t:'fn',f};S.add(m);hits.push(m)}
 

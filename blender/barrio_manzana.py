@@ -56,11 +56,9 @@ def jardin(B):
     # 3b: lomas suaves; planas cerca de muros, bardas, casona, traspatio, cancha, plaza, andador, huerto, caminitos y pasto con hojas
     B.lomas_planas(rects=[(0, 22, 36, 48, 1.0), (35, 21, 57.5, 49.5, .5), (59.5, 43.5, 86.5, 63.2, .8), (-51, 40, -23, 78, 1.0),
                           (-40, 22, -34, 40, 1.0), (0, 47.5, 14.5, 52.6, .8)],
-                   lineas=[(ln[0], 3.05), (ln[1], 3.05), (ln[2], 2.45)], discos=[(25.4, 60.1, 3.5), (28.9, 61.1, 3.5)], gotas=gotas,
-                   rampas=[(-51, 40, -23, 64, 0.0, 3.0), (-40, 22, -34, 40, 0.0, 2.5)])   # el pasto sube a la plaza y al andador (se veían flotando)
+                   lineas=[(ln[0], 3.05), (ln[1], 3.05), (ln[2], 2.45)], discos=[(25.4, 60.1, 3.5), (28.9, 61.1, 3.5)], gotas=gotas)
     B.suelo_lomas(huecos)
     for i, m in enumerate(gotas): B.mancha(*m, seed=i + 1)                          # 3b: pasto con hojas en manchas de orilla irregular
-    B.sigue_rampas(B.M('pasto', 'pasto'), .012)                                     # las manchas suben con el pasto en las rampas de la plaza
     for x, z in ((-12.5, 53.6), (1.5, 55.4), (36.5, 51.1), (46, 50.3), (55.4, 57.4)): B.farol(x, z, B.SUELO(x, z))   # a un lado del camino
     B.banca_conf(-4.5, 54.2, -.34, B.SUELO(-4.5, 54.2)); B.banca_conf(43.5, 54.3, .13, B.SUELO(43.5, 54.3))
     B.mesa_domino(25.4, 60.1, .1, fichas=True); B.mesa_domino(28.9, 61.1, -.2)          # rincón de dominó bajo la ceiba

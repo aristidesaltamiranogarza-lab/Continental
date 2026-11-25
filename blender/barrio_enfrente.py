@@ -13,6 +13,9 @@ def piezas(B):
     P, PAL, YS, YA, YE = B.P, B.PAL, B.YS, B.YA, B.YE
     # arroyo de la Calle 59 (calle.glb trae x −25..40) y banqueta de enfrente (alta como la del tramo) con pasta en dos casas
     for a, b in ((-72, -25), (40, 108)): B.arroyo(a, -11.6, b, -1.6)
+    # guarniciones a todo lo largo de la calle (cara de la banqueta hacia el arroyo): sin ellas se veía el suelo verde por debajo
+    for z0, z1, yt in ((-1.58, -1.50, -.005), (-11.70, -11.62, YE - .005)):   # entre las calles laterales (x −64..100), sin tapar los cruces
+        B.pieza(B.M('guarnicion', 'banqueta', prio=.4), None, B.caja_o, -64, 100, YA - .02, yt, z0, z1, (2,))
     segs = [(-64, -50, 'banqueta'), (-50, -42, 'pasta'), (-42, -25, 'banqueta'), (40, 64, 'banqueta'), (64, 72, 'pasta'), (72, 100, 'banqueta')]
     for a, b, m in segs:
         B.losa(m, m, a, b, ZE, -11.58, YE, YA, sin=(4,) + ((0,) if a != -64 else ()) + ((1,) if b != 100 else ()))   # solo las esquinas con canto

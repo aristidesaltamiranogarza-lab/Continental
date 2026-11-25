@@ -62,7 +62,8 @@ def iglesia(B):
     pieza(fa, cal, P.tubo, (-37, 13.2, 80), (-37, 14.0, 80), .4, .3, 6)
     # atrio de cantera con escalón y cruz atrial
     B.losa('cantera', 'cantera', -50, -26, 64, 68, .3, sin=(5,))
-    B.losa('cantera', 'cantera', -40, -34, 63.4, 64, .15, sin=(5,))
+    for z0, z1, y in ((62.5, 62.95, -.14), (62.95, 63.4, 0.0), (63.4, 64, .15)):   # escalones de la plaza (al ras del pasto) al atrio
+        B.losa('cantera', 'cantera', -40, -34, z0, z1, y, sin=(5,) if z1 == 64 else ())
     can = PAL['cantera']
     pieza(fa, osc(can, .9), B.caja_o, -37.8, -36.2, .3, .6, 65.1, 66.7)
     pieza(fa, can, B.caja_o, -37.55, -36.45, .6, 1.5, 65.35, 66.45)
@@ -95,21 +96,25 @@ def iglesia(B):
 def piezas(B):
     P, PAL, YS = B.P, B.PAL, B.YS
     # andador de 6: de la banqueta (z 0) a la plaza (z 40) y de ahí al atrio (paso 3); faroles sobre el pasto, fuera del camino
-    B.losa('banqueta', 'banqueta', -40, -34, 0, 40, 0, sin=(0, 1, 4, 5))
+    # entre las casas va a nivel de banqueta (0); donde acaban los lotes (z 22) baja dos escalones al nivel del jardín y de la plaza.
+    # Con sus lados (antes solo la tapa: al recalcular normales quedaba boca abajo y en el juego no se veía).
+    YP = YS + .06                                  # plaza y andadores al ras del pasto del jardín (antes 35 cm arriba: flotaban)
+    B.losa('banqueta', 'banqueta', -40, -34, 0, 22, 0, sin=(4,))
+    for z0, z1, y in ((22, 22.4, -.1), (22.4, 22.8, -.2)): B.losa('escalon', 'banqueta', -40, -34, z0, z1, y)
+    B.losa('banqueta', 'banqueta', -40, -34, 22.8, 62.5, YP)
     B.farol(-41.3, 26, YS); B.farol(-32.7, 35, YS)
     B.maceta(-39.5, 6.0); B.maceta(-34.5, 9.5, tipo='agave')
     # plaza: pasto en cuatro cuadrantes, andadores en cruz y plaza redonda de pasta
     for x0, x1 in ((-51, -40), (-34, -23)):
-        for z0, z1 in ((40, 50), (54, 64)): B.cuadrante('pasto', 'pasto', x0, x1, z0, z1, CX, CZ, RP, 0)
-    B.losa('banqueta', 'banqueta', -40, -34, 40, 64, .06, sin=(5,))
-    for a, b in ((-51, -40), (-34, -23)): B.losa('banqueta', 'banqueta', a, b, 50, 54, .06, sin=(0, 1))
-    B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS, CZ), (CX, .1, CZ), RP, RP, 32)
-    B.fuente(CX, CZ, .1)   # P1: el kiosco se fue al parque nuevo (barrio_parque.py); la fuente queda al centro de la plaza
+        for z0, z1 in ((40, 50), (54, 64)): B.cuadrante('pasto', 'pasto', x0, x1, z0, z1, CX, CZ, RP, YS)
+    for a, b in ((-51, -40), (-34, -23)): B.losa('banqueta', 'banqueta', a, b, 50, 54, YP)
+    B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS - .02, CZ), (CX, YS + .1, CZ), RP, RP, 32)
+    B.fuente(CX, CZ, YS + .1)   # P1: el kiosco se fue al parque nuevo (barrio_parque.py); la fuente queda al centro de la plaza
     for i in range(8):
-        a = i * math.pi / 4 + math.pi / 8; B.banca_conf(CX + math.cos(a) * 8.2, CZ + math.sin(a) * 8.2, a + math.pi / 2, .1)
-    for x, z in ((-41.2, 41.0), (-32.8, 62.9), (-50.4, 49.3), (-23.6, 54.7)): B.farol(x, z, .06)   # junto a los andadores, no en ellos
-    B.laurel(-46, 44.5, 1.0); B.laurel(-28, 44.5, 1.0); B.flamboyan(-28, 59.5, 1.0); B.ceiba(-46, 59.5, .95)
-    for x, z in ((-42.6, 41.2), (-31.4, 41.2)): B.agave(x, z, .9, 0)
+        a = i * math.pi / 4 + math.pi / 8; B.banca_conf(CX + math.cos(a) * 8.2, CZ + math.sin(a) * 8.2, a + math.pi / 2, YS + .1)
+    for x, z in ((-41.2, 41.0), (-32.8, 62.9), (-50.4, 49.3), (-23.6, 54.7)): B.farol(x, z, YS)   # junto a los andadores, no en ellos
+    B.laurel(-46, 44.5, 1.0, y0=YS); B.laurel(-28, 44.5, 1.0, y0=YS); B.flamboyan(-28, 59.5, 1.0, y0=YS); B.ceiba(-46, 59.5, .95, y0=YS)
+    for x, z in ((-42.6, 41.2), (-31.4, 41.2)): B.agave(x, z, .9, YS)
     B.unido(iglesia, B)
     B.palmera(-48, 78, 10, y0=YS); B.palmera(-28.5, 79, 9.5, y0=YS)
     P.quad('plaza_pasto_c', 'pasto_c', -51, 64, -23, 89.8, y=YS, prio=.25)      # alrededor de la iglesia: pasto liso (paso 3)

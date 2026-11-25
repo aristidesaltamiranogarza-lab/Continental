@@ -511,12 +511,11 @@ def traspatio():
     caja(CA, 31, 34, 0, 1.0, 35.4, 36.8); caja(CA, 31.2, 33.8, 1.0, 1.2, 35.6, 36.6)
     pozo(*POZO)
     # puerta trasera al jardín del barrio (vano de la barda, x 16.5..19.5, z 48): antes la barda solo se cortaba. Pilastras de cantera
-    # con capitel, dintel y cornisa a 2.5 (pasa el personaje de 2.1) y dos hojas de madera abiertas hacia el traspatio.
+    # con capitel (sin dintel: quedaba bajo) y dos hojas de madera abiertas hacia el traspatio.
     PO = bmn('pb_porton_t', 'porton', prio=.5); obs = []
     for a, b in ((16.0, 16.6), (19.4, 20.0)):
         caja(CA, a, b, 0, 2.6, 47.72, 48.28); caja(CA, a - .06, b + .06, 2.75, 2.86, 47.66, 48.34)
         caja(CA, a - .04, b + .04, 0, .3, 47.68, 48.32); obs += T((a + b) / 2, 48) + [.42]
-    caja(CA, 16.0, 20.0, 2.5, 2.75, 47.76, 48.24); caja(CA, 15.94, 20.06, 2.75, 2.86, 47.66, 48.34)
     caja(CA, 16.6, 19.4, -.02, .04, 47.78, 48.22)   # umbral al ras
     for x, s in ((16.62, 1), (19.38, -1)):
         x0, x1 = sorted((x, x + s * .07))

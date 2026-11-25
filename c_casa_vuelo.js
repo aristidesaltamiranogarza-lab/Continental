@@ -8,7 +8,7 @@ const COD={KeyW:1,KeyA:1,KeyS:1,KeyD:1,ArrowUp:1,ArrowDown:1,ArrowLeft:1,ArrowRi
 const escribe=e=>{const t=e.target;return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};
 addEventListener('keydown',e=>{if(escribe(e))return;if(Q&&e.code==='KeyF'&&!e.repeat){on=!on;ini=false;K.clear();return}
  if(!on||!COD[e.code])return;K.add(e.code);e.preventDefault();e.stopImmediatePropagation()},true);
-addEventListener('keyup',e=>{if(!on||!COD[e.code])return;K.delete(e.code);e.stopImmediatePropagation()},true);
+addEventListener('keyup',e=>{if(COD[e.code])K.delete(e.code)},true);   // sin cortar el evento: si se tragaba el keyup, la tecla de caminar quedaba apretada al volar
 addEventListener('blur',()=>{K.clear();arr=null});document.addEventListener('visibilitychange',()=>{if(document.hidden){K.clear();arr=null}});
 const lienzo=e=>e.target&&e.target.tagName==='CANVAS';
 addEventListener('pointerdown',e=>{if(!on||!lienzo(e))return;arr={x:e.clientX,y:e.clientY,id:e.pointerId};e.stopImmediatePropagation()},true);
