@@ -50,6 +50,8 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Bancas cafés (de madera): cambiarles un poco la posición
 - [x] Patio de juegos del parque: más detalle
 - [ ] Letras de MÉRIDA: rehacerlas; lo ideal es una tipografía convertida a 3D (después)
+- [ ] Piso del terreno con llantas, agaves y piedras (baldío/lote junto a la casa, 25 nov, captura del usuario): el pasto y la tierra se enciman raro (franjas que parpadean, z-fighting); separar alturas o juntar en una sola malla
+- [ ] Barda de esa zona: la textura de manchas (óvalos oscuros grandes) se ve fea; cambiarla por un aplanado más fino y parejo
 - [ ] Planta alta vista desde la planta baja (25 nov, captura del usuario): en PB, con la cámara de arriba, se ve un pedazo de la planta alta encima (franja superior con el piso de madera, el barandal y las etiquetas Continental/Uno de PA) cortado a la mitad de la pantalla. Revisar el corte/ocultado de PA cuando estás en PB (MARC.corte / CPB.corte, goFloor)
 - Hecho 3c: barrio_plantas.py (plátanos con hojas curvas, hoja seca, racimo e hijuelo; milpa con hojas que cuelgan, espiga y elote; arbustos de nube con textura de copa), laurel pintado de cal, cancha al ras, muros traseros con zoclo, castillos, cornisa, cuarto de azotea, tinaco y varillas (barrio_trasera.py), banca del traspatio en la barda del fondo (casona_pb_deco.py), bancas cafés alternadas, juegos con guarnición, techito, carrusel, bote y banca. Tope de la manzana: 118k (antes 108k). Falta hornear manzana, parque, plaza y pb (paso 6).
 
