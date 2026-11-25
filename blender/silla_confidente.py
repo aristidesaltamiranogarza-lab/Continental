@@ -1,5 +1,5 @@
 # blender/silla_confidente.py — prepara la silla confidente (MeridaChairs.blend, descargado) para el barrio:
-# la gira con los dos pies sobre x, centrada, asiento a 0.95 (medida fija del kit), la reduce y la guarda en props/silla_confidente.obj.
+# la gira con los dos pies sobre x, centrada, asiento a 0.6 (medida fija de los asientos de descanso), la reduce y la guarda en props/silla_confidente.obj.
 #   blender -b <ruta>/MeridaChairs.blend --python blender/silla_confidente.py -- [proporción=0.12] [png]
 # barrio_kit.banca_conf la lee (solo v/f, sin texturas: color por vértice como todo el barrio).
 import bpy, bmesh, math, sys, os
@@ -8,7 +8,7 @@ from mathutils import Vector, Matrix
 ARG = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 RAT = float(ARG[0]) if ARG else .12
 SALIDA = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'props', 'silla_confidente.obj')
-ASIENTO = .95
+ASIENTO = .6
 
 o = next(x for x in bpy.data.objects if x.type == 'MESH')
 bm = bmesh.new(); bm.from_mesh(o.data)

@@ -1,7 +1,7 @@
 # blender/barrio_kit.py — ayudantes del barrio (lámina A-02). barrio_lib.cargar() lo ejecuta dentro del módulo de cada pieza, así que usa
 # directo lo de casona_calle.py (pieza, caja_o, ico, cf, FA, HI, PAL, osc, lin, ex_obs, quad) y de casona_pb.py (P: tubo, viga, prisma, disco...).
 # Coordenadas del plano (ver barrio_lib.py). Low-poly, color por vértice en <nom>_fachadas (material 'fachada'), sin texturas nuevas.
-# Medidas fijas: personaje 2.1, puerta ~3, asiento de banca 0.95, vecinas 5.6–6.8 (más bajas que la casona), escalón 0.35.
+# Medidas fijas: personaje 2.1, puerta ~3, asiento de banca 0.6, vecinas 5.6–6.8 (más bajas que la casona), escalón 0.35.
 import bpy, bmesh, math, random
 from mathutils import Vector, Matrix
 
@@ -339,7 +339,7 @@ def farol(x, z, y0=0.0):
 _SILLA = []
 def banca_conf(x, z, ang=0.0, y0=0.0):
     """Silla confidente de concreto blanco (props/silla_confidente.obj, de silla_confidente.py): dos asientos que se miran,
-    pies sobre x, asiento a 0.95; mide 2.3 x 1.3 x 1.4. Sin girar: largo en x. Caras suaves (se hornea sin facetas)."""
+    pies sobre x, asiento a 0.6; mide 1.45 x 0.8 x 0.9. Sin girar: largo en x. Caras suaves (se hornea sin facetas)."""
     if not _SILLA:
         import os
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'props', 'silla_confidente.obj')) as f:

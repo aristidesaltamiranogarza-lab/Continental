@@ -108,8 +108,8 @@ def balcon_trasero():
             bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.34, matrix=P.Matrix.Translation(P.V(mx + math.cos(an) * .22, 1.02 + .12 * (k % 2), mz + math.sin(an) * .22)) @ P.Matrix.Diagonal((1, 1, .8, 1)))
         obs += T(mx, mz) + [.55]
     MA = bmn('pa_balcon_t_banca', 'madera')
-    caja(MA, 16.2, 19.8, .72, .8, 32.6, 33.2); caja(MA, 16.2, 19.8, .8, 1.45, 33.12, 33.2)
-    for xx in (16.4, 19.6): caja(MA, xx - .05, xx + .05, 0, .72, 32.65, 33.15)
+    caja(MA, 16.2, 19.8, .52, .6, 32.6, 33.2); caja(MA, 16.2, 19.8, .6, 1.25, 33.12, 33.2)
+    for xx in (16.4, 19.6): caja(MA, xx - .05, xx + .05, 0, .52, 32.65, 33.15)
     ex('pa_balcon_t_macetas', obs=obs); ex('pa_balcon_t_banca', segs=T(16.4, 32.9) + T(19.6, 32.9), r=.4)
 
 def balcones():

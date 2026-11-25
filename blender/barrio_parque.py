@@ -14,14 +14,14 @@ CX, CZ, RP = 19.5, -50, 9.5               # kiosco y su plaza redonda
 YP = .06                                  # andadores sobre el pasto
 
 def banca(x, z, ang=0.0):
-    """Banca de parque sencilla: asiento a 0.95 y respaldo de tablas sobre patas de hierro. Sin girar: largo en x, mira a −z."""
+    """Banca de parque sencilla: asiento a 0.6 y respaldo de tablas sobre patas de hierro. Sin girar: largo en x, mira a −z."""
     def arma():
         fa, hi = B.FA(), B.HI(); m = B.PAL['madera']
         for dx in (-1.0, 1.0):
-            B.pieza(hi, None, B.caja_o, x + dx - .05, x + dx + .05, 0, .9, z - .3, z + .25)
-            B.pieza(hi, None, B.caja_o, x + dx - .05, x + dx + .05, .9, 1.9, z + .2, z + .28)
-        for i in range(3): B.pieza(fa, m, B.caja_o, x - 1.2, x + 1.2, .9, .97, z - .32 + i * .2, z - .16 + i * .2)
-        for y in (1.3, 1.65): B.pieza(fa, m, B.caja_o, x - 1.2, x + 1.2, y, y + .18, z + .26, z + .32)
+            B.pieza(hi, None, B.caja_o, x + dx - .05, x + dx + .05, 0, .53, z - .3, z + .25)
+            B.pieza(hi, None, B.caja_o, x + dx - .05, x + dx + .05, .53, 1.53, z + .2, z + .28)
+        for i in range(3): B.pieza(fa, m, B.caja_o, x - 1.2, x + 1.2, .53, .6, z - .32 + i * .2, z - .16 + i * .2)
+        for y in (.93, 1.28): B.pieza(fa, m, B.caja_o, x - 1.2, x + 1.2, y, y + .18, z + .26, z + .32)
     B.girado(ang, x, z, arma)
 
 def marquesitas(x, z, ang=0.0):

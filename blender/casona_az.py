@@ -221,8 +221,8 @@ def muebles():
     ex('az_macetas', obs=obs)
     # mirador: banca de cantera contra el pretil del fondo
     CA = bmn('az_banca', 'cantera')
-    caja(CA, 1.2, 6.2, .55, .7, 29.0, 29.8)
-    for xx in (1.4, 3.7, 6.0): caja(CA, xx - .15, xx + .15, 0, .55, 29.1, 29.7)
+    caja(CA, 1.2, 6.2, .45, .6, 29.0, 29.8)
+    for xx in (1.4, 3.7, 6.0): caja(CA, xx - .15, xx + .15, 0, .45, 29.1, 29.7)
     ex('az_banca', segs=T(1.5, 29.4) + T(5.9, 29.4), r=.45)
 
 def deco():   # guirnalda, plantas, calentador solar, gas, lavadero, rejas y antena (blender/casona_az_deco.py)

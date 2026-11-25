@@ -411,7 +411,8 @@ def hamaca():
 # ---------- muebles del frente (3a) ----------
 def mecedora(cx, cz, ang, MA, BE):
     fw = (math.sin(ang), -math.cos(ang)); rt = (-fw[1], fw[0])
-    P = lambda lx, y, lz: (cx + rt[0] * lx + fw[0] * lz, y, cz + rt[1] * lx + fw[1] * lz)
+    k = .75   # asiento a 0.6 (descanso; las sillas de mesa de juego van a 0.95)
+    P = lambda lx, y, lz: (cx + k * (rt[0] * lx + fw[0] * lz), k * y, cz + k * (rt[1] * lx + fw[1] * lz))
     ry = lambda lz: .06 + .35 * lz * lz
     for sx in (-.36, .36):
         zs = [-.62 + i * 1.22 / 8 for i in range(9)]
@@ -421,8 +422,8 @@ def mecedora(cx, cz, ang, MA, BE):
         viga(MA, P(sx * 1.1, 1.1, -.4), P(sx * 1.1, 1.06, .38), .04)
         viga(MA, P(sx, .8, .32), P(sx * 1.1, 1.06, .34), .025)
     viga(MA, P(-.4, 1.85, -.56), P(.4, 1.85, -.56), .045)
-    bloque(BE, P(0, .8, .02), (rt[0] * .36, 0, rt[1] * .36), (0, .025, 0), (fw[0] * .34, 0, fw[1] * .34))
-    viga(BE, P(0, .95, -.36), P(0, 1.75, -.53), .34, .02)
+    bloque(BE, P(0, .8, .02), (rt[0] * .36 * k, 0, rt[1] * .36 * k), (0, .025, 0), (fw[0] * .34 * k, 0, fw[1] * .34 * k))
+    viga(BE, P(0, .95, -.36), P(0, 1.75, -.53), .34 * k, .02)
 
 def frente():
     MA, BE = bmn('pb_muebles', 'madera'), bmn('pb_muebles_bejuco', 'bejuco')
@@ -431,9 +432,9 @@ def frente():
     tubo(bmn('pb_jarron', 'barro'), (13.25, .66, 6.5), (13.25, 1.05, 6.5), .1, .16, 10)
     obs = T(12.25, 7.3) + [.75] + T(14.25, 7.3) + [.75] + T(13.25, 6.5) + [.45]
     # banca del zaguán
-    caja(MA, 16.2, 16.78, .62, .7, 1.0, 2.7); caja(MA, 16.17, 16.24, .86, 1.56, 1.05, 2.65)
+    caja(MA, 16.2, 16.78, .52, .6, 1.0, 2.7); caja(MA, 16.17, 16.24, .76, 1.46, 1.05, 2.65)
     for zz in (1.08, 2.62):
-        caja(MA, 16.62, 16.7, 0, .62, zz - .04, zz + .04); caja(MA, 16.2, 16.28, 0, 1.56, zz - .04, zz + .04)
+        caja(MA, 16.62, 16.7, 0, .52, zz - .04, zz + .04); caja(MA, 16.2, 16.28, 0, 1.46, zz - .04, zz + .04)
     segs = T(16.5, 1.15) + T(16.5, 2.55)
     # trinchador del comedor
     caja(MA, 35.15, 35.85, 0, 1.2, 2.2, 7.8); caja(MA, 35.08, 35.85, 1.2, 1.28, 2.1, 7.9)

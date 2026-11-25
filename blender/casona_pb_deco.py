@@ -37,8 +37,8 @@ def cocina():
     for x in (30.95, 33.05):
         for z in (15.35, 18.65): caja(MA, x - .06, x + .06, 0, 1.25, z - .06, z + .06)
     for x0, x1 in ((30.0, 30.4), (33.6, 34.0)):
-        caja(MA, x0, x1, .72, .8, 15.4, 18.6)
-        for z in (15.55, 18.45): caja(MA, x0 + .04, x1 - .04, 0, .72, z - .05, z + .05)
+        caja(MA, x0, x1, .52, .6, 15.4, 18.6)
+        for z in (15.55, 18.45): caja(MA, x0 + .04, x1 - .04, 0, .52, z - .05, z + .05)
     tubo(BA, (32, 1.33, 17.3), (32, 1.62, 17.3), .14, .17, 12); tubo(BA, (32, 1.62, 17.3), (32, 1.78, 17.3), .17, .1, 12)
     # tinajero en la esquina: banco de madera y tinaja
     caja(MA, 28.55, 29.65, 1.5, 1.58, 20.6, 21.7)
@@ -163,8 +163,8 @@ def traspatio2():
         laja(x + (r3() - .5) * .2, z, .5 + .08 * r3())
         if k % 2 == 0: laja(x + (.75 if k % 4 == 0 else -.75), z + (r3() - .5) * .4, .16 + .06 * r3(), 6, .05)
     # banca pegada a la barda del fondo, entre las matas, mirando a la casa; tierra pelona bajo el mamey
-    caja(MA, 8.75, 11.35, .72, .8, 47.2, 47.78); caja(MA, 8.8, 11.3, .8, 1.5, 47.7, 47.78)
-    for x in (8.95, 11.15): caja(MA, x - .05, x + .05, 0, .72, 47.25, 47.73)
+    caja(MA, 8.75, 11.35, .52, .6, 47.2, 47.78); caja(MA, 8.8, 11.3, .6, 1.3, 47.7, 47.78)
+    for x in (8.95, 11.15): caja(MA, x - .05, x + .05, 0, .52, 47.25, 47.73)
     segs += T(8.95, 47.5) + T(11.15, 47.5); mancha(MT, 6.2, 41.1, 2.0, R)
     # tendedero: dos postes, el mecate y ropa colgada
     for x in (22, 30): caja(MA, x - .08, x + .08, 0, 3.3, 45.42, 45.58); caja(MA, x - .06, x + .06, 3.1, 3.2, 45.0, 46.0)

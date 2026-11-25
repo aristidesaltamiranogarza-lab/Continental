@@ -121,13 +121,13 @@ def lavadero(x, z, ang=0.0):
     girado(ang, x, z, arma)
 
 def silla(x, z, ang=0.0, col=None):
-    """Silla de plástico (asiento a 0.95, como la de la referencia)."""
+    """Silla de plástico (asiento a 0.6, como todos los de descanso)."""
     def arma():
         fa = FA(); c = col or PAL['blanco']
-        pieza(fa, c, caja_o, x - .4, x + .4, YS + .85, YS + .95, z - .4, z + .4)
-        pieza(fa, c, caja_o, x - .4, x + .4, YS + .95, YS + 1.75, z + .32, z + .42)
+        pieza(fa, c, caja_o, x - .4, x + .4, YS + .5, YS + .6, z - .4, z + .4)
+        pieza(fa, c, caja_o, x - .4, x + .4, YS + .6, YS + 1.4, z + .32, z + .42)
         for a in (-.34, .34):
-            for b in (-.34, .34): pieza(fa, c, caja_o, x + a - .05, x + a + .05, YS, YS + .85, z + b - .05, z + b + .05, (2,))
+            for b in (-.34, .34): pieza(fa, c, caja_o, x + a - .05, x + a + .05, YS, YS + .5, z + b - .05, z + b + .05, (2,))
     girado(ang, x, z, arma)
 
 def vida_patio(x0, x1, za, zb, R, tend=True):
