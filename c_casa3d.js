@@ -283,7 +283,9 @@ Object.values(FLS).forEach(f=>(f===FL?TB:f.TB||[]).forEach(t=>{if(!t.chairs||sal
 // límites: la caja del piso y, si las hay, las de afuera (FL.bx2: una caja o lista); fuera de las dos va al punto más cercano de alguna
 const enC=(p,b)=>({x:Math.max(b[0],Math.min(b[1],p.x)),z:Math.max(b[2],Math.min(b[3],p.z))});
 function lim(p,b,s){if(!b)return;let q=enC(p,b),d=(q.x-p.x)**2+(q.z-p.z)**2;if(s)(Array.isArray(s[0])?s:[s]).forEach(c=>{if(!d)return;const r=enC(p,c),e=(r.x-p.x)**2+(r.z-p.z)**2;if(e<d){q=r;d=e}});p.x=q.x;p.z=q.z}
-function solve(p){lim(p,FL.bx,FL.bx2);
+// ?libre: sin límites ni choques, para recorrer y revisar el barrio
+const LIBRE=/[?&]libre/.test(location.search);
+function solve(p){if(LIBRE)return;lim(p,FL.bx,FL.bx2);
  TB.concat(OB).forEach(o=>{const r=(o.g?o.r+.45:o.r)+.35,dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=o.x+dx/d*r;p.z=o.z+dz/d*r}});
  // muros (FL.WL: segmentos [ax,az,bx,bz,r] sin los vanos, de c_casa_pb.js)
  (FL.WL||[]).forEach(([ax,az,bx,bz,r])=>{const vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((p.x-ax)*vx+(p.z-az)*vz)/(vx*vx+vz*vz||1))),qx=ax+vx*t,qz=az+vz*t,dx=p.x-qx,dz=p.z-qz,d=Math.hypot(dx,dz);if(d<r&&d>1e-4){p.x=qx+dx/d*r;p.z=qz+dz/d*r}})}
@@ -362,7 +364,7 @@ function applyCam(){if(window.VUELO&&VUELO.on()&&VUELO.apply(CA))return;if(fpOn(
  CA.position.set(c.x+Math.sin(a)*Math.cos(el)*d,Math.sin(el)*d+1.9,c.z+Math.cos(a)*Math.cos(el)*d);CA.lookAt(c.x,1.9,c.z);CA.updateMatrixWorld()}
 function clampV(){if(fpOn())return CAV.clamp(VT);if(segOn())return CSEG.clamp(VT);VT.k=Math.max(KMIN,Math.min(KMAX,VT.k));VT.t=Math.max(.1-EL(),Math.min(1.45-EL(),VT.t));
  // que el centro no se salga de la casa
- const c=center(VT),b=FL.cb,cx=Math.max(b[0],Math.min(b[1],c.x)),cz=Math.max(b[2],Math.min(b[3],c.z));VT.ox+=cx-c.x;VT.oz+=cz-c.z}
+ const c=center(VT),b=LIBRE?[-1e4,1e4,-1e4,1e4]:FL.cb,cx=Math.max(b[0],Math.min(b[1],c.x)),cz=Math.max(b[2],Math.min(b[3],c.z));VT.ox+=cx-c.x;VT.oz+=cz-c.z}
 function snap(){clampV();VK.forEach(q=>VW[q]=VT[q]);applyCam()}
 function camStep(dt,snapNow){if(snapNow){VK.forEach(q=>VW[q]=VT[q])}else{const f=RM?1:1-Math.exp(-dt/110);VK.forEach(q=>{VW[q]+=(VT[q]-VW[q])*f})}
  // en celular parado, con la ventanita de la mesa abierta (abajo), la mesa y tu Mii se suben a la parte de arriba (si no moviste la cámara)
