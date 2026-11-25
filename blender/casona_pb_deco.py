@@ -196,3 +196,127 @@ def traspatio2():
 
 def decorar():
     cocina(); despensa(); servicio(); bano(); traspatio2()
+
+# ---------- más vida (pedido 24 nov: decorar todos los cuartos) ----------
+# Salón: vitrina con loza en el muro de la medianera, cuadros, reloj de pie, lámpara de pie y plantas. Zaguán: tapete corredizo, macetones,
+# consola con espejo. Comedor: alacena con loza, bodegón sobre el trinchador, plantas. Corredores: sillas Acapulco con mesita, jaula de
+# pájaro en su pie, banca de hierro y macetas. Cuarto libre (dominó): repisa con cajas de dominó, sillón con lámpara, cuadro, tapete y planta.
+COLOR.update(cordel=(.12, .5, .52), cordel2=(.75, .32, .2), vidrio=(.4, .5, .5), pajaro=(.85, .7, .2))
+PRIO_MAT.update(cordel=.6, cordel2=.6, pajaro=.3)
+
+def vitrina(pre, x0, x1, z0, z1, alto=2.4):
+    """Vitrina de madera contra el muro (x0..x1, z0..z1 = su planta): mueble cerrado abajo, repisas con platos parados arriba."""
+    MA, LO = bmn(pre + '_vitrina', 'madera'), bmn(pre + '_vitrina_loza', 'loza')
+    caja(MA, x0, x1, 0, .88, z0, z1); caja(MA, x0 - .03, x1 + .03, alto - .1, alto, z0 - .03, z1 + .03)
+    a_z = x1 - x0 < z1 - z0   # el mueble va a lo largo de z
+    for y in (.88, 1.4, 1.9):
+        caja(MA, x0, x1, y, y + .04, z0, z1)
+        L0, L1 = (z0, z1) if a_z else (x0, x1); n = max(1, int((L1 - L0) / .32))
+        for i in range(n):
+            c = L0 + (i + .5) * (L1 - L0) / n
+            if a_z: caja(LO, (x0 + x1) / 2 - .02, (x0 + x1) / 2 + .02, y + .04, y + .34, c - .13, c + .13)
+            else: caja(LO, c - .13, c + .13, y + .04, y + .34, (z0 + z1) / 2 - .02, (z0 + z1) / 2 + .02)
+    for a, b in (((x0, x0 + .06), (z0, z0 + .06)), ((x1 - .06, x1), (z0, z0 + .06)), ((x0, x0 + .06), (z1 - .06, z1)), ((x1 - .06, x1), (z1 - .06, z1))):
+        caja(MA, a[0], a[1], 0, alto, b[0], b[1])
+    return MA
+
+def reloj_pie(pre, x, z, nx, nz):
+    MA, CA = bmn(pre + '_reloj', 'madera'), bmn(pre + '_reloj_cara', 'loza')
+    w, d = .55, .4
+    if nz:
+        caja(MA, x - w / 2, x + w / 2, 0, 2.6, z - d / 2, z + d / 2); caja(MA, x - .33, x + .33, 2.6, 2.85, z - .24, z + .24)
+        caja(CA, x - .2, x + .2, 2.05, 2.45, z + nz * d / 2 - .01, z + nz * d / 2 + .01)
+    else:
+        caja(MA, x - d / 2, x + d / 2, 0, 2.6, z - w / 2, z + w / 2); caja(MA, x - .24, x + .24, 2.6, 2.85, z - .33, z + .33)
+        caja(CA, x + nx * d / 2 - .01, x + nx * d / 2 + .01, 2.05, 2.45, z - .2, z + .2)
+
+def acapulco(pre, x, z, ang, cordel='cordel'):
+    """Silla Acapulco: aro de hierro del asiento y del respaldo con su tejido de cordel, patas en X. ang = hacia dónde mira (0 = +z)."""
+    HI, CO = bmn(pre + '_acapulco', 'hierro', luz=False), bmn(pre + '_acapulco_' + cordel, cordel, recalc=False)   # tejido con cara de los dos lados
+    f, r = (math.sin(ang), math.cos(ang)), (math.cos(ang), -math.sin(ang))
+    W = lambda u, y, v: (x + r[0] * u + f[0] * v, y, z + r[1] * u + f[1] * v)
+    def ovalo(c, a, b, t):   # centro local (u, y, v); semiejes a (de lado) y b sobre el plano inclinado t
+        pts = [W(c[0] + a * math.cos(k * math.pi / 12), c[1] + b * math.sin(k * math.pi / 12) * math.sin(t), c[2] + b * math.sin(k * math.pi / 12) * math.cos(t)) for k in range(24)]
+        for p, q in zip(pts, pts[1:] + pts[:1]): tubo(HI, p, q, .018, .018, 5)
+        cv = CO.verts.new(V(*W(*c))); vs = [CO.verts.new(V(*p)) for p in pts]
+        cb = CO.verts.new(V(*W(*c))); vb = [CO.verts.new(V(*p)) for p in pts]
+        for i in range(24): CO.faces.new((cv, vs[i], vs[(i + 1) % 24])); CO.faces.new((cb, vb[(i + 1) % 24], vb[i]))
+    ovalo((0, .62, .05), .42, .4, -.18)       # asiento
+    ovalo((0, 1.25, -.45), .4, .55, 1.25)     # respaldo
+    for u in (-.36, .36):
+        tubo(HI, W(u, 0, .4), W(u, .6, -.1), .02, .02, 5); tubo(HI, W(u, 0, -.45), W(u, .66, .3), .02, .02, 5)
+
+def jaula(pre, x, z):
+    HI, PJ = bmn(pre + '_jaula', 'hierro', luz=False), bmn(pre + '_jaula_pajaro', 'pajaro')
+    tubo(HI, (x, 0, z), (x, .03, z), .25, .25, 10); tubo(HI, (x, .03, z), (x, 1.5, z), .025, .025, 6)
+    anillo(HI, x, z, .3, .34, 1.5, 1.55, 16); anillo(HI, x, z, .3, .34, 2.1, 2.13, 16)
+    for k in range(14):
+        a = k * 2 * math.pi / 14; px, pz = x + math.cos(a) * .32, z + math.sin(a) * .32
+        tubo(HI, (px, 1.55, pz), (px, 2.1, pz), .008, .008, 4); tubo(HI, (px, 2.13, pz), (x, 2.4, z), .008, .008, 4)
+    tubo(HI, (x, 2.4, z), (x, 2.5, z), .03, .01, 6); tubo(HI, (x - .2, 1.75, z), (x + .2, 1.75, z), .01, .01, 4)
+    bmesh.ops.create_icosphere(PJ, subdivisions=1, radius=.07, matrix=Matrix.Translation(V(x, 1.84, z)) @ Matrix.Diagonal((1.4, 1, 1, 1)))
+    bmesh.ops.create_icosphere(PJ, subdivisions=1, radius=.045, matrix=Matrix.Translation(V(x + .08, 1.92, z)))
+
+def salon_vida():
+    obs = []
+    vitrina('pb_salon', .15, .7, 3.6, 6.4)
+    cuadro('pb_salon', .165, 3.65, 5.0, 1.6, 1.0, 1, 0, 0); cuadro('pb_salon', 6.25, 3.3, 9.835, 1.1, 1.4, 0, -1, 1); cuadro('pb_salon', 1.9, 3.3, 9.835, .9, 1.1, 0, -1, 2)
+    reloj_pie('pb_salon', 15.5, 9.45, 0, -1); lampara_pie('pb_salon', 11.0, 8.9)
+    maceton('pb_salon', .85, .85, 1.0, obs); maceton('pb_salon', 15.15, .85, .9, obs)
+    ex('pb_salon_vitrina', segs=T(.45, 3.7) + T(.45, 6.3), r=.45)
+    ex('pb_salon_reloj', obs=T(15.5, 9.45) + [.4] + T(11.0, 8.9) + [.3] + obs)
+
+def zaguan_vida():
+    obs = []
+    tapete_r('pb_zaguan', 17.6, .6, 19.4, 9.6, 'tapete')
+    maceton('pb_zaguan', 20.4, .75, 1.0, obs); maceton('pb_zaguan', 20.4, 9.4, .8, obs)
+    MA = bmn('pb_zaguan_consola', 'madera'); caja(MA, 16.15, 16.65, 1.0, 1.08, 7.4, 9.2)
+    for zz in (7.45, 9.15): caja(MA, 16.17, 16.25, 0, 1.0, zz - .04, zz + .04); caja(MA, 16.52, 16.6, 0, 1.0, zz - .04, zz + .04)
+    tubo(bmn('pb_zaguan_jarron', 'barro'), (16.4, 1.08, 8.3), (16.4, 1.5, 8.3), .1, .15, 10)
+    cuadro('pb_zaguan', 16.165, 2.4, 8.3, .8, 1.0, 1, 0, 1)
+    ex('pb_zaguan_consola', obs=obs, segs=T(16.4, 7.4) + T(16.4, 9.2), r=.4)
+
+def comedor_vida():
+    obs = []
+    vitrina('pb_comedor', 29.0, 31.8, 9.38, 9.85, 2.6)
+    cuadro('pb_comedor', 35.835, 4.0, 5.0, 1.8, 1.0, -1, 0, 2); cuadro('pb_comedor', 21.165, 3.0, 8.6, .9, 1.1, 1, 0, 0)
+    maceton('pb_comedor', 21.85, .85, 1.0, obs); maceton('pb_comedor', 35.15, 9.15, 1.0, obs)
+    ex('pb_comedor_vitrina', obs=obs, segs=T(29.0, 9.6) + T(31.8, 9.6), r=.4)
+
+def corredores_vida():
+    obs = []
+    acapulco('pb_corr', 26.7, 21.2, -math.pi / 2 - .35); acapulco('pb_corr', 26.7, 23.4, -math.pi / 2 + .35, 'cordel2')
+    MA = bmn('pb_corr_mesita', 'madera'); tubo(MA, (26.9, 0, 22.3), (26.9, .55, 22.3), .05, .05, 8); tubo(MA, (26.9, .55, 22.3), (26.9, .6, 22.3), .32, .32, 16)
+    tubo(bmn('pb_corr_jarra', 'barro'), (26.9, .6, 22.3), (26.9, .85, 22.3), .07, .1, 10)
+    obs += T(26.7, 21.2) + [.5] + T(26.7, 23.4) + [.5] + T(26.9, 22.3) + [.35]
+    jaula('pb_corr', 8.6, 17.3); obs += T(8.6, 17.3) + [.35]
+    HI = bmn('pb_corr_banca', 'hierro', luz=False); MB = bmn('pb_corr_banca_mad', 'madera')
+    caja(MB, 21.4, 23.6, .5, .56, 33.3, 33.8); caja(MB, 21.4, 23.6, .7, 1.2, 33.74, 33.8)
+    for xx in (21.5, 23.5):
+        caja(HI, xx - .03, xx + .03, 0, 1.2, 33.74, 33.8); caja(HI, xx - .03, xx + .03, 0, .5, 33.3, 33.36); caja(HI, xx - .03, xx + .03, .48, .5, 33.3, 33.8)
+    for mx, mz in ((8.6, 29.5), (27.4, 33.4), (8.6, 33.4), (27.4, 10.6)): maceton('pb_corr', mx, mz, .8, obs)
+    ex('pb_corr_mesita', obs=obs, segs=T(21.4, 33.55) + T(23.6, 33.55), r=.4)
+
+def libre_vida():
+    obs = []
+    tapete_r('pb_libre', 1.4, 25.6, 6.6, 31.0, 'tapete')
+    MA = bmn('pb_libre_repisa', 'madera'); caja(MA, .15, .6, 0, 1.0, 23.0, 25.0); caja(MA, .12, .64, 1.0, 1.05, 22.95, 25.05)
+    for k, zz in enumerate((23.3, 23.75, 24.2, 24.65)):   # cajas de dominó
+        caja(bmn('pb_libre_caja%d' % (k % 3), ('tapete', 'cordel', 'pajaro')[k % 3]), .22, .52, 1.05, 1.13 + .03 * (k % 2), zz - .16, zz + .16)
+    sillon('pb_libre', 6.9, 32.9, math.pi + .6, 'tela_v', obs); lampara_pie('pb_libre', 7.4, 33.5)
+    cuadro('pb_libre', 3.5, 3.0, 33.835, 1.5, 1.0, 0, -1, 0); maceton('pb_libre', .9, 33.1, .9, obs)
+    ex('pb_libre_repisa', obs=obs, segs=T(.4, 23.0) + T(.4, 25.0), r=.4)
+
+_decorar0 = decorar
+def decorar():
+    _decorar0(); salon_vida(); zaguan_vida(); comedor_vida(); corredores_vida(); libre_vida()
+
+def patio_luces():
+    """El Uno se juega al aire libre (sin lámpara colgante, MESA o.aire): dos guirnaldas de focos en X entre las columnas del patio
+    pasan sobre la mesa y libran el árbol; dan la luz de noche al horneado."""
+    for A, Bp in (((12.2, 4.4, 14.2), (23.8, 4.4, 21.9)), ((12.2, 4.4, 25.8), (23.8, 4.4, 14.2))):
+        guirnalda('pb_patio_guirnalda', A, Bp, .8, E=20)
+
+_decorar1 = decorar
+def decorar():
+    _decorar1(); patio_luces()

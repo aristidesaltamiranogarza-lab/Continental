@@ -22,9 +22,9 @@ function pon(F,R,D,H){if(!window.SAL||!SAL.mesas)return null;
  const S=F.SC,hits=F.hits,v=new THREE.Vector3();
  const e=n=>{const o=R.getObjectByName('sot_'+n);if(!o)return null;o.getWorldPosition(v);return {x:v.x,y:v.y,z:v.z,ry:+(o.userData.ry||0)}};
  const m=g=>{const q=D.mesas.find(t=>t.g===g);return q&&{x:q.x,z:q.z}};
- // el blackjack da la espalda del crupier al muro de la calle (en three la calle queda hacia +z: ry=PI); el billar va a lo largo del cuarto (z)
+ // póker y blackjack dan la espalda del crupier al muro de la calle (en three la calle queda hacia +z: ry=PI); el billar va a lo largo del cuarto (z)
  const pk=m('poker'),bj=m('blackjack'),bi=m('billar'),cu=m('cubilete');
- const ms=SAL.mesas({S,hits,TH,HT,poker:pk&&Object.assign(pk,{ry:0}),blackjack:bj&&Object.assign(bj,{ry:PI}),billar:bi&&Object.assign(bi,{ry:PI/2}),
+ const ms=SAL.mesas({S,hits,TH,HT,poker:pk&&Object.assign(pk,{ry:PI}),blackjack:bj&&Object.assign(bj,{ry:PI}),billar:bi&&Object.assign(bi,{ry:PI/2}),
   taquera:e('taquera'),marcador:e('marcador'),rockola:e('rockola')});
  F.OB.push(...ms.OB);
  const hechas={};['poker','blackjack','billar'].forEach(g=>{if(SAL.M[g])hechas[g]=1});
@@ -36,7 +36,8 @@ function pon(F,R,D,H){if(!window.SAL||!SAL.mesas)return null;
  const c=e('cuadro');if(c)cuadro(H,S,c);
  // la Ruleta: la mesa de la casa la arma CAJA y aquí se viste (c_casona_rr.js: mesa vieja, foco que se mece y parpadea, cosas)
  let rr=null;const viste=t=>{if(t.g==='ruleta'&&window.RRC&&!rr)try{rr=RRC.pon(t,H,F,D)}catch(er){console.error('[RRC]',er)}};
- return {hechas,viste,step:()=>{ms.step();if(rr)rr.paso()}}}
+ let cas=null;if(window.CASC)try{cas=CASC.pon(e,H,F)}catch(er){console.error('[CASC]',er)}   // ruleta de casino y tragamonedas (c_casona_casino.js)
+ return {hechas,viste,step:()=>{ms.step();if(rr)rr.paso();if(cas)cas.paso()}}}
 
 window.SOTC={pon};
 })();

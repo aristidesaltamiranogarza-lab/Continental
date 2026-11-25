@@ -31,7 +31,7 @@ NIV = {
          (28,10,8,10,None,'th','cava'),(28,20,8,10,None,'tk','oscuro'),(12,14,16,16,'earth','tierra','tierra')],
   gaps=[(14,2.5,14,7.5,'casino'),(8,10.8,8,13.4,'escalera'),(9.5,10,12.5,10,'cantina'),(18,10,21,10,'casino2'),
         (8.6,14,11.4,14,None),(8.6,17,11.4,17,'billar'),(28,10.8,28,13.2,'cava'),(30.5,20,32.5,20,'ruleta')],
-  mesas=[('cubilete',10.6,4.4,.8,0),('poker',20.5,5.0,2,0),('blackjack',30.5,5.0,2.3,0),('billar',6,23.4,1.6,0),('ruleta',32,25,1.3,0)],
+  mesas=[('cubilete',10.6,4.4,.8,0),('poker',19.0,2.8,2,0),('blackjack',30.2,1.8,2.3,0),('billar',6,23.4,1.6,0),('ruleta',32,25,1.3,0)],
   deco=[('caja','barra',5,1,8.4,.8,1.2),('caja','rockola',.4,7.6,1,1.5,1.8)]+[('cil','barrica%d%d'%(x,z*10),x,z,.6,1.4) for x in (28.85,35.25) for z in (15.0,16.3,17.6,18.9)]),
  'n0': dict(elev=0, H=5.5, per=(0,0,36,34), sube=True, baja=True,
   areas=[(0,-3,36,3,'street','calle','calle'),(0,0,16,10,None,'tc','salon'),(16,0,5,10,None,'th','zaguan'),(21,0,15,10,None,'tc','comedor'),

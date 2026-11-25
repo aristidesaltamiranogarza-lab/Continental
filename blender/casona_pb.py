@@ -549,11 +549,17 @@ def techos():
 
 def escalera(): escalera_u('pb', 'n0')   # escalera en U (blender/casona_esc.py)
 
+def aire_libre(x, z):
+    """1 si la mesa queda al aire libre (patio, azotea): MESA no le cuelga lámpara (extra aire del empty)."""
+    for ax, az, w, d, k, tin, n in N['areas']:
+        if ax < x < ax + w and az < z < az + d: return int(k == 'open' and not n.startswith('corredor'))
+    return 0
+
 def marcas():
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n0' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
-        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r)
+        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r, aire=aire_libre(mx, mz))
     vacio('llegada_n0', LLEGADA[0], 0, LLEGADA[1])
     vacio('llegada_escalera_n0', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])                       # paso 4: llegada desde otro nivel y planos "Ir a"
     vacio('plano_escalera_n0', 6.6, 2.7, 16.8, ry=0.0)
@@ -610,6 +616,64 @@ def farolito(pre, x, y, z, E=45):
         for dz in (-.085, .085): caja(HI, x + dx - .012, x + dx + .012, y + .04, y + .32, z + dz - .012, z + dz + .012)
     caja(HI, x - .12, x + .12, y + .32, y + .36, z - .12, z + .12); tubo(HI, (x, y + .36, z), (x, y + .44, z), .04, .01, 6)
     LUCES.append(('POINT', (x, y + .52, z), E, .08))   # arriba del sombrerete (adentro la caja la tapaba)
+
+# ---------- ayudantes de decoración (los usan casona_pb_deco.py, casona_pa_deco.py y casona_sm.py) ----------
+COLOR.update(marco=(.62, .46, .2), lienzo=(.82, .76, .62), cielo=(.42, .56, .66), campo=(.36, .46, .26), fondo_c=(.16, .12, .1), figura=(.62, .4, .3),
+             tela_s=(.42, .2, .16), tela_v=(.2, .32, .26), pantalla=(.9, .8, .6), laton=(.7, .52, .22), filo=(.6, .45, .2))
+PRIO_MAT.update(marco=.5, lienzo=.5, cielo=.5, campo=.5, fondo_c=.5, figura=.5, laton=.5, filo=.5)
+EMITE['pantalla'] = 4
+def cuadro(pre, x, y, z, w, h, nx, nz, tipo=0):
+    """Cuadro colgado: (x, y, z) = centro sobre la cara del muro; (nx, nz) = hacia el cuarto. tipo 0 paisaje, 1 retrato, 2 bodegón."""
+    MA, LI = bmn(pre + '_marco', 'marco', prio=.5), bmn(pre + '_lienzo', 'lienzo' if tipo == 2 else ('cielo' if tipo == 0 else 'fondo_c'), prio=.5)
+    def pz(a0, a1, d0, d1):   # caja de u (a lo largo del muro) por y y profundidad desde la cara
+        if nz: caja_b = (x + a0, x + a1, min(z + nz * d0, z + nz * d1), max(z + nz * d0, z + nz * d1)); return caja_b
+        return (min(x + nx * d0, x + nx * d1), max(x + nx * d0, x + nx * d1), z + a0, z + a1)
+    def cj(bm, a0, a1, y0, y1, d0, d1):
+        x0, x1, z0, z1 = pz(a0, a1, d0, d1); caja(bm, x0, x1, y0, y1, z0, z1)
+    cj(MA, -w / 2, w / 2, y - h / 2, y + h / 2, 0, .05); cj(LI, -w / 2 + .08, w / 2 - .08, y - h / 2 + .08, y + h / 2 - .08, .05, .06)
+    if tipo == 0:   # campo abajo y una loma
+        cj(bmn(pre + '_campo', 'campo', prio=.5), -w / 2 + .08, w / 2 - .08, y - h / 2 + .08, y - h * .05, .06, .065)
+        cj(bmn(pre + '_campo', 'campo', prio=.5), -w * .1, w / 2 - .08, y - h * .05, y + h * .1, .06, .065)
+    elif tipo == 1:   # busto
+        cj(bmn(pre + '_figura', 'figura', prio=.5), -w * .2, w * .2, y - h / 2 + .08, y - h * .1, .06, .065)
+        cj(bmn(pre + '_figura', 'figura', prio=.5), -w * .1, w * .1, y - h * .1, y + h * .2, .06, .065)
+    else:           # jarra y frutas
+        cj(bmn(pre + '_figura', 'barro', prio=.5), -w * .25, -w * .05, y - h / 2 + .1, y + h * .1, .06, .065)
+        cj(bmn(pre + '_campo', 'campo', prio=.5), .0, w * .25, y - h / 2 + .1, y - h * .2, .06, .065)
+
+def maceton(pre, x, z, s=1.0, obs=None):
+    """Macetón de barro con mata de hojas (s = escala)."""
+    MT, HO = bmn(pre + '_macetas', 'barro'), bmn(pre + '_macetas_hojas', 'copa')
+    tubo(MT, (x, 0, z), (x, .7 * s, z), .3 * s, .4 * s, 14); anillo(MT, x, z, .32 * s, .44 * s, .7 * s, .78 * s, 14)
+    for k in range(6):
+        a = k * 2 * math.pi / 6 + s
+        bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.34 * s, matrix=Matrix.Translation(V(x + math.cos(a) * .22 * s, (1.02 + .14 * (k % 2)) * s, z + math.sin(a) * .22 * s)) @ Matrix.Diagonal((1, 1, .8, 1)))
+    bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.3 * s, matrix=Matrix.Translation(V(x, 1.3 * s, z)))
+    if obs is not None: obs += T(x, z) + [.5 * s]
+
+def tapete_r(pre, x0, z0, x1, z1, mat='tapete', y=.012):
+    """Tapete rectangular con filo de otro color."""
+    quad(pre + '_tapete_filo', 'filo', x0, z0, x1, z1, y, prio=.4); quad(pre + '_tapete_' + mat, mat, x0 + .14, z0 + .14, x1 - .14, z1 - .14, y + .003, prio=.4)
+
+def sillon(pre, x, z, ang, tela='tela_s', obs=None):
+    """Sillón de una plaza; ang = hacia dónde mira (0 = +z del plano)."""
+    MA, TE = bmn(pre + '_sillon_mad', 'madera'), bmn(pre + '_sillon_' + tela, tela)
+    f, r = (math.sin(ang), math.cos(ang)), (math.cos(ang), -math.sin(ang))
+    P_ = lambda lx, y, lz: (x + r[0] * lx + f[0] * lz, y, z + r[1] * lx + f[1] * lz)
+    blq = lambda bm, c, a, b, d: bloque(bm, c, (r[0] * a, 0, r[1] * a), (0, b, 0), (f[0] * d, 0, f[1] * d))
+    for sx in (-.38, .38):
+        for sz in (-.32, .32): tubo(MA, P_(sx, 0, sz), P_(sx, .3, sz), .04, .04, 6)
+    blq(TE, P_(0, .45, 0), .44, .15, .4)                  # asiento
+    blq(TE, P_(0, 1.0, -.36), .44, .45, .08)              # respaldo
+    for sx in (-.44, .44): blq(TE, P_(sx, .72, 0), .07, .14, .42)   # brazos
+    if obs is not None: obs += T(x, z) + [.55]
+
+def lampara_pie(pre, x, z, E=60, alto=2.4):
+    """Lámpara de pie con pantalla que brilla (luz en el horneado de noche)."""
+    HI, PA = bmn(pre + '_lampara_pie', 'hierro', luz=False), bmn(pre + '_pantalla', 'pantalla', luz=False)
+    tubo(HI, (x, 0, z), (x, .04, z), .2, .2, 12); tubo(HI, (x, .04, z), (x, alto - .3, z), .025, .025, 6)
+    tubo(PA, (x, alto - .35, z), (x, alto, z), .3, .18, 14)
+    LUCES.append(('POINT', (x, alto - .5, z), E, .1))
 
 # R2: de noche el traspatio quedaba a oscuras (los arbotantes del muro de atrás miran a la casa): arbotantes del lado del traspatio,
 # dos postes de madera y guirnaldas de focos en zigzag del muro a los postes (libran el mamey y el pozo)
@@ -747,10 +811,15 @@ def vista(sc, ruta, cam, mira, ocultar=(), res=(960, 540), muestras=48, den=True
     for o in esc: o.visible_camera = True
     bpy.data.objects.remove(co, do_unlink=True)
 
+VISTAS_MAS = True   # vistas de los cuartos decorados (comedor, cuarto libre, corredor del oriente)
 def vistas(sc, carpeta):
     vista(sc, os.path.join(carpeta, 'pb_salon.png'), (9, 11, -6), (9, 0, 5), ('pb_muro_h0_', 'pb_techo'))
     vista(sc, os.path.join(carpeta, 'pb_patio.png'), (18, 12, 9), (18, 0, 22), ('pb_muro_h0_', 'pb_muro_h100_', 'pb_dintel_h140', 'pb_techo'))
     vista(sc, os.path.join(carpeta, 'pb_todo.png'), (18, 34, -16), (18, 0, 17), ('pb_muro_h0_', 'pb_techo'))
+    if VISTAS_MAS:
+        vista(sc, os.path.join(carpeta, 'pb_comedor.png'), (28, 11, -6), (28, 0, 5), ('pb_muro_h0_', 'pb_techo'))
+        vista(sc, os.path.join(carpeta, 'pb_libre.png'), (14, 10, 28), (3, 0, 28), ('pb_muro_v80_', 'pb_muro_v120_', 'pb_techo', 'pb_corr'))
+        vista(sc, os.path.join(carpeta, 'pb_corr_e.png'), (19, 7, 22), (27, 0, 22), ('pb_techo', 'arbol', 'pb_arbol'))
 
 def uv_luz(obs):
     for o in obs:

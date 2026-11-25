@@ -39,7 +39,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
    const l={x:e.x,z:e.z,r:e.r,ax:e.ax,az:e.az,to};links.push(l);
    D.escalones[k].forEach(o=>{o.userData.hit={t:'link',l};hits.push(o)})}
   D.mesas.forEach(m=>{const fe=FEL[m.fam]||FEL.k;if(F.sot&&F.sot.hechas[m.g])return;
-   if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe};TB.push(t);H.mesa(t,S,hits,OB);if(F.sot&&F.sot.viste)F.sot.viste(t)}
+   if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe,aire:m.aire};TB.push(t);H.mesa(t,S,hits,OB);if(F.sot&&F.sot.viste)F.sot.viste(t)}
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
   if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D)}
   if(hb&&id!=='cm1'&&window.CFUE)try{F.fuera=CFUE.pon(F)}catch(er){console.error('[CFUE]',er)}

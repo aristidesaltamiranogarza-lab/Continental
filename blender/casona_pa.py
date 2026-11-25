@@ -200,13 +200,13 @@ def muebles():
     ex('pa_muebles', obs=obs, segs=segs, r=.45)
 
 def deco():   # paso 9: tu cuarto y sala de música (blender/casona_pa_deco.py, con los nombres de este archivo)
-    exec(open(os.path.join(DIR, 'blender', 'casona_pa_deco.py'), encoding='utf-8').read(), globals()); tu_cuarto(); sala_musica()
+    exec(open(os.path.join(DIR, 'blender', 'casona_pa_deco.py'), encoding='utf-8').read(), globals()); tu_cuarto(); sala_musica(); mas_vida()
 
 def marcas():
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n1' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
-        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r)
+        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r, aire=P.aire_libre(mx, mz))
     vacio('llegada_n1', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('llegada_escalera_n1', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('plano_escalera_n1', 6.6, 2.7, 16.8, ry=0.0)
@@ -246,6 +246,7 @@ def vistas(sc, carpeta):
     P.vista(sc, os.path.join(carpeta, 'pa_biblioteca.png'), (9, 10, -6), (9, 0, 5), ('pa_muro_h0_', 'pa_techo'))
     P.vista(sc, os.path.join(carpeta, 'pa_corredor.png'), (18, 11, 6), (18, -3, 22), ('pa_muro_h0_', 'pa_muro_h100_', 'pa_dintel_h140', 'pa_techo'))
     P.vista(sc, os.path.join(carpeta, 'pa_todo.png'), (18, 30, -14), (18, 0, 15), ('pa_muro_h0_', 'pa_techo'))
+    P.vista(sc, os.path.join(carpeta, 'pa_tableros.png'), (28, 10, -6), (28, 0, 5), ('pa_muro_h0_', 'pa_techo'))
 
 if __name__ == '__main__':
     arg = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []

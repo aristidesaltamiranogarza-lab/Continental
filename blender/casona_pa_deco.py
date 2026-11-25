@@ -99,3 +99,47 @@ def sala_musica():
     disco('pa_musica_tapete', 'tapete', 32.8, 14.8, 2.0, .012, 40, uvr=True)
     ex('pa_musica_consola', segs=T(35.1, 14.0) + T(35.1, 15.6) + T(34.9, 10.6) + T(34.9, 11.5), r=.75)
     ex('pa_musica_sillon', obs=T(31.85, 14.8) + [1.0] + T(28.4, 12.4) + [.5])
+
+# ---------- más vida (pedido 24 nov: decorar todos los cuartos) ----------
+# Biblioteca: sillón de lectura con lámpara de pie, globo terráqueo y escalera recargada en el librero. Antesala: tapete corredizo y cuadros.
+# Sala de tableros: mapa y retrato, sillón con lámpara, macetones. Corredor alto: cuadros entre los arbotantes.
+P.COLOR.update(globo=(.3, .48, .62))
+P.PRIO_MAT.update(globo=.4)
+
+def globo(x, z):
+    MA, LA, GL = bmn('pa_globo_mad', 'madera'), bmn('pa_globo_laton', 'laton'), bmn('pa_globo', 'globo')
+    for k in range(3):
+        a = k * 2 * math.pi / 3; tubo(MA, (x + math.cos(a) * .3, 0, z + math.sin(a) * .3), (x, .75, z), .03, .03, 6)
+    tubo(MA, (x, .75, z), (x, .9, z), .05, .05, 8)
+    bmesh.ops.create_icosphere(GL, subdivisions=2, radius=.32, matrix=P.Matrix.Translation(P.V(x, 1.22, z)))
+    P.anillo(LA, x, z, .34, .37, 1.2, 1.24, 24)
+
+def escalera_lib(x, z0, z1, alto=3.0):
+    MA = bmn('pa_libreros', 'madera')
+    for zz in (z0, z1): P.viga(MA, (x + .55, 0, zz), (x, alto, zz), .035)
+    for k in range(1, 8):
+        t = k / 8; P.viga(MA, (x + .55 * (1 - t), alto * t, z0), (x + .55 * (1 - t), alto * t, z1), .025)
+
+def biblioteca_vida():
+    obs = []
+    P.sillon('pa_bib', 2.0, 1.4, .8, 'tela_s', obs); P.lampara_pie('pa_bib', 1.1, .5, 50, 2.3)
+    globo(14.4, 8.9); obs += T(14.4, 8.9) + [.4]
+    escalera_lib(.75, 6.2, 6.8)
+    ex('pa_globo_mad', obs=obs)
+
+def antesala_vida():
+    P.tapete_r('pa_ante', 17.6, .6, 19.4, 9.6, 'tapete')
+    P.cuadro('pa_ante', 16.165, 2.3, 8.3, .8, 1.0, 1, 0, 1); P.cuadro('pa_ante', 20.835, 2.3, 1.6, .9, .7, -1, 0, 0)
+
+def tableros_vida():
+    obs = []
+    P.cuadro('pa_tab', 30.25, 2.3, 9.835, 1.7, 1.0, 0, -1, 0); P.cuadro('pa_tab', 21.165, 2.3, 8.6, .8, 1.0, 1, 0, 1)
+    P.sillon('pa_tab', 34.4, 1.1, -.8, 'tela_v', obs); P.lampara_pie('pa_tab', 35.35, .5, 50, 2.3)
+    P.maceton('pa_tab', 21.8, .8, .9, obs); P.maceton('pa_tab', 35.2, 9.2, .9, obs)
+    ex('pa_tab_macetas', obs=obs)
+
+def corredor_vida():
+    P.cuadro('pa_corr', 8.165, 2.3, 20.0, .9, 1.0, 1, 0, 1); P.cuadro('pa_corr', 27.835, 2.3, 23.0, 1.0, .8, -1, 0, 2)
+
+def mas_vida():
+    biblioteca_vida(); antesala_vida(); tableros_vida(); corredor_vida()

@@ -97,6 +97,44 @@ def barrica_acostada(BA, HI, x, y, z, eje='x', L=1.2, r=.55):
     tubo(BA, p(-a), p(0), r * .82, r, 16); tubo(BA, p(0), p(a), r, r * .82, 16)
     for t in (-a * .7, a * .7): tubo(HI, p(t - .03), p(t + .03), r * .93 + .01, r * .93 + .01, 16)
 
+# ---------- casino (R8/R12): Póker y Blackjack contra el muro de la calle (crupier de espaldas al muro), ruleta automática al centro y
+# tragamonedas en los muros del oriente y del pasillo: esas van en código (c_casona_casino.js, empties sot_* de SOT). Aquí lo quieto:
+# alfombras por zona con filo de latón, caja con reja junto a la puerta, mueble de bebidas con espejo, cuadros y plantas ----------
+P.COLOR.update(alf_verde=(.08, .2, .15), alf_azul=(.1, .13, .24), marmol=(.82, .8, .76), vidrio=(.32, .4, .4),
+               ficha_r=(.6, .08, .08), ficha_a=(.1, .2, .5), ficha_v=(.1, .4, .2))
+P.PRIO_MAT.update(alf_verde=.5, alf_azul=.5, ficha_r=.3, ficha_a=.3, ficha_v=.3)
+def casino(obs, segs):
+    P.tapete_r('sm_cas', 15.6, .4, 22.4, 5.25, 'alf_verde')       # póker
+    P.tapete_r('sm_cas', 26.9, .4, 33.5, 4.9, 'alf_verde')        # blackjack
+    P.tapete_r('sm_cas', 22.6, 4.75, 27.0, 8.3, 'alf_azul')       # ruleta
+    P.tapete_r('sm_cas', 18.8, 5.5, 20.2, 9.84, 'alf_azul')       # de la puerta al centro
+    MO, MA, MM = bmn('sm_cas_mueble', 'madera_osc'), bmn('sm_cas_madera', 'madera'), bmn('sm_cas_marmol', 'marmol')
+    LA, BO, VI = bmn('sm_cas_laton', 'laton', prio=.5), bmn('sm_cas_botellas', 'botellas'), bmn('sm_cas_vidrio', 'vidrio')
+    # caja de fichas en la esquina junto a la puerta: mostrador de mármol, reja de latón con ventanilla, techito de madera y fichas apiladas
+    caja(MO, 14.3, 17.3, 0, 1.15, 8.78, 9.7); caja(MM, 14.25, 17.35, 1.15, 1.22, 8.68, 9.72); caja(LA, 14.3, 17.3, .1, .15, 8.73, 8.78)
+    caja(MO, 17.25, 17.35, 0, 2.6, 8.78, 9.7); caja(MO, 14.25, 17.4, 2.42, 2.62, 8.62, 9.72); caja(LA, 14.3, 17.3, 2.35, 2.42, 8.72, 8.8)
+    x = 14.42
+    while x < 17.2:
+        if not 15.45 < x < 16.35: caja(LA, x - .012, x + .012, 1.22, 2.35, 8.75, 8.77)
+        else: caja(LA, x - .012, x + .012, 1.75, 2.35, 8.75, 8.77)
+        x += .12
+    caja(LA, 15.45, 16.35, 1.72, 1.76, 8.73, 8.79)
+    for i, (fx, m) in enumerate(((15.6, 'ficha_r'), (15.82, 'ficha_a'), (16.04, 'ficha_v'), (16.2, 'ficha_r'))):
+        tubo(bmn('sm_cas_' + m, m), (fx, 1.22, 9.0), (fx, 1.3 + .06 * (i % 3), 9.0), .07, .07, 12)
+    segs += T(14.3, 8.7) + T(17.38, 8.7) + T(17.38, 8.7) + T(17.38, 9.75)
+    # mueble de bebidas a la derecha de la puerta, con botellas, copas y espejo
+    caja(MO, 22.8, 26.6, 0, 1.05, 9.32, 9.72); caja(MM, 22.75, 26.65, 1.05, 1.1, 9.28, 9.74)
+    for hx in (23.75, 24.7, 25.65): caja(LA, hx - .1, hx + .1, .7, .74, 9.3, 9.32)
+    for k, bx in enumerate((23.1, 23.35, 23.6, 25.9, 26.15, 26.4)):
+        tubo(BO, (bx, 1.1, 9.52), (bx, 1.42 + .06 * (k % 2), 9.52), .055, .055, 10); tubo(BO, (bx, 1.42 + .06 * (k % 2), 9.52), (bx, 1.56 + .06 * (k % 2), 9.52), .02, .02, 6)
+    for cx in (24.2, 24.45, 24.95, 25.2): tubo(VI, (cx, 1.1, 9.45), (cx, 1.24, 9.45), .045, .035, 10)
+    caja(MA, 23.2, 26.2, 1.38, 2.52, 9.74, 9.79); caja(VI, 23.3, 26.1, 1.48, 2.42, 9.735, 9.745)
+    segs += T(22.8, 9.3) + T(26.6, 9.3)
+    # plantas y cuadros (el as de espadas va en código, sot_cuadro)
+    for px, pz, s in ((14.8, .8, 1.0), (24.7, .75, 1.0), (35.2, 9.25, 1.0), (21.6, 9.3, .85)): P.maceton('sm_cas', px, pz, s, obs)
+    P.cuadro('sm_cas', 16.0, 2.25, .165, 1.4, .9, 0, 1, 0); P.cuadro('sm_cas', 34.2, 2.25, .165, 1.0, 1.2, 0, 1, 1)
+    P.cuadro('sm_cas', 14.165, 2.2, 1.3, 1.0, .8, 1, 0, 2)
+
 def muebles():
     MA, MO, CU = bmn('sm_muebles', 'madera'), bmn('sm_muebles_osc', 'madera_osc'), bmn('sm_cuero', 'cuero')
     HI, BO, BA = bmn('sm_hierro', 'hierro', luz=False), bmn('sm_botellas', 'botellas'), bmn('sm_barricas', 'barrica')
@@ -119,14 +157,7 @@ def muebles():
         tubo(BA, (bx, 0, bz), (bx, .6, bz), .42, .5, 16); tubo(BA, (bx, .6, bz), (bx, 1.2, bz), .5, .42, 16)
         for y in (.25, .95): tubo(HI, (bx, y - .03, bz), (bx, y + .03, bz), .49, .49, 16)
         obs += T(bx, bz) + [.6]
-    # casino: macetones en las esquinas libres
-    MT, HO = bmn('sm_macetas', 'barro'), bmn('sm_macetas_hojas', 'copa')
-    for mx, mz in ((14.9, 9.1), (35.1, 9.1), (24.6, .9)):
-        tubo(MT, (mx, 0, mz), (mx, .7, mz), .3, .4, 14); P.anillo(MT, mx, mz, .32, .44, .7, .78, 14)
-        for k in range(5):
-            a = k * 2 * math.pi / 5
-            bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.34, matrix=P.Matrix.Translation(P.V(mx + math.cos(a) * .22, 1.02 + .12 * (k % 2), mz + math.sin(a) * .22)) @ P.Matrix.Diagonal((1, 1, .8, 1)))
-        obs += T(mx, mz) + [.55]
+    casino(obs, segs)   # casino: alfombras, caja, mueble de bebidas, cuadros y plantas (R12)
     # billar: banca para mirar contra el muro del patio (x=12)
     caja(MO, 11.3, 11.82, .48, .58, 21.0, 26.0); caja(CU, 11.32, 11.8, .58, .66, 21.05, 25.95); caja(CU, 11.72, 11.82, .66, 1.3, 21.05, 25.95)
     for zz in (21.1, 23.5, 25.9): caja(MO, 11.36, 11.46, 0, .48, zz - .05, zz + .05); caja(MO, 11.66, 11.76, 0, .48, zz - .05, zz + .05)
@@ -146,11 +177,68 @@ def muebles():
         obs += T(x0 + .65, z0 + .65) + [1.0]
     ex('sm_muebles', obs=obs, segs=segs, r=.45)
 
+# ---------- más vida en el sótano: cantina (diana, cuadros, perchero con sombreros, mesa de dominó), billar (mesa alta, cuadros, planta),
+# pasillo (cuadros entre arbotantes, banca, plantas), cava (mesa de cata con vela) y muros del cuarto de la Ruleta (R9: repisa vieja,
+# cartel y reloj parado) ----------
+P.COLOR.update(diana=(.12, .1, .08), diana_r=(.55, .1, .08), diana_c=(.78, .72, .58), sombrero=(.72, .62, .4), domino=(.92, .9, .84), vela=(1, .85, .6),
+               lata=(.45, .42, .38), carton=(.5, .38, .24))
+P.EMITE['vela'] = 6
+P.PRIO_MAT.update(diana=.4, diana_r=.4, diana_c=.4, sombrero=.4, domino=.3, lata=.3, carton=.4)
+def sotano_vida():
+    obs, segs = [], []
+    MO, MA, CU, BO = bmn('sm_vida_osc', 'madera_osc'), bmn('sm_vida_mad', 'madera'), bmn('sm_cuero', 'cuero'), bmn('sm_vida_botellas', 'botellas')
+    # cantina: diana en el muro del pasillo, cuadros, perchero con sombreros junto a la puerta, mesa de dominó con dos bancos
+    for r, m in ((.42, 'diana'), (.34, 'diana_r'), (.24, 'diana_c'), (.14, 'diana_r'), (.05, 'diana')):
+        tubo(bmn('sm_vida_' + m, m), (3.4, 2.0, 9.85), (3.4, 2.0, 9.85 - .04 - (.42 - r) * .05), r, r, 24)
+    P.cuadro('sm_vida', 6.8, 2.1, 9.835, 1.2, .8, 0, -1, 0); P.cuadro('sm_vida', .165, 2.1, 1.9, .7, .9, 1, 0, 1)
+    tubo(MO, (13.4, 0, 9.5), (13.4, 2.3, 9.5), .04, .04, 8); tubo(MO, (13.4, 0, 9.5), (13.4, .04, 9.5), .25, .25, 10)
+    for k in range(4):
+        a = k * math.pi / 2 + .4; hx, hz = 13.4 + math.cos(a) * .16, 9.5 + math.sin(a) * .16
+        tubo(MO, (13.4, 2.15, 9.5), (hx, 2.25, hz), .015, .015, 4)
+    SO = bmn('sm_vida_sombrero', 'sombrero')
+    for hx, hy, hz in ((13.57, 2.2, 9.52), (13.3, 2.15, 9.35)):
+        tubo(SO, (hx, hy, hz), (hx, hy + .03, hz), .32, .32, 16); tubo(SO, (hx, hy + .03, hz), (hx, hy + .2, hz), .14, .11, 12)
+    obs += T(13.4, 9.5) + [.3]
+    tubo(MO, (2.6, 0, 3.6), (2.6, 1.0, 3.6), .06, .07, 10); P.anillo(MO, 2.6, 3.6, 0, .28, 0, .04, 14); tubo(MA, (2.6, 1.0, 3.6), (2.6, 1.06, 3.6), .55, .55, 24)
+    DO = bmn('sm_vida_domino', 'domino')
+    for k, (dx, dz, ry) in enumerate(((-.2, -.1, 0), (-.06, -.1, 0), (.08, -.06, 1), (.18, .1, 0), (-.15, .15, 1), (.0, .22, 0))):
+        a, b = (.06, .03) if ry == 0 else (.03, .06); caja(DO, 2.6 + dx - a, 2.6 + dx + a, 1.06, 1.08, 3.6 + dz - b, 3.6 + dz + b)
+    for bx, bz in ((1.75, 3.6), (3.45, 3.6)): banco(MO, CU, bx, bz, .78); obs += T(bx, bz) + [.35]
+    obs += T(2.6, 3.6) + [.7]
+    # billar: mesa alta con bancos en la esquina, cuadros y planta
+    tubo(MO, (10.6, 0, 28.9), (10.6, 1.35, 28.9), .06, .07, 10); P.anillo(MO, 10.6, 28.9, 0, .3, 0, .04, 14); tubo(MA, (10.6, 1.35, 28.9), (10.6, 1.41, 28.9), .45, .45, 20)
+    for bx, bz in ((9.75, 28.9), (10.6, 28.05)): banco(MO, CU, bx, bz, 1.05); obs += T(bx, bz) + [.35]
+    tubo(BO, (10.5, 1.41, 28.85), (10.5, 1.7, 28.85), .05, .05, 10); obs += T(10.6, 28.9) + [.6]
+    P.cuadro('sm_vida', .165, 2.1, 26.6, 1.3, .85, 1, 0, 0); P.cuadro('sm_vida', 4.0, 2.1, 29.835, .8, 1.0, 0, -1, 1); P.cuadro('sm_vida', 8.0, 2.1, 29.835, .8, 1.0, 0, -1, 1)
+    P.maceton('sm_vida', 1.0, 29.0, .9, obs)
+    # pasillo: cuadros entre los arbotantes del muro del patio, banca y plantas
+    for cx, t in ((14.0, 2), (20.0, 0), (26.0, 1)): P.cuadro('sm_vida', cx, 1.95, 13.835, 1.0, .75, 0, -1, t)
+    caja(MA, 18.4, 20.0, .5, .58, 13.3, 13.82); caja(CU, 18.42, 19.98, .58, .64, 13.32, 13.8)
+    for xx in (18.5, 19.9): caja(MA, xx - .04, xx + .04, 0, .5, 13.35, 13.77)
+    segs += T(18.4, 13.55) + T(20.0, 13.55)
+    P.maceton('sm_vida', 27.35, 13.45, .75, obs); P.maceton('sm_vida', 8.7, 10.6, .75, obs)
+    # cava: mesa de cata con vela y botella
+    tubo(MO, (33.8, 0, 11.0), (33.8, 1.0, 11.0), .06, .07, 10); P.anillo(MO, 33.8, 11.0, 0, .28, 0, .04, 14); tubo(MA, (33.8, 1.0, 11.0), (33.8, 1.06, 11.0), .5, .5, 20)
+    tubo(BO, (33.65, 1.06, 10.9), (33.65, 1.4, 10.9), .05, .05, 10); tubo(bmn('sm_vida_vela', 'vela', luz=False), (33.95, 1.06, 11.1), (33.95, 1.22, 11.1), .03, .03, 8)
+    P.LUCES.append(('POINT', (33.95, 1.4, 11.1), 8, .03)); obs += T(33.8, 11.0) + [.6]
+    # cuarto de la Ruleta (R9): repisa vieja con latas y botellas en el muro del oriente, cartel y reloj parado en el del fondo
+    caja(MO, 35.5, 35.85, 1.55, 1.6, 23.0, 27.0); caja(MO, 35.5, 35.85, .95, 1.0, 23.0, 27.0)
+    for zz in (23.05, 26.95): caja(MO, 35.6, 35.85, .9, 1.6, zz - .03, zz + .03)
+    LT_ = bmn('sm_vida_lata', 'lata')
+    for k, zz in enumerate((23.4, 23.8, 24.3, 25.1, 25.6, 26.4)):
+        if k % 2: tubo(BO, (35.68, 1.6, zz), (35.68, 1.92, zz), .05, .05, 8)
+        else: tubo(LT_, (35.68, 1.6, zz), (35.68, 1.78, zz), .07, .07, 10)
+        tubo(LT_ if k % 3 else BO, (35.68, 1.0, zz + .1), (35.68, 1.2, zz + .1), .06, .06, 8)
+    P.cuadro('sm_vida', 31.0, 2.0, 29.835, .9, 1.2, 0, -1, 1)
+    tubo(bmn('sm_vida_reloj', 'diana_c'), (33.8, 2.3, 29.85), (33.8, 2.3, 29.8), .26, .26, 20); tubo(MO, (33.8, 2.3, 29.86), (33.8, 2.3, 29.83), .3, .3, 20)
+    caja(bmn('sm_vida_osc', 'madera_osc'), 33.79, 33.81, 2.3, 2.5, 29.78, 29.79); caja(MO, 33.8, 33.95, 2.29, 2.31, 29.78, 29.79)
+    ex('sm_vida_osc', obs=obs, segs=segs, r=.45)
+
 def marcas():
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_nm1' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
-        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r)
+        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r, aire=P.aire_libre(mx, mz))
     vacio('llegada_nm1', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('llegada_escalera_nm1', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('plano_escalera_nm1', 6.6, 2.0, 16.8, ry=0.0)
@@ -159,8 +247,9 @@ def marcas():
         vacio('sot_' + n, x, y, z, ry=round(ry, 4))
 # (cosa, x, alto, z, ry de three: en three la z del plano va al revés, así que mirar hacia +z del plano es ry=pi): sobre la cara del muro (a 0.15 del eje); la trabe del casino sobresale 0.19
 SOT = (('rockola', .75, 0, 8.4, math.pi / 2), ('taquera', .21, 0, 21.0, math.pi / 2), ('marcador', 4.5, 2.0, 17.21, math.pi),
-       ('cuadro', 22.0, 2.0, .15, math.pi), ('neon_casino', 13.78, 2.97, 5.0, -math.pi / 2), ('neon_billar', 4.5, 2.85, 17.19, math.pi),
-       ('neon_cantina', .19, 2.55, 4.5, math.pi / 2))
+       ('cuadro', 24.7, 2.25, .165, math.pi), ('ruleta_casino', 24.8, 0, 6.5, 0.0), ('neon_casino', 13.78, 2.97, 5.0, -math.pi / 2), ('neon_billar', 4.5, 2.85, 17.19, math.pi),
+       ('neon_cantina', .19, 2.55, 4.5, math.pi / 2)) + tuple(('traga%d' % (i + 1), 35.4, 0, z, -math.pi / 2) for i, z in enumerate((5.0, 6.0, 7.0, 8.0))) \
+    + tuple(('traga%d' % (i + 5), x, 0, 9.4, 0.0) for i, x in enumerate((28.3, 29.3, 30.3, 31.3, 32.3)))
 
 def solo_marcas():
     """Mueve solo los empties del .blend ya horneado (casona_sm.blend) y vuelve a exportar sm.glb, sin hornear."""
@@ -194,7 +283,7 @@ def lamparas():
     for x, z, E in ((4, 5.5, 70), (10, 6.5, 50), (4, 13.5, 45), (16, 12, 35), (24, 12, 35), (6, 20, 40), (6, 27.5, 40),
                     (32, 13, 35), (32, 18.5, 30), (18, 8.5, 60), (26, 8.5, 60), (34, 8, 40)):
         L_.append(('POINT', (x, 2.85, z), E * LUZ, .4))
-    L_ += [('SPOT', (20, 3.1, 5.2), 420, 0), ('SPOT', (30, 3.1, 3.8), 380, 0), ('SPOT', (6, 3.1, 23.4), 420, 0), ('SPOT', (32, 3.1, 25), 300, 0)]
+    L_ += [('SPOT', (19.0, 3.1, 2.8), 420, 0), ('SPOT', (30.2, 3.1, 2.6), 380, 0), ('SPOT', (24.8, 3.1, 6.5), 300, 0), ('SPOT', (6, 3.1, 23.4), 420, 0), ('SPOT', (32, 3.1, 25), 300, 0)]
 
 def oscuro(sc):
     """Sin sol ni cielo: el sótano solo tiene sus lámparas. Sombras de bulto para las mesas que no son redondas."""
@@ -203,7 +292,9 @@ def oscuro(sc):
     w = sc.world; bg = next(n for n in w.node_tree.nodes if n.type == 'BACKGROUND'); bg.inputs[0].default_value = (.4, .32, .24, 1); bg.inputs[1].default_value = .08
     S = bpy.data.collections['horneado']; md = P.mat('mesa'); bm = bmesh.new()
     caja(bm, 4.35, 7.65, .85, 1.1, 20.6, 26.2); caja(bm, 4.6, 7.4, 0, .85, 21.0, 25.8)   # billar (largo en z)
-    caja(bm, 27.8, 32.2, 1.35, 1.5, 1.4, 3.6)                                             # blackjack (media luna, aprox.)
+    caja(bm, 28.0, 32.4, 1.35, 1.5, 1.8, 3.45); caja(bm, 17.1, 20.9, 1.35, 1.5, 1.85, 3.75)   # blackjack (media luna) y póker (óvalo), aprox.
+    caja(bm, 23.1, 26.5, 0, 1.5, 5.75, 7.25)                                              # ruleta del casino (c_casona_casino.js)
+    caja(bm, 35.03, 35.77, 0, 2.3, 4.53, 8.47); caja(bm, 27.83, 32.77, 0, 2.3, 9.03, 9.77)   # tragamonedas
     me = bpy.data.meshes.new('px_sm'); bm.to_mesh(me); bm.free(); me.materials.append(md); S.objects.link(bpy.data.objects.new('px_sm', me))
     for spot in [o for o in S.objects if o.type == 'LIGHT' and o.data.type == 'SPOT']: spot.data.spot_size = math.radians(80)
 
@@ -212,9 +303,9 @@ def armar():
     sc = bpy.context.scene; P.motor(sc)
     P.muros()
     for d in P.B.values(): d['mat'] = REMAP.get(d['mat'], d['mat'])
-    forros(); dinteles(); pisos(); techos(); escalera(); muebles(); marcas(); lamparas()
+    forros(); dinteles(); pisos(); techos(); escalera(); muebles(); sotano_vida(); marcas(); lamparas()
     col = P.coleccion('sm'); obs = P.crear(col)
-    ms = N['mesas']; N['mesas'] = [m for m in ms if m[0] in ('poker', 'ruleta')]   # sombras redondas solo para las mesas redondas
+    ms = N['mesas']; N['mesas'] = [m for m in ms if m[0] == 'ruleta']   # sombra redonda solo para la mesa redonda (el póker es óvalo: px_sm)
     try: P.luces(sc)
     finally: N['mesas'] = ms
     oscuro(sc)
@@ -223,6 +314,7 @@ def armar():
 
 def vistas(sc, carpeta):
     P.vista(sc, os.path.join(carpeta, 'sm_cantina_casino.png'), (18, 13, -7), (18, 0, 5), ('sm_muro_h0_', 'sm_techo'))
+    P.vista(sc, os.path.join(carpeta, 'sm_casino.png'), (25, 9, -3.5), (25, 0, 5), ('sm_muro_h0_', 'sm_techo'))
     P.vista(sc, os.path.join(carpeta, 'sm_billar_cava.png'), (18, 16, 40), (18, 0, 20), ('sm_muro_h300_', 'sm_techo'))
     P.vista(sc, os.path.join(carpeta, 'sm_todo.png'), (18, 30, -12), (18, 0, 15), ('sm_muro_h0_', 'sm_techo'))
 

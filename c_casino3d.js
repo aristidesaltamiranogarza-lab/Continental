@@ -41,17 +41,16 @@ function charola(G,std,ctex,x,y,z,w,dz,ks){const md=std(0x2a160b,.4),fo=std(0x12
  ks.forEach((k,i)=>{const c=malla(G,new THREE.CylinderGeometry(.031,.031,dz-.01,18),std(0xffffff,.42,{map:texFicha(ctex,k)}),x-w/2+.04+sp*(i+.5),y+.024,z);c.rotation.x=PI/2});
  sombra(G,ctex,x,y-.024,z+.02,w+.16,D+.14,0,.6)}
 
-// ---------- silla acolchada (mira a +z, respaldo atrás) ----------
-function silla(std,cuero){const G=new THREE.Group();if(!window.LOTE)return G;const LT=LOTE(),md='#2a160c',cu=cuero||'#6a1c1c',me='#c9a24a';
- [[-.3,-.28],[.3,-.28],[-.3,.28],[.3,.28]].forEach(([x,z])=>LT.cyl(.026,.036,.84,md,x,.42,z,8));
- [[-.3,.28],[.3,.28]].forEach(([x,z])=>LT.cyl(.03,.03,.02,me,x,.12,z,8));
- LT.box(.7,.03,.03,md,0,.28,.28);LT.box(.7,.03,.03,md,0,.28,-.28);
- LT.box(.78,.07,.74,md,0,.865,0);LT.box(.72,.12,.68,cu,0,.95,.01);LT.bola(.36,1,.18,.95,cu,0,1.0,.02,1);
- [-1,1].forEach(s=>LT.box(.06,.86,.06,md,s*.34,1.3,-.34,0,-.06,0));
- LT.box(.64,.56,.1,cu,0,1.36,-.34,0,-.06,0);LT.box(.78,.08,.09,md,0,1.72,-.37,0,-.06,0);
- // botones del capitoné
- for(let i=0;i<3;i++)for(let j=0;j<2;j++)LT.bola(.018,1,1,.5,'#3a0e0e',-.18+i*.18,1.22+j*.25,-.285+j*.016,0);
- const m=LT.mesh(std(0xffffff,.55));m.castShadow=true;m.receiveShadow=true;G.add(m);return G}
+// ---------- silla de casino (mira a +z, respaldo atrás): pie cromado con aro para los pies, asiento redondo acolchado y respaldo bajo curvo ----------
+function silla(std,cuero){const G=new THREE.Group();if(!window.LOTE)return G;const LT=LOTE(),md='#2a160c',cu=cuero||'#6a1c1c',cr='#c8ccd2',me='#c9a24a';
+ LT.cyl(.3,.33,.05,cr,0,.025,0,24);LT.cyl(.05,.07,.06,cr,0,.08,0,12);LT.cyl(.045,.045,.74,cr,0,.47,0,12);
+ LT.geo(new THREE.TorusGeometry(.25,.02,6,24),cr,0,.4,0,0,PI/2);[0,1,2,3].forEach(i=>LT.box(.22,.025,.025,cr,Math.cos(i*PI/2+PI/4)*.13,.4,Math.sin(i*PI/2+PI/4)*.13,-(i*PI/2+PI/4)));
+ LT.cyl(.3,.26,.06,md,0,.86,0,24);LT.cyl(.35,.33,.11,cu,0,.94,.01,28);LT.bola(.34,1,.17,1,cu,0,.99,.01,2);LT.geo(new THREE.TorusGeometry(.345,.018,6,28),me,0,.9,.01,0,PI/2);
+ // respaldo: tiras que siguen la curva del asiento por detrás, con su remate de madera; dos postes cromados lo sostienen
+ const n=7,a0=PI*1.18,a1=PI*1.82;for(let i=0;i<n;i++){const a=a0+(a1-a0)*(i+.5)/n,x=Math.cos(a)*.31,z=Math.sin(a)*.31,w=.31*(a1-a0)/n+.012;
+  LT.box(w,.4,.09,cu,x,1.24,z,-a-PI/2,-.1);LT.box(w,.05,.12,md,x,1.46,z-.02,-a-PI/2,-.1)}
+ [-.13,.13].forEach(x=>LT.cyl(.018,.018,.34,cr,x,1.06,-.27,8,0,-.15));
+ const m=LT.mesh(std(0xffffff,.5));m.castShadow=true;m.receiveShadow=true;G.add(m);return G}
 
 // tarima del crupier: el chibi no alcanza la mesa desde el piso; plataforma de madera con canto redondeado, alfombra vino,
 // filo de latón y un escalón atrás (por donde sube). z = centro; ancho w (x) y fondo d (z); el frente (+z) queda bajo la orilla de la mesa.

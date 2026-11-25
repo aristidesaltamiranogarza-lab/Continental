@@ -232,7 +232,7 @@ def marcas():
     for g in N['gaps']:
         if g[4]: vacio('puerta_%s_n2' % g[4], (g[0] + g[2]) / 2, 0, (g[1] + g[3]) / 2)
     for g, mx, mz, r, libre in N['mesas']:
-        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r)
+        vacio('mesa_' + g, mx, 1.55, mz, juego=g, fam='f' if libre else C.FAM.get(g, 'k'), libre=libre, r=r, aire=P.aire_libre(mx, mz))
     vacio('llegada_n2', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('llegada_escalera_n2', C.ESC['llegada'][0], 0, C.ESC['llegada'][1])
     vacio('plano_escalera_n2', 6.6, 2.7, 16.8, ry=0.0)
