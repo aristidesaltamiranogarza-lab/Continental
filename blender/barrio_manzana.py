@@ -18,8 +18,8 @@ def cancha(B):
                        (x0, x0 + 3.5, cz - 4, cz - 4 + r), (x0, x0 + 3.5, cz + 4 - r, cz + 4), (x0 + 3.5 - r, x0 + 3.5, cz - 4, cz + 4),
                        (x1 - 3.5, x1, cz - 4, cz - 4 + r), (x1 - 3.5, x1, cz + 4 - r, cz + 4), (x1 - 3.5, x1 - 3.5 + r, cz - 4, cz + 4)):
         B.pieza(fa, bl, B.caja_o, a, b, Y, Y + .02, c, d)
-    pts = [(cx + math.cos(i * math.pi / 12) * 2.5, Y + .01, cz + math.sin(i * math.pi / 12) * 2.5) for i in range(25)]
-    for a, b in zip(pts, pts[1:]): B.pieza(fa, bl, P.viga, a, b, .08, .01)   # círculo central
+    pts = [(cx + math.cos(i * math.pi / 16) * 2.5, Y + .025, cz + math.sin(i * math.pi / 16) * 2.5) for i in range(33)]
+    for a, b in zip(pts, pts[1:]): B.pieza(fa, bl, P.viga, a, b, .09, .09)   # círculo central (sección cuadrada: se ve igual desde cualquier lado)
     for x, s in ((x0, -1), (x1, 1)):   # porterías: postes y travesaño blancos, red al fondo (hierro delgado)
         for z in (cz - 1.8, cz + 1.8): B.pieza(fa, bl, B.caja_o, x - .06, x + .06, Y, Y + 2.4, z - .06, z + .06)
         B.pieza(fa, bl, B.caja_o, x - .06, x + .06, Y + 2.3, Y + 2.42, cz - 1.86, cz + 1.86)

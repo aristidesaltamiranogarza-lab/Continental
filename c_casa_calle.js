@@ -14,7 +14,7 @@ let EXT=null,REG=false,rs=11;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280,pi
 // medidas del exterior: la casa vieja (fachada en 19.3, lote ±17.3) o la casona (?casa=caja: fachada en 17, lote ±18, banqueta de 1.6 como la del GLB, vecinos más bajos S)
 let E=null;const EE=()=>E||(E=window.CAJA&&CAJA.on?{fz:17,zb:18.6,za:28.6,ze:32.6,lx:18,lau:null,pos:[11.8,18.3],aco:[13.2,9.4,17.06],S:.68,zt:-31.4}:{fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:17.3,lau:LAU,pos:POS,aco:[15.4,8.1,FZ+.06],S:1,zt:-42.4});
 // calle.glb (blender/casona_calle.py, horneada): con la casona arma el tramo x −43..22; ahí no van vecinas, arroyo, banquetas ni postes de código. ?calle=caja vuelve a la de código
-const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search),TR=[-43,22],VC='2';
+const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search),TR=[-43,22],VC='3';
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
 // el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
 // que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
