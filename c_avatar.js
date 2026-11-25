@@ -5,7 +5,10 @@
 // 5 playera, 6 chamarra, 7 vestido solo M), d abajo (1 pantalón, 2 short, 3 falda solo M, 4 cargo); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb?v=11',location.href).href;   // ?v: subir al cambiar el GLB (se guarda en caché un año)
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=11',location.href).href;
+// animaciones de cuerpo completo (blender/anim_retarget.py, Universal Animation Library CC0): Quieto y Camina se mezclan por código
+// encima de la pose (CAPA); si no carga, se usa el respiro y el paso hechos a mano
+const URL_ANIM=new URL('modelos/personaje/anim.glb?v=1',location.href).href,CAPA=['Quieto','Camina'];   // ?v: subir al cambiar el GLB (se guarda en caché un año)
 const PAL={
  pelo:['#1f1a17','#3b2a20','#5a3b26','#86593a','#b8864f','#d9b06a','#9c4a2a','#8a8580'],
  piel:['#f6dcc6','#efc9a8','#e3b48c','#d19c72','#b97f56','#9a6442','#7a4c32','#5a3624'],
@@ -32,7 +35,7 @@ function azar(s){const r=n=>1+(Math.random()*n|0),u=l=>l[Math.random()*l.length|
 
 // ---------- carga única ----------
 let baseP=null,alto=2.6;
-function listo(){return baseP||(baseP=Promise.all([CGLB.cargador(),CGLB.mod('utils/SkeletonUtils.js')]).then(([L,SU])=>new Promise((ok,mal)=>L.load(URL_GLB,g=>ok({g,SU}),null,mal))).then(({g,SU})=>{
+function listo(){return baseP||(baseP=Promise.all([CGLB.cargador(),CGLB.mod('utils/SkeletonUtils.js')]).then(([L,SU])=>Promise.all([new Promise((ok,mal)=>L.load(URL_GLB,ok,null,mal)),new Promise(ok=>L.load(URL_ANIM,ok,null,e=>{console.warn('[AV] sin anim.glb',e);ok(null)}))]).then(([g,an])=>{if(an)g.animations=g.animations.concat(an.animations.filter(c=>CAPA.includes(c.name)));return {g,SU}})).then(({g,SU})=>{
  const clips={};
  for(const c of g.animations){let tr;
   if(/^(Agarre|Amartilla)_[ID]$/.test(c.name)){const l=c.name.slice(-1);tr=c.tracks.filter(t=>{const m=t.name.match(DEDOS);return m&&m[2]===l})}
@@ -63,7 +66,16 @@ function crearYa(cod){if(!base)return null;const {escena,clips,SU}=base;
  u.mixer=new THREE.AnimationMixer(p);
  for(const l of 'ID'){const a=u.mixer.clipAction(clips['Agarre_'+l]);a.play();a.paused=true;a.time=0;a.dedo=1;u.acc['Agarre_'+l]=a}
  if(clips.Amartilla_D){const a=u.mixer.clipAction(clips.Amartilla_D);a.play();a.paused=true;a.time=clips.Amartilla_D.duration*.999;a.setEffectiveWeight(0);a.dedo=1;u.acc.Amartilla_D=a}
- aplica(p,cod);pose(p,'Reposo',0);return p}
+ u.capa=capa(p,clips);aplica(p,cod);pose(p,'Reposo',0);return p}
+// capa(p,clips): por clip de CAPA, {d: duración, h: [hueso, interpolante, es posición]} con los huesos de HM (dedos fuera)
+function capa(p,clips){const o={};for(const n of CAPA){const c=clips[n];if(!c)return null;const h=[];
+  for(const t of c.tracks){const [nb,pr]=t.name.split('.');if(!HM.includes(nb)||(pr!=='quaternion'&&!(pr==='position'&&nb==='cadera')))continue;
+   const b=p.getObjectByName(nb);if(b)h.push([b,t.createInterpolant(),pr==='position'])}
+  o[n]={d:c.duration,h}}return o}
+const qc=new THREE.Quaternion(),vc=new THREE.Vector3();
+// mezcla el clip n al tiempo t con peso w sobre lo que dejó el mixer
+function capaPon(u,n,t,w){if(w<.002)return;const c=u.capa[n];t=((t%c.d)+c.d)%c.d;
+ for(const [b,it,ps] of c.h){const v=it.evaluate(t);if(ps)b.position.lerp(vc.fromArray(v),w);else b.quaternion.slerp(qc.fromArray(v),w)}}
 let base=null;
 function crear(cod){return listo().then(b=>{base=b;return crearYa(cod)})}
 
@@ -72,12 +84,13 @@ const vivos=new Set();let raf=0,t0=0;
 // sentado: después de cada cuadro del mixer dobla muslos (90° al frente) y rodillas (90° atrás) sobre la pose
 const QS=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),QR=QS.clone().invert();
 // el mixer solo escribe un hueso si su valor cambió: antes de cada vuelta se deshacen los giros por código de la anterior (u.toc)
-function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.quaternion.copy(q);
+function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.quaternion.copy(q);if(u.tocP)u.tocP[0].position.copy(u.tocP[1]);
  pesa(u,dt);u.mixer.update(dt);const m=u.mov,ob=quieto(u)?Math.max(0,1-(m&&m.dn||0)):0;
  u.ti=(u.ti||Math.random()*30)+dt;u.idl=(u.idl||0)+(ob-(u.idl||0))*Math.min(1,dt*6);
  if(!u.sentado&&!u.mov&&!u.ges&&u.idl<.002){u.toc=null;if(u.post)u.post(dt);return}
  if(!u.toc){u.toc=new Map();for(const n of HM){const b=p.getObjectByName(n);if(b)u.toc.set(b,new THREE.Quaternion())}}
  for(const [b,q] of u.toc)q.copy(b.quaternion);
+ if(u.capa){if(!u.tocP){const b=p.getObjectByName('cadera');u.tocP=b&&[b,new THREE.Vector3()]}if(u.tocP)u.tocP[1].copy(u.tocP[0].position)}
  if(u.sentado)for(const l of 'ID'){const m=u.hueso['muslo_'+l],r=u.hueso['pierna_'+l];if(m)m.quaternion.multiply(QR);if(r)r.quaternion.multiply(QS)}
  if(u.mov||u.idl>=.002)mov(p,u);if(u.ges)ges(p,u);if(u.post)u.post(dt)}
 // parado en 'Reposo' (sin sentar ni bailar) respira: pecho y hombros suben, se mece un poco, ladea la cabeza y de vez en cuando voltea;
@@ -89,13 +102,14 @@ const quieto=u=>!u.sentado&&!u.emo&&u.nomPose==='Reposo';
 // caminar, saludar y bailar, también por código después del mixer. m: w 0–1 qué tanto camina, ph fase del paso, sal 0–1 saludo
 // (mano derecha), dn 0–1 baile, disco (🕺; si no, 💃), bt fase del baile, t ms. Cada hueso gira sobre los ejes del personaje
 // (X de lado, hacia su izquierda; Y arriba; Z al frente) vistos desde su padre en la pose de reposo.
-const HM=['columna','cadera','cabeza','hombro_I','hombro_D','muslo_I','muslo_D','pierna_I','pierna_D','brazo_I','brazo_D','antebrazo_I','antebrazo_D'],
+const HM=['columna','cadera','cabeza','hombro_I','hombro_D','muslo_I','muslo_D','pierna_I','pierna_D','brazo_I','brazo_D','antebrazo_I','antebrazo_D','mano_I','mano_D','pie_I','pie_D'],
  EJ=[new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)],qa=new THREE.Quaternion(),qb=new THREE.Quaternion();
 function ejes(p){const h={};p.updateMatrixWorld(true);p.getWorldQuaternion(qb).invert();
  for(const n of HM){const b=p.getObjectByName(n);if(!b||!b.parent)continue;b.parent.getWorldQuaternion(qa).premultiply(qb).invert();h[n]={b,e:EJ.map(v=>v.clone().applyQuaternion(qa))}}
  return h}
 function gira(h,n,i,a){const x=h[n];if(x&&a)x.b.quaternion.premultiply(qa.setFromAxisAngle(x.e[i],a))}
-function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,ph=m.ph||0,dn=m.dn||0,bt=m.bt||0,sal=(m.sal||0)*(1-dn),dc=!!m.disco;
+function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w0=m.w||0,ph=m.ph||0,C=u.capa,w=C?0:w0,dn=m.dn||0,bt=m.bt||0,sal=(m.sal||0)*(1-dn),dc=!!m.disco;
+ if(C){const k=u.idl||0;capaPon(u,'Quieto',u.ti,k*(1-w0));capaPon(u,'Camina',ph/(2*Math.PI)*C.Camina.d,w0)}   // clips primero; saludo y baile van encima
  gira(h,'columna',0,.08*w);gira(h,'cadera',2,S(bt)*(dc?.06:.14)*dn);gira(h,'cadera',1,S(bt/2)*(dc?.5:.3)*dn);
  for(const [l,s] of [['I',1],['D',-1]]){
   let q=s*S(ph)*.5*w,k=Math.max(0,s*Math.cos(ph))*.7*w;   // muslo al frente y rodilla doblada mientras la pierna avanza
@@ -107,7 +121,8 @@ function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w=m.w||0,p
    else if(l==='D'){const ar=S(bt)>0;az-=(ar?2.7:.8)*dn;ax-=(ar?.3:.5)*dn}   // de disco: señala arriba y abajo
    else{az+=1*dn;fz-=1.7*dn}}   // la otra mano en la cintura
   gira(h,'brazo_'+l,0,ax);gira(h,'brazo_'+l,2,az);gira(h,'antebrazo_'+l,0,fx);gira(h,'antebrazo_'+l,2,fz)}
- const k=u.idl||0;if(k<.002)return;const T=u.ti*Math.PI*2,br=S(T/3.4),sw=S(T/7.1+1),gl=S(T/11.3+2),kb=k*Math.max(0,1-2*w);
+ const k=u.idl||0;if(C){const gl=S(u.ti*Math.PI*2/11.3+2);gira(h,'cabeza',1,.28*gl*gl*gl*k*Math.max(0,1-2*w0));return}   // de vez en cuando voltea
+ if(k<.002)return;const T=u.ti*Math.PI*2,br=S(T/3.4),sw=S(T/7.1+1),gl=S(T/11.3+2),kb=k*Math.max(0,1-2*w);
  gira(h,'columna',0,-.025*br*kb);gira(h,'columna',2,.03*sw*kb);
  gira(h,'cabeza',2,(.04*S(T/5.3+.7)-.025*sw)*kb);gira(h,'cabeza',0,.025*br*kb);gira(h,'cabeza',1,.28*gl*gl*gl*kb);
  for(const [l,s] of [['I',1],['D',-1]]){gira(h,'hombro_'+l,2,s*.015*(br+1)*kb);
