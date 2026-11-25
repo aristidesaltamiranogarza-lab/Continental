@@ -34,9 +34,10 @@ EMITE = dict(arbotante=6, farol=8, foco=10)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)
 # por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
 # vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
-PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=.5)   # techo: ver techos() (antes .3 x .5 = 2 texeles por unidad)
+PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=float(os.environ.get('R4_TECHO', 1)))   # R4: techo .5 -> 1 (rincones techo-muro a 16 cm por texel)   # techo: ver techos() (antes .3 x .5 = 2 texeles por unidad)
 MUROS = ('muro', 'lambrin', 'cantera', 'cenefa', 'barda')   # piezas que se meten unas en otras (ver _dentro)
 FUERA = .1
+ARQ = ('muro', 'techo', 'lambrin', 'cantera', 'escalon', 'pasto', 'corredor', 'cuarto', 'barda', 'rod', 'pasta', 'azulejo', 'laja', 'cenefa', 'porton', 'persiana', 'mosaico', 'banqueta', 'calle', 'tierra')   # R4: arquitectura (lo demás es decoración)
 
 def V(x, y, z): return Vector((x - 18, z - 17, y))        # plano (x, alto, z) -> Blender
 def VB(v): return Vector((v[0], v[2], v[1]))               # vector del plano -> Blender
@@ -833,7 +834,8 @@ def uv_luz(obs):
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0, area_weight=0, scale_to_bounds=False)
     bpy.ops.object.mode_set(mode='OBJECT')
     for o in obs:
-        s = PRIO.get(o.name, 1) * PRIO_MAT.get(o.data.materials[0].name if o.data.materials else '', 1)
+        mn = o.data.materials[0].name if o.data.materials else ''
+        s = PRIO.get(o.name, 1) * PRIO_MAT.get(mn, 1) * (float(os.environ.get('R4_DECO', 1)) if mn not in ARQ else 1)
         ly = o.data.uv_layers['luz'].data
         for p in o.data.polygons:
             c = o.matrix_world @ p.center; n = p.normal; x, z = c.x + 18, c.y + 17
@@ -842,10 +844,11 @@ def uv_luz(obs):
                 for i in p.loop_indices: ly[i].uv = ly[i].uv * (s * f)
     def empaca():
         bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=.002, shape_method='CONCAVE')
+        bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=float(os.environ.get('R4_MARGEN', .001)), shape_method=os.environ.get('R4_FORMA', 'CONCAVE'))
         bpy.ops.object.mode_set(mode='OBJECT')
     empaca()
-    if MIN_TX: ancho_min(obs, K['RES'], MIN_TX); empaca()   # R4: las islas delgadas se estiran a lo ancho y se reempaca
+    mt = int(os.environ.get('R4_MIN_TX', MIN_TX))
+    if mt: ancho_min(obs, K['RES'], mt); empaca()   # R4: las islas delgadas se estiran a lo ancho y se reempaca
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
 
 # R4 (horneado en bloques): la mitad de las caras (cantos de muro, molduras, jambas, bajo los dinteles) quedaba con un lado de
@@ -925,6 +928,23 @@ def _pp(c, w):
     up = _pp(cs, ws).repeat(2, 0).repeat(2, 1)
     return np.where(w[..., None] > 0, c / np.maximum(w, 1e-8)[..., None], up)[:h, :ww]
 
+def _dilatar(c, ok, n=6):
+    """R4: cada texel del hueco toma el promedio de sus vecinos ya llenos, anillo por anillo (la isla más cercana). El push-pull
+    solo, con bloques de 2x2, 4x4..., mezclaba en la orilla de una isla la luz de la isla vecina del atlas (otra pieza): la
+    lectura bicúbica tomaba esos texeles en cantos, dinteles y rincones. Sin vuelta de orilla (np.roll recortado)."""
+    import numpy as np
+    c = c * ok[..., None]; ok = ok.copy()
+    def sh(a, d, ax):
+        b = np.roll(a, d, ax); i = [slice(None)] * a.ndim; i[ax] = slice(0, 1) if d > 0 else slice(-1, None); b[tuple(i)] = 0; return b
+    for _ in range(n):
+        acc = np.zeros_like(c); m = np.zeros(ok.shape, np.float32)
+        for ax in (0, 1):
+            for d in (1, -1): v = sh(ok, d, ax); acc += sh(c, d, ax) * v[..., None]; m += v
+        nu = ~ok & (m > 0)
+        if not nu.any(): break
+        c[nu] = acc[nu] / m[nu][:, None]; ok |= nu
+    return c, ok
+
 def _islas(cara):
     """Etiqueta cada isla del atlas (texeles de cara conectados; entre islas hay ~4 px de fondo)."""
     import numpy as np
@@ -957,7 +977,7 @@ def _rellenar(img, cara, den=None):
             nu = falta & (n > 0)
             if not nu.any(): break
             c[nu] = acc[nu] / n[nu][:, None]; ok |= nu
-    a[:, :, :3] = _pp(c * cara[..., None], cara.astype(np.float32)); a[:, :, 3] = 1
+    c, ok = _dilatar(c, cara); a[:, :, :3] = _pp(c * ok[..., None], ok.astype(np.float32)); a[:, :, 3] = 1   # R4: anillos y luego push-pull lejos
     img.pixels.foreach_set(a.ravel()); img.update()
 
 def _dentro(sc, obs, sel, res):
@@ -1003,7 +1023,7 @@ def oidn(sc, img, nrm):
     def exr(a, n):
         i = bpy.data.images.new(n, w, h, float_buffer=True); i.pixels.foreach_set(a.ravel())
         i.filepath_raw = os.path.join(tmp, n + '.exr'); i.file_format = 'OPEN_EXR'; i.save(); return i
-    n = pix(nrm); vac = n[:, :, :3].sum(2) < 1e-4; n[:, :, :3] = n[:, :, :3] * 2 - 1; n[vac, :3] = (0, 0, 1)
+    n = pix(nrm); vac = n[:, :, :3].sum(2) < 1e-4; n[:, :, :3] = n[:, :, :3] * 2 - 1; d3, ok3 = _dilatar(n[:, :, :3], ~vac); n[:, :, :3] = d3; n[~ok3, :3] = (0, 0, 1)
     al = np.ones((h, w, 4), dtype=np.float32)
     i_c, i_n, i_a = exr(pix(img), 'c'), exr(n, 'n'), exr(al, 'a')
     t = bpy.data.node_groups.new('oidn', 'CompositorNodeTree'); sc.compositing_node_group = t
@@ -1053,7 +1073,8 @@ def exportar(col):
     print(NOM + '.glb', os.path.getsize(f), 'bytes')
 
 # ---------- prueba rápida de la luz: zaguán y salón, antes y después con las mismas cámaras ----------
-CAM_PRUEBA = [((17, 9.5, -4), (10, 1.5, 6), ('pb_muro_h0_', 'pb_techo')), ((20.3, 4.2, 1.2), (16, 2.6, 6.5), ('pb_techo',))]
+CAM_PRUEBA = [((17, 9.5, -4), (10, 1.5, 6), ('pb_muro_h0_', 'pb_techo')), ((20.3, 4.2, 1.2), (16, 2.6, 6.5), ('pb_techo',)),
+              ((18.5, 1.6, 2.2), (18.5, 3.2, 9.5), ('pb_techo',)), ((12, 1.6, 7.6), (4, 2, 1.5), ('pb_techo',)), ((19.6, 1.6, 6.5), (15.5, 2.6, 4.5), ('pb_techo',))]   # R4: de cerca, a la altura de los ojos
 
 def region(obs, x0=0, x1=21, z0=0, z1=10):
     out = []
@@ -1071,7 +1092,7 @@ def previa(sc, solo, luz, carpeta, pre):
         if n not in PM:
             m = bpy.data.materials.new('prev_' + n); m.use_nodes = True; nt = m.node_tree
             for x in list(nt.nodes): nt.nodes.remove(x)
-            uv = nt.nodes.new('ShaderNodeUVMap'); uv.uv_map = 'luz'; tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = li
+            uv = nt.nodes.new('ShaderNodeUVMap'); uv.uv_map = 'luz'; tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = li; tx.interpolation = 'Cubic'
             mu = nt.nodes.new('ShaderNodeVectorMath'); mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = [4 * q for q in COLOR.get(n, (.7, .7, .7))]
             em = nt.nodes.new('ShaderNodeEmission'); ou = nt.nodes.new('ShaderNodeOutputMaterial')
             nt.links.new(uv.outputs[0], tx.inputs[0]); nt.links.new(tx.outputs[0], mu.inputs[0]); nt.links.new(mu.outputs[0], em.inputs[0]); nt.links.new(em.outputs[0], ou.inputs[0])
@@ -1119,5 +1140,7 @@ if __name__ == '__main__':
         img = hornear(sc, obs, res, mu, solo=solo); luz = os.path.join(car, 'luz_nueva.webp'); guardar(img, ruta=luz)
         previa(sc, solo, luz, car, 'despues'); comparar(car)
         if 'juego' in arg: guardar(img); exportar(col)   # para verla en el juego (resto de la planta sin hornear); no subir
+    elif acc == 'uvs':        # R4: solo desenvuelve y diagnostica (sin hornear)
+        exec(open(os.path.join(DIR, 'blender', 'luz_diag.py'), encoding='utf-8').read(), globals()); uv_luz(obs); densidad(obs, K['RES'])
     elif acc == 'exportar':
         exportar(col)
