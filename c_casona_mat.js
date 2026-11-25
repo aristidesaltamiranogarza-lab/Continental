@@ -55,13 +55,21 @@ function texturas(ctex){if(TX)return TX;
    for(const dx of [-w,0,w])for(const dy of [-h,0,h]){const X=x+dx,Y=y+dy;if(X+r<0||X-r>w||Y+r<0||Y-r>h)continue;
     const gr=g.createRadialGradient(X,Y,0,X,Y,r);gr.addColorStop(0,`rgba(${cl},${a})`);gr.addColorStop(1,`rgba(${cl},0)`);g.fillStyle=gr;g.fillRect(X-r,Y-r,2*r,2*r)}}
   for(let i=0;i<3600;i++){g.fillStyle=i%2?'rgba(255,240,220,.05)':'rgba(120,70,40,.04)';g.fillRect(r2()*w,r2()*h,1+r2()*1.5,1+r2()*1.5)}};
- const copa=ruido('#86aa76','rgba(60,95,50,.35)','rgba(190,220,160,.25)',140,4,10);
+ // copa (R1): hojitas finas en verdes cercanos, sin manchas; de lejos casi liso
+ const copa=(g,w,h)=>{const r4=(s=>()=>(s=(s*9301+49297)%233280)/233280)(3),c=['#749a64','#8bb07a','#7aa06a','#93b683'];g.fillStyle='#7fa46f';g.fillRect(0,0,w,h);
+  for(let i=0;i<900;i++){const x=r4()*w,y=r4()*h,a=r4()*6.3,q=3+r4()*3;g.fillStyle=c[(r4()*4)|0];
+   for(const dx of [-w,0,w])for(const dy of [-h,0,h]){const X=x+dx,Y=y+dy;if(X+q<0||X-q>w||Y+q<0||Y-q>h)continue;g.save();g.translate(X,Y);g.rotate(a);g.beginPath();g.ellipse(0,0,q,q*.45,0,0,7);g.fill();g.restore()}}};
  // sótano (paso 6): mampostería de piedra, damasco vino y verde (como el sótano de hoy), alfombra del casino, barro, losas, botellas y duelas de barrica
- const piedra=(g,w,h)=>{const r3=(s=>()=>(s=(s*9301+49297)%233280)/233280)(5);g.fillStyle='#8f877b';g.fillRect(0,0,w,h);const c=['#bdb5a8','#b3aa9c','#c6beb1','#aca395','#b9ae9d'];
-  for(let j=0;j<6;j++){const y=j*h/6;let x=-r3()*40;while(x<w){const lw=44+r3()*60,o=4;g.fillStyle=c[(r3()*c.length)|0];g.beginPath();
-   g.moveTo(x+o+r3()*6,y+o+r3()*5);g.lineTo(x+lw-o-r3()*6,y+o+r3()*5);g.lineTo(x+lw-o-r3()*4,y+h/6-o-r3()*5);g.lineTo(x+o+r3()*4,y+h/6-o-r3()*5);g.closePath();g.fill();
-   for(const dx of [-w,w])if(x+dx<w&&x+lw+dx>0){g.save();g.translate(dx,0);g.fill();g.restore()}x+=lw}}
-  for(let i=0;i<2400;i++){g.fillStyle=i%2?'rgba(255,250,240,.06)':'rgba(60,45,30,.07)';g.fillRect(r3()*w,r3()*h,1+r3()*2,1+r3()*2)}};
+ // muros del sótano (R6): aplanado de cal gris arena (pasillo, cantina...); la Ruleta lleva tabique aparente
+ const piedra=(g,w,h)=>{const r3=(s=>()=>(s=(s*9301+49297)%233280)/233280)(7);g.fillStyle='#b9ab97';g.fillRect(0,0,w,h);
+  for(let i=0;i<46;i++){const x=r3()*w,y=r3()*h,r=40+r3()*90,cl=i%2?'250,240,222':'90,70,50',a=i%2?.08:.06;
+   for(const dx of [-w,0,w])for(const dy of [-h,0,h]){const X=x+dx,Y=y+dy;if(X+r<0||X-r>w||Y+r<0||Y-r>h)continue;
+    const gr=g.createRadialGradient(X,Y,0,X,Y,r);gr.addColorStop(0,`rgba(${cl},${a})`);gr.addColorStop(1,`rgba(${cl},0)`);g.fillStyle=gr;g.fillRect(X-r,Y-r,2*r,2*r)}}
+  for(let i=0;i<4000;i++){g.fillStyle=i%2?'rgba(255,245,230,.06)':'rgba(70,50,30,.06)';g.fillRect(r3()*w,r3()*h,1+r3()*1.5,1+r3()*1.5)}};
+ const tabique=(g,w,h)=>{const r5=(s=>()=>(s=(s*9301+49297)%233280)/233280)(4),n=8,bh=h/n,bw=w/4,c=['#a85f45','#9e573f','#b2684c','#a05a42','#93503a'];g.fillStyle='#cbb8a0';g.fillRect(0,0,w,h);
+  for(let j=0;j<n;j++){const off=j%2?bw/2:0;for(let i=0;i<4;i++){const col=c[(r5()*c.length)|0];for(const dx of [0,-w]){const x=i*bw+off+dx;if(x>=w||x+bw<=0)continue;
+   g.fillStyle=col;g.fillRect(x+2,j*bh+2,bw-4,bh-4);g.fillStyle='rgba(255,220,190,.08)';g.fillRect(x+2,j*bh+2,bw-4,2);g.fillStyle='rgba(40,20,10,.12)';g.fillRect(x+2,j*bh+bh-4,bw-4,2)}}}
+  for(let i=0;i<2500;i++){g.fillStyle=i%2?'rgba(255,240,220,.06)':'rgba(40,20,10,.07)';g.fillRect(r5()*w,r5()*h,1+r5()*1.5,1+r5()*1.5)}};
  const dam=(a,b,c)=>(g,w,h)=>{g.fillStyle=a;g.fillRect(0,0,w,h);g.fillStyle=b;for(let x=0;x<w;x+=32)g.fillRect(x,0,2,h);
   const med=(cx,cy)=>{g.save();g.translate(cx,cy);g.fillStyle=c;g.beginPath();g.ellipse(0,0,26,40,0,0,7);g.fill();g.fillStyle=a;g.beginPath();g.ellipse(0,0,19,31,0,0,7);g.fill();
    g.fillStyle=c;for(let i=0;i<4;i++){g.rotate(Math.PI/2);g.beginPath();g.ellipse(0,-13,5,10,0,0,7);g.fill()}g.beginPath();g.arc(0,0,5,0,7);g.fill();g.restore()};
@@ -94,10 +102,10 @@ function texturas(ctex){if(TX)return TX;
   persiana:{map:T('persiana',16,16,persiana,1,1/.11)},
   madera:{map:T('madera',128,128,madera('#957659','rgba(60,35,20,.3)'),1)},bejuco:{map:T('bejuco',64,64,bejuco,1/.35)},
   porton:{map:T('porton',128,128,porton,1/1.4)},tapete:{map:T('tapete',512,512,tapete,1)},hamaca:{map:T('hamaca',256,16,hamaca,1/1.4,1)},
-  copa:{map:T('copa',128,128,copa,1/1.5)},tronco:{map:T('tronco',64,64,madera('#a08976','rgba(70,50,35,.35)'),1/.8)},
+  copa:{map:T('copa2',256,256,copa,1/1.5)},tronco:{map:T('tronco',64,64,madera('#a08976','rgba(70,50,35,.35)'),1/.8)},
   duela:{map:T('duela',256,256,duela,1/1.2)},libros:{map:T('libros',256,64,libros,1/1.6,1/.4)},
   lambrin:{color:0x618c79},rod:{color:0xede7d7},techo:{color:0xe7dfce},barro:{color:0xcb997c},escalon:{color:0x8e3a28},
-  piedra:{map:T('piedra',512,512,piedra,1/2.2)},tapiz_vino:{map:T('tapiz-vino',256,256,dam('#8a2f3a','rgba(255,210,150,.05)','rgba(230,180,100,.22)'),1/1.1)},
+  piedra:{map:T('piedra2',512,512,piedra,1/4)},tabique:{map:T('tabique',256,256,tabique,1/1.6)},tapiz_vino:{map:T('tapiz-vino',256,256,dam('#8a2f3a','rgba(255,210,150,.05)','rgba(230,180,100,.22)'),1/1.1)},
   tapiz_verde:{map:T('tapiz-verde',256,256,dam('#3d6e55','rgba(255,240,200,.05)','rgba(230,200,130,.26)'),1/1.1)},alfombra:{map:T('alfombra',256,256,alfombra,1/1.6)},
   ladrillo:{map:T('ladrillo',256,256,ladrillo,1/1.4)},losa_s:{map:T('losa-s',256,256,laja,1/2.6)},cemento:{map:T('cemento',128,128,ruido('#8d8a85','rgba(50,48,45,.12)','rgba(220,215,205,.1)',160,2,6),1/2)},
   botellas:{map:T('botellas',256,64,botellas,1/1.4,1/.4)},barrica:{map:T('barrica',128,64,barrica,1/.6,1)},madera_osc:{map:T('madera-osc',128,128,madera('#6e5242','rgba(30,18,10,.35)'),1)},

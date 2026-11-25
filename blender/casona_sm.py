@@ -23,13 +23,13 @@ K = P.K; K.update(H=N['H'], LAM=.22, ROD=.05, RES=2048, SAMPLES=320)
 H = K['H']
 P.ARCOS = dict(escalera=2.9, cantina=2.95, casino2=2.95, billar=2.95, cava=2.85, ruleta=2.75)
 P.NOM = 'sm'
-P.COLOR.update(piedra=(.5, .45, .39), zoclo=(.26, .23, .2), lambrin_s=(.22, .12, .07), tapiz_vino=(.34, .07, .09), tapiz_verde=(.08, .22, .14),
+P.COLOR.update(piedra=(.5, .45, .39), tabique=(.42, .2, .14), zoclo=(.26, .23, .2), lambrin_s=(.22, .12, .07), tapiz_vino=(.34, .07, .09), tapiz_verde=(.08, .22, .14),
                alfombra=(.34, .07, .09), ladrillo=(.55, .28, .18), losa_s=(.45, .42, .37), cemento=(.27, .26, .24), tierra=(.16, .13, .1),
                botellas=(.18, .22, .14), barrica=(.4, .24, .13), cuero=(.3, .09, .07), madera_osc=(.18, .1, .06), duela=(.48, .3, .18),
                techo=(.45, .41, .36), foco=(1, .82, .55))
 P.EMITE['foco'] = 8
-P.PRIO_MAT.update(piedra=1.4, tapiz_vino=1.3, tapiz_verde=1.3, lambrin_s=1.2, techo=.35, tierra=.2)
-P.MUROS = P.MUROS + ('piedra', 'zoclo', 'lambrin_s', 'tapiz_vino', 'tapiz_verde')
+P.PRIO_MAT.update(piedra=1.4, tabique=1.3, tapiz_vino=1.3, tapiz_verde=1.3, lambrin_s=1.2, techo=.35, tierra=.2)
+P.MUROS = P.MUROS + ('piedra', 'zoclo', 'lambrin_s', 'tapiz_vino', 'tapiz_verde', 'tabique')
 bmn, ex, vacio, caja, caja_l, quad, disco, tubo, T = P.bmn, P.ex, P.vacio, P.caja, P.caja_l, P.quad, P.disco, P.tubo, P.T
 REMAP = dict(muro='piedra', lambrin='zoclo', rod='zoclo')
 
@@ -38,7 +38,7 @@ def sala(x, z):
         if ax < x < ax + w and az < z < az + d: return n
 
 # ---------- forros: lambrín de madera y papel tapiz en casino y billar; lambrín solo en la cantina ----------
-SALAS = dict(casino='tapiz_vino', billar='tapiz_verde', cantina=None)
+SALAS = dict(casino='tapiz_vino', billar='tapiz_verde', cantina=None, oscuro='tabique')   # oscuro: cuarto de la Ruleta (R6)
 LAMS = 1.25
 def forros():
     h = K['t'] / 2

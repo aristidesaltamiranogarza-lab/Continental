@@ -146,12 +146,12 @@ Al cerrar cada paso: marcarlo [x] aquí con una línea de lo hecho, commit y pus
 
 ## Revisión con capturas (pedido 24 nov 2026; anotado, sin hacer)
 Arte y horneado (Blender, otra PC; avisar antes):
-- [ ] **R1. Árboles y matas**: la textura de manchas de la copa (laurel del patio, macetas, árboles del traspatio) se ve fea y se repite en todo. Cambiarla por otra (o copas sin esa textura) en todos los lugares donde se usa.
+- [x] **R1. Árboles y matas**: la textura de manchas de la copa (laurel del patio, macetas, árboles del traspatio) se ve fea y se repite en todo. Cambiarla por otra (o copas sin esa textura) en todos los lugares donde se usa. — 25 nov: copa con hojitas finas (CMAT copa2, 256).
 - [ ] **R2. Luz de noche en traspatio y azotea**: muy oscuros. Agregar fuentes de luz como decoración (faroles, arbotantes, guirnaldas, focos en muros) en Blender y que entren en el horneado de noche. — 24 nov (sin hornear): traspatio con 4 arbotantes del lado del traspatio, 2 postes y 5 guirnaldas de focos en zigzag (traspatio_noche() en casona_pb.py); azotea con 3 guirnaldas bajo la pérgola y 10 faroles chicos en el pretil (casona_az.py lamparas()). Ayudantes nuevos en casona_pb.py: arbotante(), guirnalda(), farolito(). Revisado con renders de noche en Blender. Listo para hornear: casona_pb.py y casona_az.py (R2, con noche).
 - [ ] **R3. Hueco entre niveles**: el canto entre pisos se veía transparente y se tapó con un anillo de código. Resolverlo en la geometría de Blender (losas y entrepisos cerrados) y quitar el anillo.
 - [ ] **R4. Horneado pixeleado** (IMPORTANTE, dicho por el usuario el 24 nov: el último horneado salió muy mal, muchas zonas se ven muy pixeleadas; el próximo horneado tiene que arreglarlo, revisar con capturas de cerca antes de subir): en muchas zonas la luz horneada sigue saliendo en bloques (dinteles, cantos de muros, rincones). Revisar resolución por objeto/texel, márgenes, desenvuelto UV1 y filtrado; problema recurrente, buscar la causa de fondo.
 - [ ] **R5. Esquinas encimadas**: en las esquinas los muros/zoclos/lambrines se traslapan y se ve una franja rara y más oscura. Cortar las piezas para que se toquen sin encimarse. — 24 nov: en las esquinas en L el lambrín del 'h' salía 2 cm y el del 'v' se metía 2 cm (tira clara en las esquinas de la fachada); ahora se tocan al ras en casona_pb.py (muros(), también PA y SM) y en juntas() del juego. Listo para hornear: casona_pb.py, casona_pa.py, casona_sm.py (R5). La raya oscura de las esquinas de adentro es del horneado (R4).
-- [ ] **R6. Muros del sótano**: no gusta la textura de sillares del pasillo y la ruleta; proponer otra.
+- [x] **R6. Muros del sótano**: no gusta la textura de sillares del pasillo y la ruleta; proponer otra. — 25 nov: aplanado de cal gris arena (CMAT piedra) y tabique aparente en la Ruleta (SALAS oscuro en casona_sm.py; se ve al hornear sm).
 
 Juego:
 - [x] **R7. Entrada: carga el segundo piso pero no el techo** — solo pasa en el zaguán/entrada (vista desde la entrada hacia el patio se ve la planta alta sin techo arriba). Revisar NIVC/CUA/VIS ahí (?vis). 24 nov: era NIVC: al bajar la cámara (primera persona) el primer cuadro del fundido daba f 0 y volvía a esconder pb_techo con el motivo piso, y ya no se mostraba (se veía el cielo). Arreglado en c_casa_nivel.js.
@@ -170,7 +170,7 @@ Juego:
 
 ## Siguiente (si el usuario solo dice "continua")
 Orden decidido el 25 nov: **el horneado va al final** (casa: pb, pa, sm, az; barrio: manzana, enfrente, plaza, baldío; horizonte solo `-- exportar`). Antes, en este orden:
-1. R1 y R6: proponer texturas nuevas (copas sin manchas; muros del sótano) con vista previa; no aplicar sin aprobación.
+1. ~~R1 y R6~~ hecho 25 nov (copas hojitas; sótano cal y Ruleta tabique, falta hornear sm).
 2. V7 portales (cuartos y puertas como empties en Blender, CUA por portales, tests/casona_vis.js): toca los GLB, así que va antes del horneado.
 3. R13 (muros que pierden textura en primera persona) y fachada de noche más brillante que las vecinas.
 4. R11 retoque de la mujer (blender/cuerpo_m.py, ropa.py).
