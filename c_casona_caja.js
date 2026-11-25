@@ -41,7 +41,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
   D.mesas.forEach(m=>{const fe=FEL[m.fam]||FEL.k;if(F.sot&&F.sot.hechas[m.g])return;
    if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe,aire:m.aire};TB.push(t);H.mesa(t,S,hits,OB);if(F.sot&&F.sot.viste)F.sot.viste(t)}
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
-  if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D)}
+  if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D);asientos(S)}
   if(hb&&id!=='cm1'&&window.CFUE)try{F.fuera=CFUE.pon(F)}catch(er){console.error('[CFUE]',er)}
   F.marcas=D;CAJA.listos[id]=true;gOK=1;fin()}).catch(err=>{console.warn('CAJA',err);ok()});
  return FS[id]=F}
@@ -94,6 +94,10 @@ function accion(S,hits,a){const f=ACC[a.k.replace(/\d+$/,'')];if(!f)return;const
  m.position.set(a.x,a.y,a.z);m.userData.hit={t:'fn',f};S.add(m);hits.push(m)}
 
 // la gata de la casona: sale del empty gata_n0 (ry en extras) y pasea por el patio (el piso de laja) sin chocar con columnas ni mesas
+// asientos de descanso horneados en pb.glb (mecedoras del frente y banca del zaguan): cajas invisibles para SENT; posiciones de casona_pb.py (three = x-18, 17-z)
+function asientos(S){if(!window.SENT)return;const M=new THREE.MeshBasicMaterial({visible:false});
+ [[-5.75,9.7,Math.PI/6,.8,.8],[-3.75,9.7,-Math.PI/6,.8,.8],[-1.5,15.15,Math.PI/2,1.7,.6]].forEach(([x,z,ry,w,d])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,1.1,d),M);m.position.y=.55;g.add(m);S.add(g);SENT.reg(g,{h:.6})})}
 function gata(H,S,hits,R,D,F){const g=R.getObjectByName('gata_n0'),pl=R.getObjectByName('pb_piso_laja');if(!g||!pl||!window.GATA||!GATA.nueva)return;
  const p=new THREE.Vector3(),b=new THREE.Box3().setFromObject(pl);g.getWorldPosition(p);const box=[b.min.x+.5,b.max.x-.5,b.min.z+.5,b.max.z-.5];
  const en=(x,z)=>x>box[0]-1.5&&x<box[1]+1.5&&z>box[2]-1.5&&z<box[3]+1.5;
