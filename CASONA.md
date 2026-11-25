@@ -104,6 +104,42 @@ Regla del usuario: juntar todos los cambios, enseñarlos en la ventana en vivo (
 - Hecho (24 nov, sin hornear): mesas al aire libre. Extra `aire` en los empties mesa_* (aire_libre() en casona_pb.py; MARC lo lee y, si falta, usa la lista AIRE: uno, rummy, conecta4, loteria) y MESA o.aire quita pantalla y cable; guirnaldas en X sobre el Uno (patio_luces en casona_pb_deco.py). Antes: MESA (c_mesa3d.js) siempre pone lámpara colgante con cable al infinito. Usar el dato `libre` de N['mesas'] para quitar el colgante afuera y poner en Blender guirnalda de focos entre postes o farol de pie, horneados.
 - Después del horneado: CCALLE carga calle.glb (material `fachada` con vertexColors) y probar glb_cuantizar.js también en pb/pa/sm/az (1.7 MB c/u).
 
+## Barrio: parque nuevo y arreglos del paisaje (pedido 25 nov 2026; para la laptop, ANTES del horneado)
+El usuario lo revisó volando sobre el barrio sin hornear. Todo va en los scripts de Blender del barrio; se ve en el juego sin hornear (abajo cómo). El horneado espera hasta que esto esté hecho.
+
+**Cómo verlo sin hornear (hecho 25 nov, PC):**
+- `?casa=caja&crudo` carga los GLB de `modelos/casona/crudo/` (pb, pa, sm, az, calle y barrio_*), sin mapa de luz (CMAT con Lambert y las luces de la escena). Sin `?crudo` el juego sigue con lo horneado viejo.
+- Con `?crudo` no se arma nada viejo de código: ni campo (c_casa_campo.js), ni traspatio (`tras`) ni patio de la casa vieja (c_casa_patio.js), ni vecinos de código (c_casa_calle.js), ni las casas y árboles lejanos instanciados de c_casa_cielo.js (CIELO.lejos). Si aparece algo de cajas o bolas verdes oscuras planas, es código viejo: buscarlo en `CIELO.mundo` desde la consola y ponerle el mismo `if(!/[?&]crudo\b/...)` donde se agrega.
+- Cámara libre (c_casa_vuelo.js, VUELO; con `?crudo` o `?vuelo`): WASD/flechas, Espacio sube, Ctrl baja (también Q/E), Shift rápido, arrastrar gira, rueda acerca, F la prende y apaga.
+- Reexportar sin hornear tras cambiar un script (unos 2 s cada uno). En bash, `CASONA_SAL` cambia la carpeta de salida (casona_pb.py la lee y los demás la heredan):
+  `CASONA_SAL=$PWD/modelos/casona/crudo blender -b --factory-startup --python blender/barrio_enfrente.py -- exportar`
+  (igual con barrio_manzana, barrio_plaza, barrio_baldio, barrio_horizonte, casona_calle, casona_pb/pa/sm/az). En PowerShell: `$env:CASONA_SAL="$PWD\modelos\casona\crudo"`. Subir también los GLB de crudo/ (son los que ve el usuario).
+- Ojo al escribir `\b` en regex con scripts de Node/sed en Windows: dos veces salió un carácter de retroceso (0x08) en lugar de `\b` y la regex dejó de funcionar sin error. Revisar con `grep -c $'\x08' archivo`.
+
+**Coordenadas** (las de los scripts de Blender; plano de casona_pb: lote x 0..36, fachada en z=0, el fondo de la manzana en +z, la calle en −z):
+- Juego = (x − 18, 17 − z) aprox. (calle: tramo x −25..40 = juego −43..22).
+- Calle 59: banqueta de la casona z 0..−1.6, arroyo −1.6..−11.6, banqueta de enfrente −11.6..−15.6, fachadas de enfrente en z=−15.6 (fondo de esas casas −27.6).
+- Zaguán (entrada) de la casona: x 17..20 en la fachada.
+- Casas de enfrente del tramo (blender/casona_calle.py, `ENF`, desde x=−22): crema −22..−12, ocre −12..−4, añil −4..8, amarillo 8..15, **terracota 15..24 (justo frente al zaguán)**, verde 24..32, rosa 32..40. Fuera del tramo (blender/barrio_enfrente.py): filas x −62..−25 y 40..98, más las de las calles laterales (x −62 y 98, z −27.6..−45).
+- Detrás de las casas de enfrente (z de −27.6 a −83, x de −62 a 98) está casi vacío: solo 4 laureles (barrio_enfrente.py: (−42,−46), (−2,−50), (43,−45), (80,−50)). Ahí iban las cajas de código que ya no salen.
+- Plaza actual con kiosco e iglesia: blender/barrio_plaza.py, detrás de la manzana de la casona (en el juego cx −55, cz −35; andador entre vecinas x −39..−35 que va de la banqueta a la plaza). Las funciones `kiosco`, `fuente`, `banca_conf`, `farol`, `laurel`, `flamboyan`, `ceiba`, `palmera`, `naranjo` están en blender/barrio_kit.py.
+- Cancha: barrio_manzana.py solo trae sus dos flamboyanes ((57,40) y (82,64), "los dos de la cancha"); la cancha en sí no existe en Blender (la de código estaba en c_casa_campo.js, "la cancha (derecha)": pasto con rayas, porterías y gradita).
+
+**Lista (marcar al terminar cada uno):**
+- [ ] P1. **Separar kiosco e iglesia**: hoy están muy juntos y el paisaje se ve amontonado. Sacar el kiosco de la plaza de la iglesia (barrio_plaza.py) y llevarlo al parque nuevo (P2). La iglesia se queda con su atrio y algo de plaza.
+- [ ] P2. **Parque nuevo frente a la casona**: quitar la casa terracota de enfrente (ENF[4], x 15..24, frente al zaguán) y dejar ahí la entrada al parque desde la banqueta (andador como el de la plaza, con faroles). El parque ocupa la zona vacía detrás de las casas de enfrente (z −27.6 hacia −80, aprox. x −25..60; ajustar a lo que se vea bien). Lleva:
+  - el kiosco (movido de la plaza), con su piso redondo de pasta y bancas;
+  - caminitos para caminar (andadores curvos o en cruz, de pasta o laja, con guarnición);
+  - árboles (laureles, flamboyanes, ceibas, palmeras del kit) y pasto;
+  - un carrito de marquesitas (carrito con sombrilla y vitrina, modelo propio y sencillo);
+  - juegos infantiles (columpio, resbaladilla, sube y baja; geometría simple);
+  - las letras de MÉRIDA de colores (estilo de las letras monumentales de la ciudad: cada letra de un color con grecas, sobre una base gris). Modelarlas como extrusión simple, sin texturas pesadas;
+  - las **sillas confidentes** tradicionales de Mérida (dos asientos en S unidos, mirando en sentidos opuestos, de concreto blanco, con respaldo calado de balaustres y patas de pedestal torneado). Hoy `banca_conf` (barrio_kit.py) es una banca de cajas que no se parece: el usuario las va a pedir aparte con esfuerzo extra para replicarlas bien; por ahora solo dejar su lugar en el parque y en la plaza.
+- [ ] P3. **Completar la cancha de fútbol** (lado de las calles 60/62 detrás de la manzana, donde están sus flamboyanes): pasto con rayas blancas, dos porterías, una gradita, malla o barda baja. Ligero.
+- [ ] P4. **Llenar zonas vacías** con algo muy ligero de correr (celular débil primero): pocos triángulos, sin texturas nuevas grandes; p. ej. matas, agaves, árboles sencillos, bardas, algún puesto o tendedero. No inventar mucho detalle.
+- [ ] P5. Revisar con `?crudo` + VUELO desde la azotea (pretil ya en 1.4) y desde el aire; después hornear todo junto (paso 6 de "Siguiente").
+Presupuesto: barrio_lib `presupuesto(col, *topes)` limita mallas/triángulos por pieza; si el parque no cabe en barrio_enfrente, hacer un `blender/barrio_parque.py` nuevo (con `B = cargar('parque')` como los demás), agregarlo a `BV` en c_casa_calle.js (`parque:0`) y exportarlo a crudo/.
+
 ## Pendientes (pedidos por el usuario, 22 nov)
 - [x] Escalera (ver R10): se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
 - [x] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.
@@ -170,7 +206,7 @@ Juego:
 - R6 sigue: la textura de sillares del sótano se ve muy fea (va después).
 
 ## Siguiente (si el usuario solo dice "continua")
-Orden decidido el 25 nov: **el horneado va al final** (casa: pb, pa, sm, az; barrio: manzana, enfrente, plaza, baldío; horizonte solo `-- exportar`). Antes, en este orden:
+Orden decidido el 25 nov (y 25 nov tarde: antes de todo, la sección "Barrio: parque nuevo", P1–P5): **el horneado va al final** (casa: pb, pa, sm, az; barrio: manzana, enfrente, plaza, baldío; horizonte solo `-- exportar`). Antes, en este orden:
 1. ~~R1 y R6~~ hecho 25 nov (copas hojitas; sótano cal y Ruleta tabique, falta hornear sm).
 2. V7 portales (cuartos y puertas como empties en Blender, CUA por portales, tests/casona_vis.js): toca los GLB, así que va antes del horneado.
 3. R13 (muros que pierden textura en primera persona) y fachada de noche más brillante que las vecinas.

@@ -47,11 +47,11 @@ for(let i=0;ni<N&&i<400;i++){const a=rnd()*Math.PI*2,r=26+rnd()*70,x=Math.cos(a)
  const fx=-Math.cos(a),fz=-Math.sin(a),ang=Math.atan2(fx,fz);for(let k=0;k<2&&nv<NV;k++){if(k&&rnd()<.4)continue;
   const off=(k?1:-1)*w*.22,yy=h>6?(rnd()<.5?2:5.2):2,px=x+fx*(d/2+.05)+Math.cos(ang)*off,pz=z+fz*(d/2+.05)-Math.sin(ang)*off;
   e.set(0,ang,0);q.setFromEuler(e);vent.setMatrixAt(nv++,m4.compose(p.set(px,yy,pz),q,s.set(1,1,1)))}}
-casas.count=ni;vent.count=nv;mundo.add(casas,vent);
+casas.count=ni;vent.count=nv;if(!/[?&]crudo\b/.test(location.search))mundo.add(casas,vent);   // ?crudo: sin casas ni árboles lejanos de código (va el barrio)
 const NA=30,arb=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshLambertMaterial({color:0x4a7a3a}),NA);let na=0;
 for(let i=0;na<NA&&i<300;i++){const a=rnd()*Math.PI*2,r=34+rnd()*55,x=Math.cos(a)*r,z=Math.sin(a)*r;if(z>-48&&z<60)continue;   // lejos: de cerca taparían la vista
  const k=2.2+rnd()*2.2;arb.setMatrixAt(na,m4.compose(p.set(x,3.5+k*.6,z),q.identity(),s.set(k*1.2,k,k*1.2)));arb.setColorAt(na,cc.setHex([0x4a7a3a,0x3d6b35,0x5a8a40,0xc0442a][(rnd()*4)|0]));na++}
-arb.count=na;mundo.add(arb);
+arb.count=na;if(!/[?&]crudo\b/.test(location.search))mundo.add(arb);
 
 // ---------- tema ----------
 function aplica(){const n=esNoche(),t=n?TEMAS.noche:TEMAS.dia;if(t===T)return false;T=t;ver++;
