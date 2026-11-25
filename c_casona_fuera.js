@@ -18,7 +18,7 @@ let tF=0;const st=document.createElement('style');st.textContent='body.cfue-fuer
 setInterval(()=>{if(performance.now()-tF>400)document.body.classList.remove('cfue-fuera')},500);
 function carga(id){if(P[id])return P[id];const g=GL[id];
  return P[id]=CGLB.cargador().then(Ld=>Ld.loadAsync(BASE+(CRU?'crudo/'+g[0]+'.glb?v=c'+Date.now():g[0]+'.glb?v='+g[1]))).then(gl=>{const r=gl.scene;
-  if(window.CMAT)CMAT.aplicar(r,CRU?null:BASE+g[0]+'_luz.webp?v='+g[1]);if(window.CAJA&&CAJA.juntas)CAJA.juntas(r);
+  if(window.CMAT)CMAT.aplicar(r,CRU?null:BASE+g[0]+'_luz.webp?v='+g[1]);if(window.CAJA&&CAJA.juntas)CAJA.juntas(r);if(window.PATV)PATV.vestir(r,id);
   const fuera=[],cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();r.traverse(o=>{if(cg&&/_piso_calle$/.test(o.name)){o.position.y-=.35;o.updateMatrix();return}if(/_abajo|_arriba|_piso_calle$|^gata_|^accion_|^plano_/.test(o.name))fuera.push(o)});fuera.forEach(o=>o.visible=false);
   return R[id]=r}).catch(e=>{console.warn('CFUE',id,e);return null})}
 function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
@@ -31,7 +31,8 @@ function pon(F){const id=F.id;if(!(id in Y)||!window.CGLB)return null;
   r.traverse(o=>{if(o.name===n)hay=true;else if(o.name.startsWith(pre))ya=true});if(ya||hay)HE[k]=hay;return hay};   // se recuerda cuando ya cargó ese GLB
  function paso(c,p){let abajo=false,arriba=false;
   const cf=c&&fuera(c.position.x,c.position.z),pf=p&&fuera(p.x,p.z);
-  capas.forEach(L=>{const ver=L.arriba?!!(pf&&cf):!!cf;
+  const pat=!pf&&!!window.PATV&&PATV.dentro(p);   // desde el patio y sus corredores siempre se ven los de arriba (PATV corta el lado de la cámara)
+  capas.forEach(L=>{const ver=L.arriba?!!(pf&&cf)||pat:!!cf;if(L.arriba&&window.PATV)PATV.paso(L.k,Y[L.k]-Y[id],c,p,pat);
    if(ver&&!L.G){if(!L.pedido){L.pedido=1;carga(L.k).then(r=>{if(!r)return;L.G=r.clone();L.G.position.y=Y[L.k]-Y[id];L.G.visible=false;L.G.name='casona-fuera-'+L.k;F.SC.add(L.G)})}return}
    if(L.G){L.G.visible=ver;if(ver){if(L.arriba)arriba=true;else abajo=true}}});
   if(pf){tF=performance.now();document.body.classList.add('cfue-fuera')}
