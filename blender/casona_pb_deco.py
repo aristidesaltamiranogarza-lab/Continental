@@ -128,7 +128,7 @@ def traspatio2():
     MT = bmn('pb_tras_mancha', 'tierra', recalc=False, prio=.4)
     HI, RO = bmn('pb_tras_hierro', 'hierro', luz=False), [bmn('pb_tras_ropa%d' % i, m, prio=.4) for i, m in enumerate(('toalla', 'hamaca', 'costal'))]
     obs = []; R = random.Random(48)
-    for x in (19, 21, 23, 25, 27, 29):          # macetas en la barda del fondo
+    for x in (21, 23, 25, 27, 29):              # macetas en la barda del fondo (x 16.5..19.5: puerta trasera, paso 3)
         tubo(BA, (x, 0, 47.1), (x, .75, 47.1), .34, .46, 14); tubo(TI, (x, .7, 47.1), (x, .72, 47.1), .42, .42, 14)
         if x % 4 == 1: agave(AG, x, .7, 47.1, .85, R)
         else:
@@ -177,7 +177,7 @@ def traspatio2():
     tubo(BA, (21.6, 0, 35.3), (21.6, .9, 35.3), .5, .62, 14); tubo(TI, (21.6, .85, 35.3), (21.6, .87, 35.3), .56, .56, 14)
     agave(AG, 21.6, .85, 35.3, 1.25, R); obs += T(21.6, 35.3) + [.75]
     # matas al pie de las bardas (libran postes, pozo, plátanos y macetas) y la bugambilia de la esquina del fondo, trepada a la barda
-    for x, z, r in ((5.2, 47.2, .8), (7.6, 47.3, .65), (12.6, 47.2, .75), (16.6, 47.25, .6), (31.6, 47.2, .7),
+    for x, z, r in ((5.2, 47.2, .8), (7.6, 47.3, .65), (12.6, 47.2, .75), (15.0, 47.25, .55), (31.6, 47.2, .7),
                     (.75, 39.3, .65), (.8, 44.2, .8), (35.2, 40.2, .6)):
         n0 = mata(CP, x, r * .48, z, r, .82, sem=int(x * 10 + z), piso=0)
         if R.random() < .5: flores(FL, CP, n0, 10, .055, R)
@@ -185,7 +185,7 @@ def traspatio2():
     bugambilia(CP, FL, bmn('pb_tras_tronco', 'tronco', prio=.4), .2, 47.85, R)
     obs += T(1.4, 47.2) + [.9] + T(3.0, 47.3) + [.8]
     # macollos de zacate al pie de las bardas, alrededor de la mancha del mamey y del pozo, y a los lados del sendero
-    pts = [(x + R.uniform(-.3, .3), 47.55) for x in (3.0, 5.8, 9.0, 10.0, 11.4, 14.5, 18.0, 30.4, 33.0, 34.6)]
+    pts = [(x + R.uniform(-.3, .3), 47.55) for x in (3.0, 5.8, 9.0, 10.0, 11.4, 14.5, 20.6, 30.4, 33.0, 34.6)]
     pts += [(.5, z + R.uniform(-.3, .3)) for z in (35.2, 38.0, 41.5, 42.8, 45.6)] + [(35.5, z) for z in (39.0, 41.4, 46.6)]
     pts += [(6.2 + math.cos(a) * 2.05, 41.1 + math.sin(a) * 2.05) for a in (.3, 1.4, 2.6, 3.5, 4.6, 5.5)]
     pts += [(14 + math.cos(a) * 1.15, 44.6 + math.sin(a) * 1.15) for a in (.8, 2.2, 3.9, 5.2)]

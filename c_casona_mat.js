@@ -111,6 +111,7 @@ function texturas(ctex){if(TX)return TX;
   botellas:{map:T('botellas',256,64,botellas,1/1.4,1/.4)},barrica:{map:T('barrica',128,64,barrica,1/.6,1)},madera_osc:{map:T('madera-osc',128,128,madera('#6e5242','rgba(30,18,10,.35)'),1)},
   lambrin_s:{map:T('lambrin-s',128,128,madera('#7a5a44','rgba(35,20,10,.3)'),1)},zoclo:{color:0x8a837b},tierra:{color:0x5a5148},cuero:{color:0x94554c},
   azulejo:{map:T('azulejo',128,128,azulejo,1/.7)},loza:{color:0xf2eee6},espejo:{color:0xb9c7cc}};   // paso 9: cocina y baño
+ TX.pasto_c=TX.pasto;   // pasto liso: misma textura, sin matas (PASTO solo siembra en "pasto")
  return TX}
 
 // materiales: con luz horneada (UV1) si la malla la trae; los que brillan y el hierro, sin ella

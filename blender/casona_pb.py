@@ -144,7 +144,7 @@ def muros():
     W.update(C.rect(*N['per']))
     for g in N['gaps']: G.update(C.piezas(*g[:4]))
     for g in N['wins']: Wn.update(C.piezas(*g))
-    Bd = C.rect(*N['barda']) - W; S = W | Bd
+    Bd = C.rect(*N['barda']) - W - G; S = W | Bd      # G: vanos también en la barda (puerta trasera del jardín)
     def fin(e, l, i):   # punta de un tramo en i: 'T' si el muro de cruce sigue de los dos lados, 'L' si es esquina
         p = 'v' if e == 'h' else 'h'; a, b = (p, i, l - 1) in S, (p, i, l) in S
         return 'T' if a and b else 'L' if a or b else None

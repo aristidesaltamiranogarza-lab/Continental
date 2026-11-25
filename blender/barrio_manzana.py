@@ -6,6 +6,7 @@ import os, math
 D = next(d for d in [os.getcwd()] + ([os.path.dirname(os.path.dirname(os.path.abspath(__file__)))] if '__file__' in globals() else []) if os.path.isfile(os.path.join(d, 'blender', 'casona.py')))
 exec(open(os.path.join(D, 'blender', 'barrio_lib.py'), encoding='utf-8').read())
 B = cargar('manzana')
+exec(open(os.path.join(D, 'blender', 'barrio_trasera.py'), encoding='utf-8').read(), B.__dict__)   # paso 3: jardín del barrio
 
 def cancha(B):
     """P3: cancha de fútbol rápido entre los patios (x 61..85, z 45..59): pasto con franjas y rayas blancas, dos porterías,
@@ -31,19 +32,37 @@ def cancha(B):
         B.barda(xa, za, xb, zb, 1.0, e=.15)
     B.ex_obs(B.NOMB + '_fachadas', cx, z1 + 2.2, 1.2)
 
+def jardin(B):
+    """Paso 3: el corazón de la manzana ya no son patios con bardas: pasto con hojas solo cerca de los caminos y un caminito curvo de laja
+    que sale de la puerta trasera del jardín de la casona (x 16.5..19.5, z 48) hacia la plaza (oeste) y la entrada de la cancha (esquina NO)."""
+    huecos = [(-51, 40, -23, 78), (-40, 22, -34, 40), (0, 22, 36, 48), (60.5, 44.5, 85.5, 59.5)]   # plaza e iglesia, andador, casona, cancha
+    zonas = [(8, 48, 30, 58), (-23, 47, -13, 57), (52, 52, 60.5, 63)]
+    B.suelo_partido(-51, 22, 86, 78, huecos, zonas)
+    fa, c = B.FA(), B.osc(B.PAL['crema'], .9)   # rodapié: las bardas de la casona empiezan en 0 y el pasto está en YS
+    for x0, x1, z0, z1 in ((-.15, .15, 22, 48.15), (35.85, 36.15, 22, 48.15), (-.15, 16.5, 47.85, 48.15), (19.5, 36.15, 47.85, 48.15)):
+        B.pieza(fa, c, B.caja_o, x0, x1, B.YS, .02, z0, z1, (2,))
+    B.pieza(fa, B.PAL['cantera'], B.caja_o, 16.5, 19.5, B.YS, 0, 47.85, 48.6, (2,))   # escalón de la puerta trasera
+    cw = B.sendero([(18, 48.2), (17.2, 50.5), (13, 53.2), (5, 54), (-3, 51.2), (-10, 50.4), (-17, 52.2), (-23.6, 52)], seed=1)
+    ce = B.sendero([(18.8, 50.4), (23, 53.2), (32, 54.6), (41, 52.6), (50, 51.4), (56.5, 54), (59.2, 58.2), (62.5, 60.4)], y=B.YS + .05, seed=2)
+    for c, t, d in ((cw, .3, 2.3), (cw, .78, -2.3), (ce, .28, -2.3), (ce, .62, 2.3), (ce, .9, -2.4)): B.farol(*B.al_lado(c, t, d), B.YS)   # a un lado, nunca en el camino
+    for c, t, d in ((cw, .52, -2.4), (ce, .45, 2.5)):
+        x, z = B.al_lado(c, t, d); (x0, z0), (x1, z1) = c[int(t * (len(c) - 1))], c[int(t * (len(c) - 1)) + 1]
+        B.banca_conf(x, z, -math.atan2(z1 - z0, x1 - x0), B.YS)
+
 def piezas(B):
     P, PAL, YS, YA = B.P, B.PAL, B.YS, B.YA
     # Calle 59, este lado (fachada en z=0, la calle en −z). Lotes de esquina sin patio: ahí empiezan las filas laterales.
     B.casa2(-62, -51, 6.3, PAL['terra'], 0, -1, [('v', -59.6), ('z', -56.2), ('v', -53.2)], tinaco=(-54, 7))
     B.fachada_lado(-62, 0, 12, -1, 6.3, PAL['terra'], [('v', 3.0), ('v', 8.6)])
-    B.fila(-51, 0, -1, [(6, 'amarillo', 5.7), (6, 'anil', 6.1)], seed=3)
-    B.fila(-35, 0, -1, [(10, 'ocre', 6.2)], seed=4)
+    B.fila(-51, 0, -1, [(6, 'amarillo', 5.7), (5, 'anil', 6.1)], seed=3)          # el andador de la iglesia mide 6 (x −40..−34)
+    B.fila(-34, 0, -1, [(9, 'ocre', 6.2)], seed=4)
     B.fila(36, 0, -1, [(9, 'verde', 5.9), (7, 'rosa', 5.7), (10, 'crema', 6.4), (8, 'anil', 6.0), (10, 'amarillo', 6.6), (6, 'terra', 5.8)], seed=5)
     B.casa2(86, 98, 6.0, PAL['cal'], 0, -1, [('v', 88.4), ('c', 92.3), ('p', 96.3)], tapa='teja')     # la tienda de la esquina
     B.fachada_lado(98, 0, 12, 1, 6.0, PAL['cal'], [('v', 3.2), ('v', 8.8)])
     for x0, x1 in ((-25, -18), (-18, -8), (-8, 0)):                                                  # patios del tramo (sus casas están en calle.glb)
-        P.quad('manzana_suelo', 'tierra_p', x0, 12, x1, 22, y=YS, prio=.25); B.barda(x0, 22, x1, 22)
-        if x1 < 0: B.barda(x1, 12, x1, 22)
+        P.quad('manzana_pasto_c', 'pasto_c', x0, 12, x1, 22, y=YS, prio=.25); Rb = B.random.Random(int(x0 * 13)); B.barda_v(x0, 22, x1, 22, Rb)
+        if x1 < 0: B.barda_v(x1, 12, x1, 22, Rb)
+        B.vida_patio(x0, x1, 12, 22, Rb, tend=x0 != -25)
     B.naranjo(-21.5, 17.5); B.palmera(-12, 18, 9.5, y0=YS, choque=False); B.naranjo(-4, 16.5, 1.1)
     # banqueta de este lado (pb.glb trae la de la casona; calle.glb x −25..0 y 36..40) y las de las calles laterales hasta el fondo
     B.losa('banqueta', 'banqueta', -64, -25, -1.62, 0, 0, YA, sin=(1, 5))
@@ -62,15 +81,7 @@ def piezas(B):
     B.fila(-26, 90, 1, [(10, None, None), (9, None, None), (12, None, None), (8, None, None), (11, None, None), (9, None, None),
                         (10, None, None), (12, None, None), (9, None, None), (10, None, None), (12, None, None)], seed=13, patio=0, rejas=False)
     B.barda(-51, 89.8, -26, 89.8, 2.6)                                                               # detrás de la iglesia
-    # patios interiores: suelo, bardas entre lotes, cuartitos y árboles (A-02)
-    for x0, z0, x1, z1 in ((-51, 22, -39, 40), (-35, 22, 0, 40), (-23, 40, 0, 78), (0, 48, 36, 78), (36, 48, 60, 78), (54, 22, 86, 44),
-                           (36, 22, 54, 24), (60, 60, 86, 78), (-26, 64, -23, 78), (54, 44, 60, 48)):
-        P.quad('manzana_suelo', 'tierra_p', x0, z0, x1, z1, y=YS, prio=.2)
-    for xa, za, xb, zb in ((-12, 22, -12, 78), (-23, 40, 0, 40), (-23, 59, 0, 59), (12, 48, 12, 78), (24, 48, 24, 78), (0, 63, 60, 63),
-                           (48, 48, 48, 78), (70, 22, 70, 44), (54, 33, 86, 33), (73, 60, 73, 78), (-26, 78, -23, 78)):
-        B.barda(xa, za, xb, zb)
-    for x0, x1, zf, dz, w in ((-20, -15, 26, 1, 4), (5, 11, 52, 1, 4), (40, 45, 74, -1, 4), (76, 82, 27, 1, 4.5), (62, 67, 74, -1, 4), (-9, -4, 74, -1, 4)):
-        B.casa2(x0, x1, 3.8, PAL['crema'], zf, dz, [('p', (x0 + x1) / 2)], w, tapa='gris', rejas=False)   # cuartitos de atrás
+    jardin(B)
     B.laurel(-6, 30, .95, y0=YS, sub=2, choque=False); B.laurel(6, 62, 1.0, y0=YS, sub=2, choque=False); B.palmera(28, 68, 10, y0=YS, choque=False)
     B.naranjo(46, 58, 1.1, y0=YS); B.laurel(80, 38, .95, y0=YS, sub=2, choque=False); B.laurel(80, 70, 1.0, y0=YS, sub=2, choque=False)
     B.naranjo(40, 72, y0=YS); B.naranjo(-30, 32, y0=YS); B.naranjo(18, 70, y0=YS); B.naranjo(66, 68, .9, y0=YS); B.naranjo(-8, 54, y0=YS)

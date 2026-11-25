@@ -17,13 +17,13 @@ Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles
 - [x] Leer la luz horneada con filtro bicúbico en c_casona_mat.js (CMAT); comparar antes/después en el teléfono (bajo–medio). Ya existía la bicúbica; ahora también en muros vistos de lado, con textureGrad (sin rayas de mip) y dithering (sin escalones en lo oscuro). Falta que el usuario lo vea en el teléfono; lo que siga pixeleado es del horneado (paso 6, R4).
 
 ## 3. Parte trasera del barrio (Blender; vista con ver.py antes de hornear)
-- [ ] Quitar las bardas sin sentido (alto, todo el paso)
-- [ ] Todo pasto, nada de café ni verde claro liso; hojas de pasto solo en algunas zonas (rendimiento)
-- [ ] Caminitos que unan casa, cancha de fútbol (hoy no se llega), iglesia y parque
-- [ ] Camino de la iglesia terminado y más ancho; postes de luz fuera del camino
-- [ ] Límites para caminar por todo eso en el juego (c_casona_caja.js, F.bx2)
-- [ ] Que se vea como la plaza (comparación del usuario): suelo café liso sin textura; bardas iguales en altura y color, sin remate, aplanado ni zoclo; nada de vida (macetas, tendederos, tinacos, sillas, caminos); luz horneada borrosa con sombras grandes sin contacto y rincones sin oclusión; cuartito de caja lisa con puerta plana sin marco; muros traseros de los vecinos lisos, sin ventanas, con una franja verde arriba; naranjo de bolas con naranjas cúbicas (alto)
-- Necesita: aprobación de la vista/planta antes de seguir
+- [x] Quitar las bardas sin sentido (alto, todo el paso)
+- [x] Todo pasto, nada de café ni verde claro liso; hojas de pasto solo en algunas zonas (rendimiento)
+- [x] Caminitos que unan casa, cancha de fútbol (hoy no se llega), iglesia y parque
+- [x] Camino de la iglesia terminado y más ancho; postes de luz fuera del camino
+- [x] Límites para caminar por todo eso en el juego (c_casona_caja.js, F.bx2)
+- [x] Que se vea como la plaza (comparación del usuario): suelo café liso sin textura; bardas iguales en altura y color, sin remate, aplanado ni zoclo; nada de vida (macetas, tendederos, tinacos, sillas, caminos); luz horneada borrosa con sombras grandes sin contacto y rincones sin oclusión; cuartito de caja lisa con puerta plana sin marco; muros traseros de los vecinos lisos, sin ventanas, con una franja verde arriba; naranjo de bolas con naranjas cúbicas (alto)
+- Hecho (planta aprobada con camino curvo): blender/barrio_trasera.py (jardín, sendero curvo de laja, pasto_c sin matas en CMAT, bardas de patio variadas, vida, ventanas atrás), puerta trasera del jardín (gap en casona.py, Bd − G en casona_pb.py), andador de 6, paso de cebra, bx2. GLB crudos exportados; falta hornear manzana, plaza, calle y pb (paso 6), donde se atiende la luz borrosa sin contacto.
 
 ## 4. Objetos del barrio (Blender)
 - [ ] Rehacer las sillas confidentes blancas (medio; preview)

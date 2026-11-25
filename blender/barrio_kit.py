@@ -13,6 +13,7 @@ LUCES_N = []        # (x, y, z) de faroles y postes: luces solo para el horneado
 PAL.update({k: lin(v) for k, v in dict(teja='#b5473a', azotea='#d9d4c7', gris='#9a9890', cantera='#e2d3b5', tinaco='#2f3133',
             naranja='#e8902e', blanco='#f4efe4', lona='#d9573f', iglesia='#e8c27a', tronco_c='#8f907c', dorado='#c9a24a',
             coco='#7a5a34', azul='#3f6f9a', negro='#262628').items()})
+SUELO_P, VIDA = 'tierra_p', False     # barrio_trasera.py los cambia (pasto liso y vida en los patios)
 COLORES = ['rosa', 'amarillo', 'anil', 'verde', 'cal', 'ocre', 'terra', 'crema']
 AZO = ['azotea', 'teja', 'gris', 'azotea', 'teja']
 def M(n, m, luz=True, prio=1.0, uv=True): return bmn(NOMB + '_' + n, m, recalc=False, luz=luz, prio=prio) if uv else _bmn_nouv(NOMB + '_' + n, m, luz)
@@ -135,10 +136,13 @@ def fila(xa, zf, dz, lotes, seed=1, rejas=True, patio=10.0, fondo=12.0, arboles=
         ti = (R.uniform(x0 + 1.2, x1 - 1.2), fondo * R.uniform(.45, .8)) if R.random() < .45 else None
         hu = (huecos[i] if huecos and i < len(huecos) and huecos[i] else huecos_auto(x0, x1, i + seed))
         casa2(x0, x1, H, PAL[c], zf, dz, hu, fondo, tapa=AZO[R.randrange(len(AZO))], rejas=rejas, tinaco=ti)
+        Rb = random.Random(seed * 31 + i * 7)     # VIDA (barrio_trasera.py) con su propio azar: no mueve el de las casas
+        if VIDA: trasera(x0, x1, H, PAL[c], zd(fondo), -dz, Rb)
         if patio:
-            za, zb = sorted((zd(fondo), zd(fondo + patio)))
-            quad(NOMB + '_suelo', 'tierra_p', x0, za, x1, zb, y=YS, prio=.25)
-            barda(x0, zd(fondo), x0, zd(fondo + patio)); barda(x0, zd(fondo + patio), x1, zd(fondo + patio))
+            za, zb = sorted((zd(fondo), zd(fondo + patio))); t = 1.0
+            quad(NOMB + ('_suelo' if SUELO_P == 'tierra_p' else '_' + SUELO_P), SUELO_P, x0, za, x1, zb, y=YS, prio=.25)
+            if VIDA: barda_v(x0, zd(fondo), x0, zd(fondo + patio), Rb); barda_v(x0, zd(fondo + patio), x1, zd(fondo + patio), Rb)
+            else: barda(x0, zd(fondo), x0, zd(fondo + patio)); barda(x0, zd(fondo + patio), x1, zd(fondo + patio))
             if R.random() < .3:   # cuartito de atrás
                 cw = min(4.0, w - 2); cx0 = x1 - cw - .3 if i % 2 else x0 + .3
                 casa2(cx0, cx0 + cw, 3.8, PAL['crema'], zd(fondo + patio - 3.4), dz, [('p', cx0 + cw / 2)], 3.2, tapa='gris', rejas=False)
@@ -146,8 +150,9 @@ def fila(xa, zf, dz, lotes, seed=1, rejas=True, patio=10.0, fondo=12.0, arboles=
                 t = R.random(); px, pz = R.uniform(x0 + 2.0, x1 - 2.0), zd(fondo + patio * R.uniform(.4, .6))
                 if t < .5: naranjo(px, pz, R.uniform(.9, 1.15), y0=YS)
                 elif t < .72: palmera(px, pz, R.uniform(8, 10), y0=YS, choque=False)
+            if VIDA: vida_patio(x0, x1, zd(fondo), zd(fondo + patio), Rb, tend=t >= .72)
         x = x1
-    if patio: barda(x, zd(fondo), x, zd(fondo + patio))
+    if patio: (barda_v(x, zd(fondo), x, zd(fondo + patio), random.Random(seed * 31 + 99)) if VIDA else barda(x, zd(fondo), x, zd(fondo + patio)))
     return x
 
 def fila_lado(px, za, zb, s, lotes, **kv):
@@ -205,12 +210,12 @@ def naranjo(cx, cz, s=1.0, y0=0.0):
     """Naranjo de patio: tronco corto que se abre en 3 ramas con nubes redondas y tupidas, y naranjas sobre la superficie de las hojas (~4 de alto)."""
     TR, CP, fa = _tr(), _cp('naranjo', 'copa_n'), FA(); R = random.Random(int(cx * 3 + cz * 17))
     CP.verts.ensure_lookup_table(); n0 = len(CP.verts)
-    _arbol(R, TR, [(CP, 1)], cx, cz, s, y0, 3.4, 1.4, 3, (2.3, 2.8), (.6, .85), (1.0, 1.2), 2, .8, tocon=False, rtr=.18, lado=0, ligero=True)
+    _arbol(R, TR, [(CP, 1)], cx, cz, s, y0, 3.4, 1.4, 4, (2.3, 2.8), (.6, .85), (1.1, 1.35), 2, .62, tocon=False, rtr=.18, lado=0, ligero=True)
     CP.verts.ensure_lookup_table(); CP.normal_update(); o = V(0, 0, 0)
     vs = [v for v in CP.verts[n0:] if -.1 < v.normal.z < .75]      # costados de la copa: ni abajo ni encima
     for v in R.sample(vs, min(8, len(vs))):
-        p = v.co + v.normal * .02 * s
-        pieza(fa, PAL['naranja'], ico, p.x - o.x, p.z - o.z, p.y - o.y, .15 * s, 1)
+        p = v.co - v.normal * .03 * s      # medio hundidas en la copa: se ven redondas, no cubos
+        pieza(fa, PAL['naranja'], ico, p.x - o.x, p.z - o.z, p.y - o.y, .17 * s, 2)
 
 # ---------- plantas chicas ----------
 def agave(x, z, s=1.0, y0=0.0, col=None):
