@@ -1,8 +1,8 @@
-// c_casa_vuelo.js — VUELO: cámara libre para revisar la casona y el barrio (con ?crudo o ?vuelo; tecla F la prende y apaga).
+// c_casa_vuelo.js — VUELO: cámara libre para revisar la casona y el barrio (con ?vuelo; tecla F la prende y apaga).
 // WASD/flechas avanzan donde miras, Espacio sube, Ctrl baja, Shift rápido; arrastrar sobre el lienzo gira. El personaje se queda quieto.
 (function(){
 if(typeof THREE==='undefined')return;
-const Q=/[?&](crudo|vuelo)\b/.test(location.search);
+const Q=/[?&]vuelo\b/.test(location.search);   // antes también ?crudo: en el celular (sin tecla F) la cámara se quedaba fija
 let on=Q,ini=false,yaw=0,pit=-.3,t0=0,arr=null;const P=new THREE.Vector3(),K=new Set(),F=new THREE.Vector3(),D=new THREE.Vector3();
 const COD={KeyW:1,KeyA:1,KeyS:1,KeyD:1,ArrowUp:1,ArrowDown:1,ArrowLeft:1,ArrowRight:1,Space:1,ControlLeft:1,ControlRight:1,ShiftLeft:1,ShiftRight:1,KeyQ:1,KeyE:1};
 const escribe=e=>{const t=e.target;return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};
