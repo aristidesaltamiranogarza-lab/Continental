@@ -148,6 +148,7 @@ Comandos (desde la carpeta del repo, en bash; en PowerShell anteponer `& "C:\Pro
 - casa: `blender -b --factory-startup --python blender/casona_<pb|pa|sm|az|calle>.py -- hornear` (2048, 1000; noche a 500). pb y pa se hornearon antes de V7: después `-- marcas` en cada uno (mete cuarto_/portal_ al GLB sin hornear).
 - barrio: `blender -b --factory-startup --python blender/barrio_<manzana|enfrente|plaza|baldio|parque>.py -- hornear 2048 1000`; horizonte: `-- exportar`. Después `node glb_cuantizar.js` (ver su cabecera) y subir BV en c_casa_calle.js.
 - Estado:
+  - [x] sm (25 nov noche): horneado 1000 muestras, techo a 11.7 tx/m, con cuartos y portales (V7); revisado en primera persona (arco del casino, rincones de la cantina y el billar, techo): limpio. v4.
 
 ## Pendientes (pedidos por el usuario, 22 nov)
 - [x] Escalera (ver R10): se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
