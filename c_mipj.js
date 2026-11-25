@@ -9,7 +9,7 @@ const NOM={a:{1:'Manga larga',2:'Sudadera',3:['Camisa','Blusa'],4:'Crupier',5:'P
  d:{1:'Pantalón',2:'Short',3:'Falda',4:'Cargo'},p:'Peinado',c:'Cejas',b:'Boca',n:'Nariz'};
 // recorte de cada miniatura: centro y medio alto (fracción del alto sin pelo), giro, y si se esconde el pelo
 // (pz: se encuadra en esa pieza, pad = cuantas veces su tamano)
-const REC={p:{plano:'cara',giro:.55},c:{pz:'Cejas',pad:1.25,giro:0,calvo:1},b:{pz:'Boca',pad:2.6,giro:0,calvo:1},n:{pz:'Nariz',medio:.17,giro:.6,calvo:1,tono:.86},
+const REC={p:{plano:'cara',giro:.55},c:{pz:'Cejas',pad:1.25,giro:0,calvo:1},b:{pz:'Boca',pad:2.6,giro:0,calvo:1},n:{pz:'Nariz',medio:.14,giro:1.45,calvo:1,dx:-.04},
  a:{c:.5,w:.19,giro:.35,calvo:1},a7:{c:.4,w:.27,giro:.35,calvo:1},d:{c:.22,w:.23,giro:.35,calvo:1}};
 let el=null,o=null,tab='pelo',r3=null,raf=0,ang=.5,giro=false,arr=null,prev='',gen=0;
 const I=n=>window.UI&&UI.ico?UI.ico(n):'';
@@ -88,7 +88,7 @@ async function miniaturas(){if(!window.AV2D)return;const g=++gen,tam=Math.round(
    if(R.plano)ops.plano=R.plano;
    else if(R.pz){let pb=null;ops.extra=p=>{calvo(p);if(R.tono)entona(p,R.pz,R.tono);pb=caja(p,R.pz)};
     ops.marco=()=>{const c=pb.getCenter(new THREE.Vector3()),z=pb.getSize(new THREE.Vector3()),s=R.medio||Math.max(z.x,z.y)*R.pad/2;return [c.y-s,c.y+s]};
-    ops.cx=()=>pb.getCenter(new THREE.Vector3()).x}
+    ops.cx=()=>pb.getCenter(new THREE.Vector3()).x+(R.dx||0)}
    else ops.marco=box=>{const h=box.max.y-box.min.y;return [box.min.y+h*(R.c-R.w),box.min.y+h*(R.c+R.w)]};
    try{const cv=await AV2D.retrato(c,ops);src=cv.toDataURL('image/png');cache.set(k,src);if(cache.size>160)cache.delete(cache.keys().next().value)}catch(e){console.warn('[MIPJ] miniatura',e);return}}
   if(g!==gen||!el)return;
