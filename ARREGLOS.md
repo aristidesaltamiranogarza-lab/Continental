@@ -54,10 +54,10 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 
 ## 4. Objetos del barrio (Blender)
 - [x] Rehacer las sillas confidentes blancas (medio; preview) — modelo descargado en props/silla_confidente.obj (blender/silla_confidente.py lo prepara: 1144 triángulos); manzana, plaza y 4 en el kiosco del parque
-- [ ] Rehacer la fuente (medio; preview)
-- [ ] Iglesia con más detalle; cruz y esquinas encimadas se atraviesan: unir en una sola malla (medio; preview)
+- [x] Rehacer la fuente (medio; preview) — pila de ocho lados con pretil, balaustre, dos tazas y piña (barrio_kit.fuente)
+- [x] Iglesia con más detalle; cruz y esquinas encimadas se atraviesan: unir en una sola malla (medio; preview) — B.unido (boolean exacta); portada, reloj, campanas, pináculos, contrafuertes
 - [x] Árboles inclinados que se salen de su base blanca (bajo) — ya no hay base: la cal va pintada en el tronco (3c)
-- [ ] Palmeras: la base se despega (bajo)
+- [x] Palmeras: la base se despega (bajo) — pie ensanchado y enterrado
 - El vocho se queda como está.
 
 ## 5. Sótano y planta baja (Blender)

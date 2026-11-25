@@ -57,6 +57,27 @@ def girado(ang, cx, cz, fn, *a, **k):
         if len(vs): bmesh.ops.rotate(bm, verts=list(vs), cent=c, matrix=R)
     return r
 
+
+def unido(fn, *a, **k):
+    """Corre fn armando FA() en una malla aparte, la une consigo misma (boolean exacta) y la pasa a FA(): sin caras encimadas
+    ni metidas en otra pieza (no parpadean ni gastan mapa de luz). Conserva el color por vértice."""
+    g = globals(); FA0 = g['FA']; real = FA0(); tmp = bmesh.new(); g['FA'] = lambda: tmp
+    try: r = fn(*a, **k)
+    finally: g['FA'] = FA0
+    me = bpy.data.meshes.new('_unido'); tmp.to_mesh(me); tmp.free()
+    ob = bpy.data.objects.new('_unido', me); bpy.context.scene.collection.objects.link(ob)
+    md = ob.modifiers.new('u', 'BOOLEAN'); md.solver = 'EXACT'; md.operand_type = 'COLLECTION'; md.operation = 'UNION'
+    md.use_self = True; md.use_hole_tolerant = True
+    b2 = bmesh.new(); b2.from_object(ob, bpy.context.evaluated_depsgraph_get())
+    c2 = b2.loops.layers.float_color.get('Col'); cl = real.loops.layers.float_color.get('Col') or real.loops.layers.float_color.new('Col')
+    vm = {v: real.verts.new(v.co) for v in b2.verts}
+    for f in b2.faces:
+        try: nf = real.faces.new([vm[v] for v in f.verts])
+        except ValueError: continue
+        nf.smooth = f.smooth
+        for l0, l1 in zip(f.loops, nf.loops): l1[cl] = l0[c2] if c2 else (1, 1, 1, 1)
+    b2.free(); bpy.data.objects.remove(ob); bpy.data.meshes.remove(me)
+    return r
 # ---------- casas ----------
 def _tapa(bm, n0, col):
     bm.faces.ensure_lookup_table(); cl = bm.loops.layers.float_color.get('Col')
@@ -201,6 +222,7 @@ def palmera(cx, cz, alto=9.0, y0=0.0, inc=(.1, .06), choque=True):
     if choque: ex_obs(NOMB + '_tronco', cx, cz, .4)
     n = 6; pts = [(cx + inc[0] * alto * (t / n) ** 2, y0 + (alto - y0) * t / n, cz + inc[1] * alto * (t / n) ** 2) for t in range(n + 1)]
     for i in range(n): pieza(fa, PAL['tronco_c'], P.tubo, pts[i], pts[i + 1], .3 - .025 * i, .28 - .025 * i, 7)
+    pieza(fa, osc(PAL['tronco_c'], .9), P.tubo, (cx, y0 - .7, cz), (cx, y0 + .45, cz), .5, .31, 7)   # pie ensanchado y enterrado: no se despega en las lomas
     top = pts[-1]
     for k in range(9):
         a = k * 2 * math.pi / 9 + R.uniform(-.15, .15); L = R.uniform(3.2, 3.9); prev = top
@@ -357,14 +379,32 @@ def kiosco(cx, cz, y0=0.0):
     pieza(fa, PAL['dorado'], ico, cx, y0 + 7.95, cz, .28, 1)
 
 def fuente(cx, cz, y0=0.0):
-    fa = FA(); can = PAL['cantera']
-    ex_obs(NOMB + '_fachadas', cx, cz, 1.8)
-    pieza(fa, can, P.tubo, (cx, y0, cz), (cx, y0 + .6, cz), 1.75, 1.7, 16)
-    P.disco(NOMB + '_agua', 'agua', cx, cz, 1.45, y0 + .61, seg=16)
-    pieza(fa, can, P.tubo, (cx, y0 + .6, cz), (cx, y0 + 1.5, cz), .26, .2, 8)
-    pieza(fa, can, P.tubo, (cx, y0 + 1.4, cz), (cx, y0 + 1.65, cz), .3, .85, 12)
-    P.disco(NOMB + '_agua', 'agua', cx, cz, .78, y0 + 1.66, seg=12)
-    pieza(fa, can, ico, cx, y0 + 1.9, cz, .18, 1)
+    """Fuente de cantera: pila de ocho lados con pretil, pedestal abalaustrado y dos tazas con agua; remate de piña. Alto ~3.7."""
+    def arma():
+        fa = FA(); can, cal = PAL['cantera'], PAL['cal']; R = 2.95
+        pieza(fa, osc(can, .9), P.tubo, (cx, y0, cz), (cx, y0 + .15, cz), R + .4, R + .4, 8)          # escalón
+        pieza(fa, can, P.tubo, (cx, y0 + .15, cz), (cx, y0 + .75, cz), R, R - .05, 8)                   # pila
+        pieza(fa, osc(can, .85), P.tubo, (cx, y0 + .15, cz), (cx, y0 + .27, cz), R + .08, R + .08, 8)   # zoclo de la pila
+        q = [(cx + (R - .1) * math.cos(i * math.pi / 4), cz + (R - .1) * math.sin(i * math.pi / 4)) for i in range(8)]
+        for i in range(8):                                                                             # pretil
+            (xa, za), (xb, zb) = q[i], q[(i + 1) % 8]; dx, dz = (xb - xa) * .1, (zb - za) * .1
+            pieza(fa, cal, P.viga, (xa - dx, y0 + .86, za - dz), (xb + dx, y0 + .86, zb + dz), .2, .1)
+        pieza(fa, cal, P.tubo, (cx, y0 + .7, cz), (cx, y0 + 1.0, cz), .8, .7, 8)                        # pedestal
+        for ya, yb, ra, rb in ((1.0, 1.35, .42, .3), (1.35, 1.75, .3, .19), (1.75, 1.95, .19, .32)):     # balaustre
+            pieza(fa, can, P.tubo, (cx, y0 + ya, cz), (cx, y0 + yb, cz), ra, rb, 12)
+        pieza(fa, can, P.tubo, (cx, y0 + 1.95, cz), (cx, y0 + 2.25, cz), .4, 1.35, 12)                  # taza media
+        pieza(fa, cal, P.tubo, (cx, y0 + 2.22, cz), (cx, y0 + 2.42, cz), 1.42, 1.42, 12)
+        pieza(fa, can, P.tubo, (cx, y0 + 2.3, cz), (cx, y0 + 2.9, cz), .2, .14, 12)
+        pieza(fa, cal, P.tubo, (cx, y0 + 2.88, cz), (cx, y0 + 3.0, cz), .24, .24, 12)
+        pieza(fa, can, P.tubo, (cx, y0 + 3.0, cz), (cx, y0 + 3.2, cz), .2, .6, 12)                      # taza alta
+        pieza(fa, cal, P.tubo, (cx, y0 + 3.18, cz), (cx, y0 + 3.33, cz), .64, .64, 12)
+        pieza(fa, can, P.tubo, (cx, y0 + 3.25, cz), (cx, y0 + 3.5, cz), .13, .09, 8)                    # remate
+        pieza(fa, can, ico, cx, y0 + 3.64, cz, .17, 1, 1.4)
+    ex_obs(NOMB + '_fachadas', cx, cz, 3.4)
+    unido(arma)
+    for r, y, s in ((R_AGUA[0], .83, 8), (R_AGUA[1], 2.37, 12), (R_AGUA[2], 3.28, 12)):
+        P.disco(NOMB + '_agua', 'agua', cx, cz, r, y0 + y, seg=s)
+R_AGUA = (2.72, 1.3, .58)
 
 def cuadrante(n, m, x0, x1, z0, z1, cx, cz, r, y, prio=.6, seg=10):
     """Rectángulo de pasto sin la esquina que cae dentro del círculo (cx, cz, r) de la plaza redonda."""

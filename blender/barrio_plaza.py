@@ -63,9 +63,34 @@ def iglesia(B):
     # atrio de cantera con escalón y cruz atrial
     B.losa('cantera', 'cantera', -50, -26, 64, 68, .3, sin=(5,))
     B.losa('cantera', 'cantera', -40, -34, 63.4, 64, .15, sin=(5,))
-    pieza(fa, PAL['cantera'], B.caja_o, -37.6, -36.4, .3, 1.4, 65.3, 66.5)
-    pieza(fa, PAL['cal'], B.caja_o, -37.1, -36.9, 1.4, 3.6, 65.8, 66.0)
-    pieza(fa, PAL['cal'], B.caja_o, -37.6, -36.4, 2.75, 2.95, 65.8, 66.0)
+    can = PAL['cantera']
+    pieza(fa, osc(can, .9), B.caja_o, -37.8, -36.2, .3, .6, 65.1, 66.7)
+    pieza(fa, can, B.caja_o, -37.55, -36.45, .6, 1.5, 65.35, 66.45)
+    pieza(fa, osc(can, .9), B.caja_o, -37.65, -36.35, 1.5, 1.62, 65.25, 66.55)
+    pieza(fa, cal, B.caja_o, -37.11, -36.89, 1.62, 3.7, 65.79, 66.01)
+    pieza(fa, cal, B.caja_o, -37.6, -36.4, 2.8, 3.02, 65.79, 66.01)
+    # más detalle: portada con pilastras y entablamento, reloj y campanas en la espadaña, ventanas y pináculos en las torres,
+    # contrafuertes en la nave, cornisa del tambor y cruz en la cúpula (todo se une en una malla: B.unido)
+    for u in (-39.25, -34.75): pieza(fa, cal, cf, u - .22, u + .22, 0, 5.0, .36, .52)
+    pieza(fa, cal, cf, -39.6, -34.4, 5.0, 5.3, .36, .56)
+    pieza(fa, cal, P.tubo, (-37, 12.5, 67.72), (-37, 12.5, 67.58), .5, .5, 16)                               # reloj
+    pieza(fa, PAL['blanco'], P.tubo, (-37, 12.5, 67.6), (-37, 12.5, 67.54), .41, .41, 16)
+    pieza(fa, PAL['negro'], B.caja_o, -37.03, -36.97, 12.5, 12.85, 67.52, 67.55)
+    pieza(fa, PAL['negro'], B.caja_o, -37.26, -37.0, 12.47, 12.53, 67.52, 67.55)
+    for u in (-38.2, -37, -35.8): pieza(fa, osc(PAL['dorado'], .55), P.tubo, (u, 11.55, 67.6), (u, 11.0, 67.6), .09, .24, 8)   # campanas
+    for x0 in (-46, -32):
+        xm = x0 + 2
+        pieza(fa, cal, P.prisma, 'h', 68, arcop(xm, .95, 6.2, 7.6), -.54, -.45)
+        pieza(fa, osc(PAL['vidrio'], .6), P.prisma, 'h', 68, arcop(xm, .6, 6.35, 7.6), -.56, -.45)
+        for x in (x0 + .3, x0 + 3.7):
+            for z in (67.75, 71.75):
+                pieza(fa, cal, P.tubo, (x, 14.9, z), (x, 15.55, z), .14, .05, 6); pieza(fa, cal, B.ico, x, 15.62, z, .09, 1)
+    for z in (74.5, 78.5, 82.6):                                                                               # contrafuertes
+        pieza(fa, ig, P.prisma, 'h', z, [(-44.0, 0), (-42.9, 0), (-42.9, 8.6), (-44.0, 6.0)], -.35, .35)
+        pieza(fa, ig, P.prisma, 'h', z, [(-31.1, 0), (-30.0, 0), (-30.0, 6.0), (-31.1, 8.6)], -.35, .35)
+    pieza(fa, cal, P.tubo, (-37, 10.9, 80), (-37, 11.12, 80), 2.85, 2.85, 8)
+    pieza(hi, None, P.viga, (-37, 14.0, 80), (-37, 15.1, 80), .05)
+    pieza(hi, None, P.viga, (-37.32, 14.75, 80), (-36.68, 14.75, 80), .05)
 
 def piezas(B):
     P, PAL, YS = B.P, B.PAL, B.YS
@@ -85,12 +110,12 @@ def piezas(B):
     for x, z in ((-41.2, 41.0), (-32.8, 62.9), (-50.4, 49.3), (-23.6, 54.7)): B.farol(x, z, .06)   # junto a los andadores, no en ellos
     B.laurel(-46, 44.5, 1.0); B.laurel(-28, 44.5, 1.0); B.flamboyan(-28, 59.5, 1.0); B.ceiba(-46, 59.5, .95)
     for x, z in ((-42.6, 41.2), (-31.4, 41.2)): B.agave(x, z, .9, 0)
-    iglesia(B)
+    B.unido(iglesia, B)
     B.palmera(-48, 78, 10, y0=YS); B.palmera(-28.5, 79, 9.5, y0=YS)
     P.quad('plaza_pasto_c', 'pasto_c', -51, 64, -23, 89.8, y=YS, prio=.25)      # alrededor de la iglesia: pasto liso (paso 3)
 
 VISTAS = [('plaza_andador', (-37, 2.4, -6), (-37, 4, 40)), ('plaza_kiosco', (-30, 2.6, 41.5), (-40, 4, 58)),
-          ('plaza_iglesia', (-29, 2.4, 58), (-38, 7, 68)), ('plaza_arriba', (-12, 22, 30), (-37, 0, 58))]
+          ('plaza_iglesia', (-29, 2.4, 58), (-38, 7, 68)), ('plaza_iglesia_lado', (-14, 11, 71), (-37, 7, 76)), ('plaza_arriba', (-12, 22, 30), (-37, 0, 58))]
 
 if __name__ == '__main__':
     correr(B, piezas, VISTAS, ctx=('manzana',), res=2048, muestras=300, topes=(16, 60000))
