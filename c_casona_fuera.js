@@ -4,7 +4,7 @@
 // de abajo ya se ve completa. En la planta baja reemplaza al casco de cajas (CCAS) en cuanto cargan. Los GLB se cargan la primera vez que hacen falta.
 (function(){
 if(typeof THREE==='undefined')return;
-const BASE='modelos/casona/',CRU=/[?&]crudo\b/.test(location.search),GL={c0:['pb','9'],c1:['pa','9'],c2:['az','5']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
+const BASE='modelos/casona/',CRU=/[?&]crudo\b/.test(location.search),GL={c0:['pb','10'],c1:['pa','9'],c2:['az','5']},Y={c0:0,c1:5.8,c2:10.3},ORDEN=['c0','c1','c2'];
 const R={},P={};
 // con tu Mii fuera no se ven los letreros de las mesas (se asomaban a través de los muros)
 let tF=0;const st=document.createElement('style');st.textContent='body.cfue-fuera .h3sign{visibility:hidden!important}';document.head.appendChild(st);
