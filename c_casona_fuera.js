@@ -14,6 +14,13 @@ function carga(id){if(P[id])return P[id];const g=GL[id];
   if(window.CMAT)CMAT.aplicar(r,CRU?null:BASE+g[0]+'_luz.webp?v='+g[1]);if(window.CAJA&&CAJA.juntas)CAJA.juntas(r);if(window.PATV)PATV.vestir(r,id);
   const fuera=[],cg=window.CCALLE&&CCALLE.glb&&CCALLE.glb();r.traverse(o=>{if(cg&&/_piso_calle$/.test(o.name)){o.position.y-=.35;o.updateMatrix();return}if(/_abajo|_arriba|_piso_calle$|^gata_|^accion_|^plano_/.test(o.name))fuera.push(o)});fuera.forEach(o=>o.visible=false);
   return R[id]=r}).catch(e=>{console.warn('CFUE',id,e);return null})}
+// cuartos(r): quita() para JUNTA con las cajas de los empties cuarto_<id>_n {w,d,h} del GLB, recortadas A.m para que los muros
+// (fachada, los que dan al patio) se queden. La escalera no: se ve por su hueco. Desde arriba solo se dibujan patio, corredores y jardín.
+const A={m:.35},QU=new WeakMap();
+function cuartos(r){if(QU.has(r))return QU.get(r);r.updateMatrixWorld(true);const C=[],p=new THREE.Vector3();
+ r.traverse(o=>{const m=/^cuarto_(.+?)_n?\d+$/.exec(o.name),u=o.userData||{};if(!m||!u.w||!u.d||m[1]==='escalera')return;o.getWorldPosition(p);
+  C.push([p.x-u.w/2+A.m,p.x+u.w/2-A.m,p.z-u.d/2+A.m,p.z+u.d/2-A.m,p.y-.2,p.y+(u.h||5.5)])});
+ const q=C.length?(x,y,z)=>C.some(c=>x>c[0]&&x<c[1]&&z>c[2]&&z<c[3]&&y>c[4]&&y<c[5]):null;QU.set(r,q);return q}
 function pon(F){const id=F.id,nv=id in Y;if(!window.CGLB)return null;   // el sótano (sin copias) solo usa la regla del cubo de la escalera
  const AB=[],AR=[];F.SC.traverse(o=>{if(/_abajo/.test(o.name)&&o.visible)AB.push(o);if(/_escalera_arriba/.test(o.name))AR.push(o)});   // _arriba: el cubo de la escalera de arriba visto por el hueco
  const capas=!nv?[]:ORDEN.filter(k=>k!==id).map(k=>({k,arriba:Y[k]>Y[id],G:null,pedido:0}));
@@ -29,7 +36,7 @@ function pon(F){const id=F.id,nv=id in Y;if(!window.CGLB)return null;   // el s�
    if(L.arriba){const y=Y[L.k]-Y[id],cy=c?c.position.y:0;bajo[L.k]=cy<y-(bajo[L.k]?.2:.8);   // histéresis en altura
     ver=!corte&&(afuera||bajo[L.k]);if(!ver)corte=true;if(quiere==null)quiere=ver;
     if(window.PATV&&PATV.suelo)PATV.suelo(L.k,afuera?-1e9:y-.31)}   // dentro: lo que cuelga bajo su piso se encimaba con el techo de abajo
-   if(ver&&!L.G){if(!L.pedido){L.pedido=1;carga(L.k).then(r=>{if(!r)return;L.G=window.JUNTA?JUNTA.de(r):r.clone();   // copia juntada por material (menos llamadas de dibujo)
+   if(ver&&!L.G){if(!L.pedido){L.pedido=1;carga(L.k).then(r=>{if(!r)return;L.G=window.JUNTA?JUNTA.de(r,L.arriba?null:cuartos(r)):r.clone();   // copia juntada por material (menos llamadas de dibujo)
    L.G.position.y=Y[L.k]-Y[id];L.G.visible=false;L.G.name='casona-fuera-'+L.k;F.SC.add(L.G)})}return}
    if(!L.G)return;const v=window.PATV&&PATV.ver?PATV.ver(L.k,L.G,ver):+(L.G.visible=ver);
    if(L.arriba){if(v>0)arriba=true}else if(v>=1)abajo=true});
@@ -41,5 +48,5 @@ function pon(F){const id=F.id,nv=id in Y;if(!window.CGLB)return null;   // el s�
   AR.forEach(o=>{if(window.VIS)VIS.poner(o,'cfue',sinAR);else o.visible=!sinAR});
   if(F.casco&&capas.some(L=>L.arriba&&L.G))F.casco.M.visible=false}   // con las copias cargadas, ellas mandan (el casco era su versión ligera)
  return {paso}}
-window.CFUE={pon};
+window.CFUE={pon,A};
 })();
