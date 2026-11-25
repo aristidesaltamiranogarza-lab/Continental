@@ -92,39 +92,28 @@ def juegos(x, z):
     B.bote(x + 7.6, z - 3.5, 0, B.PAL['verde']); banca(x - 1.0, z - 6.2, math.pi)
     B.ex_obs(B.NOMB + '_fachadas', cx_, cz_, 1.2)
 
-# letras de MÉRIDA: cajas en una cuadrícula de letra (u a lo ancho en el sentido de lectura, v alto); s = trazo
-_s, _W, _H = .34, 1.3, 2.0
-LETRAS = {
-    'M': [(0, _s, 0, _H), (_W - _s, _W, 0, _H), (_s, _s + .22, 1.4, _H), (_s + .16, _s + .38, 1.0, 1.6), (_W / 2 - .13, _W / 2 + .13, .75, 1.25),
-          (_W - _s - .38, _W - _s - .16, 1.0, 1.6), (_W - _s - .22, _W - _s, 1.4, _H)],
-    'E': [(0, _s, 0, _H), (0, _W, _H - _s, _H), (0, _W * .85, _H / 2 - _s / 2, _H / 2 + _s / 2), (0, _W, 0, _s)],
-    'R': [(0, _s, 0, _H), (0, _W - .2, _H - _s, _H), (_W - _s, _W, _H / 2 + .05, _H - .12), (0, _W - .2, _H / 2 - _s / 2, _H / 2 + _s / 2),
-          (_W / 2 - .05, _W / 2 + .3, .55, _H / 2 - .1), (_W - _s - .05, _W, 0, .6)],
-    'I': [(.13, .13 + _s, 0, _H)],
-    'D': [(0, _s, 0, _H), (0, _W - .35, _H - _s, _H), (0, _W - .35, 0, _s), (_W - _s, _W, .35, _H - .35),
-          (_W - .55, _W - .15, _H - _s - .2, _H - .12), (_W - .55, _W - .15, .12, _s + .2)],
-    'A': [(0, _s, 0, _H - .35), (_W - _s, _W, 0, _H - .35), (.18, _W - .18, _H - _s, _H), (0, _W, _H / 2 - _s / 2 - .1, _H / 2 + _s / 2 - .1),
-          (.06, _s + .1, _H - .5, _H - .2), (_W - _s - .1, _W - .06, _H - .5, _H - .2)]}
-ANCHO = dict(I=.6)
+# letras de MÉRIDA: las mismas mallas de blender/letras_merida.py (hechas de las fotos); CMAT les pinta las grecas encima
+LM = {'__name__': 'letras', '__file__': os.path.join(D, 'blender', 'letras_merida.py')}
+exec(open(LM['__file__'], encoding='utf-8').read(), LM)
+LM['K']['BIS_RES'] = 1      # canto con un solo paso: menos triángulos para el celular
 
-def letras_merida(xd, z):
-    """MÉRIDA monumental: cada letra de un color con franja de grecas blanca, sobre base gris. Se lee mirando hacia −z del plano
-    (llegando por el andador de la entrada); en el plano la lectura va de x alta a x baja (xd = orilla derecha de la base)."""
-    fa = B.FA(); cols = ['rosa', 'amarillo', 'anil', 'verde', 'naranja', 'lona']
-    pal = [('M', 0), ('E', 1), ('R', 2), ('I', 3), ('D', 4), ('A', 5)]
-    tot = sum(ANCHO.get(l, _W) for l, _ in pal) + .3 * (len(pal) - 1)
-    B.pieza(fa, B.PAL['gris'], B.caja_o, xd - tot - .4, xd + .4, 0, .5, z - .6, z + .6)
-    B.pieza(fa, B.PAL['blanco'], B.caja_o, xd - tot - .41, xd + .41, .2, .3, z - .61, z + .61)
-    u0 = 0.0
-    for l, ci in pal:
-        c = B.PAL[cols[ci]]; bl = B.osc(c, 1.35)
-        for a, b, v0, v1 in LETRAS[l]:
-            B.pieza(fa, c, B.caja_o, xd - u0 - b, xd - u0 - a, .5 + v0, .5 + v1, z - .25, z + .25)
-            for g0 in (.35, 1.45):   # grecas: dos franjas claras sobre cada trazo que las cruza
-                if v0 < g0 and v1 > g0 + .12: B.pieza(fa, bl, B.caja_o, xd - u0 - b - .01, xd - u0 - a + .01, .5 + g0, .5 + g0 + .12, z - .26, z + .26)
-        if l == 'E': B.pieza(fa, c, B.caja_o, xd - u0 - _W * .75, xd - u0 - _W * .45, .5 + _H + .15, .5 + _H + .45, z - .25, z + .25)   # acento de la É
-        u0 += ANCHO.get(l, _W) + .3
-    B.ex_obs(B.NOMB + '_fachadas', xd - tot / 2, z, tot / 2 + .4)
+def letras_merida(cx, cz, eje='x'):
+    """MÉRIDA monumental centrada en (cx, cz) del plano: se lee mirando hacia −z (de x alta a x baja). Letras en el material
+    'greca' (color por vértice; CMAT pone las grecas un tono más oscuras), base gris clara en la fachada."""
+    import bmesh
+    res, ancho = LM['mallas'](); gr, fa = B.M('greca', 'greca'), B.FA(); c0 = B.P.V(cx, 0, cz)
+    for nom, col, me in res:
+        bm = fa if nom == 'base' else gr
+        cl = bm.loops.layers.float_color.get('Col') or bm.loops.layers.float_color.new('Col')
+        vs = [bm.verts.new((c0.x + ancho / 2 - v.co.x, c0.y - v.co.y, c0.z + v.co.z)) for v in me.vertices]   # girada 180°: frente a +z
+        for p in me.polygons:
+            try: f = bm.faces.new([vs[i] for i in p.vertices])
+            except ValueError: continue
+            for lp in f.loops: lp[cl] = (*col, 1)
+        bpy.data.meshes.remove(me)
+    n = 8
+    for i in range(n):   # choques a lo largo de la fila (eje 'z': girada con B.girado, la fila corre en z)
+        t = -ancho / 2 + (i + .5) * ancho / n; B.ex_obs(B.NOMB + '_greca', cx + t if eje == 'x' else cx, cz if eje == 'x' else cz + t, .75)
 
 def piezas(B):
     P, YS = B.P, B.YS
@@ -139,7 +128,7 @@ def piezas(B):
     B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS, CZ), (CX, .1, CZ), RP, RP, 32)
     B.kiosco(CX, CZ, .1)
     # faroles: en la entrada, en el andador y en la plaza del kiosco
-    for x, z in ((EX[0] - .4, -20), (EX[1] + .4, -26), (EX[0] - .4, -33), (EX[1] + .4, -38)): B.farol(x, z, YP)
+    for x, z in ((EX[0] - .4, -20), (EX[1] + .4, -26), (EX[0] - .4, -28.4), (EX[1] + .4, -38)): B.farol(x, z, YP)
     for a in (45, 135, 225, 315):
         r = math.radians(a); B.farol(CX + math.cos(r) * (RP - .6), CZ + math.sin(r) * (RP - .6), .1)
     # bancas de parque a los lados del andador, alternadas (no se miran de frente) y un poco giradas
@@ -156,16 +145,18 @@ def piezas(B):
     B.ceiba(-6, -66, .9); B.ceiba(46, -34, .9)
     B.palmera(14.5, -31, 9.5); B.palmera(24.5, -31.5, 10)
     B.naranjo(28, -58); B.naranjo(11, -58)
-    for x, z in ((15, -44), (24, -44), (-8, -40), (48, -60), (2, -71), (38, -71)): B.agave(x, z, .9, 0)
+    for x, z in ((24, -44), (-8, -40), (48, -60), (2, -71), (38, -71)): B.agave(x, z, .9, 0)
     for x, z in ((-10, -30), (50, -30), (-10, -56), (50, -48), (20, -72)): B.mata(x, z, 1.1, 0)
     marquesitas(EX[1] + 3.2, CZ + RP + 1.6, math.pi / 2)
     juegos(40, -58)
-    letras_merida(13.6, -37.5)
+    # en el pasto entre el sitio viejo y el andador de entrada, a lo largo del andador y mirándolo (se lee desde la entrada al kiosco)
+    B.girado(-math.pi / 2, 15.8, -35.3, letras_merida, 15.8, -35.3, 'z')
     # barda baja del parque en el fondo y los lados (al frente cierran las espaldas de las casas de enfrente)
     B.barda(X0, Z1, X1, Z1, 1.4); B.barda(X0, Z1, X0, Z0, 1.4); B.barda(X1, Z1, X1, Z0, 1.4)
 
 VISTAS = [('parque_entrada', (19.5, 2.4, -12), (19.5, 3, -40)), ('parque_kiosco', (30, 3.5, -38), (19.5, 3, -52)),
-          ('parque_juegos', (30, 3, -48), (40, 1, -60)), ('parque_arriba', (20, 40, 5), (20, 0, -50))]
+          ('parque_juegos', (30, 3, -48), (40, 1, -60)), ('parque_arriba', (20, 40, 5), (20, 0, -50)),
+          ('parque_letras', (21.5, 2.8, -29.5), (15.8, 1.3, -36))]
 
 if __name__ == '__main__':
     correr(B, piezas, VISTAS, ctx=('enfrente',), res=2048, muestras=300, topes=(20, 60000))

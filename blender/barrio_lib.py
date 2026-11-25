@@ -46,7 +46,7 @@ def armar(B, piezas, ctx=()):
     for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
     sc = bpy.context.scene; B.P.motor(sc)
     piezas(B)
-    col = B.P.coleccion(B.P.NOM); obs = B.P.crear(col); B.color_vertice(); B.color_vertice_mat('horizonte')
+    col = B.P.coleccion(B.P.NOM); obs = B.P.crear(col); B.color_vertice(); B.color_vertice_mat('horizonte'); B.color_vertice_mat('greca')
     for o in col.objects:      # el pasto con hojas va 1 cm sobre el liso: que no le eche sombra ni oscurezca su orilla
         if o.name.endswith('_pasto'): o.visible_shadow = o.visible_diffuse = o.visible_glossy = False
     B.atardecer(sc); B.contexto(); B.ctx_glb('calle.glb'); B.LUCES_X = []

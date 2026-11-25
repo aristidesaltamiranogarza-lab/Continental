@@ -88,6 +88,10 @@ function texturas(ctex){if(TX)return TX;
    g.fillStyle='#2f5d9a';for(let k=0;k<4;k++){const q=k*Math.PI/2;g.beginPath();g.ellipse(x+Math.cos(q)*9,y+Math.sin(q)*9,8,4.5,q,0,7);g.fill()}g.fillStyle='#d9a441';g.beginPath();g.arc(x,y,4,0,7);g.fill();
    [[0,0],[s,0],[0,s],[s,s]].forEach(([a,c])=>{g.beginPath();g.arc(i*s+a,j*s+c,9,0,7);g.fill()})}
   g.strokeStyle='rgba(120,110,95,.55)';g.lineWidth=2;for(let i=0;i<=2;i++){g.beginPath();g.moveTo(i*s,0);g.lineTo(i*s,h);g.moveTo(0,i*s);g.lineTo(w,i*s);g.stroke()}};
+ // grecas de las letras de MÉRIDA (blender/letras_merida.py): espirales cuadradas un tono más oscuras; el color va por vértice
+ const greca=(g,w,h)=>{g.fillStyle='#fff';g.fillRect(0,0,w,h);g.fillStyle='#9e9e9e';const c=w/8,s=c/8,P=[[0,0],[6,0],[6,6],[0,6],[0,2],[4,2],[4,4],[2,4]];
+  for(let j=0;j<8;j++)for(let i=0;i<8;i++){if(rnd()>.6)continue;const r=rnd()*4|0,p=(a,b)=>{for(let k=0;k<r;k++)[a,b]=[6-b,a];return[i*c+s+a*s,j*c+s+b*s]};
+   for(let k=1;k<P.length;k++){const[x0,y0]=p(...P[k-1]),[x1,y1]=p(...P[k]);g.fillRect(Math.min(x0,x1)-1,Math.min(y0,y1)-1,Math.abs(x1-x0)+3,Math.abs(y1-y0)+3)}}};
  TX={
   muro:{map:T('muro',512,512,cal,1/4)},   // cal: grano fino y nubes muy suaves
   barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.08)','rgba(120,100,70,.06)',1400,1,3),1/2)},   // aplanado fino y parejo (antes óvalos grandes que se veían como manchas)
@@ -110,7 +114,7 @@ function texturas(ctex){if(TX)return TX;
   ladrillo:{map:T('ladrillo',256,256,ladrillo,1/1.4)},losa_s:{map:T('losa-s',256,256,laja,1/2.6)},cemento:{map:T('cemento',128,128,ruido('#8d8a85','rgba(50,48,45,.12)','rgba(220,215,205,.1)',160,2,6),1/2)},
   botellas:{map:T('botellas',256,64,botellas,1/1.4,1/.4)},barrica:{map:T('barrica',128,64,barrica,1/.6,1)},madera_osc:{map:T('madera-osc',128,128,madera('#6e5242','rgba(30,18,10,.35)'),1)},
   lambrin_s:{map:T('lambrin-s',128,128,madera('#7a5a44','rgba(35,20,10,.3)'),1)},zoclo:{color:0x8a837b},tierra:{color:0x5a5148},cuero:{color:0x94554c},
-  azulejo:{map:T('azulejo',128,128,azulejo,1/.7)},loza:{color:0xf2eee6},espejo:{color:0xb9c7cc}};   // paso 9: cocina y baño
+  azulejo:{map:T('azulejo',128,128,azulejo,1/.7)},greca:{map:T('greca',256,256,greca,1/1.8)},loza:{color:0xf2eee6},espejo:{color:0xb9c7cc}};   // paso 9: cocina y baño
  TX.pasto_c=TX.pasto;   // pasto liso: misma textura, sin matas (PASTO solo siembra en "pasto")
  return TX}
 
@@ -135,7 +139,7 @@ function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if
   else if(n==='led')r=new THREE.MeshBasicMaterial({color:0xffb46e,toneMapped:false});
   else if(n==='hierro')r=new THREE.MeshBasicMaterial({color:0x1d1814});
   else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=CR?new THREE.MeshLambertMaterial(o):new THREE.MeshBasicMaterial(o);if(luz)cubica(r)}
-  if(n==='fachada')r.vertexColors=true;
+  if(n==='fachada'||n==='greca')r.vertexColors=true;
   if(n==='hamaca'||n==='persiana')r.side=THREE.DoubleSide;
   if(r.toneMapped!==false)NOC.push({m:r,c:r.color.clone(),ext:EXT.test(n)});
   return MAT[k]=r};
