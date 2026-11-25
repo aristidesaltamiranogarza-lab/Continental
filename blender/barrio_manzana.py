@@ -41,7 +41,7 @@ def cancha(B):
 def jardin(B):
     """Paso 3: el corazón de la manzana ya no son patios con bardas: pasto con hojas solo cerca de los caminos y un caminito curvo de laja
     que sale de la puerta trasera del jardín de la casona (x 16.5..19.5, z 48) hacia la plaza (oeste) y la entrada de la cancha (esquina NO)."""
-    huecos = [(-51, 40, -23, 78), (-40, 22, -34, 40), (0, 22, 36, 48), (60.5, 44.5, 85.5, 59.5)]   # plaza e iglesia, andador, casona, cancha
+    huecos = [(-51, 40, -23, 78), (-40, 22, -34, 40), (0, 22, 36, 48), (36, 24, 54, 48), (60.5, 44.5, 85.5, 59.5)]   # plaza e iglesia, andador, casona, baldío (su propio suelo; se encimaba), cancha
     fa, c = B.FA(), B.osc(B.PAL['crema'], .9)   # rodapié: las bardas de la casona empiezan en 0 y el pasto está en YS
     for x0, x1, z0, z1 in ((-.15, .15, 22, 48.15), (35.85, 36.15, 22, 48.15), (-.15, 16.5, 47.85, 48.15), (19.5, 36.15, 47.85, 48.15)):
         B.pieza(fa, c, B.caja_o, x0, x1, B.YS, .02, z0, z1, (2,))

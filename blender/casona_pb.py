@@ -34,7 +34,7 @@ EMITE = dict(arbotante=6, farol=8, foco=10)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)
 # por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
 # vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
-PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, techo=float(os.environ.get('R4_TECHO', 1)))   # R4: techo .5 -> 1 (rincones techo-muro a 16 cm por texel)   # techo: ver techos() (antes .3 x .5 = 2 texeles por unidad)
+PRIO_MAT = dict(muro=1.4, cantera=1.4, lambrin=1.4, escalon=float(os.environ.get('R4_ESC', 2)), techo=float(os.environ.get('R4_TECHO', 1)))   # R4: techo .5 -> 1 (rincones techo-muro a 16 cm por texel)   # techo: ver techos() (antes .3 x .5 = 2 texeles por unidad)   # escalon 2: la escalera quedaba pixeleada en lo oscuro
 MUROS = ('muro', 'lambrin', 'cantera', 'cenefa', 'barda')   # piezas que se meten unas en otras (ver _dentro)
 FUERA = .1
 ARQ = ('muro', 'techo', 'lambrin', 'cantera', 'escalon', 'pasto', 'corredor', 'cuarto', 'barda', 'rod', 'pasta', 'azulejo', 'laja', 'cenefa', 'porton', 'persiana', 'mosaico', 'banqueta', 'calle', 'tierra')   # R4: arquitectura (lo demás es decoración)

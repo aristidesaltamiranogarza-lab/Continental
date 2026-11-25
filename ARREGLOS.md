@@ -50,8 +50,8 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Bancas cafés (de madera): cambiarles un poco la posición
 - [x] Patio de juegos del parque: más detalle
 - [ ] Letras de MÉRIDA: rehacerlas; lo ideal es una tipografía convertida a 3D (después)
-- [ ] Piso del terreno con llantas, agaves y piedras (baldío/lote junto a la casa, 25 nov, captura del usuario): el pasto y la tierra se enciman raro (franjas que parpadean, z-fighting); separar alturas o juntar en una sola malla
-- [ ] Barda de esa zona: la textura de manchas (óvalos oscuros grandes) se ve fea; cambiarla por un aplanado más fino y parejo
+- [x] Piso del terreno con llantas, agaves y piedras (baldío/lote junto a la casa, 25 nov, captura del usuario): el pasto y la tierra se enciman raro (franjas que parpadean, z-fighting); separar alturas o juntar en una sola malla — el pasto del jardín (manzana) pasaba por debajo del baldío: hueco en suelo_lomas; manchas de tierra a .03
+- [x] Barda de esa zona: la textura de manchas (óvalos oscuros grandes) se ve fea; cambiarla por un aplanado más fino y parejo — CMAT barda: grano fino (1400 puntos de 1–3 px)
 - [x] Planta alta vista desde la planta baja (25 nov, captura del usuario): en PB, con la cámara de arriba, se ve un pedazo de la planta alta encima (franja superior con el piso de madera, el barandal y las etiquetas Continental/Uno de PA) cortado a la mitad de la pantalla. Revisar el corte/ocultado de PA cuando estás en PB (MARC.corte / CPB.corte, goFloor) → causa: el fondo (calle.glb, con los cuartos del frente de PA) dejaba su profundidad; ahora con tu Mii adentro se borra (c_casa_calle.js fondo). No se pudo reproducir en el navegador: confirmar en teléfono
 - Hecho 3c: barrio_plantas.py (plátanos con hojas curvas, hoja seca, racimo e hijuelo; milpa con hojas que cuelgan, espiga y elote; arbustos de nube con textura de copa), laurel pintado de cal, cancha al ras, muros traseros con zoclo, castillos, cornisa, cuarto de azotea, tinaco y varillas (barrio_trasera.py), banca del traspatio en la barda del fondo (casona_pb_deco.py), bancas cafés alternadas, juegos con guarnición, techito, carrusel, bote y banca. Tope de la manzana: 118k (antes 108k). Falta hornear manzana, parque, plaza y pb (paso 6).
 
@@ -70,7 +70,7 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Árbol de estilo viejo, sin acabar, junto a la casa (pb_tras_* o mamey de casona_pb.py, o del barrio): cambiarlo por uno del kit (bajo) — era el plátano del traspatio: ahora como el del barrio (casona_plantas.platano)
 - [x] Tiras LED cálidas y tenues en el sótano y zonas oscuras (emisivo horneado, sin costo) (medio) — pasillo y cava (sm_led)
 - [x] Barrotes del balcón de la planta alta que asoman en el techo de la planta baja (bajo) — eran franjas horneadas: el techo llegaba al eje del muro; ahora termina 2 cm dentro (techos() de pb y sm); revisar al hornear
-- [ ] Escaleras: el horneado se ve pixeleado donde llega poca luz (más densidad ahí)
+- [x] Escaleras: el horneado se ve pixeleado donde llega poca luz (más densidad ahí) — PRIO_MAT escalon 2 (R4_ESC); falta verlo en el horneado
 
 ## 6. Horneado final
 - [ ] Hornear solo lo que cambió (barrio, sm, pb), noche con menos muestras; avisar plan y tiempo antes (~10 min por nivel); subir cada nivel al terminar; revisar dinteles, cantos y rincones (R4)

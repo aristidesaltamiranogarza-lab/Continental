@@ -90,7 +90,7 @@ function texturas(ctex){if(TX)return TX;
   g.strokeStyle='rgba(120,110,95,.55)';g.lineWidth=2;for(let i=0;i<=2;i++){g.beginPath();g.moveTo(i*s,0);g.lineTo(i*s,h);g.moveTo(0,i*s);g.lineTo(w,i*s);g.stroke()}};
  TX={
   muro:{map:T('muro',512,512,cal,1/4)},   // cal: grano fino y nubes muy suaves
-  barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.1)','rgba(120,100,70,.08)',80,8,34),1/4)},
+  barda:{map:T('barda',256,256,ruido('#e4dac8','rgba(255,250,240,.08)','rgba(120,100,70,.06)',1400,1,3),1/2)},   // aplanado fino y parejo (antes óvalos grandes que se veían como manchas)
   cantera:{map:T('cantera',512,512,ruido('#e7dac4','rgba(120,95,60,.07)','rgba(255,248,232,.12)',1600,2,4),1/2)},   // 512: de cerca, la de 256 se veía pixeleada en arcos y marcos
   pasta:{map:T('pasta',256,256,roseta('#ece5d4','#bccab2','#d9ad94','#bccab2'),1/1.2)},
   corredor:{map:T('corredor',256,256,roseta('#e6d2bb','#d4b48f','#c98f6c','#d4b48f'),1/1.2)},

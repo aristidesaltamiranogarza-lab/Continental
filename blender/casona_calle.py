@@ -103,8 +103,8 @@ def suelo():
     for a, b in ((XA, 0), (36, XB)):
         quad('calle_banqueta', 'banqueta', a, -1.6, b, 0, prio=.5); quad('calle_arroyo', 'calle', a, -11.6, b, -1.6, prio=.35)
     quad('calle_arroyo', 'calle', 0, -11.6, 36, -3, prio=.35)
-    for i in range(10):                     # paso de cebra del zaguán a la entrada del parque (x 17.5..21.5; paso 3): franjas paralelas a la calle
-        z = -2.1 - i * .93; pieza(FA(), lin('#ece6d8'), caja_o, 16.9, 22.1, 0, .012, z - .5, z, (2,))
+    for i in range(10):                     # paso de cebra del zaguán a la entrada del parque (x 17.5..21.5; paso 3): franjas paralelas a la calle; a la altura del arroyo (el juego baja calle_arroyo .35, no las franjas)
+        z = -2.1 - i * .93; pieza(FA(), lin('#ece6d8'), caja_o, 16.9, 22.1, -.35, -.338, z - .5, z, (2,))
     cortes = [XA]
     for a, b in PASTA: cortes += [a, b]
     cortes.append(XB)
@@ -131,6 +131,7 @@ def enfrente():
         casa(x0, x1, H, PAL[c], -15.6, 1, hu); x = x1
     if XA < -22: casa(XA, -22, 6.0, PAL['rosa'], -15.6, 1, [('v', -23.5)])
 
+# sin llamar (26 nov): árbol viejo inclinado con base blanca, quitado a pedido del usuario
 def laurel(cx=-12, cz=-1.3):
     """Laurel de la India: tronco encalado abajo, copa de grupos de hojas cargada hacia la calle (alto ~12, ancho ~12).
     Ramas y copa baja lejos de la fachada (z<0); la copa alta pasa por encima del pretil."""
@@ -221,7 +222,7 @@ def presupuesto(col):
 def armar():
     for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
     sc = bpy.context.scene; P.motor(sc)
-    suelo(); vecinas(); enfrente(); laurel(); postes(); macetas(); bugambilia()
+    suelo(); vecinas(); enfrente(); postes(); macetas(); bugambilia()
     col = P.coleccion('calle'); obs = P.crear(col); color_vertice()
     atardecer(sc); contexto(); presupuesto(col)
     return sc, col, obs

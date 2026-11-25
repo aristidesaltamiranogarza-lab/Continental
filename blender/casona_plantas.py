@@ -104,7 +104,8 @@ def agave(bm, x, y, z, s, R):
 def mancha(bm, cx, cz, r, R, n=16, y=.012):
     """Mancha de tierra irregular y delgada sobre el pasto (al pie de un árbol)."""
     pts = [(cx + math.cos(6.283 * i / n) * r * R.uniform(.78, 1.1), cz + math.sin(6.283 * i / n) * r * R.uniform(.78, 1.1)) for i in range(n)]
-    top = [bm.verts.new(V(x, y, z)) for x, z in pts]; bm.faces.new(top)
+    top = [bm.verts.new(V(x, y, z)) for x, z in pts]; f = bm.faces.new(top); f.normal_update()
+    if f.normal.z < 0: f.normal_flip()      # mirando abajo se veía negra en el juego
 
 def bugambilia(CP, FL, TR, x, z, R):
     """Bugambilia trepada a la barda (z = cara del muro, crece hacia z menor): matas separadas en abanico hasta ~3.3, cada una con su
