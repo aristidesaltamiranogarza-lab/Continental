@@ -14,11 +14,11 @@ let EXT=null,REG=false,rs=11;const rnd=()=>(rs=(rs*9301+49297)%233280)/233280,pi
 // medidas del exterior: la casa vieja (fachada en 19.3, lote ±17.3) o la casona (?casa=caja: fachada en 17, lote ±18, banqueta de 1.6 como la del GLB, vecinos más bajos S)
 let E=null;const EE=()=>E||(E=window.CAJA&&CAJA.on?{fz:17,zb:18.6,za:28.6,ze:32.6,lx:18,lau:null,pos:[11.8,18.3],aco:[13.2,9.4,17.06],S:.68,zt:-31.4}:{fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:17.3,lau:LAU,pos:POS,aco:[15.4,8.1,FZ+.06],S:1,zt:-42.4});
 // calle.glb (blender/casona_calle.py, horneada): con la casona arma el tramo x −43..22; ahí no van vecinas, arroyo, banquetas ni postes de código. ?calle=caja vuelve a la de código
-const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search),TR=[-43,22],VC='1';
+const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search),TR=[-43,22],VC='2';
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
 // el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
 // que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
-const BV={manzana:0,enfrente:0,plaza:0,baldio:0,horizonte:0,parque:0},FB={};
+const BV={manzana:0,enfrente:0,plaza:0,baldio:0,horizonte:0,parque:0},FB={},VIEJO=[];   // VIEJO: vecinos de código (se quitan cuando carga el barrio horneado)
 const CRU=/[?&]crudo\b/.test(location.search),PRB=CRU||/[?&]barrio=prueba/.test(location.search);   // ?crudo: GLB sin hornear de modelos/casona/crudo/
    // ?barrio=prueba: carga todas las piezas aunque BV sea 0 (probar un horneado antes de subir la versión)
 const BAR=k=>GLB()&&(BV[k]>0||PRB)&&!/[?&]barrio=caja/.test(location.search);
@@ -162,7 +162,7 @@ function calle(k){const {fz:FZ,zb:ZB,za:ZA,ze:ZE,lx:LX,lau:LAU,pos:POS,aco:ACO}=
  // los vecinos: de este lado (con árboles en sus patios) y enfrente; cada bloque se esconde si tapa a tu Mii
  const mC=relleno(new THREE.MeshLambertMaterial({map:pat})),mF=new THREE.MeshLambertMaterial({flatShading:true}),mV=new THREE.MeshBasicMaterial();
  const lado=(xs,s,arb,b)=>{const Lc=LOTE(),Lv=LOTE(),Lf=LOTE();xs.forEach(([a,c])=>fila(Lc,Lv,Lf,a,c,s,arb));const G=new THREE.Group();
-  const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));if(!CRU)RT.add(G);zona([G],b)};   // ?crudo: sin los vecinos de código   // la casona: vecinos más bajos (S), los árboles no
+  const Gs=new THREE.Group();Gs.scale.y=EE().S;G.add(Gs);Gs.add(Lc.mesh(mC));if(Lv.n())Gs.add(vidrio(Lv.mesh(mV)));if(Lf.n())G.add(Lf.mesh(mF));if(!CRU){RT.add(G);VIEJO.push(G)}zona([G],b)};   // ?crudo: sin los vecinos de código   // la casona: vecinos más bajos (S), los árboles no
  lado(bM?[[90,215]]:[[LX,80],[90,215]],1,true,[LX+.05,400,-2,80,-90,FZ-.05]);
  lado(bM?[[-90,-215]]:GLB()?[[TR[0],-80],[-90,-215]]:[[-LX,-80],[-90,-215]],1,true,[-400,-LX-.05,-2,80,-90,FZ-.05]);
  lado(bE?[[-215,-90],[90,215]]:[[-215,-90],...fuera(-80,80),[90,215]],-1,false,[-400,400,-2,80,ZE+.05,200]);
@@ -177,7 +177,11 @@ function tramo(RT){if(!window.CGLB||!window.CMAT)return;
   const cp=r.getObjectByName('calle_laurel_copa');if(cp)zona([cp],[-37,-23,6.6,13,14.5,28.3]);tema()}).catch(e=>console.warn('[CCALLE] calle.glb',e))}
 // el barrio horneado: CMAT con su luz (el arroyo ya viene a su altura); copas con viento; faroles de la plaza (farolb) y ventanas
 // prendidas al azar (ventana) se encienden de noche; el horizonte sin luz horneada ni niebla, con su color por vértice y tinte de noche
-function barrio(RT){if(!window.CGLB||!window.CMAT)return;
+// con todo el barrio horneado cargado se quita lo viejo de código (como ?crudo): vecinos, campo, patio y traspatio de la casa vieja,
+// casas y árboles lejanos de CIELO. Si una pieza falla, lo viejo se queda de respaldo.
+function quitaViejo(){VIEJO.forEach(g=>{if(g.parent)g.parent.remove(g)});VIEJO.length=0;const C=window.CIELO;if(!C||!C.mundo)return;
+ C.mundo.children.filter(o=>/^(campo|patio|tras)$/.test(o.name)).forEach(o=>C.mundo.remove(o));(C.lejos||[]).forEach(o=>{if(o&&o.parent)o.parent.remove(o)})}
+function barrio(RT){if(!window.CGLB||!window.CMAT)return;const ks=Object.keys(BV).filter(BAR);let n=0;
  Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/'+(CRU?'crudo/':'')+'barrio_'+k,v=BV[k]||'p'+Date.now();
   CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;
    r.traverse(o=>{if(o.isMesh&&o.material&&/^(farolb|ventana|horizonte)$/.test(o.material.name))esp.push([o,o.material.name])});
@@ -185,7 +189,7 @@ function barrio(RT){if(!window.CGLB||!window.CMAT)return;
    esp.forEach(([o,n])=>{o.material=n==='horizonte'?tinte(new THREE.MeshBasicMaterial({vertexColors:true,fog:false,side:THREE.DoubleSide}))
     :FB[n]||(FB[n]=new THREE.MeshBasicMaterial({toneMapped:false}));o.matrixAutoUpdate=false;o.updateMatrix()});
    if(window.PASTO&&PASTO.viento)r.traverse(o=>{if(o.isMesh&&/_copa$/.test(o.name))PASTO.viento(o.material,o)});
-   RT.add(r);tema()}).catch(e=>console.warn('[CCALLE] barrio_'+k,e))})}
+   RT.add(r);tema();if(++n===ks.length&&!CRU)quitaViejo()}).catch(e=>console.warn('[CCALLE] barrio_'+k,e))})}
 
 // ---------- una fila de casas vecinas entre xa y xb; s=1 de este lado (miran a +z), s=-1 enfrente ----------
 const PAL=[0xe8a0a8,0xe2b452,0x7fa8d0,0x8cbf88,0xf0e4cc,0xd9785a,0xc9d6a0,0xf2c49b,0xa9d4cc,0xdcb8d8],MADS=[0x2f6b4a,0x5a3418,0x2a4f7a,0x7a2a22,0x3a2a1a],
