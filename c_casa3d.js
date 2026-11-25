@@ -125,7 +125,7 @@ addEventListener('orientationchange',()=>[250,700].forEach(t=>setTimeout(()=>{IW
   else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
   else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}
   else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
- addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
+ addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>{keys.clear();suelta()});document.addEventListener('visibilitychange',()=>{if(document.hidden){keys.clear();suelta()}});   // al irte a otra ventana o pestaña no llegan keyup ni pointerup: nada se queda apretado
  // barra de cámara: dejar presionado repite
  const stopRep=()=>{if(camRep){clearTimeout(camRep.t);clearInterval(camRep.i);camRep=null}};
  document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-cam]');if(!b||!active())return;e.preventDefault();stopRep();const c=b.dataset.cam;
@@ -418,11 +418,13 @@ function pMove(e){if(!active())return;
    return}}
  if(!st){if(e.pointerType==='mouse'){const h=pick(e);cv.style.cursor=h&&(h.t=='table'||h.t=='link'||h.t=='fn'||h.t=='cub'||h.t=='c4'||h.t=='bg')?'pointer':'default';if(window.ETQ)ETQ.hov(hk(h))}return}
  if(e.pointerId!==st.pid)return;
+ if(e.pointerType==='mouse'&&!e.buttons){suelta();return}   // soltaste el botón fuera de la ventana
  // primera persona: arrastrar = mirar alrededor (a la derecha = miras a la derecha)
  if(fpOn()){if(st.g||Math.hypot(e.clientX-st.x,e.clientY-st.y)>6){st.g=1;VT.a=st.a0-(e.clientX-st.x)*.006;VT.t=st.t0-(e.clientY-st.y)*.004;snap()}return}
  if(st.rot){VT.a=st.a0+(e.clientX-st.x)*.007;VT.t=st.t0+(e.clientY-st.y)*.005;snap();return}
  // arrastrar (ratón o dedo) = girar la cámara alrededor de tu Mii, como en Roblox
  if(st.g||st.pan||Math.hypot(e.clientX-st.x,e.clientY-st.y)>8){st.g=1;cv.style.cursor='grabbing';VT.a=st.a0-(e.clientX-st.x)*.008;VT.t=st.t0+(e.clientY-st.y)*.005;snap()}}
+function suelta(){st=null;pin=null;tch.clear();if(cv)cv.style.cursor='default'}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}
  if(s.pan||s.rot||s.g){cv.style.cursor='default';return}const rc=cv.getBoundingClientRect(),h=pick(locked()?{clientX:rc.left+rc.width/2,clientY:rc.top+rc.height/2}:e);if(!h)return;
  // en el celular el primer toque solo enseña el detalle de la etiqueta; el segundo entra

@@ -9,7 +9,7 @@ const escribe=e=>{const t=e.target;return t&&(t.tagName==='INPUT'||t.tagName==='
 addEventListener('keydown',e=>{if(escribe(e))return;if(Q&&e.code==='KeyF'&&!e.repeat){on=!on;ini=false;K.clear();return}
  if(!on||!COD[e.code])return;K.add(e.code);e.preventDefault();e.stopImmediatePropagation()},true);
 addEventListener('keyup',e=>{if(!on||!COD[e.code])return;K.delete(e.code);e.stopImmediatePropagation()},true);
-addEventListener('blur',()=>K.clear());
+addEventListener('blur',()=>{K.clear();arr=null});document.addEventListener('visibilitychange',()=>{if(document.hidden){K.clear();arr=null}});
 const lienzo=e=>e.target&&e.target.tagName==='CANVAS';
 addEventListener('pointerdown',e=>{if(!on||!lienzo(e))return;arr={x:e.clientX,y:e.clientY,id:e.pointerId};e.stopImmediatePropagation()},true);
 addEventListener('pointermove',e=>{if(!on||!arr||e.pointerId!==arr.id)return;yaw-=(e.clientX-arr.x)*.005;pit=Math.max(-1.5,Math.min(1.5,pit-(e.clientY-arr.y)*.005));arr.x=e.clientX;arr.y=e.clientY;e.stopImmediatePropagation()},true);
