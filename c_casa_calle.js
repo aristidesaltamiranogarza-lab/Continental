@@ -194,7 +194,7 @@ function recorta(r){r.updateMatrixWorld(true);r.traverse(o=>{if(!o.isMesh||!/_(c
  const q=[];for(let t=0;t<I.count;t+=3){const a=I.getX(t),b=I.getX(t+1),c=I.getX(t+2);if(!(dentro[a]||dentro[b]||dentro[c]))q.push(a,b,c)}
  if(q.length<I.count){g.setIndex(q);g.computeBoundingSphere()}})}
 function barrio(RT){if(!window.CGLB||!window.CMAT)return;const ks=Object.keys(BV).filter(BAR);let n=0;
- Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/'+(CRU?'crudo/':'')+'barrio_'+k,v=BV[k]||'p'+Date.now();
+ Object.keys(BV).forEach(k=>{if(!BAR(k))return;const u='modelos/casona/'+(CRU?'crudo/':'')+'barrio_'+k,v=CRU?'c'+Date.now():BV[k]||'p'+Date.now();   // crudo: siempre fresco (con BV fijo salía el de caché)
   CGLB.cargador().then(Ld=>Ld.loadAsync(u+'.glb?v='+v)).then(gl=>{const r=gl.scene,esp=[];r.name='barrio_'+k;r.traverse(o=>{const a=o.userData&&o.userData.alto;if(a&&a.v)AL=a});
    r.traverse(o=>{if(o.isMesh&&o.material&&/^(farolb|ventana|horizonte)$/.test(o.material.name))esp.push([o,o.material.name])});
    if(k!=='horizonte')CMAT.aplicar(r,CRU?null:u+'_luz.webp?v='+v);
