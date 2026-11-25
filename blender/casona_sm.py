@@ -27,7 +27,7 @@ P.COLOR.update(piedra=(.5, .45, .39), tabique=(.42, .2, .14), zoclo=(.26, .23, .
                alfombra=(.34, .07, .09), ladrillo=(.55, .28, .18), losa_s=(.45, .42, .37), cemento=(.27, .26, .24), tierra=(.16, .13, .1),
                botellas=(.18, .22, .14), barrica=(.4, .24, .13), cuero=(.3, .09, .07), madera_osc=(.18, .1, .06), duela=(.48, .3, .18),
                techo=(.45, .41, .36), foco=(1, .82, .55))
-P.EMITE['foco'] = 8
+P.EMITE['foco'] = 8; P.COLOR['led'] = (1, .66, .36); P.EMITE['led'] = 1.5     # tiras LED tenues
 P.PRIO_MAT.update(piedra=1.4, tabique=1.3, tapiz_vino=1.3, tapiz_verde=1.3, lambrin_s=1.2, techo=.7, tierra=.2)   # R4: techo .35 -> .7 y prio .3 -> .9 (salía a 2 tx/m; pb 12.4)
 P.MUROS = P.MUROS + ('piedra', 'zoclo', 'lambrin_s', 'tapiz_vino', 'tapiz_verde', 'tabique')
 bmn, ex, vacio, caja, caja_l, quad, disco, tubo, T = P.bmn, P.ex, P.vacio, P.caja, P.caja_l, P.quad, P.disco, P.tubo, P.T
@@ -209,7 +209,7 @@ def sotano_vida():
     tubo(MO, (10.6, 0, 28.9), (10.6, 1.35, 28.9), .06, .07, 10); P.anillo(MO, 10.6, 28.9, 0, .3, 0, .04, 14); tubo(MA, (10.6, 1.35, 28.9), (10.6, 1.41, 28.9), .45, .45, 20)
     for bx, bz in ((9.75, 28.9), (10.6, 28.05)): banco(MO, CU, bx, bz, 1.05); obs += T(bx, bz) + [.35]
     tubo(BO, (10.5, 1.41, 28.85), (10.5, 1.7, 28.85), .05, .05, 10); obs += T(10.6, 28.9) + [.6]
-    P.cuadro('sm_vida', .165, 2.1, 26.6, 1.3, .85, 1, 0, 0); P.cuadro('sm_vida', 4.0, 2.1, 29.835, .8, 1.0, 0, -1, 1); P.cuadro('sm_vida', 8.0, 2.1, 29.835, .8, 1.0, 0, -1, 1)
+    P.cuadro('sm_vida', .165, 2.1, 27.75, 1.3, .85, 1, 0, 0); P.cuadro('sm_vida', 4.0, 2.1, 29.835, .8, 1.0, 0, -1, 1); P.cuadro('sm_vida', 8.0, 2.1, 29.835, .8, 1.0, 0, -1, 1)
     P.maceton('sm_vida', 1.0, 29.0, .9, obs)
     # pasillo: cuadros entre los arbotantes del muro del patio, banca y plantas
     for cx, t in ((14.0, 2), (20.0, 0), (26.0, 1)): P.cuadro('sm_vida', cx, 1.95, 13.835, 1.0, .75, 0, -1, t)
@@ -278,12 +278,18 @@ def lamparas():
         L_.append(('POINT', (x + nx * .5, 2.45, z + nz * .5), 30 * LUZ, .1))
     # focos colgados sobre la barra
     F, HI = bmn('sm_focos', 'foco', luz=False), bmn('sm_focos_hierro', 'hierro', luz=False)
-    for fx in (6.6, 9.2, 11.8):
-        caja(F, fx - .1, fx + .1, 2.3, 2.5, 1.3, 1.5); caja(HI, fx - .01, fx + .01, 2.5, H, 1.39, 1.41)
-        L_.append(('POINT', (fx, 2.35, 1.4), 45 * LUZ, .1))
+    def colgante(x, z, yb, r, E):   # cable, pantalla de lámina y foco asomado; la luz bajo la pantalla (sin círculo en el techo)
+        caja(HI, x - .012, x + .012, yb + r * .8, H, z - .012, z + .012)
+        tubo(HI, (x, yb + r * .8, z), (x, yb, z), r * .28, r, 10)
+        tubo(F, (x, yb + .05, z), (x, yb - r * .25, z), r * .5, r * .3, 8)
+        L_.append(('POINT', (x, yb - r * .6, z), E * LUZ, r * .4))
+    for fx in (6.6, 9.2, 11.8): colgante(fx, 1.4, 2.42, .17, 45)          # sobre la barra
     for x, z, E in ((4, 5.5, 70), (10, 6.5, 50), (4, 13.5, 45), (16, 12, 35), (24, 12, 35), (6, 20, 40), (6, 27.5, 40),
                     (32, 13, 35), (32, 18.5, 30), (18, 8.5, 60), (26, 8.5, 60), (34, 8, 40)):
-        L_.append(('POINT', (x, 2.85, z), E * LUZ, .4))
+        colgante(x, z, 2.62, .3, E)
+    LED = bmn('sm_led', 'led', luz=False)    # tiras LED cálidas bajo el techo del pasillo y de la cava (emisivo horneado, sin costo)
+    for zf in (10 + h + .03, 14 - h - .03): caja(LED, 8 + h, 28 - h, 3.06, 3.1, zf - .02, zf + .02)
+    for xf in (28 + h + .03, 36 - h - .03): caja(LED, xf - .02, xf + .02, 3.06, 3.1, 10 + h, 20 - h)
     L_ += [('SPOT', (19.0, 3.1, 2.8), 420, 0), ('SPOT', (30.2, 3.1, 2.6), 380, 0), ('SPOT', (24.8, 3.1, 6.5), 300, 0), ('SPOT', (6, 3.1, 23.4), 420, 0), ('SPOT', (32, 3.1, 25), 300, 0)]
 
 def oscuro(sc):
@@ -306,6 +312,8 @@ def armar():
     for d in P.B.values(): d['mat'] = REMAP.get(d['mat'], d['mat'])
     forros(); dinteles(); pisos(); techos(); escalera(); muebles(); sotano_vida(); marcas(); lamparas()
     col = P.coleccion('sm'); obs = P.crear(col)
+    for o in col.objects:   # las pantallas no echan sombra: sin mancha oscura en el techo sobre cada colgante
+        if o.name.startswith('sm_focos'): o.visible_shadow = False
     ms = N['mesas']; N['mesas'] = [m for m in ms if m[0] == 'ruleta']   # sombra redonda solo para la mesa redonda (el póker es óvalo: px_sm)
     try: P.luces(sc)
     finally: N['mesas'] = ms

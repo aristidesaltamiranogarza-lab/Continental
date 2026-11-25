@@ -371,7 +371,7 @@ def arbol(nom, cx, cz, R, alto, n=5, prio=1.0):
     """Árbol de patio: tronco que a 'alto' se abre en n ramas con nubes de hojas planas; la copa cabe en ~R (no toca los corredores)."""
     TR = bmn('pb_' + nom + '_tronco', 'tronco'); CP = bmn('pb_' + nom + '_copa', 'copa', prio=prio)
     arbol_ramas(random.Random(int(cx * 7 + cz * 3)), TR, [(CP, 1)], cx, cz, 1.0, 0, alto + 2.9, alto, n,
-                (alto + 1.3, alto + 2.4), (R * .3, R * .45), (R * .35, R * .43), 2, .58, rtr=.44)
+                (alto + 1.3, alto + 2.4), (R * .3, R * .45), (R * .35, R * .43), 3, .58, rtr=.44)   # sub 3 como los árboles del kit
 
 def patio():
     x, z, R = ARBOL
@@ -681,10 +681,9 @@ def maceton(pre, x, z, s=1.0, obs=None):
     """Macetón de barro con mata de hojas (s = escala)."""
     MT, HO = bmn(pre + '_macetas', 'barro'), bmn(pre + '_macetas_hojas', 'copa')
     tubo(MT, (x, 0, z), (x, .7 * s, z), .3 * s, .4 * s, 14); anillo(MT, x, z, .32 * s, .44 * s, .7 * s, .78 * s, 14)
-    for k in range(6):
-        a = k * 2 * math.pi / 6 + s
-        bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.34 * s, matrix=Matrix.Translation(V(x + math.cos(a) * .22 * s, (1.02 + .14 * (k % 2)) * s, z + math.sin(a) * .22 * s)) @ Matrix.Diagonal((1, 1, .8, 1)))
-    bmesh.ops.create_icosphere(HO, subdivisions=1, radius=.3 * s, matrix=Matrix.Translation(V(x, 1.3 * s, z)))
+    bl = [(x + math.cos(k * 2 * math.pi / 5 + s) * .22 * s, (1.0 + .12 * (k % 2)) * s, z + math.sin(k * 2 * math.pi / 5 + s) * .22 * s, .3 * s)
+          for k in range(5)] + [(x, 1.28 * s, z, .3 * s)]
+    nube_mb(HO, bl, .85, max(.1, .14 * s), .76 * s)     # nube fundida como las copas del kit (antes icosaedros facetados)
     if obs is not None: obs += T(x, z) + [.5 * s]
 
 def tapete_r(pre, x0, z0, x1, z1, mat='tapete', y=.012):

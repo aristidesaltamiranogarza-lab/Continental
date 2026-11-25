@@ -132,6 +132,7 @@ function aplicar(root,luzUrl,fin,falla){const H=window.CASA3D;if(!H||!H.ctex){if
  const material=(m,luz)=>{const n=(m&&m.name)||'x',k=n+(luz?'+':'');if(MAT[k])return MAT[k];let r;
   if(n==='arbotante')r=new THREE.MeshBasicMaterial({color:0xffe2b0,toneMapped:false});
   else if(n==='farol'||n==='foco')r=new THREE.MeshBasicMaterial({color:0xffd08a,toneMapped:false});
+  else if(n==='led')r=new THREE.MeshBasicMaterial({color:0xffb46e,toneMapped:false});
   else if(n==='hierro')r=new THREE.MeshBasicMaterial({color:0x1d1814});
   else{const o=Object.assign({color:tx[n]?0xffffff:(m&&m.color?m.color.getHex():0xcccccc)},tx[n]||{});if(luz){o.lightMap=lm;o.lightMapIntensity=Math.PI*4*A.luz}r=CR?new THREE.MeshLambertMaterial(o):new THREE.MeshBasicMaterial(o);if(luz)cubica(r)}
   if(n==='fachada')r.vertexColors=true;
