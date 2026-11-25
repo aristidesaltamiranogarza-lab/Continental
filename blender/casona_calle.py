@@ -235,6 +235,8 @@ if __name__ == '__main__':
     sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))
+    elif acc == 'uvs':        # R4: solo desenvuelve y diagnostica (sin hornear)
+        exec(open(os.path.join(DIR, 'blender', 'luz_diag.py'), encoding='utf-8').read(), P.__dict__); P.uv_luz(obs); P.densidad(obs, P.K['RES'])
     elif acc == 'hornear':
         res = int(arg[1]) if len(arg) > 1 else K['RES']; mu = int(arg[2]) if len(arg) > 2 else K['SAMPLES']
         P.uv_luz(obs); img = P.hornear(sc, obs, res, mu); P.guardar(img); P.exportar(col)

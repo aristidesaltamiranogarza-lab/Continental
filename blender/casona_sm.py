@@ -28,7 +28,7 @@ P.COLOR.update(piedra=(.5, .45, .39), tabique=(.42, .2, .14), zoclo=(.26, .23, .
                botellas=(.18, .22, .14), barrica=(.4, .24, .13), cuero=(.3, .09, .07), madera_osc=(.18, .1, .06), duela=(.48, .3, .18),
                techo=(.45, .41, .36), foco=(1, .82, .55))
 P.EMITE['foco'] = 8
-P.PRIO_MAT.update(piedra=1.4, tabique=1.3, tapiz_vino=1.3, tapiz_verde=1.3, lambrin_s=1.2, techo=.35, tierra=.2)
+P.PRIO_MAT.update(piedra=1.4, tabique=1.3, tapiz_vino=1.3, tapiz_verde=1.3, lambrin_s=1.2, techo=.7, tierra=.2)   # R4: techo .35 -> .7 y prio .3 -> .9 (salía a 2 tx/m; pb 12.4)
 P.MUROS = P.MUROS + ('piedra', 'zoclo', 'lambrin_s', 'tapiz_vino', 'tapiz_verde', 'tabique')
 bmn, ex, vacio, caja, caja_l, quad, disco, tubo, T = P.bmn, P.ex, P.vacio, P.caja, P.caja_l, P.quad, P.disco, P.tubo, P.T
 REMAP = dict(muro='piedra', lambrin='zoclo', rod='zoclo')
@@ -83,7 +83,7 @@ def pisos():
 
 def techos():
     for x, z, w, d, k, tin, n in N['areas']:
-        if k is None: (P.quad_hueco if n == 'escalera' else quad)('sm_techo', 'techo', x, z, x + w, z + d, H - .02, arriba=False, prio=.3)
+        if k is None: (P.quad_hueco if n == 'escalera' else quad)('sm_techo', 'techo', x, z, x + w, z + d, H - .02, arriba=False, prio=.9)
 
 def escalera(): P.escalera_u('sm', 'nm1', 'piedra')   # escalera en U (blender/casona_esc.py)
 
@@ -326,6 +326,8 @@ if __name__ == '__main__':
     sc, col, obs = armar()
     if acc == 'vista':
         vistas(sc, arg[1] if len(arg) > 1 else os.path.join(DIR, 'blender'))
+    elif acc == 'uvs':        # R4: solo desenvuelve y diagnostica (sin hornear)
+        exec(open(os.path.join(DIR, 'blender', 'luz_diag.py'), encoding='utf-8').read(), P.__dict__); P.uv_luz(obs); P.densidad(obs, P.K['RES'])
     elif acc == 'hornear':
         res = int(arg[1]) if len(arg) > 1 else K['RES']; mu = int(arg[2]) if len(arg) > 2 else K['SAMPLES']
         P.uv_luz(obs); img = P.hornear(sc, obs, res, mu); P.guardar(img); P.exportar(col)

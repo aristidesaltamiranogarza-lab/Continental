@@ -140,6 +140,14 @@ El usuario lo revisó volando sobre el barrio sin hornear. Todo va en los script
 - [ ] P5. Revisar con `?crudo` + VUELO desde la azotea (pretil ya en 1.4) y desde el aire; después hornear todo junto (paso 6 de "Siguiente").
 Presupuesto: barrio_lib `presupuesto(col, *topes)` limita mallas/triángulos por pieza; si el parque no cabe en barrio_enfrente, hacer un `blender/barrio_parque.py` nuevo (con `B = cargar('parque')` como los demás), agregarlo a `BV` en c_casa_calle.js (`parque:0`) y exportarlo a crudo/.
 
+## Horneado de la noche del 25 nov (estado; se actualiza al terminar cada nivel)
+Reglas: día a 1000 muestras, noche a la mitad (NOCHE_MU en hornear_noche de casona_pb.py), `-- uvs` antes, revisar de cerca después, subir cada nivel al terminar.
+`-- uvs` (atlas usado; tx/m p50): pb 60%, muro 19.3, techo 12.4 (25 nov, sin cambios de geometría) · sm 62%, piedra 25.9, techo 11.7 (subido de 2.0: techo prio .3 a .9 y PRIO_MAT .35 a .7), ladrillo 18.5 · az 61%, muro 12.0 (p10 7.5), cantera 15.0, ladrillo 25.7, techo 6.4 · calle 77%, fachada 14.9 (p10 1.5), calle 4.0, banqueta 5.8. Ahora `-- uvs` también existe en casona_pa/sm/az/calle.py.
+Comandos (desde la carpeta del repo, en bash; en PowerShell anteponer `& "C:\Program Files\Blender Foundation\Blender 5.3\blender.exe"` en lugar de blender):
+- casa: `blender -b --factory-startup --python blender/casona_<pb|pa|sm|az|calle>.py -- hornear` (2048, 1000; noche a 500). pb y pa se hornearon antes de V7: después `-- marcas` en cada uno (mete cuarto_/portal_ al GLB sin hornear).
+- barrio: `blender -b --factory-startup --python blender/barrio_<manzana|enfrente|plaza|baldio|parque>.py -- hornear 2048 1000`; horizonte: `-- exportar`. Después `node glb_cuantizar.js` (ver su cabecera) y subir BV en c_casa_calle.js.
+- Estado:
+
 ## Pendientes (pedidos por el usuario, 22 nov)
 - [x] Escalera (ver R10): se ve vacía y no lleva a ningún lado (tramos sueltos en un cubo pelón, en PB y en el sótano). Rehacerla con barandal, descanso y hueco que suba de verdad; va a tomar tiempo.
 - [x] Casino del sótano: la posición de las mesas de Póker y Blackjack se ve rara (sillas encimadas, mesas apretadas); reacomodar en los empties de `casona_sm.py`.
