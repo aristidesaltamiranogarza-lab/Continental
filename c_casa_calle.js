@@ -63,7 +63,7 @@ function fondo(R,cam,SC,p){if(!EXT||!window.CIELO||!CIELO.fondo)return false;if(
  CIELO.fondo(R,cam,p);
  // con tu Mii dentro de la casa lo de afuera solo es fondo: su profundidad no tapa la casa (calle.glb trae los cuartos del frente
  // de la planta alta para verlos desde la banqueta, y con la cámara arriba del zaguán tapaban media pantalla)
- if(av&&Math.abs(av.x)<18.2&&av.z>-17.2&&av.z<EE().fz-.2)R.clearDepth();   // solo bajo techo: en el jardín de atrás o el traspatio la casa se dibujaba encima de todo
+ if(av&&av.z<EE().fz-.2&&Math.abs(cam.position.x)<18.2&&cam.position.z>-17.2&&cam.position.z<EE().fz)R.clearDepth();   // y la cámara sobre la casa: con la cámara afuera (jardín, vista de lejos) la casa se dibujaba encima de todo
  for(const z of ZON)z.o.forEach(o=>o.visible=true);lj.forEach(o=>o.visible=true);return true}
 
 // ---------- armado (cada vez que se arma la planta baja; lo de afuera solo una vez) ----------
