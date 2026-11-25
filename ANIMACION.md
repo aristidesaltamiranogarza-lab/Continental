@@ -30,10 +30,10 @@ Meta: animaciones como de juego bien hecho (quieto, caminar, sentarse, brincar, 
 - [x] Asientos de descanso a 0.6 (commit d3227b2).
 - [x] Quieto y Camina en el juego (commit 64ddbdc). Revisado en Blender; en el juego solo por datos (sin probar en teléfono).
 - [x] Sentarse, Sentado, Levantarse y Trota (anim.glb ?v=2). `AV.sentar(p,si,anim)`: anim=true (asientos de la casa, c_casa_sentar.js) toca Sentarse/Levantarse; la cadera solo se desliza al frente/atrás (el clip baja 0.30 a su silla; en asientos de 0.6 la cadera sentada queda a la altura de parado). Sentado es el primer cuadro, quieto (el loop solo mueve 2–3°; así no se anima cada cuadro). En la mesa (pose que no es Reposo) solo las piernas, las manos siguen con las cartas. Reemplaza el doblez por código (queda si no carga anim.glb).
+- [x] Levantarse sin salto: SENT.paso deja `a.lev` y walk (c_casa3d.js) desliza el grupo del asiento al frente (1.2) durante el clip, con suavizado.
 - [x] Pies que patinaban: la casa va a 5.2/s (trote para un personaje de 2.0), así que ahí se usa Trota (`AV.mueve({tr:1})`, avanza 1.57 por ciclo) y `ph+=mv*4` (2π/4 = 1.57). Quitado el sube/baja por código cuando hay clips.
 
 ## Siguiente
 - [ ] Revisar en teléfono: sentarse/levantarse en asientos de la casa y el trote al caminar (solo revisado en Blender y por datos).
-- [ ] Levantarse: SENT.paso te pone 1.2 al frente de golpe y el clip solo avanza 0.18; si se nota el salto, deslizar el grupo durante el clip.
 - [ ] Brincar.
 - [ ] Poses del juego por IK: cartas en la mano, repartir, pistola a la sien (ya hay PistolaSien en rig.py), cargar al gato (falló antes por poner ángulos a ojo).

@@ -1,7 +1,8 @@
 // c_casa_sentar.js — SENT: sentarte en sillas, bancos y sillones sueltos de la casa (los de las mesas de juego no).
 // SENT.reg(grupo,{h,dz,fy}) marca un asiento: h = altura del cojín en el mundo, dz = centro del cojín en z local, fy = giro extra del frente
 // (el frente es +z local). c_casa3d.js: SENT.toca(ray) al tocar el piso (camina al frente del asiento), SENT.llega(me) al llegar,
-// SENT.paso(me, mover) cada cuadro: mientras estás sentado devuelve true; moverte (teclas, joystick u otro destino) te levanta.
+// SENT.paso(me, mover) cada cuadro: mientras estás sentado devuelve true; moverte (teclas, joystick u otro destino) te levanta;
+// con el clip Levantarse, a.lev desliza el grupo del asiento al frente mientras dura (c_casa3d.js lo aplica en walk).
 (function(){
 if(typeof THREE==='undefined')return;
 const L=[],UP=new THREE.Vector3(0,1,0),v3=(x,y,z)=>new THREE.Vector3(x,y,z);let on=null,pend=null;
@@ -12,8 +13,8 @@ function spot(o){o.updateMatrixWorld(true);const s=o.userData.sent,p=o.localToWo
 function toca(ray){let best=null,bd=1e9;L.forEach(o=>{if(!vis(o))return;const r=ray.intersectObject(o,true);if(r.length&&r[0].distance<bd){bd=r[0].distance;best=o}});
  pend=best;return best?spot(best).p.setY(0):null}   // caminas al asiento mismo (solve te deja junto a él)
 function llega(a){const o=pend;pend=null;if(!o||!a)return false;const s=spot(o);if(Math.hypot(a.pos.x-s.p.x,a.pos.z-s.p.z)>3.2)return false;
- const h=o.userData.sent.h,g=a.g,b=s.p.clone().addScaledVector(s.f,-.25);on={s};a.pos.set(s.p.x,a.pos.y,s.p.z);a.yaw=s.yaw;g.rotation.y=s.yaw;a.w=0;
+ const h=o.userData.sent.h,g=a.g,b=s.p.clone().addScaledVector(s.f,-.25);on={s};a.lev=null;a.pos.set(s.p.x,a.pos.y,s.p.z);a.yaw=s.yaw;g.rotation.y=s.yaw;a.w=0;
  if(g.userData.av&&window.AV){AV.sentar(g,true,true);AV.pose(g,"Reposo",0);g.position.set(b.x,h-.7,b.z)}else g.position.set(s.p.x,h+.25,s.p.z);return true}
-function paso(a,mover){if(!on)return false;if(!mover)return true;const s=on.s;on=null;if(a){a.pos.set(s.front.x,a.pos.y,s.front.z);if(a.g.userData.av&&window.AV)AV.sentar(a.g,false,true)}return false}
+function paso(a,mover){if(!on)return false;if(!mover)return true;const s=on.s;on=null;if(a){a.pos.set(s.front.x,a.pos.y,s.front.z);const u=a.g.userData.av,C=u&&u.capa&&u.capa.Levantarse;if(C){const p=a.g.position.clone().addScaledVector(s.f,.22*a.g.scale.x);a.lev={p,t:performance.now(),d:C.d*1000}}if(u&&window.AV)AV.sentar(a.g,false,true)}return false}
 window.SENT={reg,toca,llega,paso,sentado:()=>!!on,lista:()=>L};
 })();

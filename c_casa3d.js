@@ -310,7 +310,7 @@ function walk(dt,now){if(window.SENT&&SENT.paso(me,keys.size||(window.JOY&&JOY.o
  a.w+=((mv>.001?1:0)-a.w)*.15;a.ph+=mv*4;
  // mirar hacia la mesa al llegar
  const t=sel&&TB.find(x=>x.g===sel);if(t&&!mv)a.yaw=Math.atan2(t.x-p.x,t.z-p.z);if(fpOn()&&!mv)a.yaw=VW.a+Math.PI;   // en primera persona miras hacia donde ve la cámara
- turn(a,a.yaw);a.g.position.set(p.x,GY(a.g)+(FL.gy?FL.gy(p.x,p.z):0)+(window.JOY&&JOY.sy?JOY.sy(now):0),p.z);pose(a,now,!!sel);
+ turn(a,a.yaw);a.g.position.set(p.x,GY(a.g)+(FL.gy?FL.gy(p.x,p.z):0)+(window.JOY&&JOY.sy?JOY.sy(now):0),p.z);if(a.lev){const k=1-(performance.now()-a.lev.t)/a.lev.d;if(k<=0)a.lev=null;else a.g.position.lerp(a.lev.p,k*k*(3-2*k))}pose(a,now,!!sel);   // al levantarte: del asiento a donde quedas (c_casa_sentar.js)
  // ¿cerca de la mesa que picaste? abre su ventanita (solo si la elegiste con clic o Ir a…; si te alejas se olvida)
  let near=null;TB.forEach(x=>{const dd=Math.hypot(p.x-x.x,p.z-x.z);x.near=dd<x.r+2.3&&!(x.to&&canGo(x.to));if(x.near&&!near)near=x.g;x.ring.material.opacity+=((x.near?.75:0)-x.ring.material.opacity)*.12});
  // caminar hasta una puerta que lleva a otro piso (o a la escalera) = cambiar de piso
