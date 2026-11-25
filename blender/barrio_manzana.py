@@ -11,7 +11,7 @@ def cancha(B):
     """P3: cancha de fútbol rápido entre los patios (x 61..85, z 45..59): pasto con franjas y rayas blancas, dos porterías,
     gradita de tres escalones del lado del fondo y barda baja alrededor con entradas en las esquinas. Ligera: cajas planas."""
     P, fa, Y = B.P, B.FA(), B.YS + .02; x0, x1, z0, z1 = 61, 85, 45, 59; bl = B.PAL['blanco']; cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
-    P.quad('manzana_cancha', 'pasto', x0 - .5, z0 - .5, x1 + .5, z1 + .5, y=Y, prio=.3)
+    B.pieza(fa, B.lin('#76a457'), B.caja_o, x0 - .5, x1 + .5, Y - .02, Y, z0 - .5, z1 + .5)   # pasto de cancha propio (el material pasto del juego lo tiñe a seco)
     for i in range(0, 12, 2): B.pieza(fa, B.lin('#5e8c45'), B.caja_o, x0 + i * 2, x0 + i * 2 + 2, Y, Y + .01, z0, z1)   # franjas
     r = .08
     for a, b, c, d in ((x0, x1, z0, z0 + r), (x0, x1, z1 - r, z1), (x0, x0 + r, z0, z1), (x1 - r, x1, z0, z1), (cx - r / 2, cx + r / 2, z0, z1),
