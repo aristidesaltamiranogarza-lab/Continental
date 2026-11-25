@@ -307,6 +307,8 @@ def vistas(sc, carpeta):
     P.vista(sc, os.path.join(carpeta, 'pa_corredor.png'), (18, 11, 6), (18, -3, 22), ('pa_muro_h0_', 'pa_muro_h100_', 'pa_dintel_h140', 'pa_techo'))
     P.vista(sc, os.path.join(carpeta, 'pa_todo.png'), (18, 30, -14), (18, 0, 15), ('pa_muro_h0_', 'pa_techo'))
     P.vista(sc, os.path.join(carpeta, 'pa_tableros.png'), (28, 10, -6), (28, 0, 5), ('pa_muro_h0_', 'pa_techo'))
+    P.vista(sc, os.path.join(carpeta, 'pa_balcon_t.png'), (6, 6.5, 41), (18, .6, 31.5), ())   # balcón trasero desde el jardín
+    P.vista(sc, os.path.join(carpeta, 'pa_patio_fondo.png'), (18, 2.2, 16), (18, 3.6, 30), ('pa_techo',))   # cornisa del muro del fondo
 
 if __name__ == '__main__':
     arg = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []

@@ -70,7 +70,7 @@ function matas(root,ms,mPasto){let s=13;const r=()=>(s=(s*9301+49297)%233280)/23
  const enTri=(x,z,t)=>{const s=((t[2]-x)*(t[5]-z)-(t[4]-x)*(t[3]-z))/t[6],u=((t[4]-x)*(t[1]-z)-(t[0]-x)*(t[5]-z))/t[6];return s>-.03&&u>-.03&&s+u<1.03};
  const libre=p=>{if(HO.r&&Math.hypot(p.x-HO.x,p.z-HO.z)<HO.r+.15)return false;if(EST.some(e=>p.x>e[0]&&p.x<e[1]&&p.z>e[2]&&p.z<e[3]))return false;const L=GR[Math.floor(p.x/2)+','+Math.floor(p.z/2)];return !L||!L.some(t=>enTri(p.x,p.z,t))};
  const N=Math.min(A.max,Math.round(area*A.dens));if(!N||!T.length)return null;
- const geo=mataGeo(),UV=new Float32Array(N*2),m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});
+ const geo=mataGeo(),UV=new Float32Array(N*2),lm=!!(mPasto&&mPasto.lightMap),m=new THREE[lm?'MeshBasicMaterial':'MeshLambertMaterial']({vertexColors:true,side:THREE.DoubleSide});   // sin hornear (crudo): Lambert con las luces de la escena (Basic brillaba de noche)
  if(mPasto&&mPasto.lightMap){m.lightMap=mPasto.lightMap;m.lightMapIntensity=mPasto.lightMapIntensity}
  geo.setAttribute('uv1',new THREE.InstancedBufferAttribute(UV,2));
  const im=new THREE.InstancedMesh(geo,m,N),q=new THREE.Quaternion(),e=new THREE.Euler(),S=new THREE.Vector3(),P=new THREE.Vector3(),col=new THREE.Color();

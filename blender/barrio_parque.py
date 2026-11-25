@@ -128,7 +128,7 @@ def piezas(B):
     B.pieza(B.M('pasta', 'pasta', prio=.7), None, P.tubo, (CX, YS, CZ), (CX, .1, CZ), RP, RP, 32)
     B.kiosco(CX, CZ, .1)
     # faroles: en la entrada, en el andador y en la plaza del kiosco
-    for x, z in ((EX[0] - .4, -20), (EX[1] + .4, -26), (EX[0] - .4, -28.4), (EX[1] + .4, -38)): B.farol(x, z, YP)
+    for x, z in ((EX[0] - .4, -20), (EX[1] + .4, -26), (EX[0] - .4, -33), (EX[1] + .4, -38)): B.farol(x, z, YP)
     for a in (45, 135, 225, 315):
         r = math.radians(a); B.farol(CX + math.cos(r) * (RP - .6), CZ + math.sin(r) * (RP - .6), .1)
     # bancas de parque a los lados del andador, alternadas (no se miran de frente) y un poco giradas
@@ -145,18 +145,18 @@ def piezas(B):
     B.ceiba(-6, -66, .9); B.ceiba(46, -34, .9)
     B.palmera(14.5, -31, 9.5); B.palmera(24.5, -31.5, 10)
     B.naranjo(28, -58); B.naranjo(11, -58)
-    for x, z in ((24, -44), (-8, -40), (48, -60), (2, -71), (38, -71)): B.agave(x, z, .9, 0)
+    for x, z in ((15, -44), (24, -44), (48, -60), (2, -71), (38, -71)): B.agave(x, z, .9, 0)   # sin el de (−8, −40): ahí van las letras
     for x, z in ((-10, -30), (50, -30), (-10, -56), (50, -48), (20, -72)): B.mata(x, z, 1.1, 0)
     marquesitas(EX[1] + 3.2, CZ + RP + 1.6, math.pi / 2)
     juegos(40, -58)
-    # en el pasto entre el sitio viejo y el andador de entrada, a lo largo del andador y mirándolo (se lee desde la entrada al kiosco)
-    B.girado(-math.pi / 2, 15.8, -35.3, letras_merida, 15.8, -35.3, 'z')
+    # al fondo del parque, junto a la barda baja (x −12), detrás del sitio viejo; corren en z y miran al kiosco (+x)
+    B.girado(-math.pi / 2, -6.0, -38.8, letras_merida, -6.0, -38.8, 'z')
     # barda baja del parque en el fondo y los lados (al frente cierran las espaldas de las casas de enfrente)
     B.barda(X0, Z1, X1, Z1, 1.4); B.barda(X0, Z1, X0, Z0, 1.4); B.barda(X1, Z1, X1, Z0, 1.4)
 
 VISTAS = [('parque_entrada', (19.5, 2.4, -12), (19.5, 3, -40)), ('parque_kiosco', (30, 3.5, -38), (19.5, 3, -52)),
           ('parque_juegos', (30, 3, -48), (40, 1, -60)), ('parque_arriba', (20, 40, 5), (20, 0, -50)),
-          ('parque_letras', (21.5, 2.8, -29.5), (15.8, 1.3, -36))]
+          ('parque_letras', (8, 3.2, -45), (-6, 1.3, -38.8))]
 
 if __name__ == '__main__':
     correr(B, piezas, VISTAS, ctx=('enfrente',), res=2048, muestras=300, topes=(20, 60000))
