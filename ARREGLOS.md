@@ -25,6 +25,17 @@ Para revisar: `?libre` = caminar sin límites ni choques (c_casa3d.js). Árboles
 - [x] Que se vea como la plaza (comparación del usuario): suelo café liso sin textura; bardas iguales en altura y color, sin remate, aplanado ni zoclo; nada de vida (macetas, tendederos, tinacos, sillas, caminos); luz horneada borrosa con sombras grandes sin contacto y rincones sin oclusión; cuartito de caja lisa con puerta plana sin marco; muros traseros de los vecinos lisos, sin ventanas, con una franja verde arriba; naranjo de bolas con naranjas cúbicas (alto)
 - Hecho (planta aprobada con camino curvo): blender/barrio_trasera.py (jardín, sendero curvo de laja, pasto_c sin matas en CMAT, bardas de patio variadas, vida, ventanas atrás), puerta trasera del jardín (gap en casona.py, Bd − G en casona_pb.py), andador de 6, paso de cebra, bx2. GLB crudos exportados; falta hornear manzana, plaza, calle y pb (paso 6), donde se atiende la luz borrosa sin contacto.
 
+## 3b. Llenar el jardín del barrio (el área vacía detrás de la casona, no el traspatio; esfuerzo alto, que quede muy bien)
+En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cenital y a la altura de la gente antes de subir. Poco peso (celular débil).
+- [ ] Arreglar el camino: el tramo de la bifurcación junto a la puerta trasera se ve cortado (dos cintas encimadas con orillas en pico); unirlo en una sola forma con orillas suaves
+- [ ] La zona con hojas de pasto se ve como rectángulo amarillento de orilla recta: forma irregular y mismo tono que pasto_c
+- [ ] Vegetación en manchas en las orillas (matas, agaves, flores), sobre todo al pie de los muros traseros de los vecinos
+- [ ] Dos o tres árboles grandes más (laurel, ceiba) para dar sombra al centro, hoy lo más vacío
+- [ ] Rincón de juego bajo un árbol grande: una o dos mesitas de concreto con bancos (dominó), a un lado del camino
+- [ ] Albarradas: muretes bajos de piedra seca con curvas que acompañen al camino y separen zonas sin parecer bardas
+- [ ] Huerto cerca de la puerta trasera: camas de hortalizas, milpa, chiles y un par de plátanos
+- Orden: vegetación y árboles primero (baratos), luego el rincón de juego, al final albarradas y huerto si aún se ve vacío.
+
 ## 4. Objetos del barrio (Blender)
 - [ ] Rehacer las sillas confidentes blancas (medio; preview)
 - [ ] Rehacer la fuente (medio; preview)
