@@ -18,7 +18,7 @@ const GLB=()=>!!(window.CAJA&&CAJA.on)&&!/[?&]calle=caja\b/.test(location.search
 const fuera=(a,c)=>{if(!GLB())return [[a,c]];const o=[];if(a<TR[0])o.push([a,Math.min(c,TR[0])]);if(c>TR[1])o.push([Math.max(a,TR[1]),c]);return o};
 // el barrio horneado (blender/barrio_*.py): versión de cada pieza que subió la PC; 0 = aún no, va la de código. Cada pieza quita lo de código
 // que reemplaza (manzana: este lado y calles laterales; enfrente: arroyo, acera de enfrente, tope; plaza: el parque de CAMPO). ?barrio=caja: todo de código
-const BV={manzana:4,enfrente:1,plaza:1,baldio:1,horizonte:1,parque:1},FB={},VIEJO=[];   // VIEJO: vecinos de código (se quitan cuando carga el barrio horneado)
+const BV={manzana:4,enfrente:2,plaza:1,baldio:1,horizonte:1,parque:1},FB={},VIEJO=[];   // VIEJO: vecinos de código (se quitan cuando carga el barrio horneado)
 let AL=null;   // rejilla de alturas de las lomas del jardín (extras 'alto' de manzana_pasto_c, en cm, coordenadas del plano)
 function alto(x,z){if(!AL)return 0;const fx=(x+18-AL.x0)/AL.paso,fz=(17-z-AL.z0)/AL.paso;if(!(fx>=0&&fz>=0&&fx<AL.nx-1&&fz<AL.nz-1))return 0;
  const i=fx|0,j=fz|0,u=fx-i,w=fz-j,v=AL.v,n=AL.nx,a=v[j*n+i],b=v[j*n+i+1],c=v[j*n+n+i],d=v[j*n+n+i+1];return(a+(b-a)*u+(c-a)*w+(a-b-c+d)*u*w)/100}
