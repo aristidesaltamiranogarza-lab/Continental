@@ -1006,8 +1006,8 @@ def _dilatar(c, ok, n=6):
         c[nu] = acc[nu] / m[nu][:, None]; ok |= nu
     return c, ok
 
-def _islas(cara):
-    """Etiqueta cada isla del atlas (texeles de cara conectados; entre islas hay ~4 px de fondo)."""
+def _islas_lento(cara):
+    """Versión anterior (propagación por píxel, ~30 min en 2048): solo para comparar en pruebas."""
     import numpy as np
     h, w = cara.shape; lab = np.where(cara, np.arange(1, h * w + 1, dtype=np.int32).reshape(h, w), 0)
     for _ in range(4096):
@@ -1018,6 +1018,27 @@ def _islas(cara):
         if np.array_equal(m, lab): break
         lab = m
     return lab
+
+def _islas(cara):
+    """Etiqueta cada isla del atlas (texeles de cara conectados en 4 direcciones). Tramos por renglón + unión de raíces entre
+    tramos que se tocan arriba/abajo: segundos en vez de ~30 min (la propagación por píxel tardaba en islas largas y delgadas)."""
+    import numpy as np
+    h, w = cara.shape
+    izq = np.zeros_like(cara); izq[:, 1:] = cara[:, :-1]
+    ini = (cara & ~izq).ravel(); n = int(ini.sum())
+    rid = (np.cumsum(ini) * cara.ravel()).reshape(h, w).astype(np.int64)      # id de tramo (0 = fondo)
+    v = cara[:-1] & cara[1:]
+    e = np.unique(rid[:-1][v] * (n + 1) + rid[1:][v]); a, b = e // (n + 1), e % (n + 1)
+    lab = np.arange(n + 1, dtype=np.int64)
+    while True:
+        viejo = lab.copy(); la, lb = lab[a], lab[b]; m = np.minimum(la, lb)
+        np.minimum.at(lab, la, m); np.minimum.at(lab, lb, m)                  # cuelga cada raíz de la menor
+        while True:
+            nl = lab[lab]
+            if np.array_equal(nl, lab): break
+            lab = nl
+        if np.array_equal(lab, viejo): break
+    return lab[rid].astype(np.int32)
 
 def _rellenar(img, cara, den=None):
     """1) Texeles de muro metidos en otra pieza (den): la luz de sus vecinos de la MISMA isla (si toda la isla está tapada,
@@ -1073,7 +1094,7 @@ def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     _img(obs, img); _rellenar(img, cara, den)
     if limpio: img = oidn(sc, img, nrm); _rellenar(img, cara)
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
-    img.filepath_raw = os.path.join(DIR, 'blender', 'pb_luz.exr'); img.file_format = 'OPEN_EXR'; img.save()
+    img.filepath_raw = os.path.join(DIR, 'blender', NOM + '_luz.exr'); img.file_format = 'OPEN_EXR'; img.save()
     return img
 
 def oidn(sc, img, nrm):
