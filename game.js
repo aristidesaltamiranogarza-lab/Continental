@@ -13,7 +13,9 @@ function sfx(k){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkit
 const acUp=()=>{try{if(AC&&AC.state!=='running'&&!document.hidden){const p=AC.resume();if(p&&p.catch)p.catch(()=>{})}}catch(e){}};
 // musSync va DENTRO del toque (no en setTimeout): así el mp3 arranca con el primer toque también en celular.
 const acNew=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)()}catch(e){}},acMus=()=>{if(typeof musSync=='function')try{musSync()}catch(e){}};
-['pointerdown','pointerup','touchend','click','keydown'].forEach(k=>document.addEventListener(k,()=>{acNew();acUp();acMus()},{capture:true,passive:true}));
+// en celular pointerdown todavía no da permiso: intentar ahí hacía que el mp3 fallara y los toques siguientes lo creyeran sonando
+const acOk=()=>{const u=navigator.userActivation;return !u||u.isActive};
+['pointerdown','pointerup','touchend','click','keydown'].forEach(k=>document.addEventListener(k,()=>{if(!acOk())return;acNew();acUp();acMus()},{capture:true,passive:true}));
 // al irse a otra app se suspende y al volver se reanuda: en Android el audio quedaba "corriendo" pero mudo tras WhatsApp
 ['focus','pageshow'].forEach(k=>addEventListener(k,acUp));
 document.addEventListener('visibilitychange',()=>{try{if(document.hidden){if(AC&&AC.state==='running')AC.suspend().catch(()=>{})}else{acUp();acMus()}}catch(e){}});

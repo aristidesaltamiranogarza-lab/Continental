@@ -14,6 +14,6 @@ function fade(v,s){const t=ctx.currentTime,g=gn.gain;g.cancelScheduledValues(t);
 function sync(casa,c,m){if(pick===null)next();
  if(!casa||pick<0){if(on){on=false;fade(0,1.2);const a=au;setTimeout(()=>{if(!on)a.pause()},1300)}return false}
  mk(c,m);const src='musica/'+TR[pick]+'.mp3';if(!au.src.endsWith(src))au.src=src;
- if(!on||au.paused){on=true;fade(1,1.6);const p=au.play();if(p)p.catch(()=>{on=false})}return true}
+ if(!on||au.paused){on=true;fade(1,1.6);const p=au.play();if(p)p.catch(()=>{on=false})}else if(ctx.state!=='running')try{ctx.resume()}catch(e){}return true}
 window.MP3={sync,skip,now:()=>pick==null||pick<0?'menu':TR[pick],t:()=>au&&!au.paused?au.currentTime:-1};   // t: segundos del mp3 que suena (-1 si ninguno)
 })();
