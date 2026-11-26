@@ -113,7 +113,7 @@ function sheet(){const t=curTab(),T={jug:['Jugadores',pJug],mias:['Mis propiedad
  return `<section class="mu-sheet">${wide()?'':'<div class="mu-grab" role="button" aria-label="Desliza hacia abajo para cerrar"><i></i></div>'}<header><b>${T[0]}</b></header><div class="mu-sc ui-desl" id="musc">${T[1]()}</div></section>`}
 function pJug(){const G=V.G;return G.players.map((p,k)=>{const L=G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0),t=k===G.turn&&G.phase=='play';
  return `<div class="mu-prow${t?' on':''}${G.bk[k]?' x':''}${offK(k)?' off':''}" style="--pc:${pc(k)}">${tok(k,'lg')}<div class="mu-f1"><b>${esc(p.name)}${k===me()?' <em class="mu-tu">TÚ</em>':''}</b>
-  <div class="mu-s">${G.bk[k]?'Quebró':offK(k)?'Sin conexión':esc(D.tok[k%6][0])+' · en '+esc(B[G.pos[k]].n)}${G.jail[k]?' · en la cárcel':''}${G.jf[k]?' · '+MIC.h('llave')+'×'+G.jf[k]:''}</div>
+  <div class="mu-s">${G.bk[k]?'Quebró':offK(k)?'Sin conexión':esc(D.tok[MR.ti(k)][0])+' · en '+esc(B[G.pos[k]].n)}${G.jail[k]?' · en la cárcel':''}${G.jf[k]?' · '+MIC.h('llave')+'×'+G.jf[k]:''}</div>
   ${L.length?(window.MCAR?MCAR.jug(k):`<div class="mu-own">${L.map(i=>`<i style="--gc:${col(i)}" title="${esc(B[i].n)}" onclick="MRU.sel(${i})">${G.hs[i]?(G.hs[i]==5?'H':G.hs[i]):''}</i>`).join('')}</div>`):''}</div><b class="mu-cash">${G.bk[k]?'—':$m(G.cash[k])}</b></div>`}).join('')
  +(typeof plist=='function'?`<details class="mu-det"><summary>Sala y espectadores</summary>${plist()}</details>`:'')}
 function pMias(){if(window.MCAR)return MCAR.mias();const G=V.G,m=me(),L=G.own.map((o,i)=>o===m?i:-1).filter(i=>i>=0);

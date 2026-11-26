@@ -73,7 +73,14 @@ function piece(k){const G=new THREE.Group(),T=k%6,c=new THREE.Color(MR.pc(k)),P=
   add(P,new THREE.TorusGeometry(.13,.012,6,28),M2,0,.12,0,Math.PI/2);add(P,new THREE.TorusGeometry(.1,.01,6,28),M2,0,.32,0,Math.PI/2);add(P,new THREE.TorusGeometry(.05,.013,6,4),M2,0,.38,.09,0,0,Math.PI/4)}
  else{add(P,box(.26,.28,.1),M1,0,.2);add(P,box(.08,.14,.08),M1,-.16,.27,0,0,0,.45);add(P,box(.08,.14,.08),M1,.16,.27,0,0,0,-.45);add(P,box(.12,.03,.1),M1,0,.355);
   [-.08,-.04,.04,.08].forEach(x=>add(P,box(.01,.26,.01),M2,x,.2,.053));for(let j=0;j<5;j++)add(P,cyl(.008,.008,.008,8),M2,0,.32-j*.055,.055,Math.PI/2)}
- P.scale.setScalar(1.18);return G}
+ P.scale.setScalar(1.18);G.userData.P=P;figura(G,k);return G}
+// figuras de metal hechas en Blender (blender/merida_fichas.py → modelos/merida/fichas.glb): cada jugador la que eligió (MR.ti);
+// mientras baja el GLB se ve la figura de código de arriba
+let FIG=null,figP=null;
+function figCarga(){if(figP||!window.CGLB)return;figP=CGLB.cargador().then(L=>L.loadAsync('modelos/merida/fichas.glb?v=1')).then(gl=>{FIG={};gl.scene.children.forEach(o=>FIG[o.name]=o);
+ toks.forEach((t,k)=>t&&figura(t,k));wake()}).catch(e=>console.warn('Mérida: fichas',e))}
+function figura(G,k){const id=MR.D.tok[MR.ti(k)][1],f=FIG&&FIG[id];if(!f||G.userData.fi===id)return;const P=G.userData.P;while(P.children.length)P.remove(P.children[0]);
+ const c=f.clone(true),w=new THREE.Group();c.traverse(o=>{if(!o.isMesh)return;o.material=/M2/.test(o.material.name)?M2:M1;o.castShadow=true});w.add(c);w.position.y=.045;P.add(w);G.userData.fi=id}
 // flecha plana del color del jugador que siempre mira a la cámara; en la tuya dice "TÚ"
 function arrow(k){const col=MR.pc(k),me=k===V.me,c=document.createElement('canvas');c.width=128;c.height=me?232:164;const g=c.getContext('2d'),y0=me?68:0;
  const P=()=>{g.beginPath();g.moveTo(44,y0+10);g.lineTo(84,y0+10);g.lineTo(84,y0+74);g.lineTo(114,y0+74);g.lineTo(64,y0+152);g.lineTo(14,y0+74);g.lineTo(44,y0+74);g.closePath()};
@@ -97,7 +104,7 @@ let shR=false,fz=0;const pata=[];
 function init(){if(ready)return;ready=true;
  shR=!!(window.FONDO&&FONDO.R('merida'));R=shR?FONDO.R():new THREE.WebGLRenderer({antialias:true,alpha:true});const mob=matchMedia('(pointer:coarse)').matches;if(!shR){R.setPixelRatio(Math.min(devicePixelRatio||1,mob?1.75:2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap}
  SC=new THREE.Scene();CA=new THREE.PerspectiveCamera(40,1,.1,400);mkEnv();
- M1=new THREE.MeshStandardMaterial({color:0xdfe3e8,metalness:1,roughness:.24,envMap:envT,envMapIntensity:1.25});M2=new THREE.MeshStandardMaterial({color:0xa9aeb6,metalness:1,roughness:.42,envMap:envT,envMapIntensity:1});
+ M1=new THREE.MeshStandardMaterial({color:0xdfe3e8,metalness:1,roughness:.24,envMap:envT,envMapIntensity:1.25});M2=new THREE.MeshStandardMaterial({color:0xa9aeb6,metalness:1,roughness:.42,envMap:envT,envMapIntensity:1});figCarga();
  LT.h=new THREE.HemisphereLight(0xfff4e0,0x3a2a1e,1.5);SC.add(LT.h);
  LT.d=new THREE.DirectionalLight(0xfff0d8,2.3);LT.d.position.set(-6,16,8);LT.d.castShadow=true;LT.d.shadow.mapSize.set(mob?1024:2048,mob?1024:2048);
  Object.assign(LT.d.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:1,far:50});LT.d.shadow.bias=-.0005;LT.d.shadow.normalBias=.02;SC.add(LT.d);

@@ -27,7 +27,7 @@ const mkP=(tok,name,av,me)=>({tok,me:me||null,id:cr.randomBytes(4).toString('hex
 // espectadores (R.spec): ven la partida como el host que no juega (me = -1, sin ver cartas de nadie) y pueden chatear
 const specOf=(R,tok)=>(R.spec||[]).find(s=>s.tok==tok);
 function view(R,tok){const me=R.players.findIndex(p=>p.tok==tok),now=Date.now(),M=GAMES[R.gt];
- const v={code:R.code,v:R.v,host:R.host==tok,me,game:R.gt,opts:R.opts,players:R.players.map(p=>({id:p.id,name:p.name,on:!!p.bot||now-p.seen<35000,cx:cx(p,now),ag:p.bot?0:Math.round((now-p.seen)/1000),out:!!p.out,bot:!!p.bot,av:p.av,em:now-(p.emT||0)<3500?p.em:null,emN:p.emT||0})),G:null,claim:false,pend:!!R.pb,chat:R.chat.slice(-40),
+ const v={code:R.code,v:R.v,host:R.host==tok,me,game:R.gt,opts:R.opts,players:R.players.map(p=>({id:p.id,name:p.name,on:!!p.bot||now-p.seen<35000,cx:cx(p,now),ag:p.bot?0:Math.round((now-p.seen)/1000),out:!!p.out,bot:!!p.bot,av:p.av,fi:p.fi,em:now-(p.emT||0)<3500?p.em:null,emN:p.emT||0})),G:null,claim:false,pend:!!R.pb,chat:R.chat.slice(-40),
   watch:!!specOf(R,tok),spec:(R.spec||[]).filter(s=>now-s.seen<35000).map(s=>s.name),
   tt:R.G?now-(R.tt||now):0,tom:TOM_MS,fx:(R.fx||[]).filter(f=>now-f.ts<6000)};   // tt: cuánto lleva el turno; fx: tomates recientes
  if(R.G)Object.assign(v,M.view(R,tok,me,now));return v}
@@ -75,6 +75,7 @@ function kick(R,k){const p=R.players[k];R.kk.push(p.tok);
  p.out=true;GAMES[R.gt].kick(R,k);delete R.cl[p.id]}
 function act(R,tok,m){const G=R.G,M=GAMES[R.gt],i=R.players.findIndex(p=>p.tok==tok),H=R.host==tok,t=m.t;
  if(t=='av'){if(i<0)return 'No estás en la sala.';R.players[i].av=avOk(m.av);return}
+ if(t=='fi'){if(i<0)return 'No estás en la sala.';if(R.G)return;const f=String(m.fi||'');if(!/^[a-z]{3,12}$/.test(f))return;if(R.players.some((p,j)=>j!==i&&!p.out&&p.fi===f))return 'Esa ficha ya la tiene otro.';R.players[i].fi=f;return}
  if(t=='chat'){const tx=String(m.text||'').trim().slice(0,300);if(!tx)return;if(Date.now()-(R.lc[tok]||0)<400)return 'Más despacio.';R.lc[tok]=Date.now();
   const sp=i<0&&specOf(R,tok);R.chat.push({k:i,name:i>=0?R.players[i].name:sp?'👁 '+sp.name:'Host',t:tx,ts:Date.now()});if(R.chat.length>60)R.chat.shift();return}
  if(t=='emo'){if(i<0||!EMO.includes(m.e))return;const p=R.players[i],n=Date.now();if(n-(p.emT||0)<700)return 'Más despacio.';p.em=m.e;p.emT=n;return}
