@@ -34,7 +34,8 @@ function renta(id,c){const G=V.G,Ds=G.hands[V.me].filter(x=>mdCAT[x].k=='doble')
  return h+(cols.map(x=>{const amt=mdRentAmt(V.me,x)*(1<<mdDbl),m={t:'rent',id,col:x,doubles:dbs},sw=`<i class="md3sw" style="--c:${mdCC[x]}"></i>`;
   return c.cs=='any'&&al.length>1?B('mdAsk('+JSON.stringify(m)+')',`${sw}Cobrar ${mdCN[x]} · $${amt}M a…`):D(c.cs=='any'?{...m,tgt:al[0]}:m,`${sw}Cobrar ${mdCN[x]} · $${amt}M`)}).join('')||N('No tienes propiedades de esos colores para cobrar.'))}
 // qué hacer con la carta elegida (de tu mano, un comodín de tu mesa o una casa suelta)
-function menu(){const G=V.G;if(mdSel==null)return '';const id=mdSel,c=mdCAT[id],play=G.step=='play'&&G.plays<3&&!G.pa,okc=x=>c.cs!='any'||mdHasBase(G.tb[V.me][x]||[]),sw=x=>`<i class="md3sw" style="--c:${mdCC[x]}"></i>`;let b='';
+function menu(){const G=V.G;if(mdSel==null)return '';if(G.step=='disc'&&mdFrom=='h')return '';   // al descartar, el letrero sobre la mano es el botón (c_mdeal3d.js)
+const id=mdSel,c=mdCAT[id],play=G.step=='play'&&G.plays<3&&!G.pa,okc=x=>c.cs!='any'||mdHasBase(G.tb[V.me][x]||[]),sw=x=>`<i class="md3sw" style="--c:${mdCC[x]}"></i>`;let b='';
  if(mdFrom=='t'){const cur=Object.keys(G.tb[V.me]).find(k=>G.tb[V.me][k].includes(id)),cost=c.cs=='any'&&mdHasBase(G.tb[V.me][cur]||[]);
   b=G.plays>=3?N('Ya usaste tus 3 jugadas: mueve comodines en tu siguiente turno.'):mdCols(c).filter(x=>x!=cur&&okc(x)).map(x=>D({t:'move',id,col:x},sw(x)+'A '+mdCN[x]+(cost?' (1 jugada)':''))).join('')||N('No hay otro color disponible (el multicolor necesita una propiedad en el destino).')}
  else if(G.step=='disc')b=D({t:'discard',id},ic('x')+'Descartar');

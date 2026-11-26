@@ -87,7 +87,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const top=(tb?tb.bottom:80)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(76,Math.min(h*(por?.19:.17),w*.26,170));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--md3fan',Math.round(bar+ch*1.05)+'px');document.documentElement.style.setProperty('--md3bar',Math.round(bar+8)+'px');document.documentElement.style.setProperty('--md3top',Math.round(top)+'px');
- const rb=h-bar-ch*.55,rh=Math.max(120,rb-top),el=por?1.12:.98;
+ const rb=h-bar-ch*.55,rh=Math.max(120,rb-top),el=por?.85:.8;
  CA.clearViewOffset();CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.3])pts.push(v3(Math.cos(a)*(L.rx-.25),y,Math.sin(a)*(L.rz-.25)))}
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
@@ -168,7 +168,7 @@ function fan(ids,sel){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-l
 
 // ---------- personajes y reacciones ----------
 function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
- if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backT(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
+ if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)&&!(V.me>=0&&!x.i)),{dorso:backT(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
 function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G){const G=V.G;MPJ.paso(now,G.phase=='play'&&G.turn>=0?rel(G.turn):-1);MPJ.fin(G.phase=='final'&&G.win>=0?rel(G.win):-1)}}
 const byName=t=>V.G.players.findIndex(p=>t.includes(p.name));
 function react(e){const k=e.k,t=e.t,pj=window.MPJ&&MPJ.on,i=k>=0?rel(k):-1,c=e.c!=null?mdCAT[e.c]:null;
@@ -304,7 +304,8 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  const lg=(G.log||[]).slice(-1)[0],lgT=lg&&lg.k>=0&&G.players[lg.k]?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'md3Menu()',right:(window.MCAM?MCAM.boton(VT.top,'md3Arriba()'):'')+GHUD.view('md3Home()')});
  {const ht=dis?'':mine||fin||!lgT?hint:lgT;if(ht)o+=GHUD.hint(ht)}
- if(dis)o+=`<div class="ui u3tt md3tt" role="status">Descarta <i data-gvn="dz">${h.length-7}</i> ${h.length-7==1?'carta':'cartas'}<small>${mdSel!=null?'Toca Descartar para tirarla':'Toca una que no quieras'}</small></div>`;
+ if(dis)o+=mdSel!=null&&mdFrom=='h'?`<button class="ui ui-btn md3tt md3ttb" onclick="mdDo({t:'discard',id:${mdSel}})">${uic('x')}Descartar ${esc(mdName(mdSel))}<i class="md3n" aria-label="te sobran ${h.length-7}">${h.length-7}</i></button>`
+  :`<div class="ui u3tt md3tt" role="status">Descarta <i data-gvn="dz">${h.length-7}</i> ${h.length-7==1?'carta':'cartas'}<small>Toca una que no quieras</small></div>`;
  const mm=(msg||'').replace(/^\W+\s*/,''),mk=mm+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=mm||G.note;
  if(mt&&age<4500)o+=GHUD.toast(mm?esc(mm):'<b>'+esc(G.note)+'</b>',age);
  o+=MD3U.pa();
