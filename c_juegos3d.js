@@ -98,9 +98,9 @@ function tap(h){if(!J)return;
 function hud(busy){if(!open||busy||!J)return '';const t=open,N=t=='c4'?'Conecta 4':'Backgammon',g=mine(t),mi=g?g.p.indexOf(J.me):-1,op=g?g.p[1-mi]:-1;
  const chip=k=>t=='c4'?`<i class="c4m ${k?'y':'r'}"></i>`:`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
  const a=(op2,x)=>`JG3.a('${t}','${op2}'${x!=null?','+x:''})`;let b='';
- if(!g){const L=J[t+'s'],ks=J.pl.filter(p=>p.k!==J.me),bz=k=>L.some(x=>x.st!='end'&&x.p.includes(k));
+ if(!g){const L=J[t+'s'],ks=J.pl.filter(p=>p.k!==J.me&&!p.bot),bz=k=>L.some(x=>x.st!='end'&&x.p.includes(k));
   b=`<div class="h3d">${t=='c4'?'Junta 4 fichas de tu color en línea.':'Saca tus 15 fichas antes que tu rival. Los dados se tiran solos.'} ¿A quién retas?</div>
-   <div class="h3b">${ks.map(p=>`<button class="ui-btn sec" onclick="${a('inv',p.k)}"${bz(p.k)?' disabled':''}>${esc(p.n)}${bz(p.k)?' · jugando':''}</button>`).join('')||'<span class="h3n">No hay nadie más en la casa.</span>'}</div>`}
+   <div class="h3b">${ks.map(p=>`<button class="ui-btn sec" onclick="${a('inv',p.k)}"${bz(p.k)?' disabled':''}>${esc(p.n)}${bz(p.k)?' · jugando':''}</button>`).join('')}${t=='bg'?`<button class="ui-btn" onclick="${a('inv',-2)}">Contra un bot</button>`:''}${!ks.length&&t=='c4'?'<span class="h3n">No hay nadie más en la casa.</span>':''}</div>`}
  else if(g.st=='inv')b=mi==0?`<div class="h3d">Esperando a que <b>${nmk(op)}</b> acepte…</div><div class="h3b"><button class="ui-btn sec" onclick="${a('end')}">Cancelar</button></div>`
   :`<div class="h3d"><b>${nmk(op)}</b> te reta a ${N}</div><div class="h3b"><button class="ui-btn" onclick="${a('acc')}">Jugar</button><button class="ui-btn sec" onclick="${a('end')}">Ahora no</button></div>`;
  else{const my=g.st=='play'&&g.turn==mi;let st;

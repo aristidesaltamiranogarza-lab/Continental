@@ -40,6 +40,7 @@ function piso(id){if(FS[id])return FS[id];const H=window.CASA3D;if(!H||!window.C
    D.escalones[k].forEach(o=>{o.userData.hit={t:'link',l};hits.push(o)})}
   D.mesas.forEach(m=>{const fe=FEL[m.fam]||FEL.k;if(F.sot&&F.sot.hechas[m.g])return;
    if(typeof GM!=='undefined'&&GM[m.g]){const t={g:m.g,x:m.x,z:m.z,r:2.2,felt:fe,aire:m.aire};TB.push(t);H.mesa(t,S,hits,OB);if(F.sot&&F.sot.viste)F.sot.viste(t)}
+   else if(window.JG3&&JG[m.g])JG3.build({THREE,SC:S,hits,OB,std:H.std,cyl:H.cyl,box:H.box,only:JG[m.g],at:{x:m.x,z:m.z},fl:id});   // Backgammon y Conecta 4: los de c_juegos3d.js
    else muestra(H,S,OB,m.g,m.x,m.z,fe)});
   if(hb&&id==='c0'){gata(H,S,hits,R,D,F);calle(F,R,D);asientos(S)}
   if(hb&&id==='c1'&&window.PERROS){PERROS.zona('c1',{P:S,std:H.std,OB,hits});F.perros=1}   // Harry y Mapacha en el balcón trasero
@@ -133,6 +134,7 @@ function plano(H,S,hits,p,id,D){const c=D.caja;if(!c)return;
  const hit={t:'fn',f:()=>{if(window.CIR)CIR.show()}};G.traverse(o=>{if(o.isMesh){o.userData.hit=hit;hits.push(o)}})}
 
 // mesa de muestra para los juegos que aún no existen (o que viven en su propio cuarto: billar, casino, ruleta)
+const JG={backgammon:'bg',conecta4:'c4'};
 function muestra(H,S,OB,g,x,z,fe){const G=new THREE.Group();G.position.set(x,0,z);S.add(G);const wd=H.std(0x4a2814,.5),fl=H.std(new THREE.Color(fe[0]).getHex(),.9);
  if(g==='billar'){H.box(3,.3,5.6,fl,0,1.45,0,G);H.box(3.3,1.3,5.9,wd,0,.65,0,G);OB.push({x,z:z-1.4,r:2},{x,z:z+1.4,r:2});return}
  H.cyl(2.2,2.2,.12,fl,0,1.5,0,G,32);H.cyl(.35,.5,1.45,wd,0,.72,0,G,12);OB.push({x,z,r:2.7})}
