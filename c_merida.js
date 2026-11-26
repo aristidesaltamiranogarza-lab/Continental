@@ -16,7 +16,7 @@ const fiTom=()=>new Set((V.players||[]).filter((p,j)=>j!==V.me&&!p.out&&p.fi).ma
 function fiSel(id){try{localStorage.setItem('mr_ficha',id)}catch(e){}if(fiTom().has(id)||V.G)return;send({t:'fi',fi:id})}
 let fiPed='';function fiAuto(){const yo=(V.players||[])[V.me],q=fiMia();if(!yo||V.G||!q||yo.fi===q||fiPed===q||fiTom().has(q))return;fiPed=q;send({t:'fi',fi:q})}
 const ficha={key:()=>JSON.stringify((V.players||[]).map(p=>p.fi||''))+V.me,ico:()=>tk(V.me),
- html:()=>{const tom=fiTom(),mia=FI[ti(V.me)];return `<div class="sl-cajas">${D.tok.map(([n,id],i)=>`<button class="sl-caja${id===mia?' on':''}" style="--f:var(--sl-c)"${tom.has(id)?' disabled':''} onclick="MR.fiSel('${id}')" aria-pressed="${id===mia}"><span class="ic"><i class="sl-spr" style="background-image:url(modelos/merida/fichas_ico.webp?v=1);background-position-x:${i*100/(D.tok.length-1)}%"></i></span><b>${esc(n)}</b></button>`).join('')}</div>`}};
+ html:()=>{const tom=fiTom(),mia=FI[ti(V.me)];return `<div class="sl-cajas sl-fi">${D.tok.map(([n,id],i)=>`<button class="sl-caja${id===mia?' on':''}" style="--f:var(--sl-c)"${tom.has(id)?' disabled':''} onclick="MR.fiSel('${id}')" aria-pressed="${id===mia}"><span class="ic"><i class="sl-spr" style="background-image:url(modelos/merida/fichas_ico.webp?v=2);background-position-x:${i*100/(D.tok.length-1)}%"></i></span><b>${esc(n)}</b></button>`).join('')}</div>`}};
 const pnm=k=>k>=0&&V.G.players[k]?esc(V.G.players[k].name):'el banco';
 let sel=-1,TR={to:-1,ap:[],bp:[],ac:0,bc:0,aj:0,bj:0},aucEnd=0,aucId=-1,winN=-1;
 // ---- estilos (los del 2D y los del panel del 3D) ----

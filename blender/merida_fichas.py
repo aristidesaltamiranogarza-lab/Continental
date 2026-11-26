@@ -621,6 +621,14 @@ def iconos(out=None):
     cam.location = (0, -dist * math.cos(el), dist * math.sin(el) + cz)
     cam.rotation_euler = (Vector((0, 0, cz)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
     sc.render.resolution_x, sc.render.resolution_y = len(obs) * px, px
+    # cada ficha llena su celda y queda centrada (cámara ortográfica: se mide en el plano de la cámara)
+    bpy.context.view_layer.update(); ci = cam.matrix_world.inverted(); R = cam.matrix_world.to_3x3()
+    for i, o in enumerate(obs):
+        ps = [ci @ (o.matrix_world @ v.co) for v in o.data.vertices]
+        x0, x1 = min(p.x for p in ps), max(p.x for p in ps); y0, y1 = min(p.y for p in ps), max(p.y for p in ps)
+        oc = ci @ o.matrix_world.translation; k = .84 * dx / max(x1 - x0, y1 - y0)
+        cx, cy = oc.x + k * ((x0 + x1) / 2 - oc.x), oc.y + k * ((y0 + y1) / 2 - oc.y)
+        o.scale = (k, k, k); o.location += R @ Vector(((i - (len(obs) - 1) / 2) * dx - cx, -cy, 0))
     try: sc.render.engine = 'CYCLES'
     except TypeError: pass
     sc.cycles.samples = 48; sc.cycles.use_denoising = True; sc.render.film_transparent = True
