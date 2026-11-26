@@ -18,6 +18,8 @@ const PIEZAS=/^Arriba_4(_M)?$/;
  const viejos=new Set([...root.listNodes(),...root.listMaterials(),...root.listScenes(),...root.listSkins(),...root.listMeshes(),...root.listAccessors(),...root.listAnimations()]);
  // quitar piezas de una corrida anterior
  for(const n of root.listNodes())if(PIEZAS.test(n.getName()))n.dispose();
+ // los clips del UAL (anim_retarget.py) van en anim.glb; si la escena los trae, fuera de chibi.glb
+ for(const a of root.listAnimations())if(/^(Quieto|Camina|Trota|Sentarse|Sentado|Levantarse)$/.test(a.getName()))a.dispose();
  mergeDocuments(doc,src);
  const nuevo=x=>!viejos.has(x);
  const porNombre=(lista,nm)=>lista.find(x=>viejos.has(x)&&x.getName()===nm);

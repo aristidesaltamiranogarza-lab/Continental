@@ -28,6 +28,9 @@ K = dict(
     DECIMA={'Pelo': 0.5},          # reduccion (simetrica en X) antes del grosor, solo en la copia de juego
     DECIMA_FIN={'Brazos': 0.62},   # reduccion despues de la subdivision (mangas: lo mas caro de cada prenda)
     CADERA=0.82, RODILLA=0.45, TOBILLO=0.12, PIERNA_X=0.095, CUELLO=1.62,
+    # pantalon, short y cargo de H: bajo la entrepierna se aplana la cara interior de cada pernera (z donde empieza, z donde
+    # ya es del todo, medio hueco entre perneras); se traslapaban y al abrir las piernas salia una tira entre ellas (en M hay hueco)
+    ANGOSTA=(0.80, 0.62, 0.012),
     CABEZA=0.88,       # escala de la cabeza (cara, pelo) alrededor del cuello; el crupier la hereda
     FALDA_Z=(0.97, 0.80),   # falda y vestido: de aqui hacia abajo pasan de la cadera a los muslos (se doblan al sentarse)
     CENTRO=(0.0, 0.0, 2.15), SIEN=(1.0, -0.35, 0.1),
@@ -230,6 +233,53 @@ BVH = {1: bvh_de('Pelo', 'Cabeza')}
 for n in K['PEINADOS']:
     BVH[n] = bvh_de(*[x for x in ('Pelo_%d' % n, 'Pelo_%d_extra' % n) if x in partes], 'Cabeza')
 cabezaBVH = BVH[1]
+PIERNA_H = ('Pantalon', 'Short', 'Bastilla', 'Bolsillo')
+_z0, _z1, _ka = K['ANGOSTA']
+def lados(me):
+    # por pedazo conectado bajo la entrepierna (cada pernera): lado, centro en x y cuanto entra hacia el centro;
+    # las perneras de H se traslapan (cada una cruza x = 0 hasta 4 cm), asi que el lado no sale de la x de cada vertice
+    vs = me.vertices; p = list(range(len(vs)))
+    def r(i):
+        while p[i] != i: p[i] = p[p[i]]; i = p[i]
+        return i
+    for e in me.edges:
+        a, c = e.vertices
+        if vs[a].co.z < _z0 and vs[c].co.z < _z0: p[r(a)] = r(c)
+    cs, L = {}, {}
+    for v in vs:
+        if v.co.z < _z0: cs.setdefault(r(v.index), []).append(v)
+    for c in cs.values():
+        cx = sum(v.co.x for v in c) / len(c); sg = 1 if cx >= 0 else -1
+        ri = max(sg * (cx - v.co.x) for v in c)
+        for v in c: L[v.index] = (sg, cx, ri)
+    return L
+for suf, ob in partes.items():
+    if suf.endswith('_M') or CL[suf] not in PIERNA_H: continue
+    L = lados(ob.data)
+    for v in ob.data.vertices:
+        if v.co.z >= _z0: continue
+        sg, cx, ri = L[v.index]
+        if sg * (v.co.x - cx) >= 0 or ri <= 0: continue      # solo la cara interior de la pernera
+        kin = min(1.0, (abs(cx) - _ka) / ri)
+        u = min(1.0, (_z0 - v.co.z) / (_z0 - _z1)); k = 1 - (1 - kin) * u * u * (3 - 2 * u)
+        v.co.x = cx + (v.co.x - cx) * k
+def lado_pesos(ob):
+    # bajo la entrepierna, cada vertice solo con los huesos de pierna de su lado (sin esto la bastilla se estiraba hacia la otra)
+    gi = {g.index: g for g in ob.vertex_groups}; L = lados(ob.data)
+    for v in ob.data.vertices:
+        if v.co.z >= _z0: continue
+        otro = '_D' if L[v.index][0] > 0 else '_I'
+        vs = [(gi[g.group], g.weight) for g in v.groups]
+        fuera = [g for g, w in vs if g.name.endswith(otro) and g.name.split('_')[0] in ('muslo', 'pierna', 'pie')]
+        if not fuera: continue
+        for g in fuera: g.remove([v.index])
+        tot = sum(w for g, w in vs if g not in fuera)
+        if tot > 1e-6:
+            for g, w in vs:
+                if g not in fuera: g.add([v.index], w / tot, 'REPLACE')
+        else:
+            mio = ('pierna' if v.co.z < K['RODILLA'] else 'muslo') + ('_I' if otro == '_D' else '_D')
+            (ob.vertex_groups.get(mio) or ob.vertex_groups.new(name=mio)).add([v.index], 1.0, 'REPLACE')
 
 # ---------- pesos ----------
 cabeza_rigida = ('Cabeza', 'Boca', 'Cejas', 'Nariz', 'Ojos', 'Pelo', 'Extra', 'Piel')
@@ -265,6 +315,7 @@ for suf, ob in partes.items():
         ob.select_set(True); arm.select_set(True); bpy.context.view_layer.objects.active = arm
         bpy.ops.object.parent_set(type='ARMATURE_AUTO')
         if CL[suf] in ('Falda', 'Vestido'): falda_pesos(ob)
+        if CL[suf] in PIERNA_H and not suf.endswith('_M'): lado_pesos(ob)
         sin = [v for v in ob.data.vertices if sum(g.weight for g in v.groups) < 1e-3]
         if sin: print('sin peso', suf, len(sin))
     else:

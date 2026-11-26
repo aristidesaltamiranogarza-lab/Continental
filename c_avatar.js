@@ -5,7 +5,7 @@
 // 5 playera, 6 chamarra, 7 vestido solo M), d abajo (1 pantalón, 2 short, 3 falda solo M, 4 cargo); tras el guion, índices base 36
 // en las paletas: pelo, piel, arriba, abajo. Lo que venga mal se cambia por el valor por defecto.
 (function(){
-const URL_GLB=new URL('modelos/personaje/chibi.glb?v=11',location.href).href;
+const URL_GLB=new URL('modelos/personaje/chibi.glb?v=13',location.href).href;
 // animaciones de cuerpo completo (blender/anim_retarget.py, Universal Animation Library CC0): Quieto y Camina se mezclan por código
 // encima de la pose (CAPA); si no carga, se usa el respiro y el paso hechos a mano
 const URL_ANIM=new URL('modelos/personaje/anim.glb?v=3',location.href).href,CAPA=['Quieto','Camina','Trota','Sentarse','Sentado','Levantarse'];   // ?v: subir al cambiar el GLB (se guarda en caché un año)
@@ -108,6 +108,8 @@ function upd(p,dt){const u=p.userData.av;if(u.toc)for(const [b,q] of u.toc)b.qua
 // al caminar y el resto se apaga (u.idl, 0–1, con fundido, solo baja al sentarse o bailar). Cada personaje con su propia fase.
 // RP (AV.RP para probar): radianes que cierra el brazo, que lo lleva al frente y que dobla el codo.
 const RP={abre:.2,frente:.08,codo:.2};
+// AV.calma(p,si): en vez del clip 'Quieto' (inquieto, se encorva) solo esta respiración por código; para vitrinas como Mi personaje
+function calma(p,si){const u=p&&p.userData.av;if(u)u.calma=si!==false}
 const quieto=u=>!u.sentado&&!u.emo&&u.nomPose==='Reposo';
 // caminar, saludar y bailar, también por código después del mixer. m: w 0–1 qué tanto camina, ph fase del paso, sal 0–1 saludo
 // (mano derecha), dn 0–1 baile, disco (🕺; si no, 💃), bt fase del baile, t ms. Cada hueso gira sobre los ejes del personaje
@@ -119,7 +121,7 @@ function ejes(p){const h={};p.updateMatrixWorld(true);p.getWorldQuaternion(qb).i
  return h}
 function gira(h,n,i,a){const x=h[n];if(x&&a)x.b.quaternion.premultiply(qa.setFromAxisAngle(x.e[i],a))}
 function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w0=m.w||0,ph=m.ph||0,C=u.capa,w=C?0:w0,dn=m.dn||0,bt=m.bt||0,sal=(m.sal||0)*(1-dn),dc=!!m.disco;
- if(C){const k=u.tran?0:u.idl||0;capaPon(u,'Quieto',u.ti,k*(1-w0));const tr=m.tr||0;capaPon(u,'Camina',ph/(2*Math.PI)*C.Camina.d,w0*(1-tr));capaPon(u,'Trota',ph/(2*Math.PI)*C.Trota.d,w0*tr)}   // m.tr 0–1: trote (la casa va a 5.2/s: con Camina patinan los pies)   // clips primero; saludo y baile van encima
+ if(C){const k=u.tran?0:u.idl||0;capaPon(u,'Quieto',u.ti,u.calma?0:k*(1-w0));const tr=m.tr||0;capaPon(u,'Camina',ph/(2*Math.PI)*C.Camina.d,w0*(1-tr));capaPon(u,'Trota',ph/(2*Math.PI)*C.Trota.d,w0*tr)}   // m.tr 0–1: trote (la casa va a 5.2/s: con Camina patinan los pies)   // clips primero; saludo y baile van encima
  gira(h,'columna',0,.08*w);gira(h,'cadera',2,S(bt)*(dc?.06:.14)*dn);gira(h,'cadera',1,S(bt/2)*(dc?.5:.3)*dn);
  for(const [l,s] of [['I',1],['D',-1]]){
   let q=s*S(ph)*.5*w,k=Math.max(0,s*Math.cos(ph))*.7*w;   // muslo al frente y rodilla doblada mientras la pierna avanza
@@ -131,7 +133,7 @@ function mov(p,u){const m=u.mov||{},h=u.ej||(u.ej=ejes(p)),S=Math.sin,w0=m.w||0,
    else if(l==='D'){const ar=S(bt)>0;az-=(ar?2.7:.8)*dn;ax-=(ar?.3:.5)*dn}   // de disco: señala arriba y abajo
    else{az+=1*dn;fz-=1.7*dn}}   // la otra mano en la cintura
   gira(h,'brazo_'+l,0,ax);gira(h,'brazo_'+l,2,az);gira(h,'antebrazo_'+l,0,fx);gira(h,'antebrazo_'+l,2,fz)}
- const k=u.idl||0;if(C){const gl=S(u.ti*Math.PI*2/11.3+2);gira(h,'cabeza',1,.28*gl*gl*gl*k*Math.max(0,1-2*w0));return}   // de vez en cuando voltea
+ const k=u.idl||0;if(C&&!u.calma){const gl=S(u.ti*Math.PI*2/11.3+2);gira(h,'cabeza',1,.28*gl*gl*gl*k*Math.max(0,1-2*w0));return}   // de vez en cuando voltea
  if(k<.002)return;const T=u.ti*Math.PI*2,br=S(T/3.4),sw=S(T/7.1+1),gl=S(T/11.3+2),kb=k*Math.max(0,1-2*w);
  gira(h,'columna',0,-.025*br*kb);gira(h,'columna',2,.03*sw*kb);
  gira(h,'cabeza',2,(.04*S(T/5.3+.7)-.025*sw)*kb);gira(h,'cabeza',0,.025*br*kb);gira(h,'cabeza',1,.28*gl*gl*gl*kb);
@@ -202,7 +204,7 @@ function quita(p){const u=p&&p.userData.av;if(!u)return;vivos.delete(p);u.mixer.
 function encoge(p,k){if(!p||k===1)return;p.updateMatrixWorld(true);const a=p.getObjectByName('muslo_D'),b=p.getObjectByName('muslo_I');if(!a||!b){p.scale.multiplyScalar(k);return}
  const V=THREE.Vector3,h=a.getWorldPosition(new V()).add(b.getWorldPosition(new V())).multiplyScalar(.5);p.worldToLocal(h);
  p.position.add(h.multiplyScalar(p.scale.x*(1-k)).applyQuaternion(p.quaternion));p.scale.multiplyScalar(k)}
-window.AV={encoge,K:.8,PAL,OPC,permite,RP,GE,gesto,mezcla,amartilla,post,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
+window.AV={encoge,calma,K:.8,PAL,OPC,permite,RP,GE,gesto,mezcla,amartilla,post,leer,codificar,azar,listo:()=>listo().then(b=>{base=b;return b}),crear,crearYa,ya:()=>!!base,cambiar,pose,emote,dur,sentar,mueve,agarre,sien,pistola,quita,
  get codigoDef(){return codificar(DEF)},get alto(){return alto},
  // código propio guardado en localStorage (cont_av); si no hay, uno al azar que se queda
  mio(nuevo){let c=null;try{if(nuevo){const v=codificar(leer(nuevo)),cambia=localStorage.getItem('cont_av')!==v;localStorage.setItem('cont_av',v);if(cambia)setTimeout(()=>dispatchEvent(new Event('av-mio')))}c=localStorage.getItem('cont_av')}catch(e){}

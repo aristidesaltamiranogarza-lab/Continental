@@ -108,7 +108,7 @@ function vista(cv){const T=THREE,ren=new T.WebGLRenderer({canvas:cv,antialias:tr
  const esc=new T.Scene(),cam=new T.PerspectiveCamera(30,1,.05,50);
  esc.add(new T.HemisphereLight(0xfff4e6,0x6b4a35,1.6));const d=new T.DirectionalLight(0xffffff,1.8);d.position.set(2,3,4);esc.add(d);
  r3={ren,esc,cam,p:null,cv};
- AV.crear(cod()).then(p=>{if(!r3||r3.ren!==ren)return AV.quita(p);r3.p=p;esc.add(p);AV.pose(p,'Reposo',0);
+ AV.crear(cod()).then(p=>{if(!r3||r3.ren!==ren)return AV.quita(p);r3.p=p;esc.add(p);AV.pose(p,'Reposo',0);AV.calma(p);
   const b=medir(p),c=b.getCenter(new T.Vector3()),h=b.max.y-b.min.y;
   r3.c=c;r3.h=h;r3.top=b.max.y;r3.dist=h/2/Math.tan(cam.fov*Math.PI/360)*1.25;const [mc,md]=meta();r3.vc=mc.clone();r3.vd=md;
   const cg=el&&el.querySelector('.mj-carga');if(cg)cg.remove()})
