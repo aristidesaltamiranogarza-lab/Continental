@@ -45,22 +45,8 @@ function backTex(st=sback){const k='b'+st;if(texC[k])return texC[k];
  g.restore();g.strokeStyle=`rgba(${ln},.85)`;g.lineWidth=3;rr(g,22,22,TW-44,TH-44,8);g.stroke();
  g.fillStyle=`rgba(${ln},.9)`;g.font='bold 80px serif';g.textAlign='center';g.textBaseline='middle';g.fillText('♠',TW/2,TH/2+4);
  return texC[k]=tx(c)}
-function faceTex(id,st=scards){const k='f'+id+st;if(texC[k])return texC[k];
- const c0=C(id),c=cnvC(),g=c.getContext('2d'),dark=st=='black',retro=st=='retro',big=st=='big',red=!c0.j&&(c0.s==1||c0.s==2);
- const ink=c0.j?(dark?'#ffd54a':'#6a1b9a'):st=='contrast'?['#111','#d50000','#0050d0','#007a2a'][c0.s]:(dark?['#f2f2f2','#ff6060','#ff9a3c','#7da2ff']:['#151515','#c62828','#e0701a','#1f3f8f'])[c0.s];
- const bg=g.createLinearGradient(0,0,TW,TH);
- if(dark){bg.addColorStop(0,'#2e2e2e');bg.addColorStop(1,'#121212')}else if(retro){bg.addColorStop(0,'#f7edd3');bg.addColorStop(1,'#e0cfa3')}else{bg.addColorStop(0,'#ffffff');bg.addColorStop(1,'#e9edf2')}
- g.fillStyle=bg;rr(g,0,0,TW,TH,20);g.fill();g.strokeStyle=dark?'#555':'#9aa3ad';g.lineWidth=3;rr(g,1.5,1.5,TW-3,TH-3,19);g.stroke();
- const F=retro?'Georgia,"Times New Roman",serif':'"Segoe UI",Arial,sans-serif';g.fillStyle=ink;g.textAlign='center';g.textBaseline='middle';
- const r=c0.j?'★':RN[c0.r-1],s=c0.j?'':SU[c0.s];
- const corner=()=>{const x=big?46:36;g.font=`${big?800:700} ${big?(r.length>1?60:76):(r.length>1?44:54)}px ${F}`;g.fillText(r,x,big?50:40);if(s){g.font=`${big?64:46}px ${F}`;g.fillText(s,x,big?118:90)}};
- corner();g.save();g.translate(TW,TH);g.rotate(Math.PI);corner();g.restore();
- if(c0.j){g.font='118px serif';g.fillText('🃏',TW/2,TH/2-6);g.font=`800 28px ${F}`;g.fillText('COMODÍN',TW/2,TH/2+92)}
- else if(big){if(c0.r>=11){g.font=`800 96px ${F}`;g.fillText(r,TW/2+18,TH/2-6)}g.font=`${c0.r>=11?70:120}px ${F}`;g.fillText(s,TW/2+18,c0.r>=11?TH/2+80:TH/2+20)}
- else if(c0.r>=11){g.strokeStyle=ink;g.lineWidth=3;rr(g,62,72,TW-124,TH-144,10);g.stroke();g.globalAlpha=.1;g.fill();g.globalAlpha=1;
-  g.font=`700 104px ${F}`;g.fillText(r,TW/2,TH/2-18);g.font=`60px ${F}`;g.fillText(s,TW/2,TH/2+66)}
- else{g.font=`${c0.r==1?170:136}px ${F}`;g.fillText(s,TW/2,TH/2+8)}
- return texC[k]=tx(c)}
+function faceTex(id,st=scards){const k='f'+id+st;return texC[k]||(texC[k]=tx(CCART.cara(C(id),{st})))}   // caras en c_cont_cartas.js (las mismas que en 2D)
+if(window.CCART)CCART.alListo(()=>{for(const k in texC)if(k[0]=='f')texC[k].needsUpdate=true});
 function glowTex(){if(texC.glow)return texC.glow;const c=cnv(256,256),g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';rr(g,52,52,152,152,16);g.fill();g.fill();return texC.glow=tx(c)}
 const GI=152/256;
 function ghostTex(){if(texC.ghost)return texC.ghost;const c=cnv(512,320),g=c.getContext('2d');g.fillStyle='rgba(255,255,255,.13)';rr(g,10,10,492,300,28);g.fill();

@@ -94,12 +94,13 @@ function chatUp(){const ch=(V&&V.chat)||[],l=document.getElementById('cl');CH.st
 function chatSend(){const i=document.getElementById('ci'),t=i.value.trim();if(!t||!S)return;i.value='';i.focus();api('act',{c:S.c,t:S.t,m:{t:'chat',text:t}}).then(d=>{if(d&&d.err){i.value=t;bad(d.err==='Acción desconocida.'?'El servidor no tiene el chat: reinícialo (Ctrl+C y node server.js).':d.err)}}).catch(()=>{i.value=t;bad('Sin conexión.')})}
 const oi=c=>{const k=myOrder.indexOf(c.id);return k<0?1e6+c.id:k};
 function cyc(){if(!manual&&!sortS)sortS=true;else if(sortS){sortS=false;manual=true}else manual=false;render()}
-document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('#hand .c, #mini .c');if(!c)return;dg={id:+c.dataset.id,x:e.clientX,y:e.clientY,on:0,el:c,from:c.closest('#mini')?'slot':'hand'}});
+document.addEventListener('pointerdown',e=>{if(dg&&dg.on)return;const c=e.target.closest&&((window.MANO2D&&MANO2D.carta(e))||e.target.closest('#hand .c, #mini .c'));if(!c)return;dg={id:+c.dataset.id,x:e.clientX,y:e.clientY,on:0,el:c,from:c.closest('#mini')?'slot':'hand'};if(window.MANO2D)MANO2D.down(dg,e)});   // Continental 2D: c_mano2d.js (tomar, resorte y hueco)
 document.addEventListener('pointermove',e=>{if(!dg)return;
- if(!dg.on&&Math.hypot(e.clientX-dg.x,e.clientY-dg.y)>10){dg.on=1;const r=dg.el.getBoundingClientRect();dg.g=dg.el.cloneNode(true);dg.g.className+=' fly';dg.g.removeAttribute('onclick');dg.g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transition:none;z-index:90`+(dg.el.style.getPropertyValue("--ui")?`;--ui:${dg.el.style.getPropertyValue("--ui")}`:"");FX.appendChild(dg.g);dg.el.style.opacity=.3}
- if(dg.on){dg.g.style.transform=`translate(${e.clientX-dg.x}px,${e.clientY-dg.y}px)`;const t=document.elementFromPoint(e.clientX,e.clientY),sl=t&&t.closest&&t.closest('.slot');document.querySelectorAll('.slot.over').forEach(x=>x.classList.remove('over'));if(armando&&sl)sl.classList.add('over')}});
-document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d.on)return;d.g.remove();d.el.style.opacity='';noClick=Date.now();
+ if(!dg.on&&Math.hypot(e.clientX-dg.x,e.clientY-dg.y)>10){dg.on=1;const r=dg.el.getBoundingClientRect();dg.g=dg.el.cloneNode(true);dg.g.className+=' fly';dg.g.removeAttribute('onclick');dg.g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transition:none;z-index:90`+(dg.el.style.getPropertyValue("--ui")?`;--ui:${dg.el.style.getPropertyValue("--ui")}`:"");FX.appendChild(dg.g);dg.el.style.opacity=.3;if(dg.m)MANO2D.start(dg,e)}
+ if(dg.on){if(dg.m)MANO2D.move(dg,e);else dg.g.style.transform=`translate(${e.clientX-dg.x}px,${e.clientY-dg.y}px)`;const t=document.elementFromPoint(e.clientX,e.clientY),sl=t&&t.closest&&t.closest('.slot');document.querySelectorAll('.slot.over').forEach(x=>x.classList.remove('over'));if(armando&&sl)sl.classList.add('over')}});
+document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d.on)return;noClick=Date.now();
  const tt=document.elementFromPoint(e.clientX,e.clientY),sl=tt&&tt.closest&&tt.closest('.slot');
+ if(d.m&&!(armando&&sl))return MANO2D.suelta(d);d.g.remove();d.el.style.opacity='';
  if(armando&&sl)return dropSlot(d.id,+sl.dataset.k,e.clientX,e.clientY);
  if(d.from=='slot')return unslot(d.id);
  const els=[...document.querySelectorAll('#hand .c')].filter(x=>+x.dataset.id!==d.id);let best=-1,bd=1e12;

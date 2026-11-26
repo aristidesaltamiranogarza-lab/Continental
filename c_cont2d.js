@@ -5,8 +5,8 @@ if(!window.M2D||!GM.continental)return;
 const b0=GM.continental.body,ico=n=>UI.ico?UI.ico(n):'';
 const giro=id=>({r:((id*47)%21)-10,x:((id*31)%9)-4,y:((id*17)%7)-3});
 const MIN={T:3,C:4},AYU={T:'mismo número',C:'seguidas, mismo palo'};
-function cc(c,o={}){const red=!c.j&&(c.s==1||c.s==2),pc=c.j?'':c.s==2?' pd':c.s==3?' pt':'';
- return `<div class="c${red?' r':''}${pc}${c.j?' jk':''}${o.sel?' s':''}${o.nw?' nw':''}${o.cls?' '+o.cls:''}"${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}>`+
+function cc(c,o={}){const red=!c.j&&(c.s==1||c.s==2),pc=c.j?'':c.s==2?' pd':c.s==3?' pt':'',u=window.CCART&&CCART.url(c,{st:typeof scards!='undefined'?scards:'classic'});   // la cara es la imagen de c_cont_cartas.js (la misma que en 3D)
+ return `<div class="c${red?' r':''}${pc}${c.j?' jk':''}${o.sel?' s':''}${o.nw?' nw':''}${o.cls?' '+o.cls:''}${u?` ucv" style="--ui:url(${u})`:''}"${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}>`+
  (c.j?'<b>★</b><small>JK</small>':`<b>${RN[c.r-1]}</b><small>${SU[c.s]}</small>`)+'</div>'}
 // las casillas del contrato viven en staged (game.js); se preparan solas cada ronda mientras no te hayas bajado
 let rnd=-1;
@@ -87,3 +87,8 @@ GM.continental.ev=e=>{if(ev0)ev0(e);if(!document.querySelector('#app .m2d')||e.k
  M2D.bb(e.k,/^quiere/.test(t)?'¡Compro!':/^canceló/.test(t)?'Ya no compro':/^compró/.test(t)?'Compró el descarte':/^se bajó/.test(t)?'¡Me bajo!':t.charAt(0).toUpperCase()+t.slice(1),
   /^(quiere|compró)/.test(t)?'uno':/^se bajó/.test(t)?'bien':'')};
 })();
+
+// prepara de una en una las 53 caras del estilo elegido; al tener imágenes nuevas se vuelve a pintar la mesa 2D
+if(window.CCART){let q=[];const sig=()=>{const c=q.shift();if(!c)return;CCART.url(c,{st:typeof scards!='undefined'?scards:'classic'});(window.requestIdleCallback||setTimeout)(sig)};
+ for(let s=0;s<4;s++)for(let r=1;r<=13;r++)q.push({r,s});q.push({j:1});setTimeout(sig,600);
+ CCART.alUrl(()=>{if(typeof render=='function'&&document.querySelector('#app .m2d')&&typeof gnow=='function'&&gnow()==='continental')render()})}
