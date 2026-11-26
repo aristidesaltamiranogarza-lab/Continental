@@ -283,7 +283,7 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-top{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 6px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .mu-hud.wide .mu-top{right:var(--mu-sbw)}.mu-top>*{pointer-events:auto}
 .mu-tr1{display:flex;align-items:center;gap:8px;min-width:0}
-.mu-pls{flex:1;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:3px 3px 6px;min-width:0;scroll-behavior:smooth}.mu-pls::-webkit-scrollbar{display:none}
+.mu-pls{flex:1;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 6px 6px;margin:-7px -3px 0;min-width:0;scroll-behavior:smooth}.mu-pls::-webkit-scrollbar{display:none}
 .mu-pl{flex:none;position:relative;display:flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;border:2px solid var(--mu-line);background:var(--mu-glass);color:var(--mu-ink);box-shadow:var(--mu-hs);cursor:pointer;-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);text-align:left}
 .mu-pi{display:flex;flex-direction:column;min-width:0}.mu-pi .n{max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 11px/1.15 var(--mu-f);color:var(--mu-sub)}
 .mu-pl .mu-tok{width:28px;height:28px;font-size:15px}.mu-pi b{font:800 14px/1.1 var(--mu-f);font-variant-numeric:tabular-nums}
