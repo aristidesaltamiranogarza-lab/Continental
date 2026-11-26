@@ -138,7 +138,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const por=w/h<.95,tk=(por?'p':'l')+(V&&V.G?V.G.players.length:4);if(tk!==tableKey){tableKey=tk;buildTable(por)}
  const wide=w/h>1.6,tb=$(wide?'#gjTop':'#gjHint'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  // tu mano: en celular parado grande (~24% del alto) mientras 7 cartas se asomen 30 px cada una
- const ch=por?Math.max(64,Math.min(h*.24,(w-204)/.967,230)):Math.max(64,Math.min(h*.19,w*.26,165)),ls=!por&&h<500,
+ const ch=por?Math.max(64,Math.min(h*.24,(w-204)/.967,230)):Math.max(64,Math.min(h*(!por&&h<500?.25:.19),w*.26,165)),ls=!por&&h<500,
   side=ls&&bb?bb.getBoundingClientRect().right+8:0,y0=ls?h-4-ch*.42:h-Math.max(bar,72)-8-ch/2;   // acostado en celular: botones en la esquina (ui_juegos.css) y la mano pegada abajo
  Object.assign(L,{top,bar,ch,ls,side,y0,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(h-y0+ch*.65-8)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
