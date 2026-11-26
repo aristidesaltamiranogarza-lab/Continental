@@ -100,6 +100,7 @@ function show(){
  function go(){const n=inp.value.trim();if(!n){err.textContent='Escribe un nombre para entrar.';inp.focus();return}
   pname=n;ls.set('cont_n',n);el.remove();saved=q;keep(q);
   ls.set('cont_av_hecho','1');// ya vio (o armó) su personaje aquí
+  if(window.PTDA)return PTDA.ve(q);   // la portada hace la transición (telón al plano o carga de la casa)
   const C=window.CASA3D;if(C&&C.on()!==(q!=='ligero'))casaToggle();else if(typeof render=='function')render()}
 }
 function keep(q){CALIDAD=q;ls.set('casa_cal',q);if(q!=='ligero'){last3=q;ls.set('casa_cal3',q)}}

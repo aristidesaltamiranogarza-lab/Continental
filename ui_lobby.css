@@ -346,3 +346,18 @@ html[data-tema=noche] .pl{--pl-jardin:#3F5531;--pl-copa:#557A3D;--pl-copa2:#6A8F
 html.lbon{min-height:100%;background:#E8D2B2 radial-gradient(ellipse at 50% -10%,#FFF4E2 0%,#F3E2C8 55%,#E8D2B2 100%) no-repeat;background-size:100% 100dvh}
 html.lbon[data-tema=noche]{background:#170F0A radial-gradient(ellipse at 50% -10%,#3A281D 0%,#22170F 60%,#170F0A 100%) no-repeat;background-size:100% 100dvh}
 html.lbon body,html.lbon[data-game] body,html.lbon[data-tema=noche] body,html.lbon[data-tema=noche][data-game] body{background:none}
+
+/* plano: zoom libre (c_plano_zoom.js) y entrada desde la portada (c_portada.js) */
+.pl{touch-action:pan-x pan-y}.pl-area{touch-action:none}
+.pl-lib{position:absolute;inset:0;transform-origin:0 0}.pl-lib.suave{transition:transform .35s cubic-bezier(.3,.7,.3,1)}
+.pl.entra .pl-box{animation:plEntra .95s cubic-bezier(.25,1.25,.4,1) both;animation-delay:calc(var(--edl) + .05s)}
+.pl.entra .pl-m{animation:plMesa .45s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--edl) + .75s)}
+.pl.entra .pl-tabs{animation:plCae .55s cubic-bezier(.3,1.4,.5,1) both;animation-delay:calc(var(--edl) + .35s)}
+.pl.entra .pl-c,.pl.entra .pl-acc{animation:plSubeC .5s cubic-bezier(.3,1.4,.5,1) both;animation-delay:calc(var(--edl) + .5s)}
+.pl.entra .pl-c:nth-child(2){animation-delay:calc(var(--edl) + .56s)}.pl.entra .pl-c:nth-child(3){animation-delay:calc(var(--edl) + .62s)}
+.pl.entra .pl-c:nth-child(4){animation-delay:calc(var(--edl) + .68s)}.pl.entra .pl-c:nth-child(n+5){animation-delay:calc(var(--edl) + .74s)}
+@keyframes plEntra{from{translate:0 75vh;rotate:-14deg;scale:.55;opacity:0}60%{opacity:1}}
+@keyframes plMesa{from{scale:0}}
+@keyframes plCae{from{translate:0 -70px;opacity:0}}
+@keyframes plSubeC{from{translate:0 50px;scale:.8;opacity:0}}
+@media (prefers-reduced-motion:reduce){.pl.entra *{animation:none!important}}

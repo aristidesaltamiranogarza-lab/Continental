@@ -15,7 +15,7 @@ const LBL={calle:'Calle',salon:'Sala',zaguan:'Zaguán',comedor:'Comedor',patio:'
  antesala:'Antesala',tableros:'Tableros',tucuarto:'Tu cuarto',musica:'Música',pergola:'Pérgola',azotea:'Azotea',mirador:'Mirador',tendedero:'Tendedero'};
 const NOMB={domino:'Dominó',loteria:'Lotería',cubilete:'Cubilete',backgammon:'Backgammon',conecta4:'Conecta 4',ruleta:'Ruleta'};   // mesas sin sala en 2D
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let piso='',sel='',D=null,ult='',ROT=false;
+let piso='',sel='',D=null,ult='',ROT=false,entraT=0;
 const vis=()=>!!document.querySelector('.pl-box');   // el plano está en pantalla
 const U=()=>window.LOBBY&&LOBBY.u;
 const P=()=>window.PLANO_C;
@@ -115,16 +115,17 @@ function html(){const C=P();if(!C)return '';
   :(x,z)=>`left:${((x-x0)/w*100).toFixed(2)}%;top:${((z-z0)/d*100).toFixed(2)}%`;
  const tz=zoomT0(L),k=tz==='none'?1:+tz.match(/scale\(([\d.]+)/)[1],dz=Date.now()-zoomT,an=dz<600?`;--t0:${zoomAnt};--dl:-${dz}ms`:'';
  const mp=window.CMESA&&CMESA.abierta&&CMESA.abierta()&&sel&&tipo(sel)==='sala'?CMESA.panel2d(ctx(MK[sel]||sel)):'';
- return `<div class="pl${tz!=='none'?' cerca':''}">${tz==='none'?tabs():''}<div class="pl-area"><div class="pl-box" style="aspect-ratio:${bw}/${bh};width:min(100cqw,calc(100cqh*${r}))"><div class="pl-zoom${an?' anim':''}" style="transform:${tz};--k:${k}${an}">${svg(L,rot)}${letreros(L,at)}${L.mesas.map(m=>mesa(m,L,at)).join('')}${gente(L,piso,at)}</div>
-  ${tz!=='none'?`<button class="ui-pill pl-toda" onclick="PLANO2D.lejos()">${I('casa')}Toda la casa</button>`:''}</div></div>
+ const de=Date.now()-entraT,lz=window.PZOOM?PZOOM.k()>1.001:false;
+ return `<div class="pl${tz!=='none'?' cerca':''}${de<1500?' entra" style="--edl:-'+de+'ms':''}">${tz==='none'?tabs():''}<div class="pl-area"><div class="pl-box" style="aspect-ratio:${bw}/${bh};width:min(100cqw,calc(100cqh*${r}))"><div class="pl-lib" style="${window.PZOOM?PZOOM.css():''}"><div class="pl-zoom${an?' anim':''}" style="transform:${tz};--k:${k}${an}">${svg(L,rot)}${letreros(L,at)}${L.mesas.map(m=>mesa(m,L,at)).join('')}${gente(L,piso,at)}</div></div>
+  ${tz!=='none'||lz?`<button class="ui-pill pl-toda" onclick="PLANO2D.lejos()">${I('casa')}Toda la casa</button>`:''}</div></div>
   <div class="pl-pie"><div class="pl-js ui-desl" role="group" aria-label="Juegos">${juegos()}</div>${accion()}</div></div>${mp}`}
 // ---------- acciones ----------
 function snd(){if(typeof sfx=='function')try{sfx('tick')}catch(e){}}
-function cambiaZoom(z){const C=P();zoomAnt=zoomT0(C&&C[piso]);ZOOM=z;zoomT=Date.now()}
+function cambiaZoom(z){if(window.PZOOM)PZOOM.cero();const C=P();zoomAnt=zoomT0(C&&C[piso]);ZOOM=z;zoomT=Date.now()}
 // elegir una mesa (tarjeta o en el plano): cambia de piso, se acerca y caminas a tu silla. Tocarla otra vez ya de cerca abre su panel
 function ir(g){const m=busca(g);if(!m)return;snd();
  if(sel===g&&ZOOM&&piso===m.f){if(tipo(g)==='sala'){pgame=MK[g]||g;CMESA.abre2d(pgame);render()}else mesa2();return}
- if(piso!==m.f){piso=m.f;zoomAnt='none';ZOOM=true;zoomT=Date.now()}else cambiaZoom(true);
+ if(piso!==m.f){if(window.PZOOM)PZOOM.cero();piso=m.f;zoomAnt='none';ZOOM=true;zoomT=Date.now()}else cambiaZoom(true);
  if(sel!==g)llegaT=Date.now();sel=g;if(tipo(g)==='sala')pgame=MK[g]||g;
  if(window.GENTE&&GENTE.late)GENTE.late();   // los demás te ven junto a la mesa de una vez
  render();setTimeout(()=>{if(vis())render()},CAMINA+50)}   // al terminar de caminar se quita la animación
@@ -146,5 +147,6 @@ function ok(){return !!(P()&&window.LOBBY&&LOBBY.u&&window.CMESA&&CMESA.panel2d)
 let gi=innerWidth>innerHeight;addEventListener('resize',()=>{const g=innerWidth>innerHeight;if(g!==gi){gi=g;if(vis()&&typeof render=='function')render()}});
 setInterval(()=>{if(typeof S!='undefined'&&S&&typeof V!='undefined'&&V&&V.game)ult=V.game},1000);
 window.PLANO2D={ok,html,toca:ir,ir,crea,une,mira,reglas,mas,lejos,mesa:mesa2,pos,casa,visible:vis,
- piso:f=>{piso=f;if(window.CMESA)CMESA.cerrar();snd();render()}};
+ entra:()=>{entraT=Date.now()},
+ piso:f=>{if(window.PZOOM)PZOOM.cero();piso=f;if(window.CMESA)CMESA.cerrar();snd();render()}};
 })();
