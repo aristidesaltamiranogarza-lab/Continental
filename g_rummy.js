@@ -25,14 +25,14 @@ function pasa(R,i,por,err){const G=R.G,x=G.bag.pop(),n=pn(G,i);G.tmp=null;
  if(!G.bag.length&&G.idle>=vivos(G).length)return fin(R,null,'bolsa');
  begin(R,next(G,i))}
 function juega(R,i,r){const G=R.G;G.mesa=r.mesa;G.racks[i]=G.racks[i].filter(x=>!r.jug.includes(x));G.tmp=null;G.idle=0;
- if(!G.down[i]){G.down[i]=true;lg(G,'🎉 '+pn(G,i)+' bajó por primera vez con '+r.pts+' puntos.')}
+ if(!G.down[i]){G.down[i]=true;lg(G,''+pn(G,i)+' bajó por primera vez con '+r.pts+' puntos.')}
  else lg(G,pn(G,i)+' puso '+r.jug.length+(r.jug.length==1?' ficha.':' fichas.'));
  fx(G,'juega',i,r.jug.length);if(!G.racks[i].length)return fin(R,i,'sin');begin(R,next(G,i))}
 // por: 'sin' (se quedó sin fichas) · 'bolsa' (gana quien tenga menos puntos; empate: menos fichas) · 'solo' (los demás se fueron)
 function fin(R,w,por){const G=R.G;clearTimeout(R.rmT);G.pts=G.racks.map(RU.mano);
  if(w==null){const L=vivos(G);w=L.length?L.reduce((b,k)=>G.pts[k]<G.pts[b]||G.pts[k]==G.pts[b]&&G.racks[k].length<G.racks[b].length?k:b):null}
  Object.assign(G,{phase:'final',win:w,tmp:null,at:0});G.tc++;if(w==null)return;fx(G,'gana',w);const n=pn(G,w);
- lg(G,por=='sin'?'🏆 ¡'+n+' se quedó sin fichas y gana!':por=='solo'?'🏆 '+n+' gana: se quedó solo en la mesa.':'🏆 Se acabó la bolsa y nadie pudo jugar: gana '+n+' con '+G.pts[w]+' puntos en mano.')}
+ lg(G,por=='sin'?'¡'+n+' se quedó sin fichas y gana!':por=='solo'?''+n+' gana: se quedó solo en la mesa.':'Se acabó la bolsa y nadie pudo jugar: gana '+n+' con '+G.pts[w]+' puntos en mano.')}
 function act(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
  if(G.phase!='play')return 'La partida terminó.';if(i<0||G.out[i])return 'No estás jugando.';if(G.turn!==i)return 'No es tu turno.';
  if(Date.now()>=G.at+LATE){tarde(R);return 'Se acabó el tiempo.'}

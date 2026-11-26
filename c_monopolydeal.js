@@ -124,7 +124,7 @@ function mdBody(){const G=V.G,i=V.me,t=G.turn,mine=i==t;
  if(mdDn!==G.dn){mdDn=G.dn;mdOpen=-1;mdFold=false;mdTg=null;mdPay=new Set()}
  if(mdPaV!==V){mdPaV=V;mdPaEnd=Date.now()+((G.pa&&G.pa.rem)||0)}
  {const pn=G.pa?G.pa.n:-1;if(pn!==mdPaN){mdPaN=pn;mdPay=new Set()}}
- if(G.phase=='final'){const w=G.win;return `<h1>🏆 ${w>=0?nm(w):'—'} gana</h1><div class="box" style="font-size:1.2em">${w>=0&&w==i?'¡Juntaste '+G.opts.sets+' sets completos! 🎉':'Juntó '+G.opts.sets+' sets completos.'}</div>${mdTables()}<button class="b" onclick="send({t:'reset'})">Nueva partida</button><button class="b g" onclick="leave()">Salir</button>${plist()}`}
+ if(G.phase=='final'){const w=G.win;return `<h1>${w>=0?nm(w):'—'} gana</h1><div class="box" style="font-size:1.2em">${w>=0&&w==i?'¡Juntaste '+G.opts.sets+' sets completos!':'Juntó '+G.opts.sets+' sets completos.'}</div>${mdTables()}<button class="b" onclick="send({t:'reset'})">Nueva partida</button><button class="b g" onclick="leave()">Salir</button>${plist()}`}
  const h=i>=0?G.hands[i]:[];
  if(!mine||(mdFrom=='l'&&!((G.hl&&G.hl[i])||[]).includes(mdSel))||(mdFrom=='h'&&!h.includes(mdSel))||(mdFrom=='t'&&!(G.tb[i]&&Object.values(G.tb[i]).some(a=>a.includes(mdSel)))))mdSel=null;
  if(!mine||G.pa){mdTg=null;mdSt=null}
@@ -155,5 +155,5 @@ function mdFx(e){const t=e.t,k=e.k,L=(a,b,id,d)=>setTimeout(()=>fly(a(),b(),id),
  return true}
 GM.monopolydeal={name:'Monopoly Deal',emoji:'💰',max:5,rules:mdRules,lobby:mdLobby,body:mdBody,
  face:id=>id<0?{h:mdBill(-id),cls:'md mm'}:({h:mdIn(id),cls:'md m'+mdCAT[id].t}),fx:mdFx,
- win:(n,fin)=>{const w=n.win;if(!fin||w<0)return;const me=w==V.me;sfx('win');banner(me?'🏆 ¡Ganaste!':'🏆 '+n.players[w].name+' ganó');confetti(me?90:35)},
+ win:(n,fin)=>{const w=n.win;if(!fin||w<0)return;const me=w==V.me;sfx('win');banner(me?'¡Ganaste!':''+n.players[w].name+' ganó');confetti(me?90:35)},
  after:()=>{const G=V.G;if(G&&G.phase=='play'){prevHand=new Set(Array.isArray(G.hands[V.me])?G.hands[V.me]:[]);prevTop=G.disc[G.disc.length-1]}}};

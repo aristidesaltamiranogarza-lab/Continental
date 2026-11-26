@@ -48,7 +48,7 @@ function out(){const o=q;q=null;return o}
 const send=(op,x)=>{q=Object.assign({op},x||{});sfx('tick')};
 function hud(busy){ if(!open||busy||!S)return '';const c=S,mine=c.p.find(p=>p.id===me),turn=c.st=='play'?c.p[c.ti]:null,my=turn&&turn.id===me;
  const die=(v,i,h)=>`<button class="ui-rb cubd${h?' on':''}" ${my&&c.rolls>0&&c.rolls<3?`onclick="CUB3.a('hold',${i})"`:'disabled'} aria-label="Dado ${FN[v]}">${v<0?'·':FN[v]}</button>`;
- let st=c.msg?'🏆 '+esc(c.msg):c.st=='play'?(my?'<b>¡Tu turno!</b> '+(c.rolls?'Toca los dados que quieres apartar y vuelve a tirar, o plántate':'Tira los dados'):'Turno de '+nm(turn)+'…')
+ let st=c.msg?''+esc(c.msg):c.st=='play'?(my?'<b>¡Tu turno!</b> '+(c.rolls?'Toca los dados que quieres apartar y vuelve a tirar, o plántate':'Tira los dados'):'Turno de '+nm(turn)+'…')
   :c.p.length<2?'Se juega de 2 o más. Espera a que alguien se una.':'Listos para empezar.';
  let h=GHUD.win('<img class="gic" src="iconos/cub.png" alt=""> Cubilete',`
   <div class="h3d">Dados de póker: 9, 10, J, Q, K, A. Hasta 3 tiros por turno. Cada ronda todos ponen ${c.ante} fichas; la mejor jugada se lleva el bote.

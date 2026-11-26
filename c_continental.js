@@ -17,7 +17,7 @@ const rules=`<details><summary>Reglas</summary>Rondas 1 a 7 con 7 a 13 cartas. C
 function winFx(n,fin){let w=-1;const tot=n.players.map((_,i)=>n.scores.reduce((a,r)=>a+r[i],0));
  if(fin)tot.forEach((x,i)=>{if(!V.players[i].out&&(w<0||x<tot[w]))w=i});else w=n.out;
  if(w<0)return;const me=w==V.me;sfx('win');
- banner(me?(fin?'🏆 ¡Ganaste la partida!':'🎉 ¡Ganaste la ronda!'):'🏆 '+n.players[w].name+(fin?' ganó la partida':' ganó la ronda'));confetti(me||fin?90:35)}
+ banner(me?(fin?'¡Ganaste la partida!':'¡Ganaste la ronda!'):n.players[w].name+(fin?' ganó la partida':' ganó la ronda'));confetti(me||fin?90:35)}
 function runOrd(cs){const L=cs.length;if(L<4)return null;const n=cs.filter(c=>!c.j);
  if(new Set(n.map(c=>c.s)).size>1||new Set(n.map(c=>c.r)).size<n.length||cs.some((c,i)=>c.j&&i&&cs[i-1].j))return null;
  for(const hi of [0,1]){let st=null,ok=true;cs.forEach((c,i)=>{if(c.j)return;const v=(c.r==1&&hi?14:c.r)-i;if(st===null)st=v;else if(st!==v)ok=false});
