@@ -341,5 +341,8 @@ html[data-tema=noche] .pl{--pl-jardin:#3F5531;--pl-copa:#557A3D;--pl-copa2:#6A8F
 .pl-acc .ui-rb{width:46px;height:46px}
 .pl-j .uh-av{width:calc(18px*(1 + (var(--k) - 1)*.6)/var(--k));height:calc(18px*(1 + (var(--k) - 1)*.6)/var(--k));font-size:calc(9px*(1 + (var(--k) - 1)*.6)/var(--k))}
 /* el inicio va fijo (.lbh): el fondo que se ve es el de <html>, que quedaba oscuro aun de día */
-html.lbon{background:radial-gradient(ellipse at 50% -10%,#FFF4E2 0%,#F3E2C8 55%,#E8D2B2 100%) fixed}
-html.lbon[data-tema=noche]{background:radial-gradient(ellipse at 50% -10%,#3A281D 0%,#22170F 60%,#170F0A 100%) fixed}
+/* color sólido debajo: Safari en iPhone pinta con él las barras de arriba (estado) y abajo (inicio); sin color quedaban blancas.
+   Sin 'fixed' (iOS no lo respeta) y del alto de la pantalla para que el degradado no se corte. */
+html.lbon{min-height:100%;background:#E8D2B2 radial-gradient(ellipse at 50% -10%,#FFF4E2 0%,#F3E2C8 55%,#E8D2B2 100%) no-repeat;background-size:100% 100dvh}
+html.lbon[data-tema=noche]{background:#170F0A radial-gradient(ellipse at 50% -10%,#3A281D 0%,#22170F 60%,#170F0A 100%) no-repeat;background-size:100% 100dvh}
+html.lbon body,html.lbon[data-game] body,html.lbon[data-tema=noche] body,html.lbon[data-tema=noche][data-game] body{background:none}
