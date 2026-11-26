@@ -95,7 +95,7 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
  const i=V.me,t=G.turn,mine=i>=0&&i==t,h=i>=0?G.hands[i]:[],pl=mine&&G.step=='play'&&!G.pa,dis=mine&&G.step=='disc',left=3-G.plays;
  const pa=G.pa,yoPa=pa&&i>=0&&pa.tg.find(y=>y.k==i);
  const ver=mdSt&&(mdSt.m.t!='forced'||mdSt.m.take==null)?mdSt.m.tgt:mdOpen;
- const seats=M2D.rivales().map(([k,x,y])=>{const p=V.players[k]||{},px=pa&&pa.tg.find(z=>z.k==k);
+ const seats=M2D.rivales(1,1).map(([k,x,y])=>{const p=V.players[k]||{},px=pa&&pa.tg.find(z=>z.k==k);
   const tag=px?TAG[px.st][mdSK(pa.k)?1:0]:pa&&pa.by==k?(mdSK(pa.k)?'Roba':'Cobra'):'';
   const s=M2D.asiento(k,{x,y,turno:k==t,cuenta:hc(k),tag,extra:`<div class="m2-ri" data-tbl="${k}"><b>$${mdBank(k)}M</b><span>${minis(k)}</span></div>`});
   const tg=mdTg&&!p.out?(mdTg.steal&&!mdStealOk(mdTg.t,k)?' no':' tg'):'';
@@ -118,13 +118,13 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
  M2D.teclas=k=>{if(k=='Escape'){if(mdTg)mdTg=null;else if(mdSt)mdSt=null;else if(mdSel!=null)mdSel=null;else if(mdOpen>=0)mdOpen=-1;else return;render();return 1}
   if(k=='Enter'&&pl&&mdSel==null&&!mdTg&&!mdSt){md2End();return 1}if(k=='o'&&i>=0){cyc();return 1}};
  antes=enMesa(G);
- return M2D.mesa({cls:'md2'+(mine?' tu':''),
+ return M2D.mesa({cls:'md2'+(mine?' tu':''),redonda:1,domo:1,estilo:M2D.fieltro('monopolydeal'),
   top:`<div class="ui-pill m2-jug" title="Jugadas que quedan">${[0,1,2].map(j=>`<i class="${j<left?'on':''}"></i>`).join('')}<span class="m2d-sm">${mine?'Jugadas':esc(G.players[t].name)}</span></div>${i>=0?`<div class="ui-pill m2-meta" title="Sets completos">${metas(i)}<b>${mdSets(i)}/${G.opts.sets}</b></div>`:''}`,
   der:window.md3Toggle?UI.dim(0,'M2D.menu(0);md3Toggle()'):'',seats,centro,capa:verH+caja,hint:st,mine:mine&&!msg&&!pa,yo:i>=0?M2D.yo(i,{turno:mine}):'',acc,
   ord:i>=0?`<button class="ui-btn ghost m2d-ord" onclick="cyc()">${ico(manual?'libre':'ordenar')}<span class="m2d-sm">${manual?'Mi orden':sortS?'Por valor':'Por tipo'}</span></button>`:'',mano,rules:MD.rules})}
 function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((a,b)=>(!!P[a].out-!!P[b].out)||mdSets(b)-mdSets(a)||mdBank(b)-mdBank(a));
  M2D.suelta=null;M2D.teclas=null;
- return M2D.mesa({cls:'md2',der:window.md3Toggle?UI.dim(0,'md3Toggle()'):'',
+ return M2D.mesa({cls:'md2',redonda:1,domo:1,estilo:M2D.fieltro('monopolydeal'),der:window.md3Toggle?UI.dim(0,'md3Toggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>${w>=0?`<div class="m2-fs">${metas(w)}</div>`:''}
   <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span class="m2-fm">${P[k].out?'':metas(k)}</span><span>${P[k].out?'fuera':'$'+mdBank(k)+'M'}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:MD.rules})}

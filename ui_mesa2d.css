@@ -10,11 +10,27 @@ html:has(#app .m2d){overflow:hidden}
 .m2d-felt{container-type:size;position:absolute;left:7%;right:7%;top:12%;bottom:2%;border-radius:50%;border:clamp(8px,1.5vmin,15px) solid transparent;
  background:radial-gradient(ellipse at 50% 38%,#2f7d5a,#1f5c43 58%,#174734) padding-box,linear-gradient(140deg,#9a6238,#6a3c20 45%,#8d5530 70%,#5a321b) border-box;
  box-shadow:inset 0 0 0 2px rgba(0,0,0,.22),inset 0 14px 40px rgba(0,0,0,.35),0 14px 30px rgba(40,18,6,.35)}
-/* mesa redonda (Uno: M2D.mesa({redonda})): círculo perfecto centrado en el espacio libre, asientos sobre su borde; fieltro del color de la mesa 3D */
-.m2d-ronda{--d:min(100cqw - 2*var(--sw),100cqh - 1.3*var(--sw));position:absolute;left:50%;top:calc((100cqh - var(--d))/2 + .45*var(--sw));width:var(--d);aspect-ratio:1;transform:translateX(-50%)}
+/* mesa redonda (Uno, Continental y Monopoly Deal: M2D.mesa({redonda})): círculo visto un poco inclinado (--k: alto/ancho), centrado en el espacio libre,
+   asientos sobre su borde; el canto de madera asoma abajo y el fieltro es del color de la mesa 3D (M2D.fieltro) */
+.m2d-ronda{--k:.86;--d:min(100cqw - 2*var(--sw),(100cqh - 1.3*var(--sw))/(var(--k) + .05));position:absolute;left:50%;top:calc((100cqh - var(--d)*(var(--k) + .05))/2 + .45*var(--sw));
+ width:var(--d);height:calc(var(--d)*var(--k));transform:translateX(-50%)}
+.m2d-ronda::before{content:"";position:absolute;left:.4%;right:.4%;top:calc(var(--d)*.05);height:100%;border-radius:50%;
+ background:linear-gradient(90deg,#4a2814,#6e4024 30%,#7a4828 50%,#6e4024 70%,#4a2814);box-shadow:0 calc(var(--d)*.04) calc(var(--d)*.05) rgba(20,8,2,.45)}
 .m2d-redonda .m2d-felt{inset:0;border-width:clamp(9px,2.6cqw,16px);
- background:radial-gradient(circle at 50% 40%,var(--m2d-fieltro,#5d656f),color-mix(in srgb,var(--m2d-fieltro,#5d656f) 55%,var(--m2d-fieltro2,#1d2126)) 62%,var(--m2d-fieltro2,#1d2126)) padding-box,
- conic-gradient(from 20deg,#9a6238,#6a3c20,#8d5530,#5a321b,#94603a,#6a3c20,#9a6238) border-box}
+ background:radial-gradient(ellipse at 50% 38%,var(--m2d-fieltro,#5d656f),color-mix(in srgb,var(--m2d-fieltro,#5d656f) 55%,var(--m2d-fieltro2,#1d2126)) 66%,var(--m2d-fieltro2,#1d2126)) padding-box,
+ conic-gradient(from 20deg,#9a6238,#6a3c20,#8d5530,#5a321b,#94603a,#6a3c20,#9a6238) border-box;
+ box-shadow:inset 0 0 0 2px rgba(0,0,0,.22),inset 0 calc(var(--d)*.03) calc(var(--d)*.08) rgba(0,0,0,.35)}
+/* tu turno: brilla la madera de tu lado */
+.m2d-redonda.tu .m2d-ronda::after{content:"";position:absolute;inset:-4px;border-radius:50%;pointer-events:none;z-index:2;
+ background:conic-gradient(transparent 125deg,var(--ui-accent) 155deg,#ffd36a 180deg,var(--ui-accent) 205deg,transparent 235deg);
+ -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));animation:u2brillo 1.6s ease-in-out infinite}
+/* domo (Continental, Monopoly Deal): acostado en celular la mesa crece y su borde cercano queda detrás de la pista y de tu mano, como la vista 3D;
+   el juego se acomoda en la franja que se ve (--m2v: alto visible del fieltro) y los rivales en sillas por fuera del borde de enfrente (M2D.rivales(1,1)) */
+@property --m2v{syntax:'<length>';inherits:true;initial-value:0px}
+@media (max-height:460px) and (min-aspect-ratio:13/10){.m2d-domo .m2d-ronda{--d:min(100cqw - 5*var(--sw),300cqh);top:calc(.25*var(--sw));--m2v:calc(100cqh - .25*var(--sw) + 4px)}
+ .m2d-domo .m2d-yo{align-items:stretch}.m2d-domo .m2d-bar{flex-wrap:nowrap;justify-content:flex-start;pointer-events:none}.m2d-domo .m2d-bar>*{pointer-events:auto}
+ .m2d-domo .m2d-bar::after{content:"";flex:1;order:2}.m2d-domo .m2d-bar>.ui-btn{order:3}
+ .m2d-domo .m2d-bar{position:relative}.m2d-domo .m2d-hint{position:absolute;left:0;bottom:calc(100% + 6px);max-width:min(120px,14vw);box-sizing:border-box;font-size:12px;line-height:1.2;padding:6px 11px;text-align:left;border-radius:14px}}   /* Tú y la pista a la izquierda, botones a la derecha: la mesa queda libre */
 /* asientos */
 .m2d-seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;width:calc(var(--sw)*1.9);z-index:3;transition:transform .3s}
 .m2d-seat.on{transform:translate(-50%,-50%) scale(1.1);z-index:4}
@@ -81,7 +97,7 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 @keyframes m2in{from{transform:translateY(-90px) scale(.6);opacity:0}}
 @keyframes m2bb{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0;margin-top:-8px}}
 @media (max-width:560px){.m2d-sm{display:none}.m2d-hint{font-size:13px;padding:7px 12px}.m2d-nm{font-size:11px;padding:2px 7px}.m2d-fan{display:none}}
-@media (max-height:460px){.m2d-ronda{--d:min(100cqw - 2*var(--sw),100cqh + 60px);top:calc((100cqh - var(--d))/2 + .35*var(--sw) + 20px)}}   /* acostado: la mesa se mete detrás de la pista y de tu mano; los rivales se abren a los lados (c_mesa2d.js kx) */
+@media (max-height:460px){.m2d-ronda{--d:min(100cqw - 2*var(--sw),(100cqh + 60px)/(var(--k) + .05));top:calc((100cqh - var(--d)*(var(--k) + .05))/2 + .35*var(--sw) + 20px)}}   /* acostado: la mesa se mete detrás de la pista y de tu mano; los rivales se abren a los lados (c_mesa2d.js kx) */
 @media (max-height:460px){.m2d-top{padding-top:6px}.m2d-top .ui-rb,.m2d-top .ui-btn,.m2d-top .ui-pill{min-height:38px;height:38px}.m2d-top .ui-rb{width:38px}
  .m2d-bar{min-height:40px}.m2d-yo{margin-top:-34px}.m2d-me b{display:none}.m2d-hint{padding:6px 12px;font-size:13px}.m2d-fan{display:none}.m2d-felt{top:16%}}
 
@@ -92,7 +108,7 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 .u2-acu{padding:2px 9px;border-radius:999px;background:#d32f2f;color:#fff;font-weight:900}
 /* el anillo que gira en el sentido del juego */
 .u2-orbit{position:absolute;left:50%;top:50%;width:min(78cqw,150cqh);aspect-ratio:1;transform:translate(-50%,-50%) scaleY(.5);pointer-events:none}
-.m2d-redonda .u2-orbit{width:86cqw;transform:translate(-50%,-50%)}
+.m2d-redonda .u2-orbit{width:86cqw;transform:translate(-50%,-50%) scaleY(var(--k,1))}
 .u2-orbit.gira .u2-rot{animation:u2rebote .6s cubic-bezier(.3,1.5,.5,1)}
 .u2-rot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:color-mix(in srgb,var(--uc) 75%,#fff);stroke:color-mix(in srgb,var(--uc) 75%,#fff);opacity:.8;filter:drop-shadow(0 0 3px var(--uc))}
 .u2-rot svg path{fill:none;stroke-width:3;stroke-linecap:round}.u2-rot svg polygon{stroke:none}
@@ -108,10 +124,6 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 .m2d-redonda .u2-piles{--cb:min(var(--pw),19cqw);--cw:var(--cb);gap:calc(var(--cb)*.5)}
 .m2d-redonda .u2-desc{--cw:calc(var(--cb)*1.25)}
 .m2d-redonda .u2-pila small{font-size:11px;opacity:.75;padding:1px 7px}
-/* tu turno: brilla la madera de tu lado */
-.u2.tu .m2d-ronda::after{content:"";position:absolute;inset:-4px;border-radius:50%;pointer-events:none;z-index:2;
- background:conic-gradient(transparent 125deg,var(--ui-accent) 155deg,#ffd36a 180deg,var(--ui-accent) 205deg,transparent 235deg);
- -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));animation:u2brillo 1.6s ease-in-out infinite}
 .u2-pila small{font:800 13px var(--ui-font);color:#fff;background:rgba(0,0,0,.35);padding:2px 9px;border-radius:999px}
 html[data-game="uno"] .u2-mazo .c{box-shadow:2px 2px 0 #fff,3px 3px 0 #111,5px 5px 0 #fff,6px 6px 0 #111,8px 10px 14px rgba(0,0,0,.5)}
 html[data-game="uno"] .u2-mazo .c.go{cursor:pointer;animation:u2glow 1.3s ease-in-out infinite}
@@ -163,6 +175,15 @@ html[data-game] .k2 #hand .c.s{transform:translateY(-22px);box-shadow:0 0 0 3px 
 .k2-mesa{position:absolute;inset:7% 11%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqh;--mw:clamp(22px,min(5.4cqw,7.5cqh),44px)}
 .k2-ri,.k2-mi{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:5px 8px;min-height:0}
 .k2-mi:empty,.k2-ri:empty{display:none}
+/* en la mesa redonda: bajadas de los rivales arriba, mazo y descarte al centro, las tuyas abajo, dentro del círculo */
+.m2d-redonda .k2-mesa{inset:15% 14% 11%;gap:2.5cqh;--mw:clamp(16px,min(5.2cqw,6.2cqh),40px)}
+.m2d-redonda .k2-piles{--cw:min(var(--pw),15cqw,20cqh)}
+@media (max-height:460px) and (min-aspect-ratio:13/10){.m2d-domo .k2-mesa{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:4px 16px;inset:auto 9%;
+  top:calc(var(--m2v)*.04);height:calc(var(--m2v)*.93);--mw:clamp(14px,calc(var(--m2v)*.1),26px)}   /* sigue el arco: mazo y descarte en lo angosto de enfrente, bajadas en lo ancho */
+ .m2d-domo .k2-piles{grid-column:1/3;grid-row:1;justify-self:center;--cw:min(var(--pw),calc(var(--m2v)*.24))}
+ .m2d-domo .k2-ri,.m2d-domo .k2-mi{grid-row:2;max-height:100%;align-content:flex-start}.m2d-domo .k2-ri{grid-column:1;justify-content:flex-end}.m2d-domo .k2-mi{grid-column:2;justify-content:flex-start}
+ .m2d-domo .k2-baj{flex-wrap:nowrap}
+ .m2d-domo .k2-arm{left:50%;transform:translateX(-50%);bottom:calc(100% - 50px);--mw:22px;max-width:min(560px,calc(100% - 200px))}}   /* tu contrato al centro, justo encima de tu mano */
 @container (min-aspect-ratio:1.5){.k2-mesa{flex-direction:row;inset:9% 9%;gap:3cqw;--mw:clamp(22px,min(3.4cqw,13cqh),44px)}.k2-ri,.k2-mi{flex:1;max-height:100%}}
 .k2-piles{display:flex;align-items:flex-start;gap:calc(var(--cw)*.5);flex:none;--cw:min(var(--pw),30cqh,22cqw)}
 .k2-pila{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}

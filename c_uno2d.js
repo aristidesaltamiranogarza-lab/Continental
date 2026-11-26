@@ -8,7 +8,7 @@ const ARC=(()=>{let d='';const P=a=>[50+46*Math.sin(a),50-46*Math.cos(a)],f=v=>v
   d+=`<path d="M${f(x0)} ${f(y0)}A46 46 0 0 1 ${f(x1)} ${f(y1)}"/><polygon points="${f(x1+tx*7)},${f(y1+ty*7)} ${f(x1+nx*4.5)},${f(y1+ny*4.5)} ${f(x1-nx*4.5)},${f(y1-ny*4.5)}"/>`}
  return `<svg viewBox="0 0 100 100">${d}</svg>`})();
 let dirV=0,dirT=0;   // al invertirse el sentido, el anillo da un rebote
-const fieltro=()=>{const c=(window.MESA_J&&MESA_J.uno&&MESA_J.uno.col())||['#5d656f','#1d2126'];return `--m2d-fieltro:${c[0]};--m2d-fieltro2:${c[1]}`};
+const fieltro=()=>M2D.fieltro('uno');
 const giro=id=>({r:((id*47)%25)-12,x:((id*31)%9)-4,y:((id*17)%7)-3});   // cada carta cae siempre igual en el descarte
 function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return b0();
  document.documentElement.dataset.ucol=G.color;

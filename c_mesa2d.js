@@ -32,9 +32,11 @@ function emotes(){const P=V.players||[];if(emSala!==V.code){emSala=V.code;emVist
   if(!p.em||(k===V.me&&Date.now()-emPropio<5000))return;setTimeout(()=>{emoji(k,p.em);reac(k,EMV[p.em],3000)},0)})}
 function gesto(i){const em=EMS[i];if(!em||V.me<0)return;emAb=false;emPropio=Date.now();send({t:'emo',e:em});render();setTimeout(()=>{emoji(V.me,em);reac(V.me,EMV[em],3000)},0)}
 // ---------- asientos: los rivales en arco por arriba de la mesa (con más de 5 jugadores, alrededor de toda la mesa); el siguiente en turno queda a tu izquierda ----------
-function rivales(red){const G=V.G,n=G.players.length,me=V.me,ks=[];
+function rivales(red,domo){const G=V.G,n=G.players.length,me=V.me,ks=[];
  if(me>=0)for(let j=1;j<n;j++)ks.push((me+j)%n);else for(let k=0;k<n;k++)ks.push(k);
- const m=ks.length,ac=red&&innerHeight<=460&&innerWidth>innerHeight*1.3,kx=ac?1.7:1,e=innerHeight>innerWidth*1.1?.32:ac?0:red&&innerWidth>innerHeight*1.3?.6:0;return ks.map((k,j)=>{const d=.3,a=n>5?ac?Math.PI+d-j/(m-1)*(Math.PI+2*d):1.5*Math.PI-(j+1)/(m+1)*2*Math.PI:Math.PI+e-(j+1)/(m+1)*(Math.PI+2*e);return red?[k,50+50*(n>5&&ac?2.4:kx)*Math.cos(a),50-50*Math.sin(a)]:[k,50+43*Math.cos(a),55-44*Math.sin(a)]})}   // red: mesa redonda (.m2d-ronda), sobre la madera; acostado bajan por los lados para no encimarse
+ const m=ks.length,ac=red&&innerHeight<=460&&innerWidth>innerHeight*1.3,kx=ac?1.7:1,e=innerHeight>innerWidth*1.1?.32:ac?0:red&&innerWidth>innerHeight*1.3?.6:0;return ks.map((k,j)=>{const d=.3,a=n>5?ac?Math.PI+d-j/(m-1)*(Math.PI+2*d):1.5*Math.PI-(j+1)/(m+1)*2*Math.PI:Math.PI+e-(j+1)/(m+1)*(Math.PI+2*e);if(domo&&ac){const L=Math.ceil(m/2),R=m-L,iz=j<L,f=iz?L-1-j:j-L,rows=Math.max(L,R),y=6+(rows>1?f*13/(rows-1):0),t=1-y/50,w=50*Math.sqrt(Math.max(0,1-t*t));
+   return [k,iz?50-w-7:50+w+7,y]}   // domo: mesa grande acostado (misma media que .m2d-domo en ui_mesa2d.css): sillas por fuera del borde de enfrente, el siguiente abajo a tu izquierda
+  return red?[k,50+50*(n>5&&ac?2.4:kx)*Math.cos(a),50-50*Math.sin(a)]:[k,50+43*Math.cos(a),55-44*Math.sin(a)]})}   // red: mesa redonda (.m2d-ronda), sobre la madera; acostado bajan por los lados para no encimarse
 // o: {x,y,turno,cuenta,fan,tag,alerta,extra}
 function asiento(k,o){const p=(V.players||[])[k]||{};
  return `<div class="m2d-seat${o.turno?' on':''}${p.out?' out':''}" data-seat="${k}" style="--c:${COL[k%10]};left:${o.x}%;top:${o.y}%">
@@ -61,15 +63,17 @@ function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M
  ${typeof musUI=='function'?`<div class="ui-row m2d-mus">${musUI()}</div>`:''}
  ${G&&G.log&&G.log.length?`<details><summary>Historial</summary>${logv()}</details>`:''}<details><summary>Jugadores</summary>${plist()}</details>${o.rules||''}
  ${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ico('x')}Cerrar sala</button>`:''}</div></div>`}
-// o: {cls,estilo,redonda,top,der,seats,centro,capa,hint,mine,yo,acc,ord,mano,menu,rules}; redonda: mesa circular con los asientos en su borde (Uno)
+// o: {cls,estilo,redonda,domo,top,der,seats,centro,capa,hint,mine,yo,acc,ord,mano,menu,rules}; redonda: mesa circular con los asientos en su borde (Uno, Continental, Monopoly Deal); domo: acostado en celular la mesa crece y su borde cercano queda detrás de tu mano, como en 3D (Continental, Monopoly Deal)
 function mesa(o){emotes();const g=V.me>=0&&V.G&&V.G.phase!='final';if(!g)emAb=false;
- return `<div class="m2d ${o.cls||''}${o.redonda?' m2d-redonda':''}" style="${o.estilo||''}">
+ return `<div class="m2d ${o.cls||''}${o.redonda?' m2d-redonda':''}${o.domo?' m2d-domo':''}" style="${o.estilo||''}">
  <div class="m2d-top">${o.top||''}<span class="m2d-sp"></span>${g?`<button class="ui-rb m2d-gb${emAb?' on':''}" onclick="M2D.gestos()" aria-label="Gestos" aria-expanded="${emAb}">${ico('gesto')}</button>`:''}${g?`<button class="ui-rb m2d-cb" onclick="chatTog()" aria-label="Chat">${ico('chat')}<span class="m2d-cn">${(document.getElementById('cn')||{}).textContent||''}</span></button>`:''}${o.der||''}${window.GENTE?GENTE.boton():''}<button class="ui-rb" onclick="M2D.menu()" aria-label="Menú">${ico('menu')}</button>
  ${emAb?`<div class="m2d-gestos" role="menu">${EMS.map((e,i)=>`<button role="menuitem" onclick="M2D.gesto(${i})" aria-label="Gesto ${i+1}">${e}</button>`).join('')}</div>`:''}</div>
  <div class="m2d-zona">${o.redonda?'<div class="m2d-ronda">':''}<div class="m2d-felt">${o.centro||''}</div>${(o.seats||[]).join('')}${o.redonda?'</div>':''}${o.capa||''}</div>
  <div class="m2d-yo">${o.hint!=null?`<div class="m2d-bar">${o.yo||''}<div class="m2d-hint${o.mine?' mine':''}">${o.hint}</div>${o.acc||''}${o.ord||''}</div>`:''}${o.mano||''}</div>
  ${abierto?menuHtml(o):''}</div>`}
-const M2D=window.M2D={retrato,reac,gesto,rivales,asiento,yo,abanico,fila,bb,mesa,suelta:null,teclas:null,
+// el fieltro del color de la mesa 3D de ese juego (MESA_J: c_uno3d.js, c_continental3d.js, c_mdeal3d.js)
+function fieltro(j){const m=window.MESA_J&&MESA_J[j],c=(m&&m.col())||['#5d656f','#1d2126'];return `--m2d-fieltro:${c[0]};--m2d-fieltro2:${c[1]}`}
+const M2D=window.M2D={retrato,fieltro,reac,gesto,rivales,asiento,yo,abanico,fila,bb,mesa,suelta:null,teclas:null,
  gestos(){emAb=!emAb;if(typeof sfx=='function')sfx('tick');render()},
  menu(v){abierto=v==null?!abierto:!!v;render()}};
 // ---------- soltar una carta de tu mano en el centro (.m2d-drop) para jugarla ----------

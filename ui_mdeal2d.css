@@ -1,5 +1,4 @@
 /* Monopoly Deal 2D (c_mdeal2d.js) sobre la mesa compartida M2D. Tokens de ui.css (día y noche) */
-.md2 .m2d-felt{background:radial-gradient(ellipse at 50% 38%,#3f86cf,#25629f 58%,#173f6c) padding-box,linear-gradient(140deg,#9a6238,#6a3c20 45%,#8d5530 70%,#5a321b) border-box}
 /* cartas: la cara de MD3K como imagen; mientras llega, el color de la carta */
 html[data-game] .md2 .c.m2c,html[data-game] .md2 #hand .c.m2c{height:calc(var(--cw)*1.5);border-radius:calc(var(--cw)*.09);background:var(--k,#e9e1cf);border:0;padding:0;margin:0;
  overflow:hidden;position:relative;box-shadow:0 2px 5px rgba(0,0,0,.4);color:inherit;font-size:0}
@@ -19,6 +18,10 @@ html[data-game] .md2 .m2d-ca.no .c{filter:brightness(.75) saturate(.7)}
 /* el fieltro: el centro (mazo, descarte, acción pendiente) y tu mesa; en pantallas anchas lado a lado */
 .m2-mesa{position:absolute;inset:17% 9% 6%;display:grid;grid-template-rows:minmax(0,38fr) minmax(0,62fr);gap:2%}
 .m2-mesa.solo{grid-template-rows:minmax(0,1fr)}
+/* en la mesa redonda todo cabe en el círculo: el centro arriba y tu mesa abajo */
+.m2d-redonda .m2-mesa{inset:13% 14% 10%}
+@media (max-height:460px) and (min-aspect-ratio:13/10){.m2d-domo .m2-mesa{inset:auto 9%;top:calc(var(--m2v)*.03);height:calc(var(--m2v)*.94);grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+ .m2d-domo .m2-mesa.solo{grid-template-rows:minmax(0,1fr)}.m2d-domo .m2-cen{justify-self:center;max-width:62%}.m2d-domo .m2-piles{--cw:calc(var(--m2v)*.21)}}   /* sigue el arco: mazo al centro de enfrente, tu mesa en lo ancho */
 @container (min-aspect-ratio:1.75){.m2-mesa{inset:16% 7% 7%;grid-template-columns:minmax(0,28fr) minmax(0,72fr);grid-template-rows:minmax(0,1fr)}.m2-mesa.solo{grid-template-columns:1fr}}
 .m2-cen{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:8px 16px;min-height:0;border-radius:18px}
 .m2-piles{display:flex;align-items:center;gap:clamp(12px,3cqw,28px);--cw:clamp(30px,min(14cqh,8cqw),72px)}

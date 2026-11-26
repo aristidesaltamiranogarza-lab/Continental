@@ -44,7 +44,7 @@ function cuerpo(){const G=V.G;if(!G)return b0();
  const i=V.me,t=G.turn,mine=i>=0&&i==t,dn=i>=0&&G.down[i],pl=mine&&G.step=='play',dr=mine&&G.step=='draw';
  const arm=prepara(G,i),hand=i>=0?disp():[],gr=arm?grupos(hand,CON[G.round]):new Map();
  const canBuy=i>=0&&!mine&&!G.tdc&&G.disc.length>0;
- const rv=M2D.rivales(),[bR,bM]=bajadas(G,rv.map(r=>r[0]),i,pl);
+ const rv=M2D.rivales(1,1),[bR,bM]=bajadas(G,rv.map(r=>r[0]),i,pl);
  const seats=rv.map(([k,x,y])=>{const n=hc(k);return M2D.asiento(k,{x,y,turno:k==t,cuenta:n,fan:Math.min(n,10),alerta:n==1,tag:G.down[k]?'Bajado':''})});
  const dl=G.disc.slice(-3),top=G.disc[G.disc.length-1];
  const pila=dl.map((id,j)=>{const q=giro(id),last=j==dl.length-1;return `<div class="k2-d" style="--r:${q.r}deg;--x:${q.x}px;--y:${q.y}px">${cc(C(id),last?{id:'disc',nw:id!==prevTop,cls:dr?'go':'',on:dr?"draw('disc')":''}:{})}</div>`}).join('');
@@ -64,7 +64,7 @@ function cuerpo(){const G=V.G;if(!G)return b0();
  M2D.teclas=k=>{if(dr&&(k==' '||k=='r')){draw('deck');return 1}if(dr&&k=='d'){draw('disc');return 1}
   if(pl&&k=='Enter'&&sel.size==1){discard();return 1}if(pl&&k=='b'&&arm&&staged.every(okSlot)){bajar();return 1}
   if(k=='c'&&canBuy){V.claim?send({t:'unbuy'}):comprar();return 1}if(k=='o'){cyc();return 1}if(k=='Escape'&&sel.size){sel=new Set();render();return 1}};
- return M2D.mesa({cls:'k2'+(mine?' tu':''),
+ return M2D.mesa({cls:'k2'+(mine?' tu':''),redonda:1,domo:1,estilo:M2D.fieltro('continental'),
   top:`<div class="ui-pill k2-st"><b><span class="m2d-sm">Ronda </span>${G.round+1}/7</b>${['T','C'].map(x=>{const n=CON[G.round].split(x).length-1;return n?`<span class="k2-ct">${TN[x]}${n>1?' ×'+n:''}</span>`:''}).join('')}</div>`,der:v3,
   seats,centro,capa:jk,hint:st,mine:mine&&!msg,yo:i>=0?M2D.yo(i,{turno:mine}):'',acc,
   ord:i>=0?`<button class="ui-btn ghost m2d-ord" onclick="cyc()">${ico(manual?'libre':sortS?'palo':'numero')}<span class="m2d-sm">${manual?'Mi orden':sortS?'Por palo':'Por número'}</span></button>`:'',mano,
@@ -75,7 +75,7 @@ function fin(G){const P=V.players,tot=G.players.map((_,k)=>G.scores.reduce((a,r)
  M2D.suelta=null;M2D.teclas=null;
  const bts=fn?`<button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button>`:
   (V.me>=0?(G.rd[V.me]?'<span class="k2-esp">Esperando a los demás</span>':`<button class="ui-btn" onclick="send({t:'ready'})">${G.round>=6?'Ver resultado':'Listo'}</button>`):'')+(V.host?`<button class="ui-btn sec" onclick="send({t:'next'})">Siguiente ronda</button>`:'');
- return M2D.mesa({cls:'k2',der:window.c3dToggle&&!fn?UI.dim(0,'c3dToggle()'):'',
+ return M2D.mesa({cls:'k2',redonda:1,domo:1,estilo:M2D.fieltro('continental'),der:window.c3dToggle&&!fn?UI.dim(0,'c3dToggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${fn?(w==V.me?'¡Ganaste la partida!':nm(w)+' gana'):(w==V.me?'¡Te quedaste sin cartas!':nm(w)+' cierra la ronda '+(G.round+1))}</h2>
   <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',k==w?'feliz':fn?'triste':'')}<b>${nm(k)}</b>${fn?'':`<span class="k2-r${G.rd[k]?' ok':''}">${G.rd[k]?ico('ok'):''}+${ult[k]||0}</span>`}<span>${P[k].out?'fuera':tot[k]+' pts'}</span></div>`).join('')}</div>
   <details class="k2-tabla"><summary>Puntos por ronda</summary>${table()}</details><div class="m2d-bts">${bts}</div></div>`,rules})}
