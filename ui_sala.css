@@ -242,3 +242,6 @@ html.sala2d #chat{z-index:26;bottom:calc(var(--sl-h,0px) + 12px)}
 .sl-est2 .lb-seg{display:grid;grid-template-columns:repeat(3,1fr);border-radius:18px}
 .sl-f2x b{position:absolute;left:50%;top:100%;translate:-50% 0;margin-top:-7px}
 #sala.sl2d .sl-f2a{transition:opacity .3s}#sala.sl2d.sub .sl-f2a{opacity:0}
+/* conectados en "Invita a tu gente" (GENTE.invitables) */
+.sl-gen{align-self:stretch;display:flex;flex-direction:column;gap:8px;text-align:left;margin:4px 0 10px}
+.sl-gen:empty{display:none}

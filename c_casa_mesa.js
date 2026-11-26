@@ -14,9 +14,11 @@ const avs=L=>`<span class="uh-avs">${L.slice(0,3).map(av).join('')}</span>`;
 const nombres=(L,n)=>{const a=L.slice(0,3);return n>3?a.join(', ')+` y ${n-3} más`:a.length>1?a.slice(0,-1).join(', ')+' y '+a[a.length-1]:a[0]||''};
 const estado=c=>[c.pl?c.pl+' jugando':'',c.op.length?c.op.length+(c.op.length>1?' salas esperando':' sala esperando'):''].filter(Boolean).join(' · ');
 
-function aviso(c){const s=estado(c);
- return `<button class="ui uh-aviso" onclick="CMESA.abrir()" aria-label="Jugar ${es(c.name)}${s?' · '+s:''}"><span class="uh-ai" aria-hidden="true">${gico(c)}</span>
- <span class="uh-at"><b>Jugar ${es(c.name)}</b><small>${s||'Sin partidas'}${touchy?' · toca para entrar':''}</small></span>${touchy?'':'<kbd>E</kbd>'}</button>`}
+// con partida en curso, el letrero dice quién juega (retratos pequeños y nombres) en vez de solo "2 jugando" (SOCIAL.md S6)
+function aviso(c){const s=estado(c),ps=[].concat(...c.pr.map(r=>r.ps)),quien=ps.length?nombres(ps,ps.length)+(ps.length>1?' juegan':' juega'):'';
+ const sub=quien?quien+(c.op.length?' · '+estado({pl:0,op:c.op}):''):s||'Sin partidas';
+ return `<button class="ui uh-aviso" onclick="CMESA.abrir()" aria-label="Jugar ${es(c.name)} · ${es(sub)}"><span class="uh-ai" aria-hidden="true">${gico(c)}</span>
+ <span class="uh-at"><b>Jugar ${es(c.name)}</b><small>${es(sub)}${touchy?' · toca para entrar':''}</small></span>${ps.length?avs(ps):''}${touchy?'':'<kbd>E</kbd>'}</button>`}
 function panel(c){const op=c.op.slice(0,5),pr=c.pr.slice(0,5);
  let b=`<div class="uh-mh"><span class="uh-mi" aria-hidden="true">${gico(c)}</span><span><h2 class="ui-h">${es(c.name)}</h2><small class="ui-sub">${es(c.desc)} Hasta ${c.G.max} jugadores.</small></span>
   <button class="ui-x" onclick="CMESA.cerrar()" aria-label="Cerrar">${I('x')}</button></div>`;

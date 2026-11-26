@@ -338,7 +338,7 @@ async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
  try{const d=await api('casa',b);if(window.GENTE)GENTE.pon(d.q,d.inv);if(active()){netSync(d);if(window.BJC)BJC.estado(d.bj);if(window.BJ3)BJ3.estado(d.bj,d.bjerr);if(window.PK3)PK3.estado(d.pk,d.pkerr);if(window.BIJ)BIJ.estado(d.bi,d.bierr);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{if(o.f==='2d')return;seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
-  if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`${o.name} entró a la casa`)}
+  if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a)}
   else if(a.name!==o.name)rename(a,o.name);
   if((o.av||'')!==a.av){a.av=o.av||'';refresh(a)}
   {const t=performance.now(),d=pos.distanceTo(a.to),fl=(o.f||'pb')!==(a.f||'pb');
@@ -346,7 +346,7 @@ function netSync(d){const seen=new Set(),n0=others.size;
     if(d>4||fl){a.fr=null;a.pos.copy(pos)}else{a.fr=(a.fr||new THREE.Vector3()).copy(a.pos);a.t0=t;a.dur=Math.min(800,Math.max(120,(a.iv||350)*1.15))}}}
   a.f=o.f||'pb';a.to.copy(pos);if(!o.w&&a.to.distanceTo(a.pos)<.05)a.tyaw=+o.yaw||a.tyaw;
   if(o.em&&o.emN!==a.emN){a.emN=o.emN;bubble(a,o.em,1)}if(o.say&&o.sayN!==a.sayN){a.sayN=o.sayN;bubble(a,o.say)}});
- others.forEach((a,id)=>{if(!seen.has(id)){if(synced)toast(`${a.name} salió`);dropAv(a);others.delete(id)}});
+ others.forEach((a,id)=>{if(!seen.has(id)){dropAv(a);others.delete(id)}});
  rooms=d.r||[];const k=JSON.stringify(rooms)+'|'+others.size;synced=true;
  if(k!==roomsKey){const rk=roomsKey.split('|')[0],nk=k.split('|')[0];roomsKey=k;if(rk!==nk)seatSync();if(!inputBusy())render()}}
 // globitos (lo que dijo o su emote) y nombres arriba de cada Mii
@@ -485,11 +485,11 @@ function etq(){if(!window.ETQ)return;const cp=CA.position,ref=cp.distanceTo(cent
 // ---------- engancharse a la pantalla de inicio ----------
 function active(){return on&&!S}
 let shN=0,shFL=null;   // sombras de la casa: 1 de cada 2 cuadros solo arriba de ~80 FPS (a 30 o 60 se veían a saltos); al cambiar de piso o de modo, en ese cuadro
-function loop(now){requestAnimationFrame(loop);const a=active(),lb=!a&&on&&ready&&!!window.SALA&&SALA.on(),m=a?1:lb?2:0,dt=Math.min(100,now-(lastNow||now));lastNow=now;
+function loop(now){requestAnimationFrame(loop);if(S&&V&&V.game)ultG=V.game;const a=active(),lb=!a&&on&&ready&&!!window.SALA&&SALA.on(),m=a?1:lb?2:0,dt=Math.min(100,now-(lastNow||now));lastNow=now;
  // un juego (Continental, Uno, Ruleta…) pudo quedarse con el lienzo compartido: la casa o la sala lo recuperan (si no, pantalla negra)
  if(m&&m===lpM&&cv.parentNode!==root)back();
  if(root.style.display!==(m?'block':'none')||m!==lpM){const m0=lpM;lpM=m;shFL=null;root.style.display=m?'block':'none';lay.style.display=a?'block':'none';if(m)back();if(m0===2&&m!==2)salaFin(a);   // lb: sala de espera (c_sala.js) con la casa detrás
-  if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni();if(!m0&&m)deJuego(m)}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
+  if(a&&sitP&&window.CCAM){CCAM.blendIn(CA,sitP,1300);sitP=null}if(lb&&m0!==2)salaIni();if(!m0&&m&&!(m===1&&volverMesa(ultG)))deJuego(m)}document.documentElement.classList.toggle('h3on',a);document.documentElement.classList.toggle('sala3d',lb);
  // en una partida del sótano la escena es la misma: los Miis que caminan se esconden (la Ruleta pone a los suyos en las sillas)
  document.documentElement.classList.toggle('h3lock',a&&document.pointerLockElement===cv);
  if(!a){keys.clear();if(document.pointerLockElement===cv)document.exitPointerLock();if(lb)return salaPaso(now,dt);if(FL!==PB&&me.g.visible){me.g.visible=false;others.forEach(o=>o.g.visible=false)}return}
@@ -576,6 +576,10 @@ function sitSala(go){const t=window.CCAM&&ready&&!CCAM.busy()&&sel&&TB.find(x=>x
 function salaIni(){salaT=null;salaDive=0;sOff.x=sOff.y=0;sitP=null;if(window.CCAM)CCAM.release(CA,0);const g=SALA.g();if(g&&!TB.find(x=>x.g===g&&!x.door))arranca(g)}
 // saliste de una partida con viaje (Uno; FONDO.ult): la cámara arranca en tus ojos, un poco atrás para que la mesa se vea del mismo tamaño con la lente
 // de la casa, y regresa sola (en la sala la lleva salaPaso; caminando, CCAM.blendIn)
+// al salir de una partida a la casa quedas junto a la mesa de ese juego (SOCIAL.md S6): si estabas lejos o en otro piso (entraste por invitación o código)
+let ultG='';
+function volverMesa(g){ultG='';if(!g||!ready)return false;const fl=(window.CAJA&&CAJA.on?PISOC:PISOJ)[g];if(fl&&fl!==FL.id&&canGo(fl)){irA(fl,g);return true}
+ const t=TB.find(x=>x.g===g&&!x.door);if(t&&Math.hypot(me.pos.x-t.x,me.pos.z-t.z)>(t.r||1)+4){irA(FL.id,g);return true}return false}
 function deJuego(m){const u=window.FONDO&&FONDO.ult&&FONDO.ult();if(!u||!window.CCAM||CCAM.RM)return;
  const fc=m===2&&innerWidth/innerHeight<.95?62:CA.fov,k=Math.tan(u.fov*Math.PI/360)/Math.tan(fc*Math.PI/360);
  CA.position.copy(u.p).sub(u.a).multiplyScalar(k).add(u.a);CA.up.set(0,1,0);CA.lookAt(u.a);CA.updateMatrixWorld();if(m===1)CCAM.blendIn(CA,CCAM.pose(CA),1300)}
