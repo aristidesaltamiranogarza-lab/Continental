@@ -41,16 +41,18 @@ const cache={},redib=new Map(),avisa=[];let fuente=!!(document.fonts&&document.f
 const kde=(c,o)=>(c.j?'j':c.r+'_'+c.s)+((o&&o.st)||'classic');
 function cara(c,o){const k=kde(c,o);if(cache[k])return cache[k];const cn=document.createElement('canvas');cn.width=TW*CS;cn.height=TH*CS;
  const f=g=>pinta(g,c,(o&&o.st)||'classic'),g=cn.getContext('2d');g.setTransform(CS*SX,0,0,CS*SY,0,0);f(g);if(!fuente)redib.set(cn,f);return cache[k]=cn}
-// imagen para la vista 2D: url de un blob por carta; mientras se arma devuelve null y al tenerla avisa (para volver a pintar)
-const urls={},pend={},avU=[];let avT=0;
-function url(c,o){const k=kde(c,o);if(urls[k])return urls[k];
- if(!pend[k]){const cn=cara(c,o);if(!cn.toBlob)return urls[k]=cn.toDataURL('image/png');pend[k]=1;
-  cn.toBlob(b=>{delete pend[k];if(!b)return;urls[k]=URL.createObjectURL(b);clearTimeout(avT);avT=setTimeout(()=>avU.forEach(f=>{try{f()}catch(e){}}),30)},'image/png')}
- return null}
+// imagen para la vista 2D: url de un blob por carta; si aún no está, una copia inmediata (data url) para que nunca se vea otra cara
+const urls={},pend={},inm={},avU=[];let avT=0;
+function blob(c,o,k){if(pend[k]||urls[k])return;const cn=cara(c,o);if(!cn.toBlob)return urls[k]=cn.toDataURL('image/png');pend[k]=1;
+ cn.toBlob(b=>{delete pend[k];if(!b)return;urls[k]=URL.createObjectURL(b);delete inm[k];clearTimeout(avT);avT=setTimeout(()=>avU.forEach(f=>{try{f()}catch(e){}}),30)},'image/png')}
+function url(c,o){const k=kde(c,o);if(urls[k])return urls[k];blob(c,o,k);return urls[k]||inm[k]||(inm[k]=cara(c,o).toDataURL('image/jpeg',.92))}
+// precarga las 53 caras de un estilo poco a poco, sin trabar el juego
+function pre(st){const o={st:st||'classic'},L=[{j:1}];for(let s=0;s<4;s++)for(let r=1;r<=13;r++)L.push({r,s});
+ const paso=()=>{const t=performance.now();while(L.length&&performance.now()-t<8){const c=L.shift();blob(c,o,kde(c,o))}if(L.length)(window.requestIdleCallback||setTimeout)(paso)};paso()}
 // si Nunito llega después de dibujar: se redibujan los mismos canvas y se avisa (3D: needsUpdate; 2D: volver a pintar)
 const listo=()=>fuente||!document.fonts||!document.fonts.load?Promise.resolve():document.fonts.load('800 100px Nunito').then(()=>{if(fuente)return;fuente=true;
  redib.forEach((f,cn)=>{const g=cn.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cn.width,cn.height);g.setTransform(CS*SX,0,0,CS*SY,0,0);f(g)});redib.clear();
- for(const k in urls){if(urls[k].startsWith('blob:'))URL.revokeObjectURL(urls[k]);delete urls[k]}avisa.concat(avU).forEach(f=>{try{f()}catch(e){}})}).catch(()=>{});
-listo();
-window.CCART={W:TW*CS,H:TH*CS,cara,url,listo,alListo:f=>avisa.push(f),alUrl:f=>avU.push(f)};
+ for(const k in inm)delete inm[k];for(const k in urls){if(urls[k].startsWith('blob:'))URL.revokeObjectURL(urls[k]);delete urls[k]}avisa.concat(avU).forEach(f=>{try{f()}catch(e){}})}).catch(()=>{});
+listo().then(()=>pre());
+window.CCART={W:TW*CS,H:TH*CS,cara,url,pre,listo,alListo:f=>avisa.push(f),alUrl:f=>avU.push(f)};
 })();
