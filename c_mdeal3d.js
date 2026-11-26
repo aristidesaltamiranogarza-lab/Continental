@@ -68,7 +68,7 @@ function init(){if(ready)return;ready=true;
  cv.addEventListener('pointerleave',()=>{if(!st&&hov!=null){hov=null;sync()}});cv.addEventListener('contextmenu',e=>e.preventDefault());
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();if(mc)mc.toca();zoomAt(e.clientX,e.clientY,VT.k*Math.exp(-e.deltaY*.0015))},{passive:false});
  addEventListener('keydown',e=>{if(!active()||/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||''))return;
-  if(e.key==='Escape'){if(menu){menu=false;render()}else if(mdTg){mdTg=null;render()}else if(mdSt){mdSt=null;render()}else if(mdSel!=null){mdSel=null;render()}else home();return}
+  if(e.key==='Escape'){if(menu){menu=false;render()}else if(mdTg){mdTg=null;render()}else if(mdSt){mdSt=null;render()}else if(mdSel!=null){mdSel=null;render()}else if(window.MD3A&&MD3A.dz.size){MD3A.dz.clear();render()}else home();return}
   if(e.key===' '||e.key==='Home'){if(viewed()){e.preventDefault();home()}return}
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   const c={q:'rl',e:'rr',r:'tu',f:'td',w:'up',arrowup:'up',s:'dn',arrowdown:'dn',a:'lf',arrowleft:'lf',d:'rt',arrowright:'rt','+':'zi','=':'zi','-':'zo'}[e.key.toLowerCase()];
@@ -161,7 +161,7 @@ function lay(k){const z=zona(k),it=items(k),n=Math.max(1,it.length),Wd=2*z.w*.96
 function fan(ids,sel){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=W-24-ch*.3,cx=W/2,out=[];
  let rows=1,per=n,stp=n>1?Math.min(cw*.66,(av-cw)/(n-1)):0;if(n>9&&stp<cw*.3){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.66,(av-cw)/(per-1))}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/(W/2);
-  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.18-(rows==2&&!r?ch*.42:0);if(id===sel)y-=ch*.3;else if(hov===id)y-=ch*.08;
+  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.18-(rows==2&&!r?ch*.42:0);if(sel instanceof Set?sel.has(id):id===sel)y-=ch*.3;else if(hov===id)y-=ch*.08;
   const ang=Math.max(-.3,Math.min(.3,-u*.22)),d=D-i*.004-(r?.03:0);
   out.push({id,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
  return out}
@@ -231,7 +231,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
   for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null);live.add(key);m.userData.hit={t:'zone',k};hits.push(m);const off=j-(cnt-1)/2;go(m,SC,c0.clone().addScaledVector(tv,off*.2).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.45)}}
  if(me>=0&&window.MPJ&&MPJ.on)MPJ.cartas(0,hc(me)||0);
  // tu mano en abanico
- if(me>=0&&Array.isArray(G.hands[me])){const sel=mine&&mdFrom==='h'?mdSel:null,F=fan(mdDisp(G.hands[me]),sel);L.hand=F;const dim=mine&&!(G.step=='play'&&!G.pa&&G.plays<3)&&G.step!='disc';
+ if(me>=0&&Array.isArray(G.hands[me])){const sel=mine&&G.step=='disc'&&window.MD3A?(MD3A.dzVale(),MD3A.dz):mine&&mdFrom==='h'?mdSel:null,F=fan(mdDisp(G.hands[me]),sel);L.hand=F;const dim=mine&&!(G.step=='play'&&!G.pa&&G.plays<3)&&G.step!='disc';
   F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,'c'+f.id);live.add(key);m.castShadow=false;m.userData.hit={t:'hand',id:f.id};hits.push(m);
    m.renderOrder=10+i;tint(m,dim?.42:.66);if(m.userData.sg)m.userData.sg.renderOrder=5;if(drg&&drg.id===f.id)return;go(m,CA,f.pos,f.q,f.s,{ms:260})})}
  meshes.forEach((m,key)=>{if(!live.has(key))drop(key)});
@@ -282,7 +282,7 @@ function pCancel(e){drg=null;if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(
 function tap(h){const G=V.G,me=V.me,fin=G.phase=='final';
  if(!h){if(mdSel!=null&&!mdSt&&!mdTg){mdSel=null;render();return}if(VT.who>=0)home();return}
  if(fin){if(h.k!=null)look(h.k);return}
- if(h.t=='hand'){if(me>=0&&G.turn==me)mdPick(h.id);else sfx('card');return}
+ if(h.t=='hand'){if(me>=0&&G.turn==me&&G.step=='disc'&&window.MD3A)MD3A.dzTog(h.id);else if(me>=0&&G.turn==me)mdPick(h.id);else sfx('card');return}
  if(h.t=='deck'||h.t=='disc'){sfx('card');return}
  const k=h.k;
  if(mdTg&&k!=null&&k!==me)return mdTap(k);
@@ -320,7 +320,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
    <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${P[k].out?'expulsado':`<i data-cnt="${mdSets(k)}">${mdSets(k)}</i>`+(mdSets(k)==1?' set':' sets')+` · $<i data-cnt="${mdBank(k)}">${mdBank(k)}</i>M`}</b></div>`).join('')}</div></div></div>`}
  else if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${uic('salir')}Dejar de mirar</button>`:''}`;
  else{if(pl)b+=`<button class="ui-btn go" onclick="mdSel=null;send({t:'end'})">${h.length>7?'Terminar (descartar '+(h.length-7)+')':'Terminar turno'}</button>`;
-  if(dis)b+=mdSel!=null&&mdFrom=='h'?`<button class="ui-btn go md3dz" onclick="mdDo({t:'discard',id:${mdSel}})">${uic('x')}Descartar<i class="md3n" aria-label="te sobran ${h.length-7}">${h.length-7}</i></button>`:`<span class="ui-btn md3dz" role="status">Toca una para descartar<i class="md3n">${h.length-7}</i></span>`;
+  if(dis){MD3A.dzVale();const k=MD3A.dz.size,n=h.length-7;b+=k?`<button class="ui-btn go md3dz" onclick="MD3A.dzManda()">${uic('x')}Descartar<i class="md3n" aria-label="${k} de ${n}">${k}/${n}</i></button>`:`<span class="ui-btn md3dz" role="status" aria-label="Toca las cartas que vas a descartar">Sobran<i class="md3n">${n}</i></span>`}
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${uic('ordenar')}${manual?'Mi orden':sortS?'Por valor':'Por tipo'}</button>`;
   b+=`<button class="ui-btn sec md3mine" onclick="md3Look(${i})" title="Ver mi mesa de cerca" aria-label="Mi mesa">${uic('ojo')}<span>Mi mesa</span></button>`}
  o+=GHUD.bar(b);

@@ -60,5 +60,5 @@ html.md3on #app{pointer-events:none}
 .md3pg b{font-size:17px;color:var(--ui-text)}.md3pg small{font-size:13px;color:var(--ui-sub);font-weight:600}
 .md3pg.ok .md3bar i{background:#3f8f5a}
 @media (prefers-reduced-motion:reduce){.md3f{animation:none}}
-.md3dz{gap:8px}.md3dz .md3n{display:grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:var(--ui-on);color:var(--ui-accent);font:800 12px/1 var(--ui-font);font-style:normal}
+.md3dz{gap:8px;white-space:nowrap}.md3dz .md3n{display:grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:var(--ui-on);color:var(--ui-accent);font:800 12px/1 var(--ui-font);font-style:normal}
 span.md3dz{cursor:default;background:var(--ui-panel);color:var(--ui-text)}span.md3dz .md3n{background:var(--ui-accent);color:var(--ui-on)}

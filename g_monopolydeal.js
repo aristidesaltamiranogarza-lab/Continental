@@ -46,8 +46,9 @@ function act0(R,tok,m){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),t=m.t;
  if(Date.now()<G.cdUntil)return 'Espera a que termine la cuenta regresiva.';
  if(G.pa)return 'Hay una acción pendiente: espera a que se resuelva.';
  const h=G.hands[i],id=m.id;
- if(t=='discard'){if(G.step!='disc')return 'Solo descartas al terminar tu turno, si tienes más de 7 cartas.';if(!h.includes(id))return 'Jugada inválida.';
-  G.hands[i]=h.filter(x=>x!=id);G.disc.push(id);lg(G,i,'descartó '+cname(id),id);if(G.hands[i].length<=7)nextTurn(R);return}
+ if(t=='discard'){if(G.step!='disc')return 'Solo descartas al terminar tu turno, si tienes más de 7 cartas.';const ids=Array.isArray(m.ids)?m.ids.map(Number):[id];   // ids: varias a la vez (MD 3D)
+  if(!ids.length||new Set(ids).size!=ids.length||ids.some(x=>!h.includes(x)))return 'Jugada inválida.';if(ids.length>h.length-7)return 'Solo te sobran '+(h.length-7)+'.';
+  G.hands[i]=h.filter(x=>!ids.includes(x));ids.forEach(x=>{G.disc.push(x);lg(G,i,'descartó '+cname(x),x)});if(G.hands[i].length<=7)nextTurn(R);return}
  if(G.step=='disc')return 'Tienes más de 7 cartas: descarta hasta quedarte con 7.';
  if(t=='end'){if(h.length>7){G.step='disc';return}nextTurn(R);return}
  if(t=='move'){const c=CAT[id],col=+m.col;let from=-1;for(const k in G.tb[i])if(G.tb[i][k].includes(id))from=+k;
