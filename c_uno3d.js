@@ -218,7 +218,7 @@ function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*
 // arco como si las sostuvieras (las de las orillas giradas y más abajo); con muchas: dos filas y, si aún no se asoman 30 px, un poco más chicas (hasta 80%)
 function fan(ids,play,drawn){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,cx=W/2,out=[],y0=L.y0,fw=W-2*L.side;
  const sp=(c,k)=>k>1?Math.min(c/CH*CW*.62,(fw-24-c*.3-c/CH*CW)/(k-1)):0;let ch=L.ch,rows=1,per=n,stp=sp(ch,n);
- if(n>7&&stp<30){rows=2;per=Math.ceil(n/2);stp=sp(ch,per)}while(stp<30&&ch>L.ch*.8){ch*=.96;stp=sp(ch,per)}
+ while(stp<30&&ch>L.ch*.6){ch*=.96;stp=sp(ch,per)}   // siempre una fila (pedido del usuario): si no cabe, se achican
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=rn>1?off/((rn-1)/2):0,g=Math.min(1,(rn-1)/6),ok=play.has(id);
   let y=y0+u*u*ch*.1*g-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;if(id===uarm)y-=ch*.16;
   const ang=-u*.24*g,d=D-i*.004-(r?.03:0);

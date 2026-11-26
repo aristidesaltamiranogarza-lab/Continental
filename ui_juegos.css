@@ -418,3 +418,13 @@ html.c2don .pk-ojo{top:calc(72px + env(safe-area-inset-top,0px))}
 @media (max-width:560px){.gj-tl{flex-wrap:wrap;align-content:flex-start;row-gap:6px}.gj-turn{flex:none}.gj-top .gj-turn{height:36px}
  .gj-top{align-items:flex-start}.gj-top .gj-st{flex:0 1 auto;min-width:0;height:auto;min-height:46px;padding:6px 12px;white-space:normal;line-height:1.15}
  .gj-top:has(.gj-turn) ~ .gj-hint,.gj-top:has(.gj-turn) ~ .gj-cam{top:calc(110px + env(safe-area-inset-top,0px))}}
+/* GIRAR (c_girar.js): Continental en vertical pide girar el teléfono */
+.girar{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:var(--ui-scrim);animation:giIn .25s ease both}
+.gi-c{display:grid;justify-items:center;gap:14px;padding:26px 30px;border-radius:var(--ui-r);background:var(--ui-sheet);color:var(--ui-text);box-shadow:var(--ui-shadow);font:800 19px/1.2 var(--ui-font);animation:giPop .5s cubic-bezier(.3,1.4,.5,1) .08s both}
+.gi-t{color:var(--ui-icon);animation:giGira 2.4s cubic-bezier(.3,1.4,.5,1) .5s infinite}
+.girar.sale{animation:giOut .25s ease both}.girar.sale .gi-c{animation:giVa .25s ease-in both}
+@keyframes giIn{from{opacity:0}}@keyframes giOut{to{opacity:0}}
+@keyframes giPop{from{opacity:0;transform:translateY(30px) scale(.85)}}
+@keyframes giVa{to{opacity:0;transform:translateY(-40px) scale(.9)}}
+@keyframes giGira{0%,15%{transform:rotate(0)}45%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){.girar,.gi-c,.gi-t{animation:none}}

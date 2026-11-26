@@ -247,11 +247,6 @@ html[data-game] .c.ucv{background:var(--ui) center/100% 100% no-repeat !importan
 html[data-game] .c.ucv::before,html[data-game] .c.ucv::after{content:none !important}
 html[data-game] .c.ucv>*{visibility:hidden !important}
 html[data-game="uno"] .m2d-ca.no .c{filter:none}
-/* mano en dos filas (M2D.fila): la de abajo tapa la mitad baja de la de arriba; la esquina siempre se ve */
-.m2d-mano.f2{flex-wrap:wrap;align-content:flex-end}
-.m2d-br{flex-basis:100%;height:0}
-.m2d-ca.r2{margin-top:calc(var(--cw)*-.8)}
-.m2d-mano.f2 .m2d-ca:not(.r2):hover{z-index:20}
 /* Uno en táctil: la carta levantada espera el segundo toque */
 html[data-game] .m2d-ca.ok.arm .c{transform:translateY(-24px) scale(1.06);box-shadow:0 0 0 3px #fff,0 0 0 6px #ffe27a,0 10px 18px rgba(0,0,0,.5)}
 html[data-game] .m2d-ca.arm{z-index:15}

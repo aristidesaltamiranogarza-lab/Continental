@@ -45,16 +45,9 @@ function yo(k,o){return `<div class="m2d-me${o.turno?' on':''}" data-seat="${k}"
 function abanico(L){requestAnimationFrame(fila);const n=L.length,mid=(n-1)/2,st=n>1?Math.min(5,26/(n-1)):0,rm=mid*st;
  return `<div id="hand" class="m2d-mano" style="--n:${n};--n1:${Math.max(n-1,1)}">`+L.map((c,j)=>{const r=(j-mid)*st;
   return `<div class="m2d-ca ${c.cls||''}" style="--r:${r.toFixed(1)}deg;--y:${((r*r-rm*rm)*.16).toFixed(1)}px">${c.h}</div>`}).join('')+'</div>'}
-// el solape se mide con el ancho real de la mano (no con 100vw: así se salían las de la derecha); con muchas cartas
-// la mano se parte en dos filas para que cada carta deje ver su esquina; la orilla derecha queda libre para los botones
-function fila(){const h=document.querySelector('#app .m2d #hand.m2d-mano');if(!h)return;const ks=[...h.querySelectorAll(':scope>.m2d-ca')],n=ks.length;
- h.querySelectorAll(':scope>.m2d-br').forEach(x=>x.remove());h.classList.remove('f2');ks.forEach(k=>k.classList.remove('r2'));if(n<2)return;
- const cw=ks[0].offsetWidth||60,w=h.clientWidth-(innerWidth>innerHeight?64:16),ov=k=>Math.min(-6,(w-k*cw)/(k-1));
- if(n<8||(w-cw)/(n-1)>=cw*.42){h.style.setProperty('--ov',ov(n).toFixed(1)+'px');return}
- const per=Math.ceil(n/2);h.classList.add('f2');h.style.setProperty('--ov',ov(per).toFixed(1)+'px');
- [ks.slice(0,per),ks.slice(per)].forEach((R,ri)=>{const m=R.length,mid=(m-1)/2,st=m>1?Math.min(3,14/(m-1)):0,rm=mid*st;
-  R.forEach((k,j)=>{const r=(j-mid)*st;k.style.setProperty('--r',r.toFixed(1)+'deg');k.style.setProperty('--y',((r*r-rm*rm)*.16).toFixed(1)+'px');if(ri)k.classList.add('r2')})});
- const b=document.createElement('i');b.className='m2d-br';h.insertBefore(b,ks[per])}
+// el solape se mide con el ancho real de la mano (no con 100vw: así se salían las de la derecha); siempre una sola fila
+function fila(){const h=document.querySelector('#app .m2d #hand.m2d-mano');if(!h)return;const ks=h.querySelectorAll(':scope>.m2d-ca'),n=ks.length;if(n<2)return;
+ const cw=ks[0].offsetWidth||60,w=h.clientWidth-(innerWidth>innerHeight?64:16);h.style.setProperty('--ov',Math.min(-6,(w-n*cw)/(n-1)).toFixed(1)+'px')}
 addEventListener('resize',()=>requestAnimationFrame(fila));
 // ---------- globitos que salen del asiento de quien hizo algo ----------
 function bb(k,t,c){const s=document.querySelector(`#app .m2d [data-seat="${k}"]`);if(!s||RM)return;
