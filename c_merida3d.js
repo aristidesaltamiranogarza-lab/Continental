@@ -299,16 +299,24 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
      if(a.fol)setTimeout(()=>{if(back&&!touched&&!anim.some(Boolean)){Object.assign(VT,back);clampV()}back=null},900)}}
    if(anim[k]&&a.path.length){const to=a.path[0];a.lastTo=to;const last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t),w=hp?window.MRIT.paso(u,hp):u;
     T.position.set(a.from.x+(x-a.from.x)*w,.1+(hp?window.MRIT.alto(u,hp)*.4*hp.h:Math.sin(u*Math.PI)*.4),a.from.z+(z-a.from.z)*w);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
-  const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3:0);tfx3(k,T,now);
+  const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3*amp(now):0);tfx3(k,T,now);
   const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
-  A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w,T.position.z)});
- const k=G.turn,T=toks[k];ring.visible=!!T&&G.phase=='play'&&!G.bk[k];if(T){ring.position.set(T.position.x,T.position.y+.02,T.position.z);ring.scale.setScalar(1+Math.sin(now/250)*.08)}
+  A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w*amp(now),T.position.z)});
+ const k=G.turn,T=toks[k];ring.visible=!!T&&G.phase=='play'&&!G.bk[k];if(T){ring.position.set(T.position.x,T.position.y+.02,T.position.z);ring.scale.setScalar(1+Math.sin(now/250)*.08*amp(now))}
  dados(now);
  // la cámara se desliza hacia donde va
  if(FO||FT)fstep(now);const f=1-Math.exp(-dt/(FO||FT?90:moving&&!touched?140:110));VK.forEach(q=>{const dd=VT[q]-VW[q];VW[q]=Math.abs(dd)>1e-4?VW[q]+dd*f:VT[q]});fitV+=Math.abs(fitD-fitV)>.01?(fitD-fitV)*f:fitD-fitV;if(mz)mz.step(now,CA)}
+// Reposo: si nada se mueve (fichas, dados, casas, cámara, polvo) y nadie toca, el tablero no se vuelve a dibujar; antes eran 30–60
+// cuadros por segundo de casa + tablero sin parar y el celular se calentaba. Lo vivo (flecha que rebota, ficha que se mece, anillo)
+// se apaga suave en el último medio segundo de 'despierto'. Despiertan: tocar el tablero, un cambio del juego y cualquier llamada a M3.
+let awake=0,rzF=1,gSig='';const WAKE=4000,wake=ms=>{awake=Math.max(awake,performance.now()+(ms||WAKE))};
+const amp=now=>Math.max(0,Math.min(1,(awake-now)/500));
+function busy(now){return anim.some(Boolean)||HFX.length>0||BL.some(m=>m.visible)||!!FT||now-rollT<DR+900||(SHK&&now-SHK<750)||(window.POLI&&POLI.on())||(window.MFX&&MFX.activo&&MFX.activo())
+ ||VK.some(q=>Math.abs(VT[q]-VW[q])>1e-3)||Math.abs(fitD-fitV)>.01}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
+ if(busy(now))wake(1200);else if(now>awake+60&&!rzF)return;
  if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
- const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize();
+ if(rzF){rzF=0;const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize()}
  try{step(now,dt);applyCam();temblor(now);
   // con la casa de fondo (c_casa_fondo.js) va primero la casa y el tablero queda encima, en la mesa de la casa y sin su cuarto
   const fs=window.FONDO?FONDO.pinta(R,CA,'merida',{r:10.5,rt:2.5,y:-.1,sillas:1}):0;if(fs!==fz){fz=fs;if(room)room.visible=!fs;pata.forEach(o=>o.visible=!fs)}if(!fs)R.clear();R.render(SC,CA)}catch(e){console.warn('Mérida 3D:',e);M3.fail();if(typeof render=='function')render()}}
@@ -326,4 +334,10 @@ window.M3={ok:()=>!failed,
   else if(c=='untop')Object.assign(VT,{t:EL,k:1,x:0,z:0});else if(c=='rr')VT.a+=Math.PI/2;else if(c=='zi')VT.k*=1.3;else if(c=='zo')VT.k/=1.3;clampV()},
  look(k){const T=toks[k];if(!T||!T.visible)return;touched=true;back=null;const p=T.position;
   if(VT.k>2&&Math.hypot(VT.x-p.x,VT.z-p.z)<.3)home();else Object.assign(VT,{x:p.x,z:p.z,k:Math.max(VT.k,2.4)});clampV()}};
+['cam','look','focus','blink','react','sync','layout','theme','show'].forEach(n=>{const f=M3[n];
+ M3[n]=n=='sync'?function(G,sel){const g=G?JSON.stringify(G)+'|'+sel:'';if(g!==gSig){gSig=g;wake()}return f.apply(this,arguments)}
+  :n=='layout'||n=='theme'||n=='show'?function(x){const k=JSON.stringify(x);if(k!==this['_'+n]){this['_'+n]=k;wake();rzF=1}return f.apply(this,arguments)}   // se llaman en cada render: solo despiertan si cambian
+  :function(){wake();return f.apply(this,arguments)}});
+addEventListener('resize',()=>{rzF=1;wake(800)});
+['pointerdown','pointermove','wheel','touchstart'].forEach(e=>addEventListener(e,ev=>{if(shown&&root&&root.contains(ev.target))wake()},{passive:true,capture:true}));
 })();

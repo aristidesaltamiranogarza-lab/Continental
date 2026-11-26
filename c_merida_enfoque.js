@@ -26,7 +26,7 @@ function actG(){const w=whyG(cur);if(w){snd('bad');if(w.bl&&w.bl.length)blinkL(w
 function act(t){const w=why(cur,t);if(w){snd('bad');if(w.bl&&w.bl.length)blinkL(w.bl);else again(q(w.c?'.mf-cash':t=='build'?'.mf-bt.ms':'.mf-bt.mn'),'mf-sh');return}
  if(window.MRU)MRU.a(t,cur)}
 // ---- moverse entre tus colonias ----
-function to(i,d){if(i===cur)return;cur=i;snd('tick');const st=H.stage();if(H.is3d()&&st&&st.focus)st.focus(i,d);paint()}
+function to(i,d){if(i===cur)return;cur=i;snd('tick');const st=H.stage();if(H.is3d()&&st&&st.focus)st.focus(i,d);paint();lay()}
 function go(d){const L=list(),n=L.length;if(n<2)return;to(L[((L.indexOf(cur)+d)%n+n)%n],d)}
 function jump(i){if(G().own[i]!==H.me()){snd('bad');blinkL([i]);return}to(i,(i-cur+40)%40<=20?1:-1)}
 const arrow=s=>go((s=='r')===H.is3d()?-1:1);   // en 3D la siguiente colonia del tablero queda a la izquierda
@@ -37,9 +37,9 @@ function mk(){el=document.createElement('div');el.id='mufoc';el.className='mf';e
 <div class="mf-bts"><button class="mf-bt mn" data-a="sell"></button><button class="mf-bt ms" data-a="build"></button></div><button class="mf-bt mg" data-a="buildg"></button>
 <div class="mf-pan"><div class="mf-hd"><i class="mf-sw"></i><b class="mf-nm"></b><span class="mf-rt"></span><button class="mf-fi" data-a="fi" aria-label="Ficha" title="Ficha">${H.MIC.h('recibo')}</button></div>
 <div class="mf-row"><div class="mf-grp"></div><span class="mf-cash"></span></div></div>`;
- document.body.appendChild(el);
+ document.body.appendChild(el);if(window.ResizeObserver){const ro=new ResizeObserver(()=>{if(el&&on)lay()});ro.observe(el.querySelector('.mf-pan'));el._ro=ro}
  el.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;e.stopPropagation();const a=b.dataset.a;
-  if(a=='x')close();else if(a=='l'||a=='r')arrow(a);else if(a=='build'||a=='sell')act(a);else if(a=='buildg')actG();else if(a=='j')jump(+b.dataset.i);
+  if(a=='x')close();else if(a=='l'||a=='r')arrow(a);else if(a=='build'||a=='sell')act(a);else if(a=='buildg')actG();else if(a=='unm'){const j=+b.dataset.i;if(G().cash[H.me()]<Math.ceil(H.B[j].p*.55)){snd('bad');again(q('.mf-cash'),'mf-sh');return}if(window.MRU)MRU.a('unm',j)}else if(a=='j')jump(+b.dataset.i);
   else if(a=='fi'){const i=cur;close();if(window.MRU&&MRU.ficha)setTimeout(()=>MRU.ficha(i),0)}});
  el.addEventListener('pointerdown',e=>{dn=e.target.closest('button')?null:{x:e.clientX,y:e.clientY,c:e.target.closest('.mf-card')}});
  el.addEventListener('pointercancel',()=>{dn=null});
@@ -54,23 +54,26 @@ function paint(){if(!el)return;const g=G(),m=H.me(),i=cur,s=H.B[i],gr=H.GR[s.g],
  q('.mf-sw').style.background=H.D.gcol[s.g];q('.mf-nm').textContent=s.n;set('.mf-rt',`Renta <b>${H.$m(rent(i))}</b>`);
  set('.mf-grp',gr.map(j=>{const o=g.own[j];return `<button class="mf-gc${j===i?' on':''}${o===m?'':' ot'}${g.mg[j]?' mg':''}" data-a="j" data-i="${j}" style="--pc:${o>=0?H.pc(o):'transparent'}" title="${H.esc(H.B[j].n)}"><em>${H.esc(H.B[j].n)}</em><span class="mf-hs">${g.mg[j]?'':hsI(g.hs[j])}</span></button>`}).join(''));
  const bb=q('.mf-bt.ms'),bs=q('.mf-bt.mn');
- set('.mf-bt.ms',`<b>+ ${h>=4?'Hotel':'Casa'}</b><small>${H.$m(hc)}</small>`);bb.classList.toggle('off',!!why(i,'build'));bb.hidden=h>=5;
+ const mj=g.o.mort?(g.mg[i]?i:gr.find(j=>g.mg[j]&&g.own[j]===m)):undefined;bb.dataset.a=mj!=null?'unm':'build';bb.dataset.i=mj!=null?mj:'';
+ if(mj!=null){const c=Math.ceil(H.B[mj].p*.55);set('.mf-bt.ms',`<b>Deshipotecar</b><small>${mj===i?'':H.esc(H.B[mj].n)+' · '}${H.$m(c)}</small>`);bb.classList.toggle('off',g.cash[m]<c);bb.hidden=false}
+ else{set('.mf-bt.ms',`<b>+ ${h>=4?'Hotel':'Casa'}</b><small>${H.$m(hc)}</small>`);bb.classList.toggle('off',!!why(i,'build'));bb.hidden=h>=5}
  set('.mf-bt.mn',`<b>− ${h==5?'Hotel':'Casa'}</b><small>+${H.$m(hc/2)}</small>`);bs.classList.toggle('off',!!why(i,'sell'));bs.hidden=!h;
- {const bg=q('.mf-bt.mg'),mn=Math.min(...gr.map(j=>g.hs[j])),n=gr.filter(j=>g.hs[j]==mn).length;bg.hidden=mn>=5||!H.full(s.g,m)||n<2;
+ {const bg=q('.mf-bt.mg'),mn=Math.min(...gr.map(j=>g.hs[j])),n=gr.filter(j=>g.hs[j]==mn).length;bg.hidden=mn>=5||!H.full(s.g,m)||n<2||mj!=null;
   if(!bg.hidden){set('.mf-bt.mg',`<b>+ ${mn>=4?'Hotel':'Casa'} en ${n==gr.length?'todas':'las '+n}</b><small>${H.$m(hc*n)}</small>`);bg.classList.toggle('off',!!whyG(i))}}
  el.querySelectorAll('.mf-ar').forEach(a=>a.hidden=L.length<2);
  cash(g.cash[m]);if(d3)set('.mf-car','');else car(L)}
 // dinero con contador animado y "−$" que flota
 function cash(v){const e=q('.mf-cash');if(!cnt||!e.firstChild){cnt={a:v,b:v,t0:0,v};e.innerHTML=H.MIC.h('billete')+'<b>'+H.$m(v)+'</b>';return}
- if(v===cnt.b)return;const dl=v-cnt.v;cnt.a=cnt.v;cnt.b=v;cnt.t0=performance.now();e.classList.remove('up','dn');void e.offsetWidth;e.classList.add(dl<0?'dn':'up');
+ if(v===cnt.b)return;const dl=v-cnt.v;cnt.a=cnt.v;cnt.b=v;cnt.t0=performance.now();if(!raf)raf=requestAnimationFrame(tick);e.classList.remove('up','dn');void e.offsetWidth;e.classList.add(dl<0?'dn':'up');
  const f=document.createElement('i');f.className='mf-dl '+(dl<0?'dn':'up');f.textContent=(dl<0?'−':'+')+H.$m(Math.abs(dl));e.appendChild(f);setTimeout(()=>f.remove(),1100)}
-function tick(now){raf=0;if(!on)return;raf=requestAnimationFrame(tick);
+function tick(now){raf=0;if(!on||!cnt||cnt.v===cnt.b)return;raf=requestAnimationFrame(tick);   // solo mientras cuenta el dinero
+
  if(cnt&&cnt.v!==cnt.b){const u=RMo()?1:Math.min(1,(now-cnt.t0)/650),k=1-Math.pow(1-u,3);cnt.v=u>=1?cnt.b:Math.round(cnt.a+(cnt.b-cnt.a)*k);const b=q('.mf-cash b');if(b)b.textContent=H.$m(cnt.v)}}
 // medidas: margen de abajo para el tablero, centro de la colonia y la máscara del desenfoque (nítido al centro, borroso a los lados)
-function lay(){if(!el)return 0;const p=q('.mf-pan'),pt=Math.max(0,innerHeight-p.getBoundingClientRect().top);botPx=Math.round(pt+64+24);
+function lay(){if(!el)return 0;const p=q('.mf-pan'),pt=p.offsetHeight+(parseFloat(getComputedStyle(p).bottom)||0);botPx=Math.round(pt+64+24);
  const top=el.getBoundingClientRect().top,free=Math.max(60,innerHeight-botPx-top),cy=Math.round(free/2),u=Math.min(innerWidth/2.4,free/2.3);
  el.style.setProperty('--mf-pan',Math.round(pt)+'px');el.style.setProperty('--mf-cy',cy+'px');el.style.setProperty('--mf-bot',botPx+'px');
- const mi=H.is3d()?`radial-gradient(${Math.round(u*.95)}px ${Math.round(u*1.05)}px at 50% ${cy}px,transparent 62%,#000 100%)`:'none',b=q('.mf-blur');
+ const mi=H.is3d()?`radial-gradient(${Math.round(u*.95)}px ${Math.round(u*1.05)}px at 50% ${cy+Math.round(top)}px,transparent 62%,#000 100%)`:'none',b=q('.mf-blur');
  if(b._m!==mi){b._m=mi;b.style.webkitMaskImage=b.style.maskImage=mi}return botPx}
 // ---- 2D: carrusel plano de cartas ----
 function car(L){const box=q('.mf-car'),n=L.length,k=L.indexOf(cur),g=G();
@@ -102,7 +105,7 @@ function open(i){if(!H)return false;if(on){if(i!==cur&&list().indexOf(i)>=0)jump
  return true}
 function close(silent){if(!on)return;on=false;document.documentElement.classList.remove('mufoc');
  try{const st=H.stage();if(st&&st.focus)st.focus(-1)}catch(e){}
- if(el){const e=el;e.classList.add('out');setTimeout(()=>e.remove(),240)}el=null;cancelAnimationFrame(raf);raf=0;
+ if(el){const e=el;if(e._ro)e._ro.disconnect();e.classList.add('out');setTimeout(()=>e.remove(),240)}el=null;cancelAnimationFrame(raf);raf=0;
  if(!silent){snd('tick');setTimeout(()=>{if(typeof render=='function')render()},0)}}
 function sync(){if(!on||!el)return;const g=G();if(!H.canAct()||g.own[cur]!==H.me()){close();return}
  paint();lay();const st=H.stage();if(H.is3d()&&st&&st.focus)st.focus(cur,0)}
@@ -112,12 +115,14 @@ window.MENF={init:h=>{H=h},open,close,sync,can,get on(){return on},bot:()=>on?bo
 // ---- estilos (Cálida: tokens de ui.css) ----
 const css=document.createElement('style');css.textContent=`
 html.mufoc .mu-cam{display:none!important}
+html.mufoc .mu-hud{z-index:65}
+html.mufoc #chat{display:none}   /* el chat tapaba el panel del enfoque (en horizontal queda al centro abajo) */
 html.mufoc .mu-hud>:not(.mu-top){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 .mf{--mf-ok:#2e8b57;position:fixed;left:0;right:0;bottom:0;top:var(--mu-t,64px);z-index:64;font:600 14px/1.25 var(--ui-font);color:var(--ui-text);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 html[data-tema=noche] .mf{--mf-ok:#7fd6a0}
 .mf.out{pointer-events:none}.mf.out>*{animation:mfOut .22s ease both!important}   /* sin opacidad en .mf: si no, el backdrop-filter de .mf-blur no ve el tablero */
 .mf button{font-family:var(--ui-font);-webkit-tap-highlight-color:transparent}
-.mf-blur{position:absolute;inset:0;animation:mfIn .3s ease both;-webkit-backdrop-filter:blur(3.5px) brightness(.66) saturate(.85);backdrop-filter:blur(3.5px) brightness(.66) saturate(.85)}
+.mf-blur{position:absolute;left:0;right:0;bottom:0;top:calc(-1 * var(--mu-t,64px));animation:mfIn .3s ease both;-webkit-backdrop-filter:blur(3.5px) brightness(.66) saturate(.85);backdrop-filter:blur(3.5px) brightness(.66) saturate(.85)}
 .mf.d2 .mf-blur{background:var(--ui-scrim)}
 .mf-x,.mf-ar,.mf-fi{width:48px;height:48px;padding:0;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-panel);color:var(--ui-icon);display:grid;place-items:center;box-shadow:var(--ui-shadow);cursor:pointer;transition:transform .1s}
 .mf-x svg,.mf-ar svg{width:24px;height:24px}

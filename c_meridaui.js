@@ -15,7 +15,7 @@ const active=()=>!!S&&!!V&&V.game==='merida'&&!!V.G&&(V.G.phase==='play'||V.G.ph
 const me=()=>V.me,nm=k=>k>=0&&V.G.players[k]?esc(V.G.players[k].name):'el banco',alive=G=>G.players.map((_,k)=>k).filter(k=>!G.bk[k]);
 const col=i=>B[i].t=='p'?D.gcol[B[i].g]:'#9aa59f',full=(g,o)=>GR[g].every(j=>V.G.own[j]===o);
 const lum=h=>{const n=parseInt(h.slice(1),16);return ((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000},onCol=h=>lum(h)>165?'#18201b':'#fff';
-const tok=(k,c='')=>`<span class="mu-tok ${c}" style="--pc:${pc(k)}">${tk(k)}</span>`;
+const tok=(k,c='')=>{const r=window.MPT?MPT.img(k):{c:'',u:''};return `<span class="mu-tok ${c}${r.c?' pt':''}" style="--pc:${pc(k)}"${r.c?` data-c="${r.c}"`:''}>${r.u?`<img src="${r.u}" alt="">`:tk(k)}</span>`};
 if(!document.getElementById('mufont')){const l=document.createElement('link');l.id='mufont';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&display=swap';document.head.appendChild(l)}
 // ---- íconos (trazos simples que toman el color del botón) y dados ----
 const ic=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -100,7 +100,7 @@ const curTab=()=>wide()?tab||'jug':tab,playing=()=>me()>=0&&!V.G.bk[me()];
 function tabs(){const G=V.G,t=curTab(),bd={mias:canBuild()?MIC.h('rancho'):'',trato:G.trade&&G.trade.b===me()?'1':''};
  return `<nav class="mu-tabs">${TABS.filter(x=>playing()||x[0]=='jug'||x[0]=='hist').map(([k,n,i])=>`<button class="${t===k?'on':''}" onclick="MRU.tab('${k}')">${SV[i]}<span>${n}</span>${bd[k]?`<i>${bd[k]}</i>`:''}</button>`).join('')}</nav>`}
 function sheet(){const t=curTab(),T={jug:['Jugadores',pJug],mias:['Mis propiedades',pMias],trato:['Tratos',pTrato],hist:['Historial',pHist]}[t];if(!T)return '';
- return `<section class="mu-sheet">${wide()?'':'<div class="mu-grab" role="button" aria-label="Desliza hacia abajo para cerrar"><i></i></div>'}<header><b>${T[0]}</b></header><div class="mu-sc" id="musc">${T[1]()}</div></section>`}
+ return `<section class="mu-sheet">${wide()?'':'<div class="mu-grab" role="button" aria-label="Desliza hacia abajo para cerrar"><i></i></div>'}<header><b>${T[0]}</b></header><div class="mu-sc ui-desl" id="musc">${T[1]()}</div></section>`}
 function pJug(){const G=V.G;return G.players.map((p,k)=>{const L=G.own.map((o,i)=>o===k?i:-1).filter(i=>i>=0),t=k===G.turn&&G.phase=='play';
  return `<div class="mu-prow${t?' on':''}${G.bk[k]?' x':''}" style="--pc:${pc(k)}">${tok(k,'lg')}<div class="mu-f1"><b>${esc(p.name)}${k===me()?' <em class="mu-tu">TÚ</em>':''}</b>
   <div class="mu-s">${G.bk[k]?'Quebró':esc(D.tok[k%6][0])+' · en '+esc(B[G.pos[k]].n)}${G.jail[k]?' · en la cárcel':''}${G.jf[k]?' · '+MIC.h('llave')+'×'+G.jf[k]:''}</div>
@@ -133,21 +133,24 @@ function deed(i){const G=V.G,s=B[i],o=G.own[i],h=G.hs[i],m=me();let head,body=''
   const rows=[['Renta',s.r[0]]];if(G.o.dbl)rows.push(['Con todo el grupo',s.r[0]*2]);[1,2,3,4].forEach(n=>rows.push(['Con '+n+' casa'+(n>1?'s':''),s.r[n]]));rows.push(['Con HOTEL',s.r[5]]);
   const cur=o<0?-1:h?(G.o.dbl?h+1:h):(G.o.dbl&&full(s.g,o)?1:0);
   body=`<table>${rows.map((r,j)=>`<tr${j===cur?' class="cur"':''}><td>${r[0]}</td><td>${$m(r[1])}</td></tr>`).join('')}</table>`;
-  foot=`<div class="mu-df">Cada casa cuesta ${$m(D.hc[s.g])}. El hotel: 4 casas más ${$m(D.hc[s.g])}.${G.o.mort?'<br>Hipoteca: '+$m(s.p/2):''}</div>`}
+}
  else if(s.t=='r'){const n=o>=0?B.reduce((a,x,j)=>a+(x.t=='r'&&G.own[j]===o?1:0),0):0;head=`<div class="mu-dh pl"><span>${MIC.h('bus')}</span><b>${esc(s.n)}</b><small>Va y Ven</small></div>`;
-  body=`<table>${[1,2,3,4].map(k=>`<tr${k===n?' class="cur"':''}><td>Con ${k} ruta${k>1?'s':''}</td><td>${$m(25*2**(k-1))}</td></tr>`).join('')}</table>`;if(G.o.mort)foot=`<div class="mu-df">Hipoteca: ${$m(s.p/2)}</div>`}
+  body=`<table>${[1,2,3,4].map(k=>`<tr${k===n?' class="cur"':''}><td>Con ${k} ruta${k>1?'s':''}</td><td>${$m(25*2**(k-1))}</td></tr>`).join('')}</table>`}
  else if(s.t=='u'){head=`<div class="mu-dh pl"><span>${icon(s)}</span><b>${esc(s.n)}</b><small>Servicio</small></div>`;
-  body=`<p>Si alguien cae aquí, paga <b>4 veces</b> lo que sacó en los dados.</p><p>Si el dueño tiene <b>CFE y JAPAY</b>, paga <b>10 veces</b>.</p>`;if(G.o.mort)foot=`<div class="mu-df">Hipoteca: ${$m(s.p/2)}</div>`}
+  body=`<p>Si alguien cae aquí, paga <b>4 veces</b> lo que sacó en los dados.</p><p>Si el dueño tiene <b>CFE y JAPAY</b>, paga <b>10 veces</b>.</p>`}
  else{const T={go:'Cobras '+$m(D.go)+' cada vez que pasas por aquí.',jail:'Si solo caes aquí, vienes de visita.',free:'Descanso en la playa.'+(G.o.pot?' Te llevas el bote: '+$m(G.pot)+'.':''),gtj:'Te vas directo a la cárcel, sin pasar por la Salida.',s:'Saca una carta de Suerte.',c:'Saca una carta de Comunidad.',tax:'Pagas '+$m(s.v)+' al banco.'};
   head=`<div class="mu-dh pl"><span>${icon(s)}</span><b>${esc(s.n)}</b>${s.s?`<small>${esc(s.s)}</small>`:''}</div>`;body=`<p>${T[s.t]||''}</p>`}
  const here=G.players.map((_,k)=>k).filter(k=>!G.bk[k]&&G.pos[k]===i);
- let own=s.p?`<div class="mu-down">${o>=0?`${tok(o,'xs')} Dueño: <b>${nm(o)}</b>${h?' · '+(h==5?'hotel':h+(h>1?' casas':' casa')):''}${G.mg[i]?' · <em>hipotecada</em>':''}`:`Sin dueño · cuesta <b>${$m(s.p)}</b>`}</div>`:'';
- if(here.length)own+=`<div class="mu-down">Aquí está${here.length>1?'n':''}: ${here.map(k=>tok(k,'xs')+' '+nm(k)).join(', ')}</div>`;
+ let own=s.p?`<div class="mu-down">${o>=0?`${tok(o,'xs')} Dueño: <b>${nm(o)}</b>${h?' · '+(h==5?'hotel':h+(h>1?' casas':' casa')):''}${G.mg[i]?' <em>hipotecada</em>':''}`:`Sin dueño · cuesta <b>${$m(s.p)}</b>`}</div>`:'';
+ if(here.length)own+=`<div class="mu-down mu-here">Aquí: ${here.map(k=>tok(k,'xs')).join('')}${here.length==1?' '+nm(here[0]):''}</div>`;
  let act='';if(o===m&&m>=0&&G.phase=='play'){const okk=canAct(),okr=canRaise(),hc=s.t=='p'?D.hc[s.g]:0,b=[];
-  if(s.t=='p'){b.push(`<button class="mu-b ok" onclick="MRU.foc(${i})"${!okk||!buildable(i)?' disabled':''}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);if(h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okr?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`)}
-  if(G.o.mort)b.push(G.mg[i]?`<button class="mu-b" onclick="MRU.a('unm',${i})"${okk?'':' disabled'}>Deshipotecar ${$m(Math.ceil(s.p*.55))}</button>`:`<button class="mu-b" onclick="MRU.a('mort',${i})"${okr?'':' disabled'}>Hipotecar +${$m(s.p/2)}</button>`);
-  const why=s.t!='p'||h>=5?'':!okk?'Puedes construir en tu turno (o cuando debes dinero).':!full(s.g,m)?'Para construir necesitas todas las colonias de este color.':GR[s.g].some(j=>G.mg[j])?'Hay una colonia hipotecada en el grupo.':G.cash[m]<hc?'No te alcanza para otra casa.':!buildable(i)?'Construye parejo: primero en las otras del grupo.':'';
-  if(b.length)act=`<div class="mu-acts">${b.join('')}</div>${why?`<div class="mu-hint">${why}</div>`:''}`}
+  const mgG=s.t=='p'&&GR[s.g].some(j=>G.mg[j]),casasG=s.t=='p'&&GR[s.g].some(j=>G.hs[j]);let low='';
+  if(G.mg[i]){if(G.o.mort)b.push(`<button class="mu-b ok" onclick="MRU.a('unm',${i})"${okk?'':' disabled'}>Deshipotecar ${$m(Math.ceil(s.p*.55))}</button>`)}
+  else{if(s.t=='p'&&okk&&h<5&&full(s.g,m)&&!mgG)b.push(`<button class="mu-b ok" onclick="MRU.foc(${i})"${buildable(i)?'':' disabled'}>${MIC.h('rancho')} ${h==4?'Poner hotel':'Construir'} ${$m(hc)}</button>`);
+   if(s.t=='p'&&h)b.push(`<button class="mu-b" onclick="MRU.a('sell',${i})"${okr?'':' disabled'}>Vender ${h==5?'hotel':'casa'} +${$m(hc/2)}</button>`);
+   if(G.o.mort&&!casasG&&okr)low=`<div class="mu-dlow"><span>Hipoteca ${$m(s.p/2)}</span><button class="mu-lnk" onclick="MRU.a('mort',${i})">Hipotecar</button></div>`}
+  const why=s.t!='p'||h>=5||G.mg[i]||!okk?'':!full(s.g,m)?'Junta todo el color para construir.':mgG?'Deshipoteca el resto del color para construir.':G.cash[m]<hc?'No te alcanza para otra casa.':!buildable(i)?'Construye parejo: primero en las otras.':'';
+  act=`${b.length?`<div class="mu-acts">${b.join('')}</div>`:''}${why?`<div class="mu-hint">${why}</div>`:''}${low}`}
  return `<div class="mu-deed">${head}${body}${foot}${own}${act}</div>`}
 const modal=(h,close)=>`<div class="mu-modal" onclick="if(event.target===this)${close}"><div class="mu-mw">${h}</div></div>`;
 function menuBox(){const m3ok=!!(window.M3&&M3.ok()),sn=stageName(),G=V.G,seg=(L)=>`<div class="mu-seg">${L.map(([on,c,t,dis])=>`<button class="${on?'on':''}" onclick="${c}"${dis?' disabled':''}>${t}</button>`).join('')}</div>`;
@@ -162,7 +165,7 @@ function hud(){const w=wide();if(msg!==msgSeen){msgSeen=msg;msgT=Date.now();if(m
  const sn=stageName();if(!hintT&&lsg('mr_hint_'+sn,'')!=='1'){hintT=Date.now();lss('mr_hint_'+sn,'1');setTimeout(()=>{if(active())render()},6100)}
  const hint=Date.now()-hintT<6000?`<div class="mu-toast mu-hint2">${sn=='3d'?'Un dedo: mover · Dos dedos: girar y acercar · Doble toque: centrar':'Pellizca para acercar · arrastra para mover · toca una casilla'}</div>`:'';
  const toast=msg&&Date.now()-msgT<4500?`<div class="mu-toast" onclick="msg='';render()">${esc(String(msg).replace(/^✋ No puedes hacer eso\. /,''))}</div>`:'';
- return `<div class="mu-hud${w?' wide':''}${land()?' land':''}">${online?'':'<div class="mu-off">'+MIC.h('aviso')+' Reconectando… tu lugar se conserva</div>'}${topBar()}
+ return `<div class="mu-hud${w?' wide':''}${land()?' land':''}${curTab()?' t-'+curTab():''}">${online?'':'<div class="mu-off">'+MIC.h('aviso')+' Reconectando… tu lugar se conserva</div>'}${topBar()}
   <div class="mu-bot">${w?'':sheet()}<div class="mu-dockw" id="mudock">${dock()}${w?'':tabs()}</div>${w?tabs()+sheet():''}</div>${toast||hint}
   ${sel>=0?`<div class="mu-peek"><button class="mu-x mu-px" onclick="MRU.sel(-1)" aria-label="Cerrar">${SV.x}</button>${deed(sel)}</div>`:''}${menu?modal(menuBox(),'MRU.menu(0)'):''}</div>`}
 // ---- qué tablero se ve y cuánto espacio le queda ----
@@ -269,7 +272,7 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-hud.wide .mu-top{right:var(--mu-sbw)}.mu-top>*{pointer-events:auto}
 .mu-tr1{display:flex;align-items:center;gap:8px;min-width:0}
 .mu-pls{flex:1;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:3px 3px 6px;min-width:0;scroll-behavior:smooth}.mu-pls::-webkit-scrollbar{display:none}
-.mu-pl{flex:none;position:relative;display:flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;border:2px solid var(--mu-line);background:var(--mu-glass);color:var(--mu-ink);box-shadow:var(--mu-hs);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);text-align:left}
+.mu-pl{flex:none;position:relative;display:flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;border:2px solid var(--mu-line);background:var(--mu-glass);color:var(--mu-ink);box-shadow:var(--mu-hs);cursor:pointer;-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur);text-align:left}
 .mu-pi{display:flex;flex-direction:column;min-width:0}.mu-pi .n{max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 11px/1.15 var(--mu-f);color:var(--mu-sub)}
 .mu-pl .mu-tok{width:28px;height:28px;font-size:15px}.mu-pi b{font:800 14px/1.1 var(--mu-f);font-variant-numeric:tabular-nums}
 .mu-pl em{position:absolute;top:-7px;right:6px;font:900 9px/1 var(--mu-f);font-style:normal;letter-spacing:.06em;background:var(--pc);color:#fff;border:1.5px solid #fff;border-radius:5px;padding:2px 4px}
@@ -277,8 +280,8 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-pl.x{opacity:.5;filter:grayscale(1)}.mu-pl.x b{text-decoration:line-through}
 @keyframes mupl{50%{transform:translateY(-2px)}}
 .mu-tok{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--pc);border:2px solid #fff;box-shadow:0 0 0 2px var(--pc),0 2px 5px rgba(0,0,0,.3);font-size:18px;line-height:1}
-.mu-tok.lg{width:44px;height:44px;font-size:24px}.mu-tok.xs{width:20px;height:20px;font-size:11px;border-width:1.5px;box-shadow:0 0 0 1.5px var(--pc);vertical-align:-5px}.mu-tok.bank{--pc:#7c8a83}
-.mu-ib,.mu-cb{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:12px;border:2px solid var(--mu-line);background:var(--mu-glass);color:var(--mu-ink);box-shadow:var(--mu-hs);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.mu-tok.lg{width:44px;height:44px;font-size:24px}.mu-tok.xs{width:20px;height:20px;font-size:11px;border-width:1.5px;box-shadow:0 0 0 1.5px var(--pc);vertical-align:-5px}.mu-tok.bank{--pc:#7c8a83}.mu-tok.pt{background:color-mix(in srgb,var(--pc) 30%,#fff4e4);overflow:hidden}.mu-tok img{width:100%;height:100%;object-fit:cover;object-position:50% 15%;border-radius:50%;display:block}
+.mu-ib,.mu-cb{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:12px;border:2px solid var(--mu-line);background:var(--mu-glass);color:var(--mu-ink);box-shadow:var(--mu-hs);cursor:pointer;-webkit-backdrop-filter:var(--ui-blur);backdrop-filter:var(--ui-blur)}
 .mu-cam{display:flex;gap:6px;justify-content:flex-end}.mu-sp{flex:1}.mu-hud.land .mu-sp{display:none}.mu-cb{width:40px;height:40px;border-radius:11px}.mu-cb b{font:900 14px var(--mu-f)}.mu-cb.on{background:var(--mu-ink);color:var(--mu-card)}
 .mu-hud.land .mu-cam{position:fixed;flex-direction:column;top:var(--mu-ct,70px);left:10px}
 .mu-bot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;pointer-events:none;max-height:100%}.mu-bot>*{pointer-events:auto}
@@ -344,7 +347,7 @@ html.mumodal #chat,html.mumodal #tombtn{visibility:hidden}html.mrui #chat{bottom
 .mu-deed table{width:100%;border-collapse:collapse;font:inherit}.mu-deed td{padding:3px 6px;text-align:left}.mu-deed td:last-child{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
 .mu-deed tr.cur td{background:#ffe27a}.mu-deed tr.cur td:first-child{border-radius:6px 0 0 6px}.mu-deed tr.cur td:last-child{border-radius:0 6px 6px 0}
 .mu-deed p{margin:6px 4px;text-align:center}.mu-df{border-top:1.5px solid #18201b;margin-top:8px;padding-top:7px;font-size:12px;text-align:center;color:#45524a}
-.mu-down{margin-top:8px;font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}.mu-deed .mu-acts{margin-top:10px}.mu-deed .mu-b{--mu-line:#18201b;--mu-card:#fffef8;--mu-ink:#18201b}
+.mu-down{margin-top:8px;font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}.mu-deed .mu-acts{margin-top:10px}.mu-dlow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(24,32,27,.14);font-size:12.5px;color:#45524a}.mu-lnk{all:unset;cursor:pointer;min-height:44px;padding:0 6px;display:flex;align-items:center;font:800 13px var(--mu-f);color:#18201b;text-decoration:underline;text-underline-offset:3px}.mu-here .mu-tok+.mu-tok{margin-left:-6px}.mu-deed .mu-b{--mu-line:#18201b;--mu-card:#fffef8;--mu-ink:#18201b}
 .mu-hint{font-size:12px;color:#56635b;margin-top:6px;text-align:center}
 .mu-menu{width:min(380px,92vw);box-sizing:border-box;margin:0;gap:12px}.mu-menu header{display:flex;align-items:center;justify-content:space-between}
 .mu-opt{display:flex;flex-direction:column;gap:6px}.mu-opt>span{font:800 12px var(--mu-f);text-transform:uppercase;letter-spacing:.06em;color:var(--mu-sub)}

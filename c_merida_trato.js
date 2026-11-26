@@ -24,7 +24,8 @@ function pcard(G,i,key){const s=H.B[i],on=H.TR[key].includes(i),lk=locked(G,i),h
   <i></i><span>${H.esc(s.n)}</span><small>${lk?H.MIC.h('rancho'):G.mg[i]?'Hipotecada':H.$m(s.p)}</small>${on?'<em>'+CHK+'</em>':''}</button>`}
 const CHK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function money(G,key,k){const v=H.TR[key]||0,max=G.cash[k];
- return `<div class="mtr-m"><b>${H.$m(v)}</b><div>${STEP.map(d=>`<button onclick="MTRA.cash('${key}',${d})"${v+d>max?' disabled':''}>+${d}</button>`).join('')}<button class="z" onclick="MTRA.cash('${key}',0)"${v?'':' disabled'} aria-label="Quitar dinero">${H.MIC.h('x')||'0'}</button></div><small>Tiene ${H.$m(max)}</small></div>`}
+ return `<div class="mtr-m"><label class="mtr-in"><span>$</span><input id="mut_${key}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="${v||''}" placeholder="0" aria-label="Dinero" oninput="MTRA.n('${key}',this)" onfocus="this.select()"></label>
+  <div>${v?`<button onclick="MTRA.cash('${key}',-50)">−50</button>`:''}${STEP.map(d=>`<button onclick="MTRA.cash('${key}',${d})"${v+d>max?' disabled':''}>+${d}</button>`).join('')}</div><small>Tiene ${H.$m(max)}</small></div>`}
 function jcard(G,key,k){const n=G.jf[k]||0;if(!n)return '';const v=H.TR[key]||0;return `<button class="mtr-j${v?' on':''}" onclick="MTRA.jc('${key}',${n})">${H.MIC.h('llave')} Tarjeta de la cárcel${n>1?` (${v}/${n})`:''}</button>`}
 function side(G,lb,k,key,ck,jk){const L=props(G,k);
  return `<div class="mtr-s"><div class="mtr-sh">${H.tok(k,'xs')}<b>${lb}</b></div><div class="mtr-ps">${L.map(i=>pcard(G,i,key)).join('')||'<span class="mu-s">Sin propiedades</span>'}</div>${money(G,ck,k)}${jcard(G,jk,k)}</div>`}
@@ -34,13 +35,17 @@ function sugerir(G,m,to){let best=null;H.GR.forEach((L,g)=>{const mine=L.filter(
 function medidor(G,m,T){if(!T.ap.length&&!T.bp.length&&!T.ac&&!T.bc&&!T.aj&&!T.bj)return '';const v=tval(G,T.b,T),yo=tval(G,m,T);
  const [c,t]=v>20?['ok','Probablemente acepte']:v>-80?['mid','Lo va a pensar']:['bad','Le parece poco'];const p=Math.max(4,Math.min(96,50+v/8));
  return `<div class="mtr-v ${c}"><div class="mtr-bar"><i style="left:${p}%"></i></div><span>${t}</span>${yo<-150?'<small>Ojo: tú das mucho más de lo que recibes.</small>':''}</div>`}
-function ui(ot){const G=H.G,m=H.me(),TR=H.TR,to=TR.to,T={a:m,b:to,ap:TR.ap,bp:TR.bp,ac:TR.ac||0,bc:TR.bc||0,aj:TR.aj||0,bj:TR.bj||0};
- const sg=sugerir(G,m,to),pide=sg&&!sg.f.every(j=>TR.bp.includes(j)),nd=TR.ap.length+(T.ac?1:0)+(T.aj?1:0),np=TR.bp.length+(T.bc?1:0)+(T.bj?1:0);
- return `<div class="mtr"><div class="mu-who">${ot.map(k=>`<button class="mu-chip pl${k===to?' on':''}" style="--pc:${H.pc(k)}" onclick="MRU.to(${k})">${H.tk(k)} ${H.nm(k)}</button>`).join('')}</div>
+function limpia(G,m,TR){const ok=(L,k)=>L.filter(i=>G.own[i]===k&&!locked(G,i));TR.ap=ok(TR.ap,m);TR.bp=ok(TR.bp,TR.to);
+ TR.ac=Math.min(TR.ac||0,G.cash[m]);TR.bc=Math.min(TR.bc||0,G.cash[TR.to]);TR.aj=Math.min(TR.aj||0,G.jf[m]||0);TR.bj=Math.min(TR.bj||0,G.jf[TR.to]||0)}
+function pie(){const G=H.G,m=H.me(),TR=H.TR,T={a:m,b:TR.to,ap:TR.ap,bp:TR.bp,ac:TR.ac||0,bc:TR.bc||0,aj:TR.aj||0,bj:TR.bj||0};
+ const nd=TR.ap.length+(T.ac?1:0)+(T.aj?1:0),np=TR.bp.length+(T.bc?1:0)+(T.bj?1:0);
+ return `${medidor(G,m,T)}<button class="mu-b pri big" onclick="MRU.offer()"${nd+np?'':' disabled'}>${H.MIC.h('trato')} ${nd+np?'Ofrecer trato':'Elige qué dar o pedir'}</button>`}
+function ui(ot){const G=H.G,m=H.me(),TR=H.TR,to=TR.to;limpia(G,m,TR);
+ const sg=sugerir(G,m,to),pide=sg&&!sg.f.every(j=>TR.bp.includes(j)),hay=TR.ap.length+TR.bp.length+(TR.ac||0)+(TR.bc||0)+(TR.aj||0)+(TR.bj||0);
+ return `<div class="mtr"><div class="mtr-top"><div class="mu-who">${ot.map(k=>`<button class="mu-chip pl${k===to?' on':''}" style="--pc:${H.pc(k)}" onclick="MRU.to(${k})">${H.tok(k,'xs')} ${H.nm(k)}</button>`).join('')}</div>${hay?'<button class="mtr-cl" onclick="MTRA.borra()">Empezar de nuevo</button>':''}</div>
   ${pide?`<button class="mtr-sg" onclick="MTRA.pide([${sg.f}])" style="--gc:${H.D.gcol[sg.g]}"><i></i>Pedir lo que te falta del grupo (${sg.f.length})</button>`:''}
   <div class="mtr-ss">${side(G,'Tú das',m,'ap','ac','aj')}${side(G,'Tú pides',to,'bp','bc','bj')}</div>
-  ${medidor(G,m,T)}
-  <button class="mu-b pri big" onclick="MRU.offer()"${nd+np?'':' disabled'}>${H.MIC.h('trato')} ${nd+np?`Ofrecer · das ${nd||'nada'}, pides ${np||'nada'}`:'Elige qué dar o pedir'}</button></div>`}
+  <div class="mtr-ft" id="mtrft">${pie()}</div></div>`}
 const css=document.createElement('style');css.textContent=`
 .mtr{display:flex;flex-direction:column;gap:12px}
 .mtr-ss{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:420px){.mtr-ss{grid-template-columns:1fr}}
@@ -52,18 +57,24 @@ const css=document.createElement('style');css.textContent=`
 .mtr-p.on{background:color-mix(in srgb,var(--gc) 22%,var(--mu-card));box-shadow:inset 0 0 0 2px var(--gc);transform:translateY(-1px)}
 .mtr-p em{position:absolute;right:8px;top:50%;translate:0 -50%;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--gc);color:#fff}
 .mtr-p:disabled{opacity:.45;cursor:not-allowed}.mtr-p.mg span{text-decoration:line-through;text-decoration-thickness:1px}
-.mtr-m{display:flex;flex-direction:column;gap:6px}.mtr-m>b{font:900 20px var(--mu-f)}.mtr-m small{font:600 12px var(--mu-f);color:var(--mu-sub)}
+.mtr-m{display:flex;flex-direction:column;gap:6px}.mtr-in{display:flex;align-items:center;gap:4px;min-height:46px;padding:0 12px;border-radius:12px;background:var(--mu-bg2,rgba(0,0,0,.05));box-shadow:inset 0 0 0 2px var(--mu-line,rgba(0,0,0,.12));font:900 20px var(--mu-f);color:var(--mu-ink)}.mtr-in:focus-within{box-shadow:inset 0 0 0 2px var(--mu-ink)}.mtr-in input{all:unset;flex:1;min-width:0;font:900 20px var(--mu-f);color:var(--mu-ink)}.mtr-in input::placeholder{color:var(--mu-sub)}
+.mtr-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mtr-top .mu-who{flex:1}.mtr-cl{all:unset;cursor:pointer;font:700 13px var(--mu-f);color:var(--mu-sub);text-decoration:underline;padding:6px 2px}.mtr-ft{display:flex;flex-direction:column;gap:12px}.mtr-m small{font:600 12px var(--mu-f);color:var(--mu-sub)}
 .mtr-m div{display:flex;gap:6px}.mtr-m button{all:unset;box-sizing:border-box;flex:1;display:grid;place-items:center;min-height:38px;border-radius:10px;background:var(--mu-bg2,rgba(0,0,0,.05));font:800 14px var(--mu-f);color:var(--mu-ink);cursor:pointer}
-.mtr-m button.z{flex:.6}.mtr-m button.z svg{width:16px;height:16px}.mtr-m button:disabled{opacity:.35;cursor:default}
+.mtr-m button:disabled{opacity:.35;cursor:default}
 .mtr-j{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;min-height:38px;padding:0 10px;border-radius:10px;background:var(--mu-bg2,rgba(0,0,0,.05));font:700 13px var(--mu-f);cursor:pointer}.mtr-j.on{box-shadow:inset 0 0 0 2px var(--mu-ink)}
 .mtr-sg{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:14px;background:color-mix(in srgb,var(--gc) 18%,var(--mu-card));box-shadow:inset 0 0 0 2px var(--gc);font:800 14px var(--mu-f);color:var(--mu-ink);cursor:pointer}
 .mtr-sg i{width:14px;height:14px;border-radius:4px;background:var(--gc)}
 .mtr-v{display:flex;flex-direction:column;gap:4px;font:800 14px var(--mu-f)}.mtr-v small{font:600 12px var(--mu-f);color:#b3261e}
 .mtr-bar{position:relative;height:8px;border-radius:99px;background:linear-gradient(90deg,#d7261e,#f2c230 45%,#2e9e57 70%)}.mtr-bar i{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--mu-ink);translate:-50% -50%;transition:left .25s}
+@media (max-height:500px){.mu-hud.land.t-trato .mu-dk>.mu-row,.mu-hud.land.t-trato .mu-sheet>header{display:none}.mtr-ps{max-height:none}.mtr{gap:8px}.mtr-s{padding:8px}}
 .mtr-v.ok span{color:#1e8a4a}.mtr-v.mid span{color:#a86b00}.mtr-v.bad span{color:#b3261e}`;
 document.head.appendChild(css);
 window.MTRA={init:h=>{H=h},ui,tval,
- cash:(key,d)=>{const G=H.G,TR=H.TR,k=key=='ac'?H.me():TR.to;TR[key]=d?Math.min(G.cash[k],(TR[key]||0)+d):0;H.render()},
+ cash:(key,d)=>{const G=H.G,TR=H.TR,k=key=='ac'?H.me():TR.to;TR[key]=Math.max(0,Math.min(G.cash[k],(TR[key]||0)+d));H.render()},
+ // monto exacto: se teclea; sin rehacer todo el panel (no se pierde el teclado), solo el medidor y el botón
+ n:(key,el)=>{const G=H.G,TR=H.TR,k=key=='ac'?H.me():TR.to,raw=el.value.replace(/\D/g,''),v=Math.min(G.cash[k],+raw||0);TR[key]=v;
+  const t=raw?String(v):'';if(el.value!==t)el.value=t;const f=document.getElementById('mtrft');if(f)f.innerHTML=pie()},
+ borra:()=>{const TR=H.TR;TR.ap=[];TR.bp=[];TR.ac=TR.bc=TR.aj=TR.bj=0;H.render()},
  jc:(key,n)=>{const TR=H.TR;TR[key]=((TR[key]||0)+1)%(n+1);H.render()},
  pide:L=>{const TR=H.TR;L.forEach(i=>{if(!TR.bp.includes(i))TR.bp.push(i)});H.render()}};
 })();

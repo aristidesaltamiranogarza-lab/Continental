@@ -23,5 +23,5 @@ function paso(now){const dt=Math.min(.1,(now-(tl||now))/1000);tl=now;
   if(k>=1){s.parent&&s.parent.remove(s);pool.push(s);vivos.splice(i,1);continue}s.visible=true;
   s.position.x+=v.vx*dt;s.position.y+=v.vy*dt;s.position.z+=v.vz*dt;v.vx*=.9;v.vz*=.9;
   const e=v.brilla?Math.sin(k*Math.PI):1-k;s.material.opacity=v.op*e;s.scale.setScalar(v.s0+(v.s1-v.s0)*(v.brilla?Math.sin(k*Math.PI):Math.sqrt(k)));if(v.brilla)s.material.rotation=k*1.5}}
-window.MFX={polvo,destello,paso};
+window.MFX={polvo,destello,paso,activo:()=>vivos.length>0};
 })();
