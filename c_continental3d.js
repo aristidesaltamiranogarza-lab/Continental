@@ -370,7 +370,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const tb=$('#gjHint')||$('#gjTop'),bb=$('#gjBar .gj-bb'),top=mini?(h<500?4:14):(tb?tb.getBoundingClientRect().bottom:100)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(80,Math.min(h*.22,w*.34,200));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(bar+ch*1.1)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
- const rb=h-bar-ch*.62,rh=Math.max(120,rb-top),el=por?1.12:.98;
+ const bajo=!por&&h<500,rb=h-bar-ch*(bajo?.42:.62),rh=Math.max(120,rb-top),el=por?1.12:bajo?.8:.98;   // celular acostado: cámara más baja para que la mesa use el ancho
  CA.clearViewOffset();CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.4])pts.push(v3(Math.cos(a)*(L.rx+.75),y,Math.sin(a)*(L.rz+.75)))}
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
@@ -687,8 +687,8 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const o=V.players[k],on=G.turn==k;
   const nj=G.melds.filter(m=>m.owner==k).length;
-  h+=`<div class="ui gj-seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${o.on?' on':''}"></i><small>${o.out?'fuera':(hc(k)+' cartas'+(nj?' · ✓'+nj:''))}</small></div>`});
- h+=`<div class="ui gj-pl" id="t3pdk" title="Mazo">M ${G.deck}</div><div class="ui gj-pl" id="t3pds" title="Descarte">D</div>`;
+  h+=`<div class="ui gj-seat c3seat${on?' on':''}${o.out?' out':''}${VT.who==k?' look':''}" data-seat="${k}" onclick="c3dLook(${k})" title="Ver la mesa de ${esc(p.name)}${o.out?'':` · ${hc(k)} cartas`+(nj?` · ${nj} bajadas`:'')}">${chip(k)}<b>${esc(p.name)}</b>${o.on?'':'<i class="dot"></i>'}${o.out?'<small>fuera</small>':`<small class="c3n" aria-label="${hc(k)} cartas">${hc(k)}</small>${nj?`<small class="c3b" aria-label="${nj} bajadas">${UI.ico("ok")}${nj}</small>`:''}`}</div>`});
+ // sin pastillas de mazo y descarte (se ven en la mesa; como en MD)
  // botones de abajo
  let b='';const ic=n=>UI.ico(n);
  if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${ic('salir')}Salir</button>`:''}`;
