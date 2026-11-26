@@ -5,17 +5,17 @@
 // (c_bienvenida.js), que al Entrar usa PTDA.ve(q) para las mismas transiciones. Se carga después de c_bienvenida.js y antes de c_casa3d.js.
 (function(){
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
-const inGame=()=>typeof S!=='undefined'&&!!S,I=n=>window.UI&&UI.ico?UI.ico(n):'';
+const inGame=()=>typeof S!=='undefined'&&!!S,I=n=>window.UI&&UI.ico?UI.ico(n):'',noche=()=>document.documentElement.dataset.tema==='noche';
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const css=document.createElement('style');css.textContent=`
-#port{--pt-c1:#F7DDB0;--pt-c2:#EFB27C;--pt-muro:#E7B47A;--pt-muro2:#D39A5E;--pt-marco:#FFF4E2;--pt-vid:#5C86A6;--pt-luz:#FFD98A;--pt-teja:#A8532E;--pt-hoja:#5F8A45;--pt-sol:#FFE7A8;--pt-nube:rgba(255,250,240,.75);
+#port{--pt-c1:#F7DDB0;--pt-c2:#EFB27C;--pt-muro:#E7B47A;--pt-muro2:#D39A5E;--pt-marco:#FFF4E2;--pt-vid:#5C86A6;--pt-luz:#FFD98A;--pt-teja:#A8532E;--pt-hoja:#5F8A45;--pt-sol:#FFE7A8;--pt-nube:#FFFAF0;--pt-nubea:.75;
  position:fixed;inset:0;z-index:1001;overflow:hidden;color:var(--ui-text);font-family:var(--ui-font);background:linear-gradient(180deg,var(--pt-c1),var(--pt-c2));
  display:grid;grid-template-rows:auto 1fr;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .6s cubic-bezier(.6,0,.3,1),opacity .5s}
-html[data-tema=noche] #port{--pt-c1:#1C1430;--pt-c2:#47284A;--pt-muro:#6E4A34;--pt-muro2:#583926;--pt-marco:#E9D6BE;--pt-vid:#2B2F4A;--pt-teja:#6A2E1A;--pt-hoja:#2F4A2A;--pt-sol:#F2E6C8;--pt-nube:rgba(255,240,230,.12)}
+html[data-tema=noche] #port{--pt-c1:#1C1430;--pt-c2:#47284A;--pt-muro:#6E4A34;--pt-muro2:#583926;--pt-marco:#E9D6BE;--pt-vid:#2B2F4A;--pt-teja:#6A2E1A;--pt-hoja:#2F4A2A;--pt-sol:#F2E6C8;--pt-nube:#FFF0E6;--pt-nubea:.12}
 #port button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #port .pt-sol{position:absolute;right:12%;top:9%;width:min(18vmin,110px);aspect-ratio:1;border-radius:50%;background:var(--pt-sol);box-shadow:0 0 60px 10px color-mix(in srgb,var(--pt-sol) 45%,transparent);animation:ptSol .9s .1s cubic-bezier(.3,1.4,.5,1) both}
 html[data-tema=noche] #port .pt-sol{box-shadow:inset -14px -6px 0 0 color-mix(in srgb,var(--pt-c2) 70%,var(--pt-sol)),0 0 40px 4px rgba(242,230,200,.18)}
-#port .pt-nb{position:absolute;height:22px;border-radius:999px;background:var(--pt-nube);animation:ptNube linear infinite}
+#port .pt-nb{position:absolute;height:22px;border-radius:999px;background:var(--pt-nube);opacity:var(--pt-nubea);animation:ptNube linear infinite}
 #port .pt-nb::before{content:'';position:absolute;left:22%;bottom:40%;width:45%;height:150%;border-radius:50%;background:inherit}
 #port .pt-fl{position:absolute;width:34px;opacity:.85;animation:ptFlota ease-in-out infinite alternate;filter:drop-shadow(0 4px 6px rgba(58,36,22,.2))}
 #port .pt-fl svg{display:block;width:100%;height:auto}
@@ -80,6 +80,21 @@ html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in
 @keyframes ptLatido{40%{transform:scale(1.07)}}
 @media (orientation:landscape) and (max-height:500px){#port .pt-mid{padding:4px 16px 20vh;justify-content:flex-end}#port .pt-ops{max-width:440px;margin-right:2vw}
  #port .pt-il{width:min(100%,110px)}#port .pt-go{padding:8px 8px 10px}#port .pt-fach{width:min(110vw,140vh,760px);left:30%}#port .pt-sp{height:40px}#port.a3d .pt-fach{left:50%;bottom:10vh}}
+#port .pt-yo{position:relative}#port .pt-top{z-index:5}
+#port .pt-tema{flex:none;width:48px;height:48px;display:grid;place-items:center;padding:0;border:1px solid var(--ui-line);border-radius:50%;background:var(--ui-panel);box-shadow:var(--ui-shadow);color:var(--ui-icon);animation:ptPop .6s .65s cubic-bezier(.3,1.5,.5,1) both;transition:transform .3s}
+#port .pt-tema:active{transform:rotate(-40deg) scale(.9)}#port .pt-tema svg{width:24px;height:24px}
+#port .pt-guia{position:absolute;top:calc(100% + 4px);left:6px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;pointer-events:none;color:var(--ui-accent);font:800 14px/1.2 var(--ui-font);max-width:min(230px,46vw);animation:ptPop .5s 1.4s cubic-bezier(.3,1.5,.5,1) both;transform-origin:20px 0;z-index:2}
+#port .pt-guia svg{width:34px;height:34px;animation:ptFlecha 1.1s 2s ease-in-out infinite}
+#port .pt-guia span{padding:6px 12px;border-radius:999px;background:var(--ui-panel);box-shadow:var(--ui-shadow);color:var(--ui-text)}
+#port .pt-guia.va{animation:ptFuera .3s ease-in both}
+@keyframes ptFlecha{50%{transform:translateY(-6px)}}
+#port .pt-ops{position:relative}
+#port .pt-ayu{position:absolute;top:-14px;right:-14px;z-index:3;width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--ui-line);border-radius:50%;background:var(--ui-panel);box-shadow:var(--ui-shadow);color:var(--ui-sub);font:900 17px/1 var(--ui-font);animation:ptPop .5s 1s cubic-bezier(.3,1.5,.5,1) both}
+#port .pt-ayu.on{background:var(--ui-accent);color:#fff}
+#port .pt-ayp{position:absolute;inset:auto 0 calc(100% + 10px) 0;margin:auto;max-width:400px;z-index:4;padding:14px 16px;border-radius:18px;background:var(--ui-panel);box-shadow:var(--ui-shadow);border:1px solid var(--ui-line);display:grid;gap:10px;font-size:14px;line-height:1.35;transform-origin:85% 100%;animation:ptPop .35s cubic-bezier(.3,1.5,.5,1) both}
+#port .pt-ayp.va{animation:ptFuera .25s ease-in both}
+#port .pt-ayp b{display:block;font-weight:900}#port .pt-ayp p{margin:0;color:var(--ui-sub)}
+@media (orientation:landscape) and (max-height:500px){#port .pt-ayp{inset:50% calc(100% + 14px) auto auto;width:270px;max-width:none;translate:0 -50%;transform-origin:100% 50%}#port .pt-guia{font-size:13px}#port .pt-guia svg{width:26px;height:26px}}
 @media (prefers-reduced-motion:reduce){#port *,#port{animation-duration:.01s!important;animation-iteration-count:1!important}}`;
 document.head.appendChild(css);
 
@@ -115,12 +130,12 @@ function arma(){
  const nm=String(typeof pname!=='undefined'&&pname||'').trim(),u=ult(),c3=hay3();
  el.innerHTML=`<i class="pt-sol"></i>${nb}${fl}<div class="pt-fach">${fach()}</div>
  <header class="pt-top"><h1 class="pt-logo" aria-label="gamemash">${[...'gamemash'].map((c,i)=>`<span style="animation-delay:${(.05+i*.05).toFixed(2)}s">${c}</span>`).join('')}</h1>
-  <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button></div></header>
+  <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button>${ls.get('cont_av_hecho')?'':'<div class="pt-guia" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 31C10 28 8 18 12 6"/><path d="M5 12l7-7 7 6"/></svg><span>Toca para cambiar tu personaje y tu nombre</span></div>'}</div><button class="pt-tema" aria-label="Día o noche">${I(noche()?'sol':'luna')}</button></header>
  <div class="pt-mid"><div class="pt-ops">
   <div class="pt-op" data-q="ligero"><button class="pt-go${u==='ligero'||!c3?' ult':''}"><span class="pt-il">${IL2}</span><b>Plano</b><small>2D</small></button><div class="pt-sp"></div></div>
   ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go${u==='3d'?' ult':''}"><span class="pt-il">${IL3}</span><b>Casa</b><small>3D</small></button>
    <div class="pt-seg" role="radiogroup" aria-label="Calidad"><button data-c="medio" role="radio">Medio</button><button data-c="completo" role="radio">HD</button></div></div>`:''}
- </div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
+  ${c3?'<button class="pt-ayu" aria-label="¿Cuál elijo?" aria-expanded="false">?</button>':''}</div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
  document.body.appendChild(el);
  const seg=()=>el.querySelectorAll('.pt-seg button').forEach(b=>{const on=b.dataset.c===cal;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});seg();
  el.querySelectorAll('.pt-seg button').forEach(b=>b.onclick=()=>{cal=b.dataset.c;snd();seg()});
@@ -128,9 +143,24 @@ function arma(){
  const pj=el.querySelector('.pt-pj');pinta(pj);
  const nmI=el.querySelector('.pt-nm'),ancho=()=>{nmI.style.width=Math.max(4,nmI.value.length+1)+'ch'};ancho();nmI.oninput=()=>{nmI.classList.remove('mal');ancho()};
  el.querySelector('.pt-dado').onclick=()=>{if(window.BIEN&&BIEN.rnd){nmI.value=BIEN.rnd(nmI.value);ancho();snd()}};
- el.querySelector('.pt-pjb').onclick=()=>{if(!window.MIPJ||!window.AV)return;snd();MIPJ.abrir();if(!MIPJ.abierto())return;el.style.display='none';
-  const t=setInterval(()=>{if(MIPJ.abierto())return;clearInterval(t);el.style.display='';pinta(pj)},200)};
- el.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button'))elige(ult()==='3d'&&c3?cal:'ligero')});}
+ const guia=()=>{const g=el.querySelector('.pt-guia');if(g&&!g.classList.contains('va')){g.classList.add('va');setTimeout(()=>g.remove(),300)}};
+ nmI.addEventListener('focus',guia);
+ // Mi personaje se abre encima de la portada (no se ve la casa ni el plano debajo)
+ el.querySelector('.pt-pjb').onclick=()=>{if(!window.MIPJ||!window.AV)return;guia();snd();MIPJ.abrir();if(!MIPJ.abierto())return;
+  const m=document.querySelector('.mj-raiz');if(m){if(getComputedStyle(m).position==='static')m.style.position='relative';m.style.zIndex='1100'}
+  const t=setInterval(()=>{if(MIPJ.abierto())return;clearInterval(t);if(el)pinta(pj)},200)};
+ // día / noche, con fundido si el navegador lo permite
+ const tb=el.querySelector('.pt-tema');tb.onclick=()=>{if(!window.UI||!UI.setTema)return;snd();const f=()=>{UI.setTema(noche()?'dia':'noche');tb.innerHTML=I(noche()?'sol':'luna')};
+  document.startViewTransition&&!matchMedia('(prefers-reduced-motion:reduce)').matches?document.startViewTransition(f):f()};
+ // ayuda: diferencia entre Plano y Casa
+ const ay=el.querySelector('.pt-ayu');if(ay){const ops=el.querySelector('.pt-ops');let p=null;
+  const cierra=()=>{if(!p)return;const q=p;p=null;ay.classList.remove('on');ay.setAttribute('aria-expanded','false');q.classList.add('va');setTimeout(()=>q.remove(),250)};
+  ay.onclick=e=>{e.stopPropagation();snd();if(p)return cierra();p=document.createElement('div');p.className='pt-ayp';p.setAttribute('role','note');
+   p.innerHTML='<div><b>Plano 2D</b><p>Ligero y rápido. Para celulares sencillos o pocos datos.</p></div><div><b>Casa 3D</b><p>Recorres la casa con tu personaje. Pide un equipo más potente.</p></div><div><b>Medio o HD</b><p>HD se ve mejor, pero tarda más en cargar.</p></div>';
+   ops.appendChild(p);ay.classList.add('on');ay.setAttribute('aria-expanded','true')};
+  el.addEventListener('click',e=>{if(p&&!p.contains(e.target))cierra()})}
+ // Enter en el nombre solo lo confirma; no elige Plano ni Casa
+ nmI.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const n=nmI.value.trim();if(n){pname=n;ls.set('cont_n',n)}nmI.blur();snd()}});}
 
 // q: 'ligero' | 'medio' | 'completo'
 function elige(q){if(busy||!el)return;const nmI=el.querySelector('.pt-nm');
