@@ -34,10 +34,6 @@ html.md3on #app{pointer-events:none}
 /* nombre chico encima de la cabeza (los datos: title y su zona) */
 .gj-seat.md3seat{display:flex;align-items:center;gap:5px;padding:3px 11px 3px 8px;border-radius:999px;font-size:12px}
 .md3seat small{font-size:.85em}.md3seat .u3b{margin:0}
-.md3tt{bottom:calc(var(--md3fan,200px) + 8px);font-size:17px;padding:7px 20px 8px}.md3tt small{font-size:12px}
-.md3tt.md3ttb{z-index:11;box-shadow:var(--ui-shadow);font-weight:800;position:fixed;left:50%;right:auto;top:auto;bottom:calc(var(--md3fan,200px) + 8px);transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:auto;display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px;padding:0 10px 0 16px;border:0;cursor:pointer}
-.md3ttb:active{transform:translateX(-50%) scale(.95)}
-.md3ttb .md3n{display:grid;place-items:center;min-width:24px;height:24px;border-radius:999px;background:var(--ui-on);color:var(--ui-accent);font:800 13px/1 var(--ui-font)}
 @media (max-width:520px){.md3mine span{display:none}.md3mine{min-width:44px;padding:0 12px}}
 @media (prefers-reduced-motion:reduce){.md3box,.gj-seat.tgm{animation:none}}
 /* carta en grande al mantenerla presionada (c_mdeal3d_zoom.js) */
@@ -64,3 +60,5 @@ html.md3on #app{pointer-events:none}
 .md3pg b{font-size:17px;color:var(--ui-text)}.md3pg small{font-size:13px;color:var(--ui-sub);font-weight:600}
 .md3pg.ok .md3bar i{background:#3f8f5a}
 @media (prefers-reduced-motion:reduce){.md3f{animation:none}}
+.md3dz{gap:8px}.md3dz .md3n{display:grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:var(--ui-on);color:var(--ui-accent);font:800 12px/1 var(--ui-font);font-style:normal}
+span.md3dz{cursor:default;background:var(--ui-panel);color:var(--ui-text)}span.md3dz .md3n{background:var(--ui-accent);color:var(--ui-on)}

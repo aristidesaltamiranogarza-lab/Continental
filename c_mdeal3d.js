@@ -76,7 +76,7 @@ function init(){if(ready)return;ready=true;
  mc=window.MCAM?MCAM.crea({vt:VT,home,snap,viewed,el:()=>L?L.el:1,kTop:()=>L&&L.kTop||.8}):null;
  requestAnimationFrame(loop3)}
 function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
- tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT,logo:null,sep:2.3});
+ tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n:V&&V.G?V.G.players.length:4,col:FELT,logo:null,sep:2.3});mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));   // personajes del tamaño de la casa (como Uno)
  L=Object.assign(L||{},{por,rx:mesa.r,rz:mesa.r,ps:.9});L.deck=mesa.centro.mazo.clone();L.disc=mesa.centro.descarte.clone();
  if(K3){const room=K3.buildRoom(por,mesa.r,mesa.r);tbl.add(room);L.room=room.userData.room;L.roomG=room}L.baseM=mesa.pie;fz=-1}
 
@@ -168,7 +168,7 @@ function fan(ids,sel){const n=ids.length,ch=L.ch,cw=ch/CH*CW,upp=(loc(W,0,D).x-l
 
 // ---------- personajes y reacciones ----------
 function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
- if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)&&!(V.me>=0&&!x.i)),{dorso:backT(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
+ if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backT(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
 function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G){const G=V.G;MPJ.paso(now,G.phase=='play'&&G.turn>=0?rel(G.turn):-1);MPJ.fin(G.phase=='final'&&G.win>=0?rel(G.win):-1)}}
 const byName=t=>V.G.players.findIndex(p=>t.includes(p.name));
 function react(e){const k=e.k,t=e.t,pj=window.MPJ&&MPJ.on,i=k>=0?rel(k):-1,c=e.c!=null?mdCAT[e.c]:null;
@@ -304,8 +304,6 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  const lg=(G.log||[]).slice(-1)[0],lgT=lg&&lg.k>=0&&G.players[lg.k]?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'md3Menu()',right:(window.MCAM?MCAM.boton(VT.top,'md3Arriba()'):'')+GHUD.view('md3Home()')});
  {const ht=dis?'':mine||fin||!lgT?hint:lgT;if(ht)o+=GHUD.hint(ht)}
- if(dis)o+=mdSel!=null&&mdFrom=='h'?`<button class="ui ui-btn md3tt md3ttb" onclick="mdDo({t:'discard',id:${mdSel}})">${uic('x')}Descartar ${esc(mdName(mdSel))}<i class="md3n" aria-label="te sobran ${h.length-7}">${h.length-7}</i></button>`
-  :`<div class="ui u3tt md3tt" role="status">Descarta <i data-gvn="dz">${h.length-7}</i> ${h.length-7==1?'carta':'cartas'}<small>Toca una que no quieras</small></div>`;
  const mm=(msg||'').replace(/^\W+\s*/,''),mk=mm+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=mm||G.note;
  if(mt&&age<4500)o+=GHUD.toast(mm?esc(mm):'<b>'+esc(G.note)+'</b>',age);
  o+=MD3U.pa();
@@ -322,6 +320,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
    <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${P[k].out?'expulsado':`<i data-cnt="${mdSets(k)}">${mdSets(k)}</i>`+(mdSets(k)==1?' set':' sets')+` · $<i data-cnt="${mdBank(k)}">${mdBank(k)}</i>M`}</b></div>`).join('')}</div></div></div>`}
  else if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${uic('salir')}Dejar de mirar</button>`:''}`;
  else{if(pl)b+=`<button class="ui-btn go" onclick="mdSel=null;send({t:'end'})">${h.length>7?'Terminar (descartar '+(h.length-7)+')':'Terminar turno'}</button>`;
+  if(dis)b+=mdSel!=null&&mdFrom=='h'?`<button class="ui-btn go md3dz" onclick="mdDo({t:'discard',id:${mdSel}})">${uic('x')}Descartar<i class="md3n" aria-label="te sobran ${h.length-7}">${h.length-7}</i></button>`:`<span class="ui-btn md3dz" role="status">Toca una para descartar<i class="md3n">${h.length-7}</i></span>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${uic('ordenar')}${manual?'Mi orden':sortS?'Por valor':'Por tipo'}</button>`;
   b+=`<button class="ui-btn sec md3mine" onclick="md3Look(${i})" title="Ver mi mesa de cerca" aria-label="Mi mesa">${uic('ojo')}<span>Mi mesa</span></button>`}
  o+=GHUD.bar(b);
@@ -349,7 +348,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);avStep(now);pulse(now);labels();viewBtn();
  const fs=window.FONDO?FONDO.pinta(R,CA,'monopolydeal',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
-function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;if(V&&V.G)sync()}
+function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));mesa.sillas[0].visible=true;if(V&&V.G)sync()}   // personajes del tamaño de la casa, con o sin la casa de fondo (como Uno)
 function toggle(){on=!on;menu=false;try{localStorage.setItem('md_3d',on?'1':'0')}catch(e){}render()}
 G0.body=function(){
  if(!active()){const G=typeof V!='undefined'&&V&&V.G,h=orig.apply(this,arguments);return (G&&(G.phase=='play'||G.phase=='final')&&!/class="m2d /.test(h)?UI.dim(0,'md3Toggle()','md3tog'):'')+h}
