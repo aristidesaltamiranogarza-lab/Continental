@@ -97,9 +97,12 @@ function pon(x,iv){if(iv)llega(iv);if(!Array.isArray(x))return;q=x;t=Date.now();
 function tog(v){abierto=v==null?!abierto:!!v;snd('tick');pinta();numeros()}
 // latido: si nadie trajo la lista en 3.5 s (la casa 3D la trae cada 0.3 s; el /poll de la sala solo cuando algo cambia), cada 4 s.
 // En una sala el servidor te pone "Jugando …" aunque aquí diga '2d' (la sala gana); la casa 3D no dibuja a los '2d'.
-async function latido(){if(Date.now()-t<3500||typeof api!='function'||typeof ME=='undefined')return;
- try{const d=await api('casa',{id:'w'+String(ME).slice(0,12),name:yoN()==='Tú'?'Jugador':yoN(),av:window.AV&&AV.mio?AV.mio():'',x:0,z:0,yaw:0,w:0,f:'2d'});pon(d.q,d.inv)}catch(e){}}
-setInterval(latido,4000);setTimeout(latido,600);
+// Con el plano 2D en pantalla (c_plano2d.js) cada 2 s y con tu lugar junto a la mesa que tocaste; la respuesta (salas y gente) va al plano.
+const plano=()=>window.PLANO2D&&PLANO2D.visible();
+async function latido(ya){if(!ya&&Date.now()-t<(plano()?1500:3500)||typeof api!='function'||typeof ME=='undefined')return;
+ const o=plano()?PLANO2D.pos():{f:'2d',x:0,z:0,yaw:0};
+ try{const d=await api('casa',{id:'w'+String(ME).slice(0,12),name:yoN()==='Tú'?'Jugador':yoN(),av:window.AV&&AV.mio?AV.mio():'',x:o.x,z:o.z,yaw:o.yaw,w:0,f:o.f});pon(d.q,d.inv);if(window.PLANO2D)PLANO2D.casa(d)}catch(e){}}
+setInterval(()=>latido(),2000);setTimeout(()=>latido(),600);
 // pantallas con interfaz propia que aún no traen la pastilla (Rummy 2D, Ruleta 2D…; S3, hasta el marco común S7):
 // si en una partida no se ve ninguna, GENTE pone la suya flotando arriba a la derecha, debajo de la barra del juego
 function flota(){let f=document.getElementById('genFlota');const otra=[...document.querySelectorAll('.gen-b')].some(b=>!b.closest('#genFlota')&&b.offsetParent);
@@ -109,5 +112,5 @@ if(!ver){if(f)f.remove();return}
 setInterval(flota,1000);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(abierto)tog(0);else if(inv)no()}});
 function a(c,mira){abierto=false;pinta();snd('tick');if(mira&&typeof watchR=='function')watchR(c);else if(typeof joinR=='function'){code=c;joinR()}}
-window.GENTE={a,invitables,pon,boton,tog,n,lista,donde,invita,ir,no,avisos};
+window.GENTE={late:()=>latido(1),a,invitables,pon,boton,tog,n,lista,donde,invita,ir,no,avisos};
 })();

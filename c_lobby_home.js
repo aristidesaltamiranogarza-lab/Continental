@@ -44,7 +44,7 @@ function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM
  <header class="lbh-top"><span class="lb-logo">${I('casa')}</span><b class="lbh-marca">gamemash</b>
   <button class="lbh-yo" onclick="LOBBY.pan('aj')" aria-label="Ajustes y personaje"><i class="lbh-pj" style="--c:${avc(nm||'Tú')}">${pj()||ini(nm||'?')}</i><span>${es(nm||'Tu nombre')}</span></button>
   ${window.GENTE?GENTE.boton():''}<button class="ui-rb" onclick="LOBBY.pan('aj')" aria-label="Menú">${I('menu')}</button></header>
- ${mesa(k,g)}
+ ${window.PLANO2D&&PLANO2D.ok()?PLANO2D.html():`${mesa(k,g)}
  ${juegos(k)}
  <section class="lbh-sh">
   <div class="lbh-hd"><span class="lbh-hic">${ico(k)}</span><div class="lbh-t"><h2>${es(nom(k))}</h2><small>${c?'Mesa del sótano':'Hasta '+(g.max||6)+' jugadores'}</small></div>
@@ -52,7 +52,7 @@ function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM
   <div class="lbh-bd">${go(k)}
    <div class="lbh-join"><input class="ui-in" placeholder="CÓDIGO" maxlength="5" value="${es(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala" autocomplete="off" autocapitalize="characters"><button class="ui-btn sec" onclick="joinR()">Unirme</button></div>
    ${msg?`<p class="lb-err" role="alert">${es(msg)}</p>`:''}</div>
- </section>${hoja(k,g)}</div>`}
+ </section>`}${hoja(k,g)}</div>`}
 const v0=LOBBY.home;
 LOBBY.home=function(){return (window.BIEN&&BIEN.pend&&BIEN.pend())?v0():home()};
 LOBBY.pan=x=>{pan=x;render()};

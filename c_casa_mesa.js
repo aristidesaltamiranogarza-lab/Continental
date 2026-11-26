@@ -26,7 +26,7 @@ function panel(c){const op=c.op.slice(0,5),pr=c.pr.slice(0,5);
   <button class="ui-btn" onclick="casaJoin('${es(r.c)}')">Unirme</button></div>`).join('')}</div>`;
  b+=`<span class="ui-lbl">Partidas en curso</span>`+(pr.length?`<div class="uh-ls">${pr.map(r=>`<div class="uh-li">${avs(r.ps)}<span><b>${es(nombres(r.ps,r.n))}</b><small class="ui-sub">${r.sp?r.sp+' mirando':'Jugando ahora'}</small></span>
   <button class="ui-btn sec" onclick="casaWatch('${es(r.w)}')">${I('ojo')}Mirar</button></div>`).join('')}</div>`:`<p class="ui-sub uh-nada">No hay partidas ahora. ¡Empieza una!</p>`);
- b+=`<button class="ui-btn full uh-play" onclick="casaPlay('listo')">${I('jugar')}Crear sala y jugar</button>`;
+ b+=`<button class="ui-btn full uh-play" onclick="${c.play||"casaPlay('listo')"}">${I('jugar')}Crear sala y jugar</button>`+(c.extra||'');   // play/extra: el plano 2D (c_plano2d.js)
  b+=cod?`<div class="uh-cod"><input id="h3code" class="ui-in" placeholder="Código" maxlength="5" value="${es(c.code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR();else if(event.key==='Escape')CMESA.cerrar()" aria-label="Código de la sala" autocapitalize="characters" autocomplete="off" spellcheck="false"><button class="ui-btn" onclick="joinR()">Unirme</button></div>`
   :`<button class="ui-btn ghost full" onclick="CMESA.codigo()">${I('llave')}Unirme con código</button>`;
  if(c.msg)b+=`<p class="uh-err" role="alert">${es(c.msg)}</p>`;
@@ -37,7 +37,9 @@ function html(c){if(!c){last=null;open=false;return ''}
  return open?panel(c):aviso(c)}
 function abrir(){if(!last)return;open=true;if(window.CHUD&&CHUD.isOpen())CHUD.close();tick();rr()}
 function cerrar(){if(!open)return;open=false;tick();rr()}
-window.CMESA={html,abrir,cerrar,abierta:()=>open&&!!last,
+// plano 2D (c_plano2d.js): abre el panel de esa mesa sin pasar por el aviso
+function abre2d(g){if(window.CHUD&&CHUD.isOpen&&CHUD.isOpen())CHUD.close();last=g;open=true;cod=false}
+window.CMESA={html,abrir,cerrar,abre2d,panel2d:c=>panel(c),abierta:()=>open&&!!last,
  codigo:()=>{cod=true;rr();const i=$('h3code');if(i)i.focus()},
  key:k=>{if(k=='e'&&last&&!open){abrir();return true}if(k=='escape'&&open){cerrar();return true}return false}};
 })();

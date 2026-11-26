@@ -5,7 +5,7 @@
 - La lista de gente es una sola pieza (GENTE, c_gente.js) que usan la casa 3D, el inicio 2D y los juegos.
 
 ## Avance
-- [x] S1 nombre 2D · [x] S2 lista única · [x] S3 lista de gente · [x] S4 invitar · [ ] S5 plano 2D · [~] S6 avisos (falta lo del plano 2D) · [ ] S7 marco común · [ ] S8 conocidos
+- [x] S1 nombre 2D · [x] S2 lista única · [x] S3 lista de gente · [x] S4 invitar · [x] S5 plano 2D · [x] S6 avisos · [ ] S7 marco común · [ ] S8 conocidos
 
 Notas del usuario (nov 2026): al juego le falta lo social en los dos modos. "Ligero" debe llamarse **2D**. En 2D no te sientes parte de la casa, no sabes si hay partidas sin abrir el menú de cada juego, no te pueden invitar, el código de sala ya casi no se usa. Hay mucha diferencia entre la interfaz 2D y la 3D, y cada juego tiene la suya: debe ser más universal. Quiere saber quién está conectado.
 
@@ -89,3 +89,5 @@ Regla: lo que rodea al juego es igual en todos; solo cambia lo del centro.
 3. S6 avisos y "volver a la mesa".
 4. S5 plano 2D.
 5. S7 marco común, un juego a la vez.
+
+S5 hecho (nov 2026): el inicio 2D es la planta de la casona (c_plano2d.js, PLANO2D; estilos .pl- en ui_lobby.css). Datos en plano_casona.js, GENERADO por `python blender/plano.py` (cuartos de NIV en casona.py, mesas de los empties mesa_* de cada GLB; volver a correrlo al mover mesas). Pestañas por nivel, mesas con ícono, retratos de quien juega y asiento que late si hay sala; tocar una mesa abre el panel de CMESA (CMESA.abre2d/panel2d; Póker, Blackjack y Billar abren su mesa 2D) y quedas parado junto a ella: GENTE.latido manda esa posición cada 2 s y los de 3D te ven ahí. Gente de la casa como retratos con su globito (`say`). Al salir de una partida vuelves junto a esa mesa del plano. El inicio viejo queda de respaldo donde no hay plano (continental.html). Falta: decir algo (`say`) desde el 2D.
