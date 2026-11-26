@@ -7,7 +7,7 @@ let pick=null,au=null,gn=null,ctx=null,tm=0,on=false;
 function next(){const ok=[...TR.keys()].filter(i=>!bad.has(i)),all=ok.length>1?ok.filter(i=>i!==pick):ok;pick=all.length?all[Math.random()*all.length|0]:-1;
  clearTimeout(tm);if(pick<0)tm=setTimeout(()=>{if(pick<0)skip()},SYN_MS)}
 function skip(){next();if(window.musSync)musSync()}
-function mk(c,m){if(au)return;ctx=c;au=new Audio();au.preload='none';
+function mk(c,m){if(au&&ctx===c)return;if(au){au.onended=au.onerror=null;au.pause();on=false}ctx=c;au=new Audio();au.preload='none';
  au.onended=skip;au.onerror=()=>{if(pick>=0){bad.add(pick);console.warn('mp3 no cargó:',TR[pick]);skip()}};
  gn=c.createGain();gn.gain.value=0;c.createMediaElementSource(au).connect(gn);gn.connect(m)}
 function fade(v,s){const t=ctx.currentTime,g=gn.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(v,t+s)}

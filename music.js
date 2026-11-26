@@ -115,7 +115,8 @@ const SONGS={
    if(g6)shaker(o,t,s==0||s==8?.05:.03);if(s==0)kick(o,t,.18);if(s==8)bongo(o,t,.11,1);if(s==5||s==13)rim(o,t,.07)}}};
 
 // ---------- reproducción ----------
-function init(){if(ctx)return true;if(typeof AC=='undefined'||!AC)return false;ctx=AC;
+function init(){if(typeof AC=='undefined'||!AC)return false;if(ctx===AC)return true;   // AC nuevo (el viejo se atoró): rehacer todo sobre el nuevo
+ if(ctx){cur=null;noise=null;for(const k in buf)delete buf[k]}ctx=AC;
  master=ctx.createGain();master.gain.value=gainOf(vol);master.connect(ctx.destination);bus=ctx.createGain();const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3200;lp.Q.value=.5;bus.connect(lp);lp.connect(master);
  // reverb suave
  const sr=ctx.sampleRate,n=sr*1.8|0,ir=ctx.createBuffer(2,n,sr);for(let c=0;c<2;c++){const a=ir.getChannelData(c);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}
@@ -142,6 +143,6 @@ window.musSlider=()=>{const p=Math.round(vol*100),ic=window.UI?UI.ico('musica'):
  return `<div class="ui-vol${p?'':' off'}" style="--v:${p}%"><button class="ui-rb" onclick="musMute()" aria-label="Quitar o poner la música">${ic}</button><input type="range" min="0" max="100" step="1" value="${p}" aria-label="Volumen de la música" oninput="musVol(this.value/100)"><b aria-hidden="true">${p}</b></div>`};
 window.musUI=()=>window.UI?`<div class="ui ui-musrow">${musSlider()}</div>`:`<button class="b g sm2" onclick="musCyc()">${vol?'🎵':'🔇'} Música: ${LN[lvl()]}</button>`;
 // el navegador solo deja sonar audio después de que el jugador toca algo
-['pointerdown','keydown'].forEach(e=>document.addEventListener(e,()=>{setTimeout(musSync,0)}));
+// (game.js llama musSync dentro de cada toque)
 document.addEventListener('visibilitychange',()=>{if(ctx)musSync()});
 })();
