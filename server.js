@@ -116,12 +116,12 @@ function gente(yo){const now=Date.now(),M=new Map(),pon=(m,n,av,d,pr)=>{const k=
   (R.spec||[]).forEach(s=>{if(now-s.seen<35000)pon(s.me,s.name,'',{g:R.gt,st:'mira',c:R.code},2)})}
  return [...M.values()].map(o=>Object.assign({k:huella(o.m),n:o.n,av:o.av},o.d,yo&&o.m===yo?{yo:1}:null))}
 // invitaciones (SOCIAL.md S4): quien está en una sala invita a alguien de la lista (k = su huella); se entrega en /casa y /poll durante 60 s
-const invs={},INV_MS=60000;
+const invs={},INV_MS=60000,PUSH=require('./srv_push.js');
 function invita(b){const yo=String(b.me||'').slice(0,40),k=String(b.k||'').slice(0,10),now=Date.now();if(!yo||!k)return {err:'Falta a quién.'};
  let R=null,de=null;for(const x of Object.values(rooms)){const p=x.players.find(p=>p.me===yo&&!p.out&&!p.bot)||(x.spec||[]).find(s=>s.me===yo);if(p&&(!R||x.ts>R.ts)){R=x;de=p}}
  if(!R)return {err:'Primero entra a una sala.'};if(huella(yo)===k)return {err:'Ya estás aquí.'};
  const o=invs[k];if(o&&o.de===de.name&&o.c===R.code&&now-o.ts<10000)return {ok:1};
- invs[k]={n:(o?o.n:0)+1,de:de.name,av:de.av||'',g:R.gt,c:R.code,st:R.G?'play':'lobby',ts:now};return {ok:1}}
+ invs[k]={n:(o?o.n:0)+1,de:de.name,av:de.av||'',g:R.gt,c:R.code,st:R.G?'play':'lobby',ts:now};PUSH.avisa(k);return {ok:1}}
 function invDe(yo){if(!yo)return null;const k=huella(yo),o=invs[k],now=Date.now();if(!o)return null;if(now-o.ts>INV_MS||!rooms[o.c]){delete invs[k];return null}return Object.assign({},o,{ts:undefined})}
 function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
  if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';o.me=String(b.me||'').slice(0,40)||null;if(AVRE.test(String(b.av||'')))o.av=String(b.av);
@@ -151,6 +151,10 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  const b=await body(req);
  if(p=='/casa')return out(res,casaAct(b));
  if(p=='/inv')return out(res,invita(b));
+ // avisos con el navegador cerrado (srv_push.js): llave pública, guardar/borrar suscripción, y la invitación que pide sw.js al llegar el push
+ if(p=='/push_llave')return out(res,{k:PUSH.pub});
+ if(p=='/push'){const me=String(b.me||'').slice(0,40);if(!me)return out(res,{err:'Falta el aparato.'});return out(res,PUSH.pon(me,huella(me),b.off?null:b.ep))}
+ if(p=='/push_inv'){const i=invDe(PUSH.mio(b.ep));if(i&&GAMES[i.g])i.nom=GAMES[i.g].name;return out(res,i||{})}
  if(p=='/new'){const code=rnd(5),tok=cr.randomBytes(12).toString('hex'),gt=GAMES[b.game]?b.game:'continental',
    R=rooms[code]={code,gt,opts:Object.assign({},GAMES[gt].opts),host:tok,players:[],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
   R.poke=()=>bump(R);

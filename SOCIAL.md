@@ -5,13 +5,15 @@
 - La lista de gente es una sola pieza (GENTE, c_gente.js) que usan la casa 3D, el inicio 2D y los juegos.
 
 ## Avance
-- [x] S1 nombre 2D · [x] S2 lista única · [~] S3 lista de gente (sin invitar) · [x] S4 invitar (sin push del sistema) · [ ] S5 plano 2D · [ ] S6 avisos · [ ] S7 marco común · [ ] S8 conocidos
+- [x] S1 nombre 2D · [x] S2 lista única · [~] S3 lista de gente (sin invitar) · [x] S4 invitar · [ ] S5 plano 2D · [ ] S6 avisos · [ ] S7 marco común · [ ] S8 conocidos
 
 Notas del usuario (nov 2026): al juego le falta lo social en los dos modos. "Ligero" debe llamarse **2D**. En 2D no te sientes parte de la casa, no sabes si hay partidas sin abrir el menú de cada juego, no te pueden invitar, el código de sala ya casi no se usa. Hay mucha diferencia entre la interfaz 2D y la 3D, y cada juego tiene la suya: debe ser más universal. Quiere saber quién está conectado.
 
 Hecho (nov 2026): servidor `gente()` manda `q` en `/casa` y en cada `/poll` (k = huella del aparato, nunca la clave; `yo` marca quién eres). c_gente.js (GENTE) con pastilla y panel únicos, latido cuando nadie trajo la lista en 3.5 s. Pastilla puesta en: casa 3D (CHUD), inicio 2D, sala de espera, juegos con GHUD y mesa 2D M2D (ahí el ☰ pasó a la derecha, como en 3D, y su menú abre a la derecha). La casa 3D ya no dibuja a los de '2d' en (0,0).
 Falta en S3: pastilla en los HUD propios (Mérida, YuCATÁN, Póker, Blackjack, Billar, casino/billar 2D, Rummy 2D, Ruleta 2D) — mejor al pasarlos al marco común (S7); tocar a alguien (Ir, Mirar).
-S4 hecho: POST /inv (server.js invita/invDe, vive 60 s, se entrega en /casa y /poll como `inv`); en la lista, "Invitar" junto a quien no está en tu sala (solo si tú estás en una); tarjeta arriba al centro con Ir / Ahora no y barra de 20 s. Ir: si estabas en otra partida te levanta (queda un bot) y entra; si ya empezó, entra a mirar. Falta: notificación del sistema (PWA) y botón Invitar visible en la sala de espera (hoy se llega por la pastilla de gente).
+S4 hecho: POST /inv (server.js invita/invDe, vive 60 s, se entrega en /casa y /poll como `inv`); en la lista, "Invitar" junto a quien no está en tu sala (solo si tú estás en una); tarjeta arriba al centro con Ir / Ahora no y barra de 20 s. Ir: si estabas en otra partida te levanta (queda un bot) y entra; si ya empezó, entra a mirar. Pestaña escondida: el título parpadea "Ana te invita · Uno", vibra, y la barra de 20 s corre al volver; el latido sigue con la pestaña escondida.
+Web Push (navegador cerrado, sin instalar nada): srv_push.js (VAPID sin dependencias, push sin contenido; solo hosts de push conocidos), rutas /push_llave, /push, /push_inv; sw.js muestra el aviso y al tocarlo pasa la invitación a la pestaña o abre /?inv=CODIGO(&mira=1). Interruptor "Avisarme si me invitan" al final de la lista de gente (no sale si el navegador bloquea avisos). En Render: poner VAPID_PUB y VAPID_PRIV (salen en el log la primera vez que arranca sin ellas); si no, las llaves cambian en cada reinicio y hay que volver a activar. Render gratis duerme a los 15 min: sin nadie jugando no hay avisos. iPhone: solo con la página en la pantalla de inicio. Sin probar con un push real (el panel del navegador bloquea avisos).
+Falta: botón Invitar visible en la sala de espera (hoy se llega por la pastilla de gente).
 
 ## Cómo estaba (lo revisado en el código)
 

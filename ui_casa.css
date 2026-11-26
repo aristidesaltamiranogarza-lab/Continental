@@ -157,3 +157,4 @@ span.gic{display:inline-block}span.gic svg{width:100%;height:100%;display:block}
 .gen-inv .gen-acc{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
 .gen-inv .gen-t{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--ui-accent);transform-origin:left;animation:genT linear forwards}
 @keyframes genT{to{transform:scaleX(0)}}
+.gen-push{margin-top:2px;border-top:1px solid var(--ui-line);border-bottom:0;font-weight:700}

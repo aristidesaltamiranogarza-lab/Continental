@@ -3,3 +3,4 @@ modelos/originales/
 # bailes de Mixamo (FBX): solo se pueden usar dentro del juego, no redistribuir; van horneados en modelos/personaje/chibi.glb
 blender/emotes/
 blender/anim_src/
+.push_llaves.json

@@ -16,3 +16,12 @@ self.addEventListener('fetch',e=>{const q=e.request;if(q.method!=='GET'||!versio
  const k=llave(q.url);
  e.respondWith(caches.open(C).then(c=>c.match(k).then(r=>r||fetch(q).then(res=>{if(res.ok&&res.type!=='opaque'){const cp=res.clone(),b=base(k);
   e.waitUntil(c.keys().then(ks=>Promise.all(ks.filter(x=>x.url!==k&&base(x.url)===b).map(x=>c.delete(x)))).then(()=>c.put(k,cp)).catch(()=>{}))}return res}))))});
+// ---- avisos de invitación (srv_push.js): el push llega sin contenido y aquí se pide la invitación con el endpoint de este navegador.
+// Si el juego está a la vista no se muestra nada (ya sale la tarjeta). Al tocar el aviso: si hay pestaña, se le pasa la invitación; si no, se abre con ?inv=.
+self.addEventListener('push',e=>e.waitUntil((async()=>{
+ const cs=await self.clients.matchAll({type:'window',includeUncontrolled:true});if(cs.some(c=>c.visibilityState==='visible'))return;
+ let d={};try{const s=await self.registration.pushManager.getSubscription();d=await(await fetch('/push_inv',{method:'POST',body:JSON.stringify({ep:s&&s.endpoint})})).json()}catch(x){}
+ await self.registration.showNotification(d.c?d.de+' te invita':'Te invitaron a jugar',{body:d.nom||'',tag:'inv',renotify:true,icon:'/iconos/app_192.png',badge:'/iconos/app_192.png',data:d})})()));
+self.addEventListener('notificationclick',e=>{e.notification.close();const d=e.notification.data||{};
+ e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{const c=cs[0];
+  if(c){c.postMessage({inv:d});return c.focus()}return self.clients.openWindow(d.c?'/?inv='+encodeURIComponent(d.c)+(d.st==='play'?'&mira=1':''):'/')}))});

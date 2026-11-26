@@ -24,7 +24,7 @@ function boton(){const k=n();return `<button class="ui-pill gen-b" onclick="GENT
 function accion(p){const v=sala();if(!v||p.yo||!p.k||p.c===v.code)return '';
  return Date.now()-(ya[p.k]||0)<20000?`<button class="ui-btn sec gen-x" disabled>Invitado</button>`:`<button class="ui-btn sec gen-x" onclick="GENTE.invita('${es(p.k)}')">Invitar</button>`}
 function panel(){const L=lista();
- return `<div class="ui-scrim uh-clear" onclick="GENTE.tog(0)"></div><div class="ui ui-card uh-drop" role="dialog" aria-label="Quién está conectado"><span class="ui-lbl">Conectados · ${L.length}</span>${L.map(p=>`<div class="uh-per">${av(p.n)}<span><b>${es(p.n)}${p.yo?' <small class="ui-sub">(tú)</small>':''}</b><small class="ui-sub">${es(donde(p))}</small></span>${accion(p)}</div>`).join('')}</div>`}
+ return `<div class="ui-scrim uh-clear" onclick="GENTE.tog(0)"></div><div class="ui ui-card uh-drop" role="dialog" aria-label="Quién está conectado"><span class="ui-lbl">Conectados · ${L.length}</span>${L.map(p=>`<div class="uh-per">${av(p.n)}<span><b>${es(p.n)}${p.yo?' <small class="ui-sub">(tú)</small>':''}</b><small class="ui-sub">${es(donde(p))}</small></span>${accion(p)}</div>`).join('')}${filaAvisos()}</div>`}
 function pinta(){let el=document.getElementById('genteP');
  if(!abierto){if(el)el.remove();return}
  if(!el){el=document.createElement('div');el.id='genteP';el.className='ui';document.body.appendChild(el)}
@@ -40,7 +40,15 @@ function tarjeta(){let el=document.getElementById('genteInv');
   <div class="gen-acc"><button class="ui-btn ghost" onclick="GENTE.no()">Ahora no</button><button class="ui-btn" onclick="GENTE.ir()">${I('jugar')}Ir</button></div><i class="gen-t" style="animation-duration:${INV_S}s"></i></div>`}
 function llega(x){if(!x||!x.c)return;const id=x.c+':'+x.n+':'+x.de;if(id===invVisto)return;invVisto=id;
  const v=sala();if(v&&v.code===x.c)return;   // ya estás en esa sala
- inv=x;invT=Date.now();tarjeta();snd('tick');clearTimeout(llega.t);llega.t=setTimeout(()=>{if(inv===x){inv=null;tarjeta()}},INV_S*1000)}
+ inv=x;invT=Date.now();tarjeta();snd('tick');if(document.hidden)llama(x);else dura(x)}
+// la barra de 20 s corre desde que la ves: con la pestaña escondida se espera a que vuelvas
+function dura(x){clearTimeout(dura.t);const b=document.querySelector('#genteInv .gen-t');if(b){b.style.animation='none';void b.offsetWidth;b.style.animation=''}
+ dura.t=setTimeout(()=>{if(inv===x){inv=null;tarjeta()}},INV_S*1000)}
+// pestaña en segundo plano: el título parpadea con la invitación y el teléfono vibra, hasta que regresas
+let t0='',parpa=0;
+function llama(x){if(!t0)t0=document.title;try{navigator.vibrate&&navigator.vibrate([180,90,180])}catch(e){}
+ const msj=x.de+' te invita · '+nomJ(x.g);let k=0;clearInterval(parpa);document.title=msj;parpa=setInterval(()=>{document.title=++k%2?t0:msj},1000)}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(parpa){clearInterval(parpa);parpa=0;document.title=t0;t0=''}if(inv)dura(inv)});
 function no(){inv=null;tarjeta();snd('tick')}
 // Ir: si estás en otra sala, te levantas de ella (la partida sigue con un bot) y entras; si ya empezó, entras a mirar
 function ir(){const x=inv;if(!x)return;inv=null;tarjeta();snd('tick');
@@ -49,13 +57,35 @@ function ir(){const x=inv;if(!x)return;inv=null;tarjeta();snd('tick');
  if(x.st==='play'&&typeof watchR=='function')watchR(x.c);else{code=x.c;if(typeof joinR=='function')joinR()}}
 async function invita(k){ya[k]=Date.now();snd('tick');if(abierto)pinta();
  try{const d=await api('inv',{k});if(d&&d.err){ya[k]=0;if(abierto)pinta();if(typeof banner=='function')banner(d.err)}}catch(e){ya[k]=0;if(abierto)pinta()}}
+// ---------- avisos con el navegador cerrado (Web Push; srv_push.js y sw.js) ----------
+const LS='gen_push',lsG=()=>{try{return localStorage.getItem(LS)==='1'}catch(e){return false}},lsS=v=>{try{localStorage.setItem(LS,v?'1':'0')}catch(e){}};
+const pushOk=()=>'serviceWorker'in navigator&&'PushManager'in window&&'Notification'in window&&window.isSecureContext&&Notification.permission!=='denied';
+const avisosOn=()=>lsG()&&Notification.permission==='granted';
+function filaAvisos(){if(!pushOk())return '';return `<label class="ui-row gen-push"><span>Avisarme si me invitan</span><span class="ui-sw"><input type="checkbox" ${avisosOn()?'checked':''} onchange="GENTE.avisos(this.checked)" aria-label="Avisarme si me invitan"><i></i></span></label>`}
+async function registro(){let r=await navigator.serviceWorker.getRegistration();if(!r)r=await navigator.serviceWorker.register('/sw.js');return navigator.serviceWorker.ready.then(()=>r)}
+async function suscribe(pedir){const r=await registro();let sub=await r.pushManager.getSubscription();
+ if(!sub){if(!pedir)return false;const {k}=await api('push_llave',{});sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(atob(k.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))})}
+ const d=await api('push',{ep:sub.endpoint});return !(d&&d.err)}
+async function avisos(on){snd('tick');
+ try{if(on){if(await Notification.requestPermission()!=='granted')throw 0;if(!await suscribe(true))throw 0;lsS(1)}
+  else{lsS(0);const r=await navigator.serviceWorker.getRegistration(),sub=r&&await r.pushManager.getSubscription();if(sub)await sub.unsubscribe();await api('push',{off:1})}}
+ catch(e){lsS(0);if(on&&typeof banner=='function')banner('No se pudieron activar los avisos.')}
+ if(abierto)pinta()}
+// al abrir el juego se vuelve a mandar la suscripción (el servidor la guarda en memoria y se pierde si se reinicia)
+setTimeout(()=>{if(pushOk()&&avisosOn())suscribe(false).catch(()=>{})},2500);
+// el aviso tocado con el juego abierto: sw.js pasa la invitación y sale la tarjeta
+if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('message',e=>{const x=e.data&&e.data.inv;if(x&&x.c){invVisto='';llega(x)}});
+// el aviso tocado con el juego cerrado: llega con ?inv=CODIGO (&mira=1 si ya empezó) y entra directo
+(()=>{const u=new URLSearchParams(location.search),c=(u.get('inv')||'').toUpperCase().slice(0,5);if(!c)return;const mira=u.has('mira');
+ try{u.delete('inv');u.delete('mira');history.replaceState(null,'',location.pathname+(u.toString()?'?'+u:'')+location.hash)}catch(e){}
+ addEventListener('load',()=>setTimeout(()=>{if(mira&&typeof watchR=='function')watchR(c);else if(typeof joinR=='function'){code=c;joinR()}},900))})();
 function pon(x,iv){if(iv)llega(iv);if(!Array.isArray(x))return;q=x;t=Date.now();const s=JSON.stringify(x);if(s===sig)return;sig=s;numeros();if(abierto)pinta()}
 function tog(v){abierto=v==null?!abierto:!!v;snd('tick');pinta();numeros()}
 // latido: si nadie trajo la lista en 3.5 s (la casa 3D la trae cada 0.3 s; el /poll de la sala solo cuando algo cambia), cada 4 s.
 // En una sala el servidor te pone "Jugando …" aunque aquí diga '2d' (la sala gana); la casa 3D no dibuja a los '2d'.
-async function latido(){if(Date.now()-t<3500||document.hidden||typeof api!='function'||typeof ME=='undefined')return;
+async function latido(){if(Date.now()-t<3500||typeof api!='function'||typeof ME=='undefined')return;
  try{const d=await api('casa',{id:'w'+String(ME).slice(0,12),name:yoN()==='Tú'?'Jugador':yoN(),av:window.AV&&AV.mio?AV.mio():'',x:0,z:0,yaw:0,w:0,f:'2d'});pon(d.q,d.inv)}catch(e){}}
 setInterval(latido,4000);setTimeout(latido,600);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(abierto)tog(0);else if(inv)no()}});
-window.GENTE={pon,boton,tog,n,lista,donde,invita,ir,no};
+window.GENTE={pon,boton,tog,n,lista,donde,invita,ir,no,avisos};
 })();
