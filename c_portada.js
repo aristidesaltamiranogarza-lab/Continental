@@ -89,9 +89,11 @@ html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in
 #port .pt-guia.va{animation:ptFuera .3s ease-in both}
 @keyframes ptFlecha{50%{transform:translateY(-6px)}}
 #port .pt-ops{position:relative}
-#port .pt-ayu{position:absolute;top:-14px;right:-14px;z-index:3;width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--ui-line);border-radius:50%;background:var(--ui-panel);box-shadow:var(--ui-shadow);color:var(--ui-sub);font:900 17px/1 var(--ui-font);animation:ptPop .5s 1s cubic-bezier(.3,1.5,.5,1) both}
-#port .pt-ayu.on{background:var(--ui-accent);color:#fff}
-#port .pt-ayp{position:absolute;inset:auto 0 calc(100% + 10px) 0;margin:auto;max-width:400px;z-index:4;padding:14px 16px;border-radius:18px;background:var(--ui-panel);box-shadow:var(--ui-shadow);border:1px solid var(--ui-line);display:grid;gap:10px;font-size:14px;line-height:1.35;transform-origin:85% 100%;animation:ptPop .35s cubic-bezier(.3,1.5,.5,1) both}
+#port .pt-sp{display:grid;place-items:center}
+#port .pt-ayu{width:26px;height:26px;display:grid;place-items:center;padding:0;border:1.5px solid color-mix(in srgb,var(--ui-sub) 45%,transparent);border-radius:50%;background:transparent;color:var(--ui-sub);font:800 13px/1 var(--ui-font);opacity:.7;animation:ptPop .5s 1s cubic-bezier(.3,1.5,.5,1) both;transition:opacity .2s}
+#port .pt-ayu:hover{opacity:1}
+#port .pt-ayu.on{opacity:1;color:var(--ui-accent);border-color:var(--ui-accent)}
+#port .pt-ayp{position:absolute;inset:0 0 auto 0;margin:auto;max-width:340px;z-index:4;padding:14px 16px;border-radius:18px;background:var(--ui-panel);backdrop-filter:blur(8px);box-shadow:var(--ui-shadow);border:1px solid var(--ui-line);display:grid;gap:8px;font-size:14px;line-height:1.3;transform-origin:20% 100%;animation:ptPop .3s cubic-bezier(.3,1.4,.5,1) both}
 #port .pt-ayp.va{animation:ptFuera .25s ease-in both}
 #port .pt-ayp b{display:block;font-weight:900}#port .pt-ayp p{margin:0;color:var(--ui-sub)}
 @media (orientation:landscape) and (max-height:500px){#port .pt-ayp{inset:50% calc(100% + 14px) auto auto;width:270px;max-width:none;translate:0 -50%;transform-origin:100% 50%}#port .pt-guia{font-size:13px}#port .pt-guia svg{width:26px;height:26px}}
@@ -132,10 +134,10 @@ function arma(){
  <header class="pt-top"><h1 class="pt-logo" aria-label="gamemash">${[...'gamemash'].map((c,i)=>`<span style="animation-delay:${(.05+i*.05).toFixed(2)}s">${c}</span>`).join('')}</h1>
   <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button>${ls.get('cont_av_hecho')?'':'<div class="pt-guia" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 31C10 28 8 18 12 6"/><path d="M5 12l7-7 7 6"/></svg><span>Toca para cambiar tu personaje y tu nombre</span></div>'}</div><button class="pt-tema" aria-label="Día o noche">${I(noche()?'sol':'luna')}</button></header>
  <div class="pt-mid"><div class="pt-ops">
-  <div class="pt-op" data-q="ligero"><button class="pt-go${u==='ligero'||!c3?' ult':''}"><span class="pt-il">${IL2}</span><b>Plano</b><small>2D</small></button><div class="pt-sp"></div></div>
+  <div class="pt-op" data-q="ligero"><button class="pt-go${u==='ligero'||!c3?' ult':''}"><span class="pt-il">${IL2}</span><b>Plano</b><small>2D</small></button><div class="pt-sp">${c3?'<button class="pt-ayu" aria-label="¿Cuál elijo?" aria-expanded="false">?</button>':''}</div></div>
   ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go${u==='3d'?' ult':''}"><span class="pt-il">${IL3}</span><b>Casa</b><small>3D</small></button>
    <div class="pt-seg" role="radiogroup" aria-label="Calidad"><button data-c="medio" role="radio">Medio</button><button data-c="completo" role="radio">HD</button></div></div>`:''}
-  ${c3?'<button class="pt-ayu" aria-label="¿Cuál elijo?" aria-expanded="false">?</button>':''}</div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
+  </div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
  document.body.appendChild(el);
  const seg=()=>el.querySelectorAll('.pt-seg button').forEach(b=>{const on=b.dataset.c===cal;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});seg();
  el.querySelectorAll('.pt-seg button').forEach(b=>b.onclick=()=>{cal=b.dataset.c;snd();seg()});
@@ -155,8 +157,8 @@ function arma(){
  // ayuda: diferencia entre Plano y Casa
  const ay=el.querySelector('.pt-ayu');if(ay){const ops=el.querySelector('.pt-ops');let p=null;
   const cierra=()=>{if(!p)return;const q=p;p=null;ay.classList.remove('on');ay.setAttribute('aria-expanded','false');q.classList.add('va');setTimeout(()=>q.remove(),250)};
-  ay.onclick=e=>{e.stopPropagation();snd();if(p)return cierra();p=document.createElement('div');p.className='pt-ayp';p.setAttribute('role','note');
-   p.innerHTML='<div><b>Plano 2D</b><p>Ligero y rápido. Para celulares sencillos o pocos datos.</p></div><div><b>Casa 3D</b><p>Recorres la casa con tu personaje. Pide un equipo más potente.</p></div><div><b>Medio o HD</b><p>HD se ve mejor, pero tarda más en cargar.</p></div>';
+  ay.onclick=e=>{e.stopPropagation();snd();if(p)return cierra();guia();p=document.createElement('div');p.className='pt-ayp';p.setAttribute('role','note');
+   p.innerHTML='<div><b>Plano 2D</b><p>Ligero, va en cualquier celular.</p></div><div><b>Casa 3D</b><p>Recorres la casa. Pide más equipo.</p></div><div><b>HD</b><p>Se ve mejor, carga más lento.</p></div>';
    ops.appendChild(p);ay.classList.add('on');ay.setAttribute('aria-expanded','true')};
   el.addEventListener('click',e=>{if(p&&!p.contains(e.target))cierra()})}
  // Enter en el nombre solo lo confirma; no elige Plano ni Casa
