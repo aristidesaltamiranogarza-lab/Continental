@@ -293,8 +293,8 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 ## Animaciones y transiciones al nivel de la portada (26 nov 2026)
 **Lo que pidió el usuario, textual en espíritu: mantener ese nivel de calidad.** Le encantó la portada (c_portada.js) por sus animaciones y transiciones; para él eso es lo que "vende" un juego, junto con nunca quedarse en pantalla negra ni con tirones. Cada punto de esta lista debe sentirse igual de cuidado que la portada; si algo queda más simple que ella, no está terminado. Antes de empezar uno, abrir c_portada.js y copiar su forma de hacerlo (reglas en la skill casa-ui, sección "Movimiento").
 - [ ] Cambio de piso en 3D: hoy fundido a negro + panel CCARGA. Que sea una escena dibujada del piso que se llena con el progreso real (como la fachada) y una salida animada.
-- [ ] Sentarse a jugar: el HUD del juego entra deslizándose mientras la cámara baja a tu silla; las cartas se reparten volando.
-- [ ] Ganar o perder: la tarjeta del resultado brota, los puntos suben contando, los retratos de los demás reaccionan.
+- [ ] Sentarse a jugar: el HUD del juego entra deslizándose mientras la cámara baja a tu silla; las cartas se reparten volando. Mérida hecho (c_merida_entra.js).
+- [ ] Ganar o perder: la tarjeta del resultado brota, los puntos suben contando, los retratos de los demás reaccionan. Mérida hecho (podio que cuenta en c_merida_fin.js).
 - [ ] Entrar por enlace (#CODIGO) o a una sala: hoy texto "Entrando a la sala"; usar una versión chica de la carga de la casona.
 - [ ] Plano 2D, cambiar de piso: el plano se desliza de lado al siguiente nivel en vez de saltar.
 - [ ] Hojas y paneles: abrir con un leve resorte y las filas entrando una tras otra.

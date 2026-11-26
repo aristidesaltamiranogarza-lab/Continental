@@ -64,7 +64,7 @@ function camBar(){const m3=stageName()=='3d',b=(c,t,h,o)=>`<button class="mu-cb$
 // ---- tarjeta de acciones (siempre a la vista) ----
 let dG=null;// estado de prueba (menú de animaciones)
 function dock(){const G=dG||V.G,m=me(),T=G.trade;
- if(G.phase=='final')return `<div class="mu-dk hi"><div class="mu-row"><span class="mu-big">${MIC.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.tf?(G.win===m?'¡Tuviste la mayor fortuna!':'Tuvo la mayor fortuna al acabarse el tiempo.'):G.win===m?'¡Eres el último en pie!':'Fue el último que no quebró.'}</div></div></div>${window.MFIN?MFIN.html(G,{nm,tok,$m,B,D}):''}${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
+ if(G.phase=='final')return `<div class="mu-dk hi mu-fin"><div class="mu-row"><span class="mu-big">${MIC.h('trofeo')}</span><div class="mu-f1"><b class="mu-h">${G.win>=0?nm(G.win)+' gana':'Se acabó'}</b><div class="mu-s">${G.tf?(G.win===m?'¡Tuviste la mayor fortuna!':'Tuvo la mayor fortuna al acabarse el tiempo.'):G.win===m?'¡Eres el último en pie!':'Fue el último que no quebró.'}</div></div></div>${window.MFIN?MFIN.html(G,{nm,tok,$m,B,D}):''}${V.host?`<button class="mu-b pri big" onclick="send({t:'reset'})">Otra partida</button>`:''}</div>`;
  if(G.phase=='orden')return ordDock();if(G.auc)return aucDock();if(G.debts.length)return debtDock();if(T&&T.b===m)return tradeCard(1);
  if(G.turn!==m||m<0||G.bk[m])return waitDock();return myDock()}
 // orden de salida: cada quien tira un dado; se ve lo que sacó cada jugador
@@ -244,7 +244,7 @@ GM.merida.body=function(){if(!active())return origBody();
  const ae=document.activeElement;keep.f=ae&&ae.id&&/^mu/.test(ae.id)?{id:ae.id,s:ae.selectionStart,e:ae.selectionEnd}:null;
  try{ok=true;return hud()}catch(e){console.warn('Mérida UI:',e);ok=false;return origBody()}};
 GM.merida.after=function(){if(origAfter)origAfter();if(!active()||!ok){off();return}
- on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
+ if(window.MENT)MENT.after(!on,dG||V.G);on=true;const r=document.documentElement;r.classList.add('mrui');r.classList.toggle('mumodal',menu);r.dataset.mrt=theme;if(window.UI){const t=window.UI.noche()?'oscuro':'menta';if(t!==theme){theme=t;const st=stage();if(st)try{st.theme(theme)}catch(e){}}r.dataset.mrt=theme}
  const sc=document.getElementById('musc');if(sc&&keep.sc)sc.scrollTop=keep.sc;const pl=document.getElementById('mupls');if(pl&&keep.pl!=null)pl.scrollLeft=keep.pl;
  if(keep.f){const e=document.getElementById(keep.f.id);if(e){e.focus({preventScroll:true});try{if(keep.f.s!=null)e.setSelectionRange(keep.f.s,keep.f.e)}catch(_){}}}
  layout();if(window.MENF)MENF.sync();if(keep.pl==null)turnInView();if(window.MANI)MANI.after(V.G.cash,V.G.bk,$m);effects()};
