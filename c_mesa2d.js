@@ -52,7 +52,7 @@ function bb(k,t,c){const s=document.querySelector(`#app .m2d [data-seat="${k}"]`
  e.style.left=Math.max(8+w/2,Math.min(innerWidth-8-w/2,r.left+r.width/2))+'px';e.style.top=(up?r.top-8:r.bottom+4)+'px';setTimeout(()=>e.remove(),2400)}
 // ---------- menú (una hoja con lo que no es la partida) ----------
 let abierto=false;
-function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M2D.menu(0)"></div><div class="ui-sheet izq m2d-menu"><div class="ui-hd"><b class="ui-h">Partida</b><button class="ui-x" onclick="M2D.menu(0)" aria-label="Cerrar">${ico('x')}</button></div><div class="ui-bd">
+function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M2D.menu(0)"></div><div class="ui-sheet der m2d-menu"><div class="ui-hd"><b class="ui-h">Partida</b><button class="ui-x" onclick="M2D.menu(0)" aria-label="Cerrar">${ico('x')}</button></div><div class="ui-bd">
  ${o.menu||''}<div class="ui-row"><span>Sonidos</span><label class="ui-sw"><input type="checkbox" ${mute?'':'checked'} onchange="mute=!this.checked;render()"><i></i></label></div>
  ${typeof musUI=='function'?`<div class="ui-row m2d-mus">${musUI()}</div>`:''}
  ${G&&G.log&&G.log.length?`<details><summary>Historial</summary>${logv()}</details>`:''}<details><summary>Jugadores</summary>${plist()}</details>${o.rules||''}
@@ -60,7 +60,7 @@ function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M
 // o: {cls,estilo,redonda,top,der,seats,centro,capa,hint,mine,yo,acc,ord,mano,menu,rules}; redonda: mesa circular con los asientos en su borde (Uno)
 function mesa(o){emotes();const g=V.me>=0&&V.G&&V.G.phase!='final';if(!g)emAb=false;
  return `<div class="m2d ${o.cls||''}${o.redonda?' m2d-redonda':''}" style="${o.estilo||''}">
- <div class="m2d-top"><button class="ui-rb" onclick="M2D.menu()" aria-label="Menú">${ico('menu')}</button>${o.top||''}<span class="m2d-sp"></span>${g?`<button class="ui-rb m2d-gb${emAb?' on':''}" onclick="M2D.gestos()" aria-label="Gestos" aria-expanded="${emAb}">${ico('gesto')}</button>`:''}${g?`<button class="ui-rb m2d-cb" onclick="chatTog()" aria-label="Chat">${ico('chat')}<span class="m2d-cn">${(document.getElementById('cn')||{}).textContent||''}</span></button>`:''}${o.der||''}
+ <div class="m2d-top">${o.top||''}<span class="m2d-sp"></span>${g?`<button class="ui-rb m2d-gb${emAb?' on':''}" onclick="M2D.gestos()" aria-label="Gestos" aria-expanded="${emAb}">${ico('gesto')}</button>`:''}${g?`<button class="ui-rb m2d-cb" onclick="chatTog()" aria-label="Chat">${ico('chat')}<span class="m2d-cn">${(document.getElementById('cn')||{}).textContent||''}</span></button>`:''}${o.der||''}${window.GENTE?GENTE.boton():''}<button class="ui-rb" onclick="M2D.menu()" aria-label="Menú">${ico('menu')}</button>
  ${emAb?`<div class="m2d-gestos" role="menu">${EMS.map((e,i)=>`<button role="menuitem" onclick="M2D.gesto(${i})" aria-label="Gesto ${i+1}">${e}</button>`).join('')}</div>`:''}</div>
  <div class="m2d-zona">${o.redonda?'<div class="m2d-ronda">':''}<div class="m2d-felt">${o.centro||''}</div>${(o.seats||[]).join('')}${o.redonda?'</div>':''}${o.capa||''}</div>
  <div class="m2d-yo">${o.hint!=null?`<div class="m2d-bar">${o.yo||''}<div class="m2d-hint${o.mine?' mine':''}">${o.hint}</div>${o.acc||''}${o.ord||''}</div>`:''}${o.mano||''}</div>

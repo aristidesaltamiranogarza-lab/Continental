@@ -10,7 +10,7 @@ let tab='',scroll=0;
 // arriba: estado y turno a la izquierda; botones redondos (right) y ☰ a la derecha. o={st,turn,me,open,menu:'fn()',right}
 function top(o){
  return `<div id="gjTop" class="ui gj-top"><div class="gj-tl">${o.st?`<span class="ui-pill gj-st">${o.st}</span>`:''}${o.turn?`<span class="ui-pill gj-turn${o.me?' me':''}"><span>${o.turn}</span></span>`:''}</div>
- <span class="gj-tr">${o.right||''}<button class="ui-rb${o.open?' on':''}" onclick="${o.menu}" aria-label="Menú del juego" aria-expanded="${!!o.open}" title="Menú">${I(o.open?'x':'menu')}</button></span></div>`}
+ <span class="gj-tr">${o.right||''}${window.GENTE?GENTE.boton():''}<button class="ui-rb${o.open?' on':''}" onclick="${o.menu}" aria-label="Menú del juego" aria-expanded="${!!o.open}" title="Menú">${I(o.open?'x':'menu')}</button></span></div>`}
 // línea de ayuda debajo de las pastillas (se puede ocultar con el modo compacto)
 const hint=t=>`<div id="gjHint" class="ui gj-hint">${t}</div>`;
 // aviso que se desvanece solo (age = ms que lleva en pantalla, para no reiniciar la animación al redibujar)

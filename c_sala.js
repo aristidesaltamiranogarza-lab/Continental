@@ -43,7 +43,7 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
  <section class="sl-sh" id="slSh" role="dialog" aria-label="Sala de espera">
   <header class="sl-hd"><div class="sl-ic" id="slIc"></div>
    <button class="sl-t" onclick="SALA.ver('juego')" aria-label="Cambiar de juego"><h2 id="slName"></h2>${I('abajo')}</button>
-   <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala"><b id="slCode"></b>${I('compartir')}</button></header>
+   <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala"><b id="slCode"></b>${I('compartir')}</button>${window.GENTE?GENTE.boton():''}</header>
   <div class="sl-bd" id="slBd">
    <div class="sl-v1" id="slV1"><div class="sl-mesa" id="slMesa"></div><p class="ui-sub sl-mira" id="slMira"></p>
     <nav class="sl-acc"><button class="sl-p" id="slRegB" onclick="SALA.ver('reglas')">${I('ajustes')}Reglas</button><button class="sl-p sl-est" id="slEstB" hidden onclick="SALA.ver('est')"><span class="sl-estv" id="slEstV"></span>Estilo</button><button class="sl-p sl-est" id="slFiB" hidden onclick="SALA.ver('ficha')"><span class="sl-estv" id="slFiV"></span>Ficha</button><button class="sl-p sl-i" onclick="SALA.reglas()" aria-label="Cómo jugar" title="Cómo jugar">${I('ayuda')}</button>

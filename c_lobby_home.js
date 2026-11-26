@@ -43,7 +43,7 @@ function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM
  return `<div class="ui lbh" style="--lb-c:${COL[k]||'#C2512A'}">
  <header class="lbh-top"><span class="lb-logo">${I('casa')}</span><b class="lbh-marca">gamemash</b>
   <button class="lbh-yo" onclick="LOBBY.pan('aj')" aria-label="Ajustes y personaje"><i class="lbh-pj" style="--c:${avc(nm||'Tú')}">${pj()||ini(nm||'?')}</i><span>${es(nm||'Tu nombre')}</span></button>
-  <button class="ui-rb" onclick="LOBBY.pan('aj')" aria-label="Menú">${I('menu')}</button></header>
+  ${window.GENTE?GENTE.boton():''}<button class="ui-rb" onclick="LOBBY.pan('aj')" aria-label="Menú">${I('menu')}</button></header>
  ${mesa(k,g)}
  ${juegos(k)}
  <section class="lbh-sh">

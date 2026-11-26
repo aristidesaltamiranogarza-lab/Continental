@@ -19,7 +19,7 @@ const rr=()=>{if(typeof render=='function')render()};
 // ---------- piezas ----------
 function top(c){const p=PISO[c.piso]||'Casa';
  return `<div id="uiTop" class="ui uh-top"><button class="ui-pill" onclick="CHUD.pisos()" aria-label="Estás en ${p}. Ir a otro piso">${I('casa')}<span>${p}</span>${I('abajo','uh-chev')}</button>
- <span class="uh-tr"><button class="ui-pill" onclick="CHUD.tog('gente')" aria-label="Quién está en la casa: ${c.n}" aria-expanded="${open=='gente'}">${I('gente')}<span>${c.n}</span></button>
+ <span class="uh-tr">${window.GENTE?GENTE.boton():`<button class="ui-pill" onclick="CHUD.tog('gente')" aria-label="Quién está en la casa: ${c.n}" aria-expanded="${open=='gente'}">${I('gente')}<span>${c.n}</span></button>`}
  <button class="ui-rb" onclick="CHUD.tog('ajustes')" aria-label="Ajustes" aria-expanded="${open=='ajustes'}">${I('menu')}</button></span></div>`}
 // sentado en el Póker o el Blackjack del sótano, el botón de la cámara cambia entre tus ojos y la vista Arriba de la mesa
 const mesa=()=>window.PK3&&PK3.yo()>=0?PK3:window.BJ3&&BJ3.yo()>=0?BJ3:null;
@@ -40,7 +40,7 @@ const P={
  gente:c=>`<div class="ui ui-card uh-drop" role="dialog" aria-label="Quién está en la casa"><span class="ui-lbl">En la casa · ${c.n}</span>${c.people.map(p=>`<div class="uh-per">${av(p.n)}<span><b>${es(p.n)}${p.me?' <small class="ui-sub">(tú)</small>':''}</b><small class="ui-sub">${PISO[p.f]||''}</small></span></div>`).join('')}</div>`,
  ajustes:c=>{const q=window.CALIDAD,mus=typeof musName=='function'?musName():null,snd=!(typeof mute!='undefined'&&mute);
   return sheet('Ajustes',`<div class="uh-name">${av(c.name)}<label><span class="ui-lbl">Tu nombre</span><input id="uiName" class="ui-in" maxlength="14" value="${es(c.name)}" oninput="pname=this.value;casaName()" autocomplete="nickname" spellcheck="false"></label></div>${window.MIPJ?`<button class="ui-btn sec full uh-pj" onclick="CHUD.close();MIPJ.abrir()">${I('persona')} Mi personaje</button>`:''}${window.BIJ&&BIJ.jugando()?`<button class="ui-btn sec full uh-pj" onclick="CHUD.close();BIJ.act('salir')">${I('salir')} Salir del Billar</button>`:''}
-  ${window.BIEN?`<span class="ui-lbl">Calidad</span>${seg([['ligero','Ligero'],['medio','Medio'],['completo','Completo']],q,'cal')}<small class="ui-sub uh-hint">${QH[q]||''}</small>`:''}
+  ${window.BIEN?`<span class="ui-lbl">Calidad</span>${seg([['ligero','2D'],['medio','Medio'],['completo','Completo']],q,'cal')}<small class="ui-sub uh-hint">${QH[q]||''}</small>`:''}
   <span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'tema')}
   ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
   <div class="uh-sws"><div class="ui-row"><span>${I('sonido')}Sonidos</span>${sw(snd,'CHUD.snd(this.checked)','Sonidos')}</div>

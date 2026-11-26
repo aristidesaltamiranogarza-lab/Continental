@@ -1,8 +1,18 @@
 # Social y 2D/3D: diagnóstico y plan
 
+## Reglas fijas (leer siempre antes de tocar menús o paneles)
+- **Menús universales.** Hoy hay 3 tipos de interfaz (casa 3D, juegos 3D, 2D) y cada una abre su menú en un lugar distinto y con opciones distintas. Todo menú, panel o botón nuevo debe salir **en el mismo lugar, con las mismas opciones y el mismo orden** en 2D, 3D y en todos los juegos. Si al tocar algo ves una diferencia, se corrige hacia el marco común (S7), no se agrega una variante más.
+- La lista de gente es una sola pieza (GENTE, c_gente.js) que usan la casa 3D, el inicio 2D y los juegos.
+
+## Avance
+- [x] S1 nombre 2D · [x] S2 lista única · [~] S3 lista de gente (sin invitar) · [ ] S4 invitar · [ ] S5 plano 2D · [ ] S6 avisos · [ ] S7 marco común · [ ] S8 conocidos
+
 Notas del usuario (nov 2026): al juego le falta lo social en los dos modos. "Ligero" debe llamarse **2D**. En 2D no te sientes parte de la casa, no sabes si hay partidas sin abrir el menú de cada juego, no te pueden invitar, el código de sala ya casi no se usa. Hay mucha diferencia entre la interfaz 2D y la 3D, y cada juego tiene la suya: debe ser más universal. Quiere saber quién está conectado.
 
-## Cómo está hoy (lo revisado en el código)
+Hecho (nov 2026): servidor `gente()` manda `q` en `/casa` y en cada `/poll` (k = huella del aparato, nunca la clave; `yo` marca quién eres). c_gente.js (GENTE) con pastilla y panel únicos, latido cuando nadie trajo la lista en 3.5 s. Pastilla puesta en: casa 3D (CHUD), inicio 2D, sala de espera, juegos con GHUD y mesa 2D M2D (ahí el ☰ pasó a la derecha, como en 3D, y su menú abre a la derecha). La casa 3D ya no dibuja a los de '2d' en (0,0).
+Falta en S3: pastilla en los HUD propios (Mérida, YuCATÁN, Póker, Blackjack, Billar, casino/billar 2D, Rummy 2D, Ruleta 2D) — mejor al pasarlos al marco común (S7); tocar a alguien (Ir, Mirar).
+
+## Cómo estaba (lo revisado en el código)
 
 - **Presencia.** El servidor ya sabe quién anda en la casa: `POST /casa` (server.js `casaAct`) guarda nombre, personaje, piso, posición, emote y lo que dijo; caduca a los 8 s. Responde también `salas()`: cada sala con estado (esperando / jugando / fin), jugadores, host y mirones.
 - **Quién lo consulta.** Solo la casa 3D (c_casa3d.js, `active()=on&&!S`) y las mesas 2D del sótano (c_casino2d.js, c_billar2d.js con piso `'2d'`). El inicio 2D (c_lobby_home.js), la sala 2D (c_sala2d.js) y los juegos de cartas **no**: en 2D eres invisible y no ves a nadie.

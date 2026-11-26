@@ -5,7 +5,7 @@
 // Se carga después de game.js y ANTES de c_casa3d.js (que llama a BIEN.pend / toggled / watch).
 (function(){
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
-const Q=['ligero','medio','completo'],QN={ligero:'Ligero',medio:'Medio',completo:'Completo'};
+const Q=['ligero','medio','completo'],QN={ligero:'2D',medio:'Medio',completo:'Completo'};
 const touchy=matchMedia('(pointer:coarse)').matches,inGame=()=>typeof S!=='undefined'&&!!S;
 let saved=ls.get('casa_cal');if(!Q.includes(saved))saved=null;
 window.CALIDAD=saved||(ls.get('casa_3d')==='0'?'ligero':'completo');
@@ -60,7 +60,7 @@ document.head.appendChild(css);
 
 // dibujos en vez de texto: cartas planas (2D), casa (3D), casa con sol y sombra (3D completo)
 const CASA='<path d="M10 22 24 11l14 11v14H10z"/><path d="M20 36v-8h8v8"/>';
-const CARD={ligero:['<rect x="8" y="9" width="15" height="22" rx="3"/><rect x="26" y="9" width="15" height="22" rx="3"/><path d="M15.5 16v8M33.5 16v8"/>','Ligero','2D'],
+const CARD={ligero:['<rect x="8" y="9" width="15" height="22" rx="3"/><rect x="26" y="9" width="15" height="22" rx="3"/><path d="M15.5 16v8M33.5 16v8"/>','2D','Rápido'],
  medio:[CASA,'Medio','3D'],
  completo:[CASA+'<path d="M38 36h8l-8-7" fill="currentColor" fill-opacity=".3" stroke="none"/><circle cx="41" cy="7" r="3"/><path d="M41 1v1M47 7h-1M45.2 2.8l-.7.7"/>','Completo','3D HD']};
 const I=n=>window.UI&&UI.ico?UI.ico(n):'';
