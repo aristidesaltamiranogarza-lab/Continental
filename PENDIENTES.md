@@ -289,3 +289,12 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 - [x] P3 que no se trabe al entrar a un piso: precompilar shaders y subir texturas del piso antes de llegar (o al cargar la página). Hecho: al cambiar de piso se suben sus texturas en negro (`subeTex` en c_casa3d.js) junto al R.compile. También: el piso se arma al acercarte a su escalera o puerta (`prearma` en c_casa3d.js; en celular a 3 m), con shaders en segundo plano y texturas de una por cuadro; `PREARMA()` en consola. Geometría (17 nov): tras las texturas se sube por partes (`subeGeo`: dibujo de 1 px con cámara de capa 31, máx. ~15 ms por cuadro); entrar al sótano prearmado: 675 → 376 ms. `PREARMA('sot')` lo fuerza.
 - [x] P4 planta alta en Medio como el sótano (c_casa_glb.js); se quitó la maceta de 59k triángulos (alta: queda la de código; salón del sótano: las 3). Si se ve mal algún modelo en Medio, quitarlo en lugar de regresar a HD.
 - [x] P5 menos materiales distintos: las mallas juntas de MRG comparten material por clave (238 mallas con 139 materiales; sótano 243 → 230 visibles). Los demás son distintos de verdad (22 Physical con clearcoat, texturas de lienzo); los dibujos no cambian (119 en el sótano).
+
+## Animaciones y transiciones al nivel de la portada (26 nov 2026)
+**Lo que pidió el usuario, textual en espíritu: mantener ese nivel de calidad.** Le encantó la portada (c_portada.js) por sus animaciones y transiciones; para él eso es lo que "vende" un juego, junto con nunca quedarse en pantalla negra ni con tirones. Cada punto de esta lista debe sentirse igual de cuidado que la portada; si algo queda más simple que ella, no está terminado. Antes de empezar uno, abrir c_portada.js y copiar su forma de hacerlo (reglas en la skill casa-ui, sección "Movimiento").
+- [ ] Cambio de piso en 3D: hoy fundido a negro + panel CCARGA. Que sea una escena dibujada del piso que se llena con el progreso real (como la fachada) y una salida animada.
+- [ ] Sentarse a jugar: el HUD del juego entra deslizándose mientras la cámara baja a tu silla; las cartas se reparten volando.
+- [ ] Ganar o perder: la tarjeta del resultado brota, los puntos suben contando, los retratos de los demás reaccionan.
+- [ ] Entrar por enlace (#CODIGO) o a una sala: hoy texto "Entrando a la sala"; usar una versión chica de la carga de la casona.
+- [ ] Plano 2D, cambiar de piso: el plano se desliza de lado al siguiente nivel en vez de saltar.
+- [ ] Hojas y paneles: abrir con un leve resorte y las filas entrando una tras otra.

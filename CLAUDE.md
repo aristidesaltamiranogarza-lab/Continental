@@ -23,6 +23,7 @@ Servidor Node sin dependencias + cliente JS puro. Arranque: `npm start`.
 - Cambios visuales: usar la skill `casa-ui` (estilo Cálida, tokens de ui.css; nunca clases w7…).
 
 ## Gustos del usuario
+- Animaciones y transiciones: mantener SIEMPRE el nivel de calidad de la portada (c_portada.js), que al usuario le encantó. Toda pantalla entra y sale animada, nunca negro ni saltos secos; lista de lugares en PENDIENTES.md "Animaciones y transiciones"; reglas en la skill casa-ui (Movimiento).
 - Poco texto en pantalla: tarjetas y paneles solo con pregunta, botones y aviso de tiempo; nada de registros de jugadas ni textos de riesgo que estorben.
 - Celular primero (amigos con Android débiles; el usuario juega en teléfono 21:9, casi siempre horizontal). Probar 840x360 y 360x840 además de vertical.
 - Rendimiento en todos los juegos: 60 FPS al tocar, 30 en reposo, muy parejos; densidad máx. 1.25 (mesas 1.5). Nunca quitar antialiasing; ahorrar quitando modelos pesados, dibujos o materiales. Topes solo en c_movil.js (MAX) y c_fps.js, no por juego. Las cartas siempre nítidas.
