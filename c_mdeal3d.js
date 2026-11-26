@@ -87,7 +87,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  const top=(tb?tb.bottom:80)+(h<500?4:10),bar=h-(bb?bb.getBoundingClientRect().top:h-60);
  const ch=Math.max(76,Math.min(h*(por?.19:.17),w*.26,170));Object.assign(L,{top,bar,ch,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--md3fan',Math.round(bar+ch*1.05)+'px');document.documentElement.style.setProperty('--md3bar',Math.round(bar+8)+'px');document.documentElement.style.setProperty('--md3top',Math.round(top)+'px');
- const rb=h-bar-ch*.55,rh=Math.max(120,rb-top),el=por?1.2:1.12;
+ const rb=h-bar-ch*.55,rh=Math.max(120,rb-top),el=por?1.12:.98;
  CA.clearViewOffset();CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.3])pts.push(v3(Math.cos(a)*(L.rx-.25),y,Math.sin(a)*(L.rz-.25)))}
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
@@ -303,16 +303,16 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  const trn=fin?'Fin de la partida':mine?'¡Tu turno!':'Turno de '+nm(t);
  const lg=(G.log||[]).slice(-1)[0],lgT=lg&&lg.k>=0&&G.players[lg.k]?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'md3Menu()',right:(window.MCAM?MCAM.boton(VT.top,'md3Arriba()'):'')+GHUD.view('md3Home()')});
- {const ht=mine||fin||!lgT?hint:lgT;if(ht)o+=GHUD.hint(ht)}
+ {const ht=dis?'':mine||fin||!lgT?hint:lgT;if(ht)o+=GHUD.hint(ht)}
+ if(dis)o+=`<div class="ui u3tt md3tt" role="status">Descarta <i data-gvn="dz">${h.length-7}</i> ${h.length-7==1?'carta':'cartas'}<small>${mdSel!=null?'Toca Descartar para tirarla':'Toca una que no quieras'}</small></div>`;
  const mm=(msg||'').replace(/^\W+\s*/,''),mk=mm+'|'+(G.note||'');if(mk!==msgK){msgK=mk;msgT=Date.now()}const age=Date.now()-msgT,mt=mm||G.note;
  if(mt&&age<4500)o+=GHUD.toast(mm?esc(mm):'<b>'+esc(G.note)+'</b>',age);
  o+=MD3U.pa();
  // jugadores alrededor de la mesa (tocar = ver su zona; al elegir rival = elegirlo)
  const W2={wait:mdSK(G.pa&&G.pa.k)?'debe responder':'debe pagar',say:'«Di que no»',paid:'listo',no:'anulado'};
  G.players.forEach((p,k)=>{if(k===i)return;const pp=P[k],on2=!fin&&G.turn==k,px=G.pa&&G.pa.tg.find(y=>y.k==k),tg=mdTg&&mine&&!pp.out;
-  o+=`<div class="ui gj-seat md3seat${on2?' on':''}${pp.out?' out':''}${VT.who==k?' look':''}${tg?' tgm':''}" data-seat="${k}" onclick="md3Seat(${k})" title="${tg?'Elegir a ':'Ver a '}${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${pp.on?' on':''}"></i>
-  <small>${pp.out?'expulsado':`${hc(k)} cartas · $<i data-gvn="b${k}">${mdBank(k)}</i>M · <i data-gvn="s${k}">${mdSets(k)}</i>/${G.opts.sets} sets`}</small>${pp.out?'':`<span class="md3pips">${MD3U.pips(k)}</span>`}${px?`<em class="u3b">${W2[px.st]}</em>`:G.pa&&G.pa.by==k?'<em class="u3b">cobra</em>':fin&&w==k?'<em class="u3b">¡Ganó!</em>':''}</div>`});
- o+=`<div class="ui gj-pl" id="md3pdk">Mazo · ${G.deck}</div>`;
+  o+=`<div class="ui gj-seat md3seat${on2?' on':''}${pp.out?' out':''}${VT.who==k?' look':''}${tg?' tgm':''}" data-seat="${k}" onclick="md3Seat(${k})" title="${tg?'Elegir a ':'Ver a '}${esc(p.name)}${pp.out?'':` · ${hc(k)} cartas · $${mdBank(k)}M · ${mdSets(k)}/${G.opts.sets} sets`}">${chip(k)}<b>${esc(p.name)}</b>${pp.on?'':'<i class="dot"></i>'}${pp.out?'<small>expulsado</small>':''}${px?`<em class="u3b">${W2[px.st]}</em>`:G.pa&&G.pa.by==k?'<em class="u3b">cobra</em>':fin&&w==k?'<em class="u3b">¡Ganó!</em>':''}</div>`});
+ 
  o+=MD3U.caja();
  let b='';
  if(fin){b=`<button class="ui-btn" onclick="send({t:'reset'})">${uic('nuevo')}Nueva partida</button><button class="ui-btn sec" onclick="leave()">${uic('salir')}Salir</button>`;

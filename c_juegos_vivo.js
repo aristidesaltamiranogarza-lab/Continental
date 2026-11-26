@@ -74,7 +74,7 @@ html.gv ${BT}.gv-rb{animation:gvRb .36s cubic-bezier(.3,1.6,.5,1)}
 html.gv .gj-bar .ui-btn.go.gv-rb{animation:gvRb .36s cubic-bezier(.3,1.6,.5,1),gjGo 1s ease-in-out .36s infinite}
 @media (hover:hover){html.gv ${BT}:not(:disabled):hover{translate:0 -2px}}
 .gv-fly{box-shadow:0 10px 22px rgba(0,0,0,.35);will-change:transform}
-[data-gvn]{display:inline-block}
+[data-gvn]{display:inline-block}html.gv .gj-top b,html.gv .md3tt{white-space:nowrap}
 .gv-nb{animation:gvNb .6s ${B} both}
 @media (prefers-reduced-motion:no-preference){
 html.gv:not(.ge-in) .gj-bar .ui-btn.go:not(.gv-rb){animation-delay:var(--gv-t10)}

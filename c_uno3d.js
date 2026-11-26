@@ -143,7 +143,7 @@ function layout(){const w=innerWidth,h=innerHeight;W=w;H=h;R.setSize(w,h,false);
  Object.assign(L,{top,bar,ch,ls,side,y0,barTop:bb?bb.getBoundingClientRect().top:0});
  document.documentElement.style.setProperty('--t3fan',Math.round(h-y0+ch*.65-8)+'px');document.documentElement.style.setProperty('--t3bar',Math.round(bar+8)+'px');
  // vista desde arriba (Arriba / doble toque): la de antes, casi cenital con toda la mesa
- const rb=h-bar-ch*(wide?1.12:.62),rh=Math.max(120,rb-top),el=por?1.28:1.16;
+ const rb=h-bar-ch*(wide?1.12:.62),rh=Math.max(120,rb-top),el=por?1.12:.98;
  CA.clearViewOffset();CA.fov=40;CA.aspect=w/rh;
  const pts=[];for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [0,.4])pts.push(v3(Math.cos(a)*(L.rx+.75),y,Math.sin(a)*(L.rz+.75)))}
  const ext=d=>{CA.position.set(0,Math.sin(el)*d,Math.cos(el)*d);CA.lookAt(0,0,0);CA.updateProjectionMatrix();CA.updateMatrixWorld();
