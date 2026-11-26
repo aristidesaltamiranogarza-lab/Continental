@@ -122,6 +122,8 @@ html[data-game] .m2d #hand .c.nw{animation:m2in .5s cubic-bezier(.2,.9,.3,1.25)}
 .u2-piles{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:calc(var(--cw)*.55);--cw:min(var(--pw),46cqh)}
 .u2-pila{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
 .m2d-redonda .u2-piles{--cb:min(var(--pw),19cqw);--cw:var(--cb);gap:calc(var(--cb)*.5)}
+@media (max-height:460px) and (min-aspect-ratio:13/10){.m2d-domo .u2-piles{top:calc(var(--m2v)*.5);--cb:min(var(--pw),calc(var(--m2v)*.34))}   /* domo: mazo y descarte al centro de la franja que se ve */
+ .m2d-domo .u2-orbit{top:calc(var(--m2v)*.5);width:min(46cqw,calc(var(--m2v)*2));transform:translate(-50%,-50%) scaleY(.45)}}
 .m2d-redonda .u2-desc{--cw:calc(var(--cb)*1.25)}
 .m2d-redonda .u2-pila small{font-size:11px;opacity:.75;padding:1px 7px}
 .u2-pila small{font:800 13px var(--ui-font);color:#fff;background:rgba(0,0,0,.35);padding:2px 9px;border-radius:999px}

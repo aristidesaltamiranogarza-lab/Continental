@@ -19,7 +19,7 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
  const vk=i>=0&&G.vuln&&G.vuln.k!=i&&hc(G.vuln.k)==1&&!G.uno[G.vuln.k]?G.vuln.k:-1,my1=i>=0&&h.length==1&&!G.uno[i],said=i>=0&&h.length==1&&!!G.uno[i];
  let st=G.ad>0?(mine?'Robando… ':nm(t)+' está robando… ')+'('+G.ad+')':i<0?mirTxt():!mine?'Turno de <b>'+nm(t)+'</b>':drawn?'Juega la carta que robaste o pasa':pend?`Acumula con ${G.pendT=='d'?'+2 o +4':'+4'} o roba ${G.pend}`:'Tu turno: juega una carta o toca el mazo';
  if(upick!=null)st="Elige el color";if(G.note)st='<b>'+esc(G.note)+'</b> · '+st;
- const seats=M2D.rivales(1).map(([k,x,y])=>{const n=hc(k);return M2D.asiento(k,{x,y,turno:k==t,cuenta:n,fan:Math.min(n,10),alerta:n==1,
+ const seats=M2D.rivales(1,1).map(([k,x,y])=>{const n=hc(k);return M2D.asiento(k,{x,y,turno:k==t,cuenta:n,fan:Math.min(n,10),alerta:n==1,
   tag:G.uno[k]&&n==1?'UNO':'',extra:k==vk?'<button class="u2-cobrar" onclick="ucatch()">Cobrar UNO</button>':''})});
  const dl=G.disc.slice(-3),pila=dl.map((id,j)=>{const q=giro(id),last=j==dl.length-1,m=last?1:3;   // las de abajo asoman giradas
   return `<div class="u2-d" style="--r:${q.r*m/2+(last?0:q.r>0?8:-8)}deg;--x:${q.x*m}px;--y:${q.y*m}px">${ucard(U(id),last?{id:'disc',nw:id!==prevTop}:{})}</div>`}).join('');
@@ -39,14 +39,14 @@ function cuerpo(){const G=V.G;if(!G||(G.phase!='play'&&G.phase!='final'))return 
   if(k=='u'&&my1){uuno();return 1}if(k=='c'&&vk>=0){ucatch();return 1}
   if((k==' '||k=='r')&&canD){udraw();return 1}if((k=='p'||k=='Enter')&&drawn){upass();return 1}};
  const comod=G.disc.length&&U(G.disc[G.disc.length-1]).c>=4;   // el nombre del color solo si lo eligió un comodín
- return M2D.mesa({cls:'u2'+(mine?' tu':''),redonda:1,estilo:`--uc:${UCH[G.color]};${fieltro()}`,
+ return M2D.mesa({cls:'u2'+(mine?' tu':''),redonda:1,domo:1,estilo:`--uc:${UCH[G.color]};${fieltro()}`,
   top:comod||pend?`<div class="ui-pill u2-st">${comod?`<i class="u2-dot"></i><b>${UCN[G.color]}</b>`:''}${pend?`<span class="u2-acu">+${G.pend}</span>`:''}</div>`:'',der:v3,
   seats,centro,capa,hint:st,mine,yo:i>=0?M2D.yo(i,{turno:mine}):'',acc,
   ord:i>=0?`<button class="ui-btn ghost m2d-ord" onclick="cyc()">${manual?'Mi orden':sortS?'Por número':'Por color'}</button>`:'',mano,
   menu:`<div class="ui-row"><span>Letra del color en las cartas</span><label class="ui-sw"><input type="checkbox" ${cbl?'checked':''} onchange="setCb(this.checked)"><i></i></label></div>`,rules:unoRules})}
 function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((a,b)=>(!!P[a].out-!!P[b].out)||hc(a)-hc(b));
  M2D.suelta=null;M2D.teclas=null;
- return M2D.mesa({cls:'u2',redonda:1,estilo:`--uc:${UCH[G.color]||'#c2512a'};${fieltro()}`,der:window.u3dToggle?UI.dim(0,'u3dToggle()'):'',
+ return M2D.mesa({cls:'u2',redonda:1,domo:1,estilo:`--uc:${UCH[G.color]||'#c2512a'};${fieltro()}`,der:window.u3dToggle?UI.dim(0,'u3dToggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>
   <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span>${P[k].out?'expulsado':k==w?'sin cartas':hc(k)+(hc(k)==1?' carta':' cartas')}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:unoRules})}
