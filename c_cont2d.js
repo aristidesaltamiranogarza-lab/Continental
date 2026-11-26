@@ -31,13 +31,18 @@ async function pegaVarios(k,ids,x){sel=new Set();let r=[...ids],err='';staged.fo
   try{const d=await api('act',{c:S.c,t:S.t,m:{t:'pegar',k,id,end}});if(d&&d.err){err=d.err;q.push(id)}}catch(e){err='Sin conexión.';q.push(id)}}
   if(q.length===r.length)break;r=q}
  if(r.length&&err)bad(err);render()}
-window.k2tapMeld=function(k){if(Date.now()-noClick<300)return;const ch=[...sel];if(ch.length!=1)return bad('Elige una carta y tócala aquí');
+window.k2tapMeld=function(k){if(Date.now()-noClick<300)return;const ch=[...sel];if(ch.length!=1)return k2zoom(V.G.melds[k].owner);
  if(C(ch[0]).j&&V.G.melds[k].type=='C'){window.k2jk=[k,ch[0]];render();return}pegarEn(k,ch[0])};
 window.k2jkEnd=function(e){const [k,id]=window.k2jk||[];window.k2jk=null;if(e&&k!=null)send({t:'pegar',k,id,end:e});sel=new Set();render()};
 // las bajadas: las de los rivales arriba (en el orden de sus asientos, con su color), las tuyas abajo y el mazo en medio; en flujo para que nunca se encimen
+// tocar las bajadas de alguien las muestra en grande (con una carta elegida en tu turno, tocar una bajada le agrega la carta)
+let k2z=null;window.k2zoom=o=>{if(Date.now()-noClick<300)return;k2z=o;if(typeof sfx=='function')sfx('tick');render()};
+function zoomHtml(G){if(k2z==null||!G.melds.some(m=>m.owner==k2z))return k2z=null,'';
+ return `<div class="k2-zoom" onclick="k2zoom(null)"><div class="k2-zc" style="--c:${COL[k2z%10]}"><b>${esc(G.players[k2z].name)}</b>`+
+  G.melds.filter(m=>m.owner==k2z).map(m=>`<div class="k2-zm">${m.cards.map(x=>cc(C(x))).join('')}</div>`).join('')+'</div></div>'}
 function bajadas(G,orden,i,pl){const por={};G.melds.forEach((m,k)=>{(por[m.owner]=por[m.owner]||[]).push(k)});
  const grupo=o=>por[o]?`<div class="k2-baj" style="--c:${COL[o%10]}" title="${esc(G.players[o].name)}">`+por[o].map(k=>{const m=G.melds[k];
-  return `<div class="k2-meld${pl?' m2d-drop go':''}" data-k="${k}"${pl?` onclick="k2tapMeld(${k})"`:''}>${m.cards.map(x=>cc(C(x))).join('')}</div>`}).join('')+'</div>':'';
+  return `<div class="k2-meld${pl?' m2d-drop go':''}" data-k="${k}" onclick="${pl?`k2tapMeld(${k})`:`k2zoom(${o})`}">${m.cards.map(x=>cc(C(x))).join('')}</div>`}).join('')+'</div>':'';
  return [orden.map(grupo).join(''),i>=0?grupo(i):'']}
 function casillas(pl){const ok=staged.every(okSlot);
  return `<div id="mini" class="k2-arm"><div class="k2-desl ui-desl">`+staged.map((g,k)=>{const v=okSlot(g),n=g.ids.length;
@@ -72,7 +77,7 @@ function cuerpo(){const G=V.G;if(!G)return b0();
   if(k=='c'&&canBuy){V.claim?send({t:'unbuy'}):comprar();return 1}if(k=='o'){cyc();return 1}if(k=='Escape'&&sel.size){sel=new Set();render();return 1}};
  return M2D.mesa({cls:'k2'+(mine?' tu':''),redonda:1,domo:1,estilo:M2D.fieltro('continental'),
   top:`<div class="ui-pill k2-st"><b><span class="m2d-sm">Ronda </span>${G.round+1}/7</b>${['T','C'].map(x=>{const n=CON[G.round].split(x).length-1;return n?`<span class="k2-ct">${TN[x]}${n>1?' ×'+n:''}</span>`:''}).join('')}</div>`,der:v3,
-  seats,centro,capa:jk,hint:st,mine:mine&&!msg,yo:i>=0?M2D.yo(i,{turno:mine}):'',acc,
+  seats,centro,capa:jk+zoomHtml(G),hint:st,mine:mine&&!msg,yo:i>=0?M2D.yo(i,{turno:mine}):'',acc,
   ord:i>=0?`<button class="ui-btn ghost m2d-ord" onclick="cyc()">${ico(manual?'libre':sortS?'palo':'numero')}<span class="m2d-sm">${manual?'Mi orden':sortS?'Por palo':'Por número'}</span></button>`:'',mano,
   menu:typeof styleUI=='function'?`<details><summary>Estilo de cartas</summary>${styleUI()}</details>`:'',rules})}
 // fin de ronda y fin de partida: tarjeta sobre la mesa con los puntos
