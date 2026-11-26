@@ -99,10 +99,13 @@ html[data-tema=noche] #port .pt-go{background:color-mix(in srgb,var(--ui-sheet),
 #port .pt-ayu:hover{opacity:1}
 #port .pt-ayu:hover{opacity:1}
 #port .pt-ayu.on{opacity:1;color:var(--ui-accent)}
-#port .pt-ayp{position:absolute;inset:0 0 auto 0;margin:auto;max-width:340px;z-index:4;padding:14px 16px;border-radius:18px;background:var(--ui-panel);backdrop-filter:blur(8px);box-shadow:var(--ui-shadow);border:1px solid var(--ui-line);display:grid;gap:8px;font-size:14px;line-height:1.3;transform-origin:20% 100%;animation:ptPop .3s cubic-bezier(.3,1.4,.5,1) both}
-#port .pt-ayp.va{animation:ptFuera .25s ease-in both}
+#port .pt-ayv{position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(30,18,12,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:ptVelo .25s ease-out both}
+#port .pt-ayv.va{animation:ptVelo .25s ease-in reverse both}
+@keyframes ptVelo{from{opacity:0}}
+#port .pt-ayp{width:min(320px,100%);padding:18px 20px;outline:none;text-align:center;border-radius:18px;background:var(--ui-sheet);backdrop-filter:blur(8px);box-shadow:var(--ui-shadow);border:1px solid var(--ui-line);display:grid;gap:12px;font-size:15px;line-height:1.3;animation:ptPop .3s cubic-bezier(.3,1.4,.5,1) both}
+#port .pt-ayv.va .pt-ayp{animation:ptFuera .25s ease-in both}
 #port .pt-ayp b{display:block;font-weight:900}#port .pt-ayp p{margin:0;color:var(--ui-sub)}
-@media (orientation:landscape) and (max-height:500px){#port .pt-ayp{inset:50% calc(100% + 14px) auto auto;width:270px;max-width:none;translate:0 -50%;transform-origin:100% 50%}#port .pt-guia{font-size:13px;max-width:none;white-space:nowrap;top:50%;left:auto;right:calc(100% + 6px);translate:0 -50%;flex-direction:row-reverse;align-items:center;transform-origin:100% 50%}#port .pt-guia svg{width:26px;height:26px;rotate:90deg}}
+@media (orientation:landscape) and (max-height:500px){#port .pt-guia{font-size:13px;max-width:none;white-space:nowrap;top:50%;left:auto;right:calc(100% + 6px);translate:0 -50%;flex-direction:row-reverse;align-items:center;transform-origin:100% 50%}#port .pt-guia svg{width:26px;height:26px;rotate:90deg}}
 @media (max-width:420px){#port .pt-top{gap:8px}#port .pt-logo{font-size:24px}#port .pt-yo{gap:6px;padding:3px}#port .pt-pj{width:36px;height:36px}#port .pt-dado{width:34px;height:34px}#port .pt-tema{width:42px;height:42px}#port .pt-yo{min-height:44px}}
 @media (prefers-reduced-motion:reduce){#port *,#port{animation-duration:.01s!important;animation-iteration-count:1!important}}`;
 document.head.appendChild(css);
@@ -163,12 +166,12 @@ function arma(){
  const tb=el.querySelector('.pt-tema');tb.onclick=()=>{if(!window.UI||!UI.setTema)return;snd();const f=()=>{UI.setTema(noche()?'dia':'noche');tb.innerHTML=I(noche()?'sol':'luna')};
   document.startViewTransition&&!matchMedia('(prefers-reduced-motion:reduce)').matches?document.startViewTransition(f):f()};
  // ayuda: diferencia entre Plano y Casa
- const ay=el.querySelector('.pt-ayu');if(ay){const ops=el.querySelector('.pt-ops');let p=null;
-  const cierra=()=>{if(!p)return;const q=p;p=null;ay.classList.remove('on');ay.setAttribute('aria-expanded','false');q.classList.add('va');setTimeout(()=>q.remove(),250)};
-  ay.onclick=e=>{e.stopPropagation();snd();if(p)return cierra();guia();p=document.createElement('div');p.className='pt-ayp';p.setAttribute('role','note');
-   p.innerHTML='<div><b>Plano 2D</b><p>Ligero, va en cualquier celular.</p></div><div><b>Casa 3D</b><p>Recorres la casa. Pide más equipo.</p></div><div><b>HD</b><p>Se ve mejor, carga más lento.</p></div>';
-   ops.appendChild(p);ay.classList.add('on');ay.setAttribute('aria-expanded','true')};
-  el.addEventListener('click',e=>{if(p&&!p.contains(e.target))cierra()})}
+ const ay=el.querySelector('.pt-ayu');if(ay){let p=null;
+  const cierra=()=>{if(!p)return;const q=p;p=null;ay.classList.remove('on');ay.setAttribute('aria-expanded','false');q.classList.add('va');setTimeout(()=>q.remove(),250);ay.focus({preventScroll:true})};
+  ay.onclick=e=>{e.stopPropagation();snd();if(p)return cierra();guia();p=document.createElement('div');p.className='pt-ayv';
+   p.innerHTML='<div class="pt-ayp" role="dialog" aria-label="¿Cuál elijo?" tabindex="-1"><div><b>Plano 2D</b><p>Ligero, va en cualquier celular.</p></div><div><b>Casa 3D</b><p>Recorres la casa. Pide más equipo.</p></div><div><b>HD</b><p>Se ve mejor, carga más lento.</p></div></div>';
+   p.onclick=ev=>{ev.stopPropagation();cierra()};el.appendChild(p);p.firstChild.focus({preventScroll:true});ay.classList.add('on');ay.setAttribute('aria-expanded','true')};
+  el.addEventListener('keydown',e=>{if(p&&e.key==='Escape'){e.stopPropagation();cierra()}})}
  // Enter en el nombre solo lo confirma; no elige Plano ni Casa
  nmI.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const n=nmI.value.trim();if(n){pname=n;ls.set('cont_n',n)}nmI.blur();snd()}});}
 
