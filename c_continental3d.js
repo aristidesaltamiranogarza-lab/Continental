@@ -47,7 +47,7 @@ function backTex(st=sback){const k='b'+st;if(texC[k])return texC[k];
  return texC[k]=tx(c)}
 function faceTex(id,st=scards){const k='f'+id+st;if(texC[k])return texC[k];
  const c0=C(id),c=cnvC(),g=c.getContext('2d'),dark=st=='black',retro=st=='retro',big=st=='big',red=!c0.j&&(c0.s==1||c0.s==2);
- const ink=c0.j?(dark?'#ffd54a':'#6a1b9a'):st=='contrast'?['#111','#d50000','#0050d0','#007a2a'][c0.s]:red?(dark?'#ff6060':'#c62828'):(dark?'#f2f2f2':'#151515');
+ const ink=c0.j?(dark?'#ffd54a':'#6a1b9a'):st=='contrast'?['#111','#d50000','#0050d0','#007a2a'][c0.s]:(dark?['#f2f2f2','#ff6060','#ff9a3c','#7da2ff']:['#151515','#c62828','#e0701a','#1f3f8f'])[c0.s];
  const bg=g.createLinearGradient(0,0,TW,TH);
  if(dark){bg.addColorStop(0,'#2e2e2e');bg.addColorStop(1,'#121212')}else if(retro){bg.addColorStop(0,'#f7edd3');bg.addColorStop(1,'#e0cfa3')}else{bg.addColorStop(0,'#ffffff');bg.addColorStop(1,'#e9edf2')}
  g.fillStyle=bg;rr(g,0,0,TW,TH,20);g.fill();g.strokeStyle=dark?'#555':'#9aa3ad';g.lineWidth=3;rr(g,1.5,1.5,TW-3,TH-3,19);g.stroke();
@@ -462,7 +462,7 @@ function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*
 const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   // asiento de la mesa (0 = el tuyo)
 // abanico de tu mano en la parte de abajo de la pantalla (las cartas son hijas de la cámara)
 function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch*(VT.top?.68:1),cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];
- let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>9&&stp<cw*.2){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
+ let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>8&&stp<cw*.4){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/((x1-x0)/2);
   let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.22-(rows==2&&!r?ch*.42:0);if(sel.has(id))y-=ch*.2;else if(hov===id)y-=ch*.08;
   const ang=Math.max(-.32,Math.min(.32,-u*.26)),hv=hov===id&&!sel.has(id),up=hv||sel.has(id),d=D-i*.004-(r?.03:0);
@@ -593,7 +593,7 @@ function sync(){if(!ready||!L||!active())return;
   g.ids.forEach((id,j)=>{const key='c'+id,c=ens(key,id);live.add(key);c.castShadow=true;c.userData.hit={t:'slot',k};hits.push(c);
    go(c,SC,v3(p.x+SL.pad+SL.cw/2+j*SL.ov,.014+j*.0035,p.z),FU,SL.s,{ms:380})})});
  // tu mano en abanico
- if(me>=0&&Array.isArray(G.hands[me])){const ids=disp().map(c=>c.id),F=fan(ids);L.hand=F;
+ if(me>=0&&Array.isArray(G.hands[me])){const ids=disp().map(c=>c.id),F=fan(ids,8,W-76);   // la orilla derecha es de los botones (tiempo, chat): la mano no pasa por debajoL.hand=F;
   F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,f.id);live.add(key);m.castShadow=false;m.renderOrder=hov===f.id&&!sel.has(f.id)?300:10+i*2;m.userData.hit={t:'hand',id:f.id};hits.push(m);
    selGlow(m,sel.has(f.id)||(drag&&drag.m===m));if(drag&&drag.m===m)return;go(m,CA,f.pos,f.q,f.s,{ms:260})});
 }
@@ -607,7 +607,7 @@ function sync(){if(!ready||!L||!active())return;
 
 // ---------- tocar y arrastrar ----------
 function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
- const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));return h.length?h[0].object.userData.hit:null}
+ const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));if(!h.length)return null;const a=h[0].object.userData.hit,hv=a&&a.t=='hand'&&hov!=null&&h.find(x=>{const u=x.object.userData.hit;return u&&u.t=='hand'&&u.id===hov});return hv?hv.object.userData.hit:a}   // la carta que se asoma (va encima) gana aunque la de al lado esté más cerca
 // Ratón: clic derecho y arrastrar = mover; clic de rueda (o Shift + clic derecho) = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar fuera de tu mano = mover; dos dedos = pellizcar para zoom, girarlos para rotar
 function pDown(e){if(!active()||ap)return;if(mc)mc.toca();if(e.pointerType!=='mouse')peek(false);if(menu){menu=false;render();return}
@@ -647,7 +647,7 @@ function nearTgt(cx,cy,id){const G=V.G,me=V.me;if(me<0||G.turn!=me||G.step!='pla
  const ck=(x0,x1,z0,z1,t)=>{const d=Math.hypot(Math.max(x0-p.x,0,p.x-x1),Math.max(z0-p.z,0,p.z-z1));if(d<bd){bd=d;b=t}};
  if(G.down[me]&&L.mb)L.mb.forEach((r,k)=>{const mm=G.melds[k];if(mm&&fitsMeld(id,mm))ck(r.x0,r.x1,r.z0,r.z1,{t:'meld',k})});
  const S=L.slots;if(!G.down[me]&&S)staged.forEach((g,k)=>{const q=S.pos[k],h=S.ch/2+S.pad;if(q&&canBe(g.type,g.ids.concat(id).map(C)))ck(q.x,q.x+q.w,q.z-h,q.z+h,{t:'slot',k})});
- const dw=CW*L.ps*.6,dh=CH*L.ps*.6;ck(L.disc.x-dw,L.disc.x+dw,L.disc.z-dh,L.disc.z+dh,{t:'disc'});return b}
+ return b}   // el descarte solo al soltar encima del pozo (pick), nunca por cercanía
 // el destino de lo que arrastras brilla más
 let hiK=null;function dragHi(t){const k=!t?null:t.t=='meld'?'m'+t.k:t.t=='disc'?'disc':t.t=='slot'?'s'+t.k:null;if(k===hiK)return;hiSet(hiK,false);hiK=k;hiSet(k,true)}
 function hiSet(k,on){if(!k)return;if(k[0]=='s'){const m=slots.get(+k.slice(1));if(m)m.userData.hot=on;return}const g=glows.get(k);if(!g)return;if(on){g.userData.lv0=g.userData.lvl;g.userData.lvl=1.3}else g.userData.lvl=g.userData.lv0||0}

@@ -220,7 +220,7 @@ function fan(ids,play,drawn){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/
  const sp=(c,k)=>k>1?Math.min(c/CH*CW*.62,(fw-24-c*.3-c/CH*CW)/(k-1)):0;let ch=L.ch,rows=1,per=n,stp=sp(ch,n);
  if(n>7&&stp<30){rows=2;per=Math.ceil(n/2);stp=sp(ch,per)}while(stp<30&&ch>L.ch*.8){ch*=.96;stp=sp(ch,per)}
  ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=rn>1?off/((rn-1)/2):0,g=Math.min(1,(rn-1)/6),ok=play.has(id);
-  let y=y0+u*u*ch*.1*g-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;
+  let y=y0+u*u*ch*.1*g-(rows==2&&!r?ch*.42:0);if(id===drawn)y-=ch*.24;else if(ok)y-=ch*.1;if(hov===id)y-=ch*.07;if(id===uarm)y-=ch*.16;
   const ang=-u*.24*g,d=D-i*.004-(r?.03:0);
   out.push({id,ok,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.16)),s:ch*upp/CH})});
  return out}
@@ -289,7 +289,7 @@ function popAt(k,t,col){if(!L||!window.UANU)return;const pa=window.MPJ&&MPJ.on&&
 
 // ---------- tocar y arrastrar ----------
 function pick(e,only){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);
- const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));return h.length?h[0].object.userData.hit:null}
+ const h=ray.intersectObjects(only||hits,false).filter(x=>!window.FONDO||FONDO.seen(x.object));if(!h.length)return null;const a=h[0].object.userData.hit,hv=a&&a.t=='hand'&&hov!=null&&h.find(x=>{const u=x.object.userData.hit;return u&&u.t=='hand'&&u.id===hov});return hv?hv.object.userData.hit:a}   // la carta que se asoma (va encima) gana aunque la de al lado esté más cerca
 // Ratón: clic derecho y arrastrar = mover; clic de rueda (o Shift + clic derecho) = girar e inclinar; rueda = zoom.
 // Dedo: arrastrar fuera de tu mano = mover; dos dedos = pellizcar para zoom, girarlos para rotar, subirlos o bajarlos para inclinar
 function pDown(e){if(!active()||upick!=null)return;if(mc)mc.toca();if(menu){menu=false;render();return}
@@ -299,7 +299,7 @@ function pDown(e){if(!active()||upick!=null)return;if(mc)mc.toca();if(menu){menu
   if(tch.size>2)return}
  if(e.button==1)e.preventDefault();
  const rot=e.button==1||(e.button==2&&e.shiftKey),pan=e.button==2&&!rot;if(pan||rot)cv.style.cursor=rot?'move':'grabbing';
- st={x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.ly,t0:VW.lp,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
+ st={pt:e.pointerType,x:e.clientX,y:e.clientY,hit:pan||rot?null:pick(e),pid:e.pointerId,pan,rot,a0:VW.ly,t0:VW.lp,g:null};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
 function pMove(e){if(!active())return;
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);
   if(pin&&tch.size>=2){const [a,b]=[...tch.values()],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),dd=Math.hypot(a[0]-b[0],a[1]-b[1])-pin.d;let da=wrap(ang-pin.ang);pin.ang=ang;
@@ -329,13 +329,14 @@ function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;
   const F=(L.hand||[]).filter(f=>f.id!==d.id);let b=-1,bd=1e12;F.forEach((f,i)=>{const dd=(e.clientX-f.x)**2+(e.clientY-f.y)**2;if(dd<bd){bd=dd;b=i}});
   const ids=F.map(f=>f.id);ids.splice(b<0?0:b+(e.clientX>F[b].x?1:0),0,d.id);myOrder=ids;manual=true;sfx('place');render();return}
  if(mc&&(!s.hit||s.hit.t=='seat')&&mc.dobleToque(s.x,s.y))return;   // doble toque en la mesa: vista desde arriba (y de regreso)
- tap(s.hit)}
+ pt=s.pt;tap(s.hit)}
 function pCancel(e){if(e&&e.pointerId!=null)tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drag){drag.m.userData.T=null;drag=null}st=null;sync()}
+let pt='mouse';
 function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0&&G.turn==me;
  if(h.t=='deck'){if(mine&&G.step=='play'&&!G.ad)udraw();else if(mine&&G.step=='drawn')bad('Ya robaste: juega esa carta o pasa.');return}
  if(h.t=='disc'){if(mine&&G.step=='drawn'&&uok(G.drawn))uplay(G.drawn);return}
  if(h.t=='seat')return look(h.k);
- if(h.t=='hand'){if(mine)uplay(h.id);else sfx('card')}}
+ if(h.t=='hand'){if(mine)utap(h.id,{pointerType:pt});else sfx('card')}}
 
 // ---------- capa de controles (HTML encima del 3D) ----------
 const chipC=k=>`<i class="u3chip" style="--c:${UC[k]}"></i>`,uic=n=>UI.ico(n);   // piezas de la interfaz: c_juegos_hud.js (GHUD)

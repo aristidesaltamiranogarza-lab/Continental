@@ -5,8 +5,8 @@ if(!window.M2D||!GM.continental)return;
 const b0=GM.continental.body,ico=n=>UI.ico?UI.ico(n):'';
 const giro=id=>({r:((id*47)%21)-10,x:((id*31)%9)-4,y:((id*17)%7)-3});
 const MIN={T:3,C:4},AYU={T:'mismo número',C:'seguidas, mismo palo'};
-function cc(c,o={}){const red=!c.j&&(c.s==1||c.s==2);
- return `<div class="c${red?' r':''}${c.j?' jk':''}${o.sel?' s':''}${o.nw?' nw':''}${o.cls?' '+o.cls:''}"${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}>`+
+function cc(c,o={}){const red=!c.j&&(c.s==1||c.s==2),pc=c.j?'':c.s==2?' pd':c.s==3?' pt':'';
+ return `<div class="c${red?' r':''}${pc}${c.j?' jk':''}${o.sel?' s':''}${o.nw?' nw':''}${o.cls?' '+o.cls:''}"${o.id?` id="${o.id}"`:''}${o.did!=null?` data-id="${o.did}"`:''}${o.on?` onclick="${o.on}"`:''}>`+
  (c.j?'<b>★</b><small>JK</small>':`<b>${RN[c.r-1]}</b><small>${SU[c.s]}</small>`)+'</div>'}
 // las casillas del contrato viven en staged (game.js); se preparan solas cada ronda mientras no te hayas bajado
 let rnd=-1;

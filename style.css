@@ -118,6 +118,9 @@ html[data-cards] .c.u1:not(.bk){background:linear-gradient(160deg,#ffd54f,#f9a82
 html[data-cards] .c.u2:not(.bk){background:linear-gradient(160deg,#5cc46e,#1b7a35);color:#fff;border-color:#fff}
 html[data-cards] .c.u3:not(.bk){background:linear-gradient(160deg,#4d8fe8,#124a9e);color:#fff;border-color:#fff}
 html[data-cards] .c.u4:not(.bk){background:conic-gradient(#d32f2f 0 25%,#f9a825 0 50%,#2e9e4a 0 75%,#1e6bd6 0);color:#fff;text-shadow:0 1px 3px #000;border-color:#fff}
+/* cuatro colores de palo: picas negras, corazones rojos, diamantes naranja, tréboles azul oscuro */
+html .c.pd:not(.bk),html[data-cards] .c.pd:not(.bk){color:#e0701a}html .c.pt:not(.bk),html[data-cards] .c.pt:not(.bk){color:#1f3f8f}
+html[data-cards="black"] .c.pd:not(.bk){color:#ff9a3c}html[data-cards="black"] .c.pt:not(.bk){color:#7da2ff}
 .c span{font-size:21px;font-weight:900}.c.sm span{font-size:14px}
 .c.dim{opacity:.42}
 .ucol{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid #fff;vertical-align:middle}

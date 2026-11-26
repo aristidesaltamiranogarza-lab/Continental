@@ -22,6 +22,8 @@ function uok(id){const G=V.G,h=G.hands[V.me],c=U(id);
  if(c.t=='w')return true;if(c.t=='f')return !h.some(x=>U(x).c==G.color);if(c.c==G.color)return true;
  const t=U(G.disc[G.disc.length-1]);return t.c<4&&c.t==t.t&&(c.t!='n'||c.n==t.n)}
 const udisp=()=>V.G.hands[V.me].map(U).sort(manual?(a,b)=>oi(a)-oi(b):sortS?(a,b)=>uval(a)-uval(b)||a.c-b.c:(a,b)=>a.c-b.c||uval(a)-uval(b));
+// en táctil, el primer toque solo levanta la carta (uarm); el segundo la juega
+let uarm=null;function utap(id,e){const t=e&&e.pointerType&&e.pointerType!='mouse',G=V.G;if(t&&uarm!==id&&V.me==G.turn&&uok(id)){uarm=id;sfx('card');render();return}uarm=null;uplay(id)}
 function uplay(id){if(Date.now()-noClick<300)return;const G=V.G;
  if(V.me!=G.turn)return bad('No es tu turno.');
  if(Date.now()<cdEnd)return;

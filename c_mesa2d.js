@@ -42,9 +42,20 @@ function asiento(k,o){const p=(V.players||[])[k]||{};
  <div class="m2d-nm">${nm(k)}</div>${o.fan?`<div class="m2d-fan">${'<u></u>'.repeat(o.fan)}</div>`:''}${o.tag?`<span class="m2d-tag">${o.tag}</span>`:''}${o.extra||''}</div>`}
 function yo(k,o){return `<div class="m2d-me${o.turno?' on':''}" data-seat="${k}" style="--c:${COL[k%10]}"><div class="m2d-av">${retrato(k)}</div><b>Tú</b></div>`}
 // ---------- tu mano en abanico (el arrastre para reordenar sigue en game.js: #hand .c) ----------
-function abanico(L){const n=L.length,mid=(n-1)/2,st=n>1?Math.min(5,26/(n-1)):0,rm=mid*st;
+function abanico(L){requestAnimationFrame(fila);const n=L.length,mid=(n-1)/2,st=n>1?Math.min(5,26/(n-1)):0,rm=mid*st;
  return `<div id="hand" class="m2d-mano" style="--n:${n};--n1:${Math.max(n-1,1)}">`+L.map((c,j)=>{const r=(j-mid)*st;
   return `<div class="m2d-ca ${c.cls||''}" style="--r:${r.toFixed(1)}deg;--y:${((r*r-rm*rm)*.16).toFixed(1)}px">${c.h}</div>`}).join('')+'</div>'}
+// el solape se mide con el ancho real de la mano (no con 100vw: así se salían las de la derecha); con muchas cartas
+// la mano se parte en dos filas para que cada carta deje ver su esquina; la orilla derecha queda libre para los botones
+function fila(){const h=document.querySelector('#app .m2d #hand.m2d-mano');if(!h)return;const ks=[...h.querySelectorAll(':scope>.m2d-ca')],n=ks.length;
+ h.querySelectorAll(':scope>.m2d-br').forEach(x=>x.remove());h.classList.remove('f2');ks.forEach(k=>k.classList.remove('r2'));if(n<2)return;
+ const cw=ks[0].offsetWidth||60,w=h.clientWidth-(innerWidth>innerHeight?64:16),ov=k=>Math.min(-6,(w-k*cw)/(k-1));
+ if(n<8||(w-cw)/(n-1)>=cw*.42){h.style.setProperty('--ov',ov(n).toFixed(1)+'px');return}
+ const per=Math.ceil(n/2);h.classList.add('f2');h.style.setProperty('--ov',ov(per).toFixed(1)+'px');
+ [ks.slice(0,per),ks.slice(per)].forEach((R,ri)=>{const m=R.length,mid=(m-1)/2,st=m>1?Math.min(3,14/(m-1)):0,rm=mid*st;
+  R.forEach((k,j)=>{const r=(j-mid)*st;k.style.setProperty('--r',r.toFixed(1)+'deg');k.style.setProperty('--y',((r*r-rm*rm)*.16).toFixed(1)+'px');if(ri)k.classList.add('r2')})});
+ const b=document.createElement('i');b.className='m2d-br';h.insertBefore(b,ks[per])}
+addEventListener('resize',()=>requestAnimationFrame(fila));
 // ---------- globitos que salen del asiento de quien hizo algo ----------
 function bb(k,t,c){const s=document.querySelector(`#app .m2d [data-seat="${k}"]`);if(!s||RM)return;
  const r=s.getBoundingClientRect(),up=r.top+r.height/2>innerHeight*.55,e=document.createElement('div');
@@ -65,7 +76,7 @@ function mesa(o){emotes();const g=V.me>=0&&V.G&&V.G.phase!='final';if(!g)emAb=fa
  <div class="m2d-zona">${o.redonda?'<div class="m2d-ronda">':''}<div class="m2d-felt">${o.centro||''}</div>${(o.seats||[]).join('')}${o.redonda?'</div>':''}${o.capa||''}</div>
  <div class="m2d-yo">${o.hint!=null?`<div class="m2d-bar">${o.yo||''}<div class="m2d-hint${o.mine?' mine':''}">${o.hint}</div>${o.acc||''}${o.ord||''}</div>`:''}${o.mano||''}</div>
  ${abierto?menuHtml(o):''}</div>`}
-const M2D=window.M2D={retrato,reac,gesto,rivales,asiento,yo,abanico,bb,mesa,suelta:null,teclas:null,
+const M2D=window.M2D={retrato,reac,gesto,rivales,asiento,yo,abanico,fila,bb,mesa,suelta:null,teclas:null,
  gestos(){emAb=!emAb;if(typeof sfx=='function')sfx('tick');render()},
  menu(v){abierto=v==null?!abierto:!!v;render()}};
 // ---------- soltar una carta de tu mano en el centro (.m2d-drop) para jugarla ----------

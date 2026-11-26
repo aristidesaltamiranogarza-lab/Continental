@@ -298,3 +298,10 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 - [ ] Entrar por enlace (#CODIGO) o a una sala: hoy texto "Entrando a la sala"; usar una versión chica de la carga de la casona.
 - [ ] Plano 2D, cambiar de piso: el plano se desliza de lado al siguiente nivel en vez de saltar.
 - [ ] Hojas y paneles: abrir con un leve resorte y las filas entrando una tras otra.
+
+## Mano con muchas cartas (Uno y Continental, 26 nov 2026)
+Hecho: 4 colores de palo (picas negro, corazones rojo, diamantes naranja, tréboles azul oscuro); mano 2D medida con su ancho real y en dos filas si no se ve la esquina (M2D.fila); 3D Continental en dos filas antes y libre la orilla de los botones; la carta que se asoma es la que se toma; soltar cerca del pozo ya no descarta; Uno en táctil: primer toque levanta, segundo juega.
+- [ ] Dedo que pasa (lupa) en táctil: deslizar sobre la mano agranda la carta de abajo; marcar al soltar. Choca con arrastrar: arrastrar pasaría a presión larga.
+- [ ] Reordenar con presión larga; la mano se abre para dejar hueco; botón "Acomodar" en Continental (tercias y corridas con espacio entre grupos).
+- [ ] Continental: botón "Descartar <carta>" con el nombre de la carta marcada.
+- [ ] Animaciones: carta marcada con rebote, cambio a dos filas con viaje (FLIP), comprar y descartar volando.
