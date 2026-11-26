@@ -51,6 +51,7 @@ html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);-
 .sl-caja::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.18),transparent 42%);pointer-events:none}
 .sl-caja .ic svg,.sl-caja .ic img{display:block;width:44px;height:44px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
 .sl-caja .ic .sl-emo{font-size:30px}
+.sl-caja .ic .sl-spr{display:block;width:64px;height:64px;margin:-8px 0 -4px;background:0 0/1000% 100% no-repeat;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
 .sl-caja b{position:relative;font:900 13px/1.1 var(--ui-font);text-shadow:0 1px 2px rgba(0,0,0,.35)}
 .sl-caja:active{transform:scale(.96)}
 .sl-caja:disabled{opacity:.35;cursor:default}

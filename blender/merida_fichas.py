@@ -3,6 +3,7 @@
 # sobre z=0, frente hacia -Y, materiales M1 (metal) y M2 (metal oscuro). Se ajusta a ALTO y RADIO.
 #   blender -b --factory-startup --python blender/merida_fichas.py -- vista [png] [nombres,...]   (hoja de revisión)
 #   blender -b --factory-startup --python blender/merida_fichas.py -- exportar                    (modelos/merida/fichas.glb)
+#   blender -b --factory-startup --python blender/merida_fichas.py -- iconos                      (modelos/merida/fichas_ico.webp, selector de la sala)
 import bpy, bmesh, math, os, sys
 from mathutils import Vector, Matrix, Euler, Quaternion
 
@@ -597,9 +598,40 @@ def exportar():
                               export_texcoords=False, export_normals=True, export_materials='EXPORT', export_extras=False)
     print('->', out, os.path.getsize(out) // 1024, 'KB')
 
+def iconos(out=None):
+    # tira de íconos para el selector de la sala: 10 celdas cuadradas, fondo transparente (modelos/merida/fichas_ico.webp)
+    limpia(); obs = arma(ORDEN); dx, px = .62, 160
+    for i, o in enumerate(obs):
+        o.location = ((i - (len(obs) - 1) / 2) * dx, 0, 0); o.rotation_euler = (0, 0, -.5)
+    sc = bpy.context.scene
+    w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; nt = w.node_tree
+    bg = next(n for n in nt.nodes if n.type == 'BACKGROUND')
+    tc = nt.nodes.new('ShaderNodeTexCoord'); sx = nt.nodes.new('ShaderNodeSeparateXYZ'); cr = nt.nodes.new('ShaderNodeValToRGB')
+    nt.links.new(tc.outputs['Generated'], sx.inputs[0]); nt.links.new(sx.outputs['Z'], cr.inputs[0]); nt.links.new(cr.outputs[0], bg.inputs['Color'])
+    cr.color_ramp.elements[0].position = .45; cr.color_ramp.elements[0].color = (.10, .14, .11, 1)
+    cr.color_ramp.elements[1].position = .62; cr.color_ramp.elements[1].color = (1, .95, .88, 1)
+    bg.inputs['Strength'].default_value = 1.3
+    for loc, en in (((3, -4, 6), 900), ((-4, -2, 4), 300), ((0, 5, 5), 250)):
+        ld = bpy.data.lights.new('l', 'AREA'); ld.energy = en; ld.size = 3
+        lo = bpy.data.objects.new('l', ld); lo.location = loc; sc.collection.objects.link(lo)
+        lo.rotation_euler = (Vector((0, 0, 0)) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+    cd = bpy.data.cameras.new('c'); cd.type = 'ORTHO'; cd.ortho_scale = len(obs) * dx
+    cam = bpy.data.objects.new('c', cd); sc.collection.objects.link(cam); sc.camera = cam
+    el = math.radians(22); dist = 8; cz = ALTO * .5
+    cam.location = (0, -dist * math.cos(el), dist * math.sin(el) + cz)
+    cam.rotation_euler = (Vector((0, 0, cz)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    sc.render.resolution_x, sc.render.resolution_y = len(obs) * px, px
+    try: sc.render.engine = 'CYCLES'
+    except TypeError: pass
+    sc.cycles.samples = 48; sc.cycles.use_denoising = True; sc.render.film_transparent = True
+    sc.render.image_settings.file_format = 'WEBP'; sc.render.image_settings.color_mode = 'RGBA'; sc.render.image_settings.quality = 88
+    sc.render.filepath = out or os.path.join(RAIZ, 'modelos', 'merida', 'fichas_ico.webp')
+    bpy.ops.render.render(write_still=True); print('->', sc.render.filepath)
+
 if __name__ == '__main__':
     a = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     if a and a[0] == 'exportar': exportar()
+    elif a and a[0] == 'iconos': iconos(a[1] if len(a) > 1 else None)
     else:
         png = a[1] if len(a) > 1 else os.path.join(RAIZ, 'blender', 'fichas_vista.png')
         vista(png, a[2].split(',') if len(a) > 2 else ORDEN)
