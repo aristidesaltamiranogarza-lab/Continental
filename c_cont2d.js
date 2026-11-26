@@ -25,6 +25,13 @@ window.k2put=function(k){if(Date.now()-noClick<300)return;const g=staged[k];if(!
 function pegarEn(k,id,x){const m=V.G.melds[k];if(!m)return;let end;
  if(C(id).j&&m.type=='C'){const e=document.querySelector(`.k2-meld[data-k="${k}"]`),r=e&&e.getBoundingClientRect();end=r&&x!=null&&x<r.left+r.width/2?'start':'end'}
  sel=new Set();send({t:'pegar',k,id,end})}
+// varias cartas a la vez en una bajada: se pegan una por una; las que no entran todavía se reintentan (una corrida puede crecer por los dos lados)
+async function pegaVarios(k,ids,x){sel=new Set();let r=[...ids],err='';staged.forEach(g=>{g.ids=g.ids.filter(z=>!ids.includes(z))});
+ for(let v=0;v<3&&r.length;v++){const q=[];for(const id of r){const m=V.G.melds[k];if(!m){q.push(id);continue}let end;
+  if(C(id).j&&m.type=='C'){const e=document.querySelector(`.k2-meld[data-k="${k}"]`),b=e&&e.getBoundingClientRect();end=b&&x!=null&&x<b.left+b.width/2?'start':'end'}
+  try{const d=await api('act',{c:S.c,t:S.t,m:{t:'pegar',k,id,end}});if(d&&d.err){err=d.err;q.push(id)}}catch(e){err='Sin conexión.';q.push(id)}}
+  if(q.length===r.length)break;r=q}
+ if(r.length&&err)bad(err);render()}
 window.k2tapMeld=function(k){if(Date.now()-noClick<300)return;const ch=[...sel];if(ch.length!=1)return bad('Elige una carta y tócala aquí');
  if(C(ch[0]).j&&V.G.melds[k].type=='C'){window.k2jk=[k,ch[0]];render();return}pegarEn(k,ch[0])};
 window.k2jkEnd=function(e){const [k,id]=window.k2jk||[];window.k2jk=null;if(e&&k!=null)send({t:'pegar',k,id,end:e});sel=new Set();render()};
@@ -59,7 +66,7 @@ function cuerpo(){const G=V.G;if(!G)return b0();
  const mano=(arm?casillas(pl):'')+(i>=0?M2D.abanico(hand.map(c=>({h:cc(c,{did:c.id,sel:sel.has(c.id),nw:prevHand.size&&!prevHand.has(c.id),on:`tog(${c.id})`}),cls:gr.get(c.id)||''}))):'');
  const jk=window.k2jk?`<div class="k2-jk"><div><b>¿Dónde va el comodín?</b><div class="m2d-bts"><button class="ui-btn" onclick="k2jkEnd('start')">Al inicio</button><button class="ui-btn" onclick="k2jkEnd('end')">Al final</button><button class="ui-btn ghost" onclick="k2jkEnd()">Cancelar</button></div></div></div>`:'';
  const v3=window.c3dToggle?UI.dim(0,'M2D.menu(0);c3dToggle()'):'';
- M2D.suelta=pl?((id,el,e)=>{staged.forEach(g=>{g.ids=g.ids.filter(z=>z!=id)});
+ M2D.suelta=pl?((id,el,e,d)=>{if(d&&d.grupo&&el&&el.dataset.k!=null)return pegaVarios(+el.dataset.k,d.grupo,e&&e.clientX);staged.forEach(g=>{g.ids=g.ids.filter(z=>z!=id)});
   if(el&&el.dataset.k!=null)return pegarEn(+el.dataset.k,id,e&&e.clientX);sel=new Set([id]);discard()}):null;
  M2D.teclas=k=>{if(dr&&(k==' '||k=='r')){draw('deck');return 1}if(dr&&k=='d'){draw('disc');return 1}
   if(pl&&k=='Enter'&&sel.size==1){discard();return 1}if(pl&&k=='b'&&arm&&staged.every(okSlot)){bajar();return 1}

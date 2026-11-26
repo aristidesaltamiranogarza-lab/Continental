@@ -101,7 +101,7 @@ document.addEventListener('pointermove',e=>{if(!dg)return;
 document.addEventListener('pointerup',e=>{if(!dg)return;const d=dg;dg=null;if(!d.on)return;noClick=Date.now();
  const tt=document.elementFromPoint(e.clientX,e.clientY),sl=tt&&tt.closest&&tt.closest('.slot');
  if(d.m&&!(armando&&sl))return MANO2D.suelta(d);d.g.remove();d.el.style.opacity='';
- if(armando&&sl)return dropSlot(d.id,+sl.dataset.k,e.clientX,e.clientY);
+ if(armando&&sl)return d.grupo&&window.MANO2D&&MANO2D.slotGrupo?MANO2D.slotGrupo(d,+sl.dataset.k,e.clientX,e.clientY):dropSlot(d.id,+sl.dataset.k,e.clientX,e.clientY);
  if(d.from=='slot')return unslot(d.id);
  const els=[...document.querySelectorAll('#hand .c')].filter(x=>+x.dataset.id!==d.id);let best=-1,bd=1e12;
  els.forEach((x,k)=>{const r=x.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),dd=dx*dx+dy*dy;if(dd<bd){bd=dd;best=k}});

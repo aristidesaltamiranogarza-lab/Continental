@@ -53,3 +53,21 @@ addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')setTimeout(()=>marca
 addEventListener('pointercancel',()=>marca(null),true);
 window.MANO2D={carta,down,start,move,suelta};
 })();
+// Varias cartas elegidas: si arrastras una de ellas se van todas juntas (abanico detrás del dedo) a la casilla, a la bajada o a su hueco en tu mano.
+(function(){
+if(!window.MANO2D)return;
+function arma(d){d.gq=1;if(d.from!=='hand'||typeof sel=='undefined'||!(sel instanceof Set)||!sel.has(d.id)||sel.size<2)return;
+ const els=[...document.querySelectorAll('#hand .c[data-id]')].filter(x=>sel.has(+x.dataset.id));if(els.length<2)return;
+ d.grupo=els.map(x=>+x.dataset.id);const g=d.g;if(!g)return;const ex=[];
+ els.filter(x=>+x.dataset.id!==d.id).forEach((x,j)=>{const c=x.cloneNode(true);c.className+=' fly';c.removeAttribute('onclick');c.removeAttribute('id');c.style.cssText=g.style.cssText;
+  const u=x.style.getPropertyValue('--ui');if(u)c.style.setProperty('--ui',u);c.style.zIndex=89;c.style.pointerEvents='none';g.parentNode.insertBefore(c,g);ex.push([c,x,j+1])});
+ const sig=()=>{if(!g.isConnected){ex.forEach(([c,x])=>{c.remove();x.style.opacity=''});return}
+  ex.forEach(([c,x,j])=>{x.style.opacity=.3;['left','top','width','height','transition'].forEach(k=>c.style[k]=g.style[k]);c.style.transform=(g.style.transform||'')+` translate(${j*12}px,${-j*4}px) rotate(${j*5}deg)`});requestAnimationFrame(sig)};
+ sig();if(typeof sfx=='function')sfx('tick')}
+addEventListener('pointermove',()=>{if(typeof dg!='undefined'&&dg&&dg.on&&!dg.gq)arma(dg)});
+const s0=MANO2D.suelta;
+MANO2D.suelta=function(d){s0(d);if(!d.grupo)return;const ids=myOrder.filter(x=>x===d.id||!d.grupo.includes(x)),p=ids.indexOf(d.id);if(p<0)return;ids.splice(p,1,...d.grupo);myOrder=ids};
+// soltar el grupo en una casilla del contrato: entran todas, en el orden de tu mano, donde cayó la que arrastraste
+MANO2D.slotGrupo=function(d,k,x,y){const o=d.grupo.filter(z=>z!==d.id);staged.forEach(g=>{g.ids=g.ids.filter(z=>!o.includes(z))});dropSlot(d.id,k,x,y);
+ const g=staged[k];if(!g)return;const p=g.ids.indexOf(d.id);if(p<0)return;g.ids.splice(p,1,...d.grupo);sel=new Set();render()};
+})();

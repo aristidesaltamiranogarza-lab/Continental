@@ -80,7 +80,7 @@ const M2D=window.M2D={retrato,fieltro,reac,gesto,rivales,asiento,yo,abanico,fila
 const enDrop=e=>{const t=document.elementFromPoint(e.clientX,e.clientY);return (t&&t.closest&&t.closest('.m2d .m2d-drop'))||null};   // puede haber varias zonas (descarte, bajadas)
 addEventListener('pointermove',e=>{if(typeof dg=='undefined'||!dg||!dg.on||!M2D.suelta)return;const z=enDrop(e);document.querySelectorAll('.m2d .m2d-drop').forEach(x=>x.classList.toggle('over',x===z))},true);
 addEventListener('pointerup',e=>{if(typeof dg=='undefined'||!dg||!dg.on||!M2D.suelta||!document.querySelector('#app .m2d'))return;
- const z=enDrop(e);if(!z)return;const id=dg.id;dg.g.remove();dg.el.style.opacity='';dg=null;noClick=0;M2D.suelta(id,z,e);noClick=Date.now()},true);
+ const z=enDrop(e);if(!z)return;const id=dg.id,d0=dg;dg.g.remove();dg.el.style.opacity='';dg=null;noClick=0;M2D.suelta(id,z,e,d0);noClick=Date.now()},true);
 // ---------- teclas (las define cada juego en M2D.teclas; Esc cierra el menú) ----------
 addEventListener('keydown',e=>{if(!document.querySelector('#app .m2d'))return;const t=e.target;if(t&&(t.tagName=='INPUT'||t.tagName=='TEXTAREA'))return;
  if(e.key=='Escape'&&abierto){M2D.menu(0);return}if(e.key=='Escape'&&emAb){emAb=false;render();return}if(e.ctrlKey||e.metaKey||e.altKey)return;
