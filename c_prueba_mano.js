@@ -3,7 +3,7 @@
 (function(){
 if(!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))return;
 const NS=[3,7,11,15,20,25,30];let abierto=false;
-const css=`#pmano{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));z-index:80;display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 20px)}
+const css=`#pmano{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));top:calc(64px + env(safe-area-inset-top,0px));z-index:80;display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 20px)}
 #pmano button{font:700 13px var(--ui-font,system-ui);border:0;border-radius:999px;padding:6px 12px;background:var(--ui-sheet,#FFF8EE);color:var(--ui-text,#2a1a10);box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer;transition:transform .15s,opacity .2s}
 #pmano button:active{transform:scale(.94)}#pmano .on{background:var(--ui-accent,#2e7d4f);color:var(--ui-on,#fff)}
 #pmano .n{animation:pmIn .28s cubic-bezier(.2,1.4,.4,1) both}@keyframes pmIn{from{opacity:0;transform:translateX(-8px) scale(.8)}}`;
