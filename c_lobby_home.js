@@ -41,7 +41,7 @@ function hoja(k,g){if(!pan)return '';const x=`<button class="ui-x" onclick="LOBB
 function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM[k]||{},c=CAS[k];
  const nm=String(pname||'').trim();
  return `<div class="ui lbh" style="--lb-c:${COL[k]||'#C2512A'}">
- <header class="lbh-top"><span class="lb-logo">${I('casa')}</span><b class="lbh-marca">gamemash</b>
+ <header class="lbh-top">${window.PTDA?`<button class="lb-logo" onclick="PTDA.volver()" aria-label="Inicio" style="border:0;cursor:pointer">${I('casa')}</button>`:`<span class="lb-logo">${I('casa')}</span>`}<b class="lbh-marca">gamemash</b>
   <button class="lbh-yo" onclick="LOBBY.pan('aj')" aria-label="Ajustes y personaje"><i class="lbh-pj" style="--c:${avc(nm||'Tú')}">${pj()||ini(nm||'?')}</i><span>${es(nm||'Tu nombre')}</span></button>
   ${window.GENTE?GENTE.boton():''}<button class="ui-rb" onclick="LOBBY.pan('aj')" aria-label="Menú">${I('menu')}</button></header>
  ${window.PLANO2D&&PLANO2D.ok()?PLANO2D.html():`${mesa(k,g)}

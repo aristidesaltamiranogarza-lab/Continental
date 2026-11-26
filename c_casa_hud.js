@@ -45,7 +45,7 @@ const P={
   ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
   <div class="uh-sws"><div class="ui-row"><span>${I('sonido')}Sonidos</span>${sw(snd,'CHUD.snd(this.checked)','Sonidos')}</div>
   ${c.canFp?`<div class="ui-row"><span>${I('ojo')}Primera persona${c.touchy?'':' <small class="ui-sub">(V)</small>'}</span>${sw(c.fp,'CHUD.fp()','Primera persona')}</div>`:''}</div>
-  <div class="uh-2"><button class="ui-btn sec" onclick="CHUD.tog('ayuda')">${I('ayuda')}Cómo se juega</button><button class="ui-btn sec" onclick="CHUD.salir()">${I('salir')}Salir de la casa</button></div>`,'der')},
+  <div class="uh-2"><button class="ui-btn sec" onclick="CHUD.tog('ayuda')">${I('ayuda')}Cómo se juega</button><button class="ui-btn sec" onclick="CHUD.salir()">${I('salir')}${window.PTDA?'Inicio':'Salir de la casa'}</button></div>`,'der')},
  chat:c=>sheet('Chat de la casa',`<div class="uh-msgs" id="uiMsgs" aria-live="polite">${msgs.length?msgs.map(mm).join(''):vacio}</div>`,'izq',
   `<div class="uh-say"><input id="uiSay" class="ui-in" maxlength="80" placeholder="Di algo…" aria-label="Mensaje" enterkeyhint="send" onkeydown="if(event.key==='Enter'){event.preventDefault();CHUD.send()}else if(event.key==='Escape')CHUD.close()"><button class="ui-rb on" onclick="CHUD.send()" aria-label="Enviar">${I('enviar')}</button></div>`),
  gestos:c=>{const k=!c.touchy,R=Math.max(98,Math.min(138,innerWidth/2-46)),T=76,EI=n=>window.EICO?EICO.url(n):'';if(window.EICO)EICO.prep();
@@ -91,6 +91,6 @@ window.CHUD={html,msg,key,tog,close,send,av,isOpen:()=>open,
  tema:t=>{UI.setTema(t);tick();rr()},
  mus:n=>{if(typeof musCyc!='function')return;for(let i=0;i<4&&musName()!==n;i++)musCyc()},
  snd:on=>{mute=!on;if(on)tick();rr()},
- salir:()=>{open=null;if(window.BIEN&&BIEN.show)BIEN.show();rr()},
+ salir:()=>{open=null;if(window.PTDA){rr();return PTDA.volver()}if(window.BIEN&&BIEN.show)BIEN.show();rr()},
  ctlX:()=>{ctl=false;ls.set('casa_ctl','0');rr()}};
 })();

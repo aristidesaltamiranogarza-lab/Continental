@@ -31,19 +31,25 @@ html[data-tema=noche] #port .pt-fach .w.n{fill:var(--pt-luz)}
 #port .pt-yo:active{transform:scale(.94)}
 #port .pt-pj{width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--ui-chip);display:grid;place-items:center;animation:ptBob 2.6s 1.2s ease-in-out infinite}
 #port .pt-pj canvas,#port .pt-pj img{width:100%;height:100%;display:block}
-#port .pt-yo b{max-width:30vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#port .pt-yo{padding-right:4px}#port .pt-pjb{padding:0;border:0;background:none;border-radius:50%}
+#port .pt-nm{width:9ch;min-width:4ch;max-width:34vw;min-height:36px;padding:0 4px;border:0;border-bottom:2px dashed transparent;background:transparent;color:var(--ui-text);font:800 1em var(--ui-font);outline:none}
+#port .pt-nm:focus{border-bottom-color:var(--ui-accent)}#port .pt-nm.mal{animation:ptMal .4s}
+#port .pt-dado{flex:none;width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:var(--ui-chip);color:var(--ui-icon);transition:transform .3s}
+#port .pt-dado:active{transform:rotate(180deg) scale(.9)}#port .pt-dado svg{width:22px;height:22px}
+@keyframes ptMal{25%{translate:-6px 0}75%{translate:6px 0}}
 #port .pt-mid{position:relative;display:flex;align-items:center;justify-content:center;padding:8px 16px 30vh}
 #port .pt-ops{display:flex;gap:clamp(12px,3vw,24px);width:100%;max-width:560px;justify-content:center}
 #port .pt-op{flex:1;max-width:250px;display:flex;flex-direction:column;gap:8px;animation:ptCarta .7s cubic-bezier(.3,1.4,.5,1) both}
 #port .pt-op:nth-child(1){animation-delay:.45s;--r:-3deg}#port .pt-op:nth-child(2){animation-delay:.6s;--r:3deg}
 #port .pt-go{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:14px 10px 14px;border-radius:var(--ui-r);border:2px solid transparent;background:var(--ui-sheet);box-shadow:var(--ui-shadow);
  transition:transform .25s cubic-bezier(.3,1.5,.5,1),box-shadow .25s,border-color .2s}
-#port .pt-go:hover,#port .pt-go:focus-visible{transform:translateY(-6px) rotate(var(--r));outline:none;border-color:var(--ui-accent)}
+@media (hover:hover){#port .pt-go:hover{transform:translateY(-6px) rotate(var(--r));border-color:var(--ui-accent)}}
+html.teclado #port .pt-go:focus-visible{transform:translateY(-6px) rotate(var(--r));outline:none;border-color:var(--ui-accent)}
 #port .pt-go:active{transform:translateY(-2px) scale(.95);transition-duration:.08s}
-#port .pt-go.ult{border-color:color-mix(in srgb,var(--ui-accent) 55%,transparent)}
 #port .pt-il{width:min(100%,150px);aspect-ratio:3/2;display:block;color:var(--ui-icon)}
 #port .pt-il svg{width:100%;height:100%;display:block;overflow:visible}
-#port .pt-go:hover .pt-il svg,#port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in-out}
+@media (hover:hover){#port .pt-go:hover .pt-il svg{animation:ptMueve .6s ease-in-out}}
+html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in-out}
 #port .pt-go b{font-size:1.25em;font-weight:900}#port .pt-go small{font-weight:700;color:var(--ui-sub)}
 #port .pt-seg{display:flex;align-self:center;padding:3px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow)}
 #port .pt-seg button{min-height:36px;min-width:64px;padding:0 12px;border:0;border-radius:999px;background:transparent;font-weight:800;font-size:.9em;color:var(--ui-sub);transition:background .2s,color .2s,transform .15s}
@@ -109,7 +115,7 @@ function arma(){
  const nm=String(typeof pname!=='undefined'&&pname||'').trim(),u=ult(),c3=hay3();
  el.innerHTML=`<i class="pt-sol"></i>${nb}${fl}<div class="pt-fach">${fach()}</div>
  <header class="pt-top"><h1 class="pt-logo" aria-label="gamemash">${[...'gamemash'].map((c,i)=>`<span style="animation-delay:${(.05+i*.05).toFixed(2)}s">${c}</span>`).join('')}</h1>
-  <button class="pt-yo" aria-label="Mi personaje"><i class="pt-pj"></i><b>${es(nm||'Tú')}</b></button></header>
+  <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button></div></header>
  <div class="pt-mid"><div class="pt-ops">
   <div class="pt-op" data-q="ligero"><button class="pt-go${u==='ligero'||!c3?' ult':''}"><span class="pt-il">${IL2}</span><b>Plano</b><small>2D</small></button><div class="pt-sp"></div></div>
   ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go${u==='3d'?' ult':''}"><span class="pt-il">${IL3}</span><b>Casa</b><small>3D</small></button>
@@ -120,13 +126,16 @@ function arma(){
  el.querySelectorAll('.pt-seg button').forEach(b=>b.onclick=()=>{cal=b.dataset.c;snd();seg()});
  el.querySelectorAll('.pt-op').forEach(o=>o.querySelector('.pt-go').onclick=()=>elige(o.dataset.q==='3d'?cal:'ligero'));
  const pj=el.querySelector('.pt-pj');pinta(pj);
- el.querySelector('.pt-yo').onclick=()=>{if(!window.MIPJ||!window.AV)return;snd();MIPJ.abrir();if(!MIPJ.abierto())return;el.style.display='none';
+ const nmI=el.querySelector('.pt-nm'),ancho=()=>{nmI.style.width=Math.max(4,nmI.value.length+1)+'ch'};ancho();nmI.oninput=()=>{nmI.classList.remove('mal');ancho()};
+ el.querySelector('.pt-dado').onclick=()=>{if(window.BIEN&&BIEN.rnd){nmI.value=BIEN.rnd(nmI.value);ancho();snd()}};
+ el.querySelector('.pt-pjb').onclick=()=>{if(!window.MIPJ||!window.AV)return;snd();MIPJ.abrir();if(!MIPJ.abierto())return;el.style.display='none';
   const t=setInterval(()=>{if(MIPJ.abierto())return;clearInterval(t);el.style.display='';pinta(pj)},200)};
- el.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button'))elige(ult()==='3d'&&c3?cal:'ligero')});
- setTimeout(()=>{const b=el&&el.querySelector('.pt-go.ult');if(b&&matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},900)}
+ el.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button'))elige(ult()==='3d'&&c3?cal:'ligero')});}
 
 // q: 'ligero' | 'medio' | 'completo'
-function elige(q){if(busy||!el)return;busy=true;snd('card');const d3=q!=='ligero';
+function elige(q){if(busy||!el)return;const nmI=el.querySelector('.pt-nm');
+ if(nmI&&!el.classList.contains('bnv')){const n=nmI.value.trim();if(!n){nmI.classList.remove('mal');void nmI.offsetWidth;nmI.classList.add('mal');nmI.focus();return}
+  pname=n;ls.set('cont_n',n);ls.set('cont_av_hecho','1')}busy=true;snd('card');const d3=q!=='ligero';
  el.querySelectorAll('.pt-op').forEach(o=>o.classList.toggle('yo',(o.dataset.q==='3d')===d3));el.classList.add('sale',d3?'a3d':'a2d');
  const pon=()=>{if(window.BIEN)BIEN.set(q);const C=window.CASA3D;if(C&&C.on()!==d3)casaToggle()};
  if(!d3){setTimeout(()=>{pon();pend=false;if(window.PLANO2D&&PLANO2D.entra)PLANO2D.entra();if(typeof render=='function')render();el.classList.add('va');setTimeout(quita,650)},380);return}
@@ -136,7 +145,7 @@ function elige(q){if(busy||!el)return;busy=true;snd('card');const d3=q!=='ligero
 function espera(){const t0=performance.now(),bar=el.querySelector('.pt-bar i'),ws=[...el.querySelectorAll('.pt-fach .w')];let v=0,okT=0;
  const tic=()=>{if(!el)return;const t=performance.now()-t0,H=window.CASA3D,K=window.CAJA;let p=Math.min(.3,t/12000),listo=false;
   if(H&&H.R&&H.R()){p=Math.max(p,.3);
-   if(K&&K.on){const F=H.piso&&H.piso()==='c0'&&K.piso?K.piso('c0'):null;if(F&&F.prog)p=Math.max(p,.3+.65*F.prog().p);listo=!!(F&&K.listos.c0)&&!document.getElementById('ccarga')}
+   if(K&&K.on){const id=H.piso&&H.piso(),F=id&&id!=='pb'&&K.piso?K.piso(id):null;if(F&&F.prog)p=Math.max(p,.3+.65*F.prog().p);listo=!!(F&&K.listos[id])&&!document.getElementById('ccarga')}
    else listo=t>1200}
   if(listo){if(!okT)okT=t;p=1}else okT=0;
   v+=(Math.max(v,p)-v)*.3;bar.style.width=(v*100).toFixed(1)+'%';const n=Math.round(v*ws.length);ws.forEach((w,i)=>w.classList.toggle('on',i<n));
@@ -147,7 +156,9 @@ function quita(){if(el){el.remove();el=null}busy=false}
 // desde la bienvenida (primera vez): mismas transiciones sin enseñar las tarjetas
 function ve(q){if(!el){arma();el.classList.add('bnv')}pend=true;elige(q)}
 function show(){if(el||inGame())return;pend=true;arma()}
-window.PTDA={pend:()=>pend,show,ve};
+// volver a la portada desde la casa o el plano (CHUD "Inicio", logo del plano); la casa sigue armada debajo
+function volver(){if(el||inGame())return;busy=false;if(window.CMESA&&CMESA.cerrar)try{CMESA.cerrar()}catch(e){}show();snd()}
+window.PTDA={pend:()=>pend,show,ve,volver};
 addEventListener('load',()=>{if(el&&!window.CASA3D){const o=el.querySelector('.pt-op[data-q="3d"]');if(o)o.remove();const b=el.querySelector('.pt-go');if(b)b.classList.add('ult')}});
 // sale al abrir si no hay partida, ni bienvenida, ni enlace de sala (#CODIGO), ni página de prueba
 const salta=inGame()||location.hash.length>1||/prueba/.test(location.pathname)||/[?&](casa|pb|pa|sm|az)=/.test(location.search)||(window.BIEN&&BIEN.pend());

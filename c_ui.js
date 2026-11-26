@@ -69,3 +69,7 @@ window.UI={tema:get,setTema,noche,ico,dim,on:f=>subs.push(f)};
  const go=()=>{new MutationObserver(todos).observe(document.body,{childList:true,subtree:true});todos()};document.body?go():addEventListener('DOMContentLoaded',go)})();
 aplica();
 })();
+
+// aro de foco solo con teclado: Tab o flechas lo prenden; tocar o hacer clic lo apaga (ui.css: html:not(.teclado))
+addEventListener('keydown',e=>{if(/^(Tab|Arrow)/.test(e.key))document.documentElement.classList.add('teclado')},true);
+addEventListener('pointerdown',()=>document.documentElement.classList.remove('teclado'),true);

@@ -125,3 +125,7 @@ html[data-tema=noche] .ui-sw i::after{background:var(--ui-sub)}
 .ui-dim{display:inline-flex;align-items:stretch;gap:2px;min-height:44px;padding:4px;box-sizing:border-box;border-radius:999px;border:1px solid var(--ui-line);background:var(--ui-panel);box-shadow:var(--ui-shadow);cursor:pointer;font:800 14px/1 var(--ui-font)}
 .ui-dim b{display:flex;align-items:center;justify-content:center;min-width:38px;padding:0 8px;border-radius:999px;color:var(--ui-sub);transition:background .2s,color .2s}
 .ui-dim b.on{background:var(--ui-accent);color:var(--ui-on)}
+
+/* el aro de foco solo si se usa el teclado (Tab o flechas); al tocar o hacer clic no se ve nada seleccionado (c_ui.js pone html.teclado) */
+html:not(.teclado) :focus-visible{outline:none!important}
+html:not(.teclado) .lb-caja:focus-visible{box-shadow:none}
