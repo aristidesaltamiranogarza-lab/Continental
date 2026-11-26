@@ -4,7 +4,7 @@
 import ast, json, os, struct
 RAIZ = os.path.dirname(os.path.abspath(__file__)); REPO = os.path.dirname(RAIZ)
 src = open(os.path.join(RAIZ, 'casona.py'), encoding='utf-8').read()
-mod = ast.parse(src); keep = [n for n in mod.body if isinstance(n, ast.Assign) and any(getattr(t, 'id', '') in ('NIV', 'FAM') for t in n.targets)]
+mod = ast.parse(src); keep = [n for n in mod.body if isinstance(n, ast.Assign) and any(getattr(t, 'id', '') in ('NIV', 'FAM', 'ESC') for t in n.targets)]
 ns = {}; exec(compile(ast.Module(body=keep, type_ignores=[]), 'casona.py', 'exec'), ns)
 NIV = ns['NIV']
 GLB = dict(nm1='sm', n0='pb', n1='pa', n2='az'); ID = dict(nm1='cm1', n0='c0', n1='c1', n2='c2')
@@ -30,9 +30,24 @@ for k, d in NIV.items():
             e = next((q for q in gl if q['g'] == m[0]), None)
             if e: OX, OZ = round(m[1] - e['x'], 2), round(e['z'] + m[2], 2); break
     T = lambda x0, z0, w, dd: dict(x=round(x0 - OX, 2), z=round(OZ - z0 - dd, 2), w=w, d=dd)
-    areas = [dict(T(a[0], a[1], a[2], a[3]), c=a[4] or 'cuarto', n=a[6].strip()) for a in d['areas'] if a[4] != 'street']
+    Pt = lambda x, z: [round(x - OX, 2), round(OZ - z, 2)]
+    areas = [dict(T(a[0], a[1], a[2], a[3]), c={'street': 'calle'}.get(a[4], a[4] or 'cuarto'), n=a[6].strip()) for a in d['areas']]
     ms = gl or [dict(g=m[0], x=round(m[1] - OX, 2), z=round(OZ - m[2], 2), r=m[3]) for m in d['mesas']]
-    pe = d['per']; R[ID[k]] = dict(per=list(T(*pe).values()), areas=areas, mesas=ms)
+    seg = lambda L: [Pt(g[0], g[1]) + Pt(g[2], g[3]) for g in L]
+    deco = []
+    for q in d.get('deco', []):
+        if q[0] in ('caja', 'pergola'): deco.append(dict(k=q[0], n=q[1], **T(q[2], q[3], q[4], q[5])))
+        else: deco.append(dict(k=q[0], n=q[1], x=Pt(q[2], q[3])[0], z=Pt(q[2], q[3])[1], r=q[4]))
+    # escalera: escalones de ESC['paso'] desde x0 hacia -x, en el tramo que sube y en el que baja (los que tenga el nivel)
+    E = ns.get('ESC') or {}; esc = []
+    for t in ('sube', 'baja'):
+        if E and d.get(t): esc.append(dict(t=t, l=[Pt(E['x0'] - i * E['paso'], E[t][0]) + Pt(E['x0'] - i * E['paso'], E[t][1]) for i in range(E['n'] + 1)]))
+    extra = [T(*b) for b in d.get('balc', [])] + ([T(*d['balc_t'])] if d.get('balc_t') else [])
+    todo = [areas[i] for i in range(len(areas))] + extra + [T(*d['per'])]
+    x0 = min(a['x'] for a in todo); z0 = min(a['z'] for a in todo); x1 = max(a['x'] + a['w'] for a in todo); z1 = max(a['z'] + a['d'] for a in todo)
+    R[ID[k]] = dict(per=list(T(*d['per']).values()), caja=[x0, z0, round(x1 - x0, 2), round(z1 - z0, 2)], areas=areas, mesas=ms,
+                    puertas=seg(d.get('gaps', [])), ventanas=seg(d.get('wins', [])), deco=deco, esc=esc, balc=extra,
+                    barda=T(*d['barda']) if d.get('barda') else None)
 txt = ('// plano_casona.js — GENERADO por blender/plano.py (no editar a mano): planta de cada nivel de la casona para el plano 2D (c_plano2d.js).\n'
        '// per = [x,z,ancho,fondo] (esquina de menor x,z, en coordenadas del juego); areas: c = cuarto | open | void | earth; mesas: g = juego, x,z en metros (mismas coordenadas que la casa 3D).\n'
        'window.PLANO_C=' + json.dumps(R, ensure_ascii=False, separators=(',', ':')) + ';\n')
