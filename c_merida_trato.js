@@ -66,7 +66,7 @@ const css=document.createElement('style');css.textContent=`
 .mtr-sg i{width:14px;height:14px;border-radius:4px;background:var(--gc)}
 .mtr-v{display:flex;flex-direction:column;gap:4px;font:800 14px var(--mu-f)}.mtr-v small{font:600 12px var(--mu-f);color:#b3261e}
 .mtr-bar{position:relative;height:8px;border-radius:99px;background:linear-gradient(90deg,#d7261e,#f2c230 45%,#2e9e57 70%)}.mtr-bar i{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--mu-ink);translate:-50% -50%;transition:left .25s}
-@media (max-height:500px){.mu-hud.land.t-trato .mu-dk>.mu-row,.mu-hud.land.t-trato .mu-sheet>header{display:none}.mtr-ps{max-height:none}.mtr{gap:8px}.mtr-s{padding:8px}}
+@media (max-height:500px){.mu-hud.land.t-trato .mu-dk>.mu-row,.mu-hud.land.t-mias .mu-dk>.mu-row,.mu-hud.land.t-hist .mu-dk>.mu-row,.mu-hud.land .mu-sheet>header{display:none}.mtr-ps{max-height:none}.mtr{gap:8px}.mtr-s{padding:8px}}
 .mtr-v.ok span{color:#1e8a4a}.mtr-v.mid span{color:#a86b00}.mtr-v.bad span{color:#b3261e}`;
 document.head.appendChild(css);
 window.MTRA={init:h=>{H=h},ui,tval,

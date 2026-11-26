@@ -4,7 +4,7 @@
 const D=require('./merida_data.js'),B=D.board,NB=B.length,JAIL=D.jail,BAIL=D.bail,AUC_MS=12000,AWAY_MS=180000;
 // reglas opcionales: dbl x2 renta con grupo completo · pot bote de vacaciones · auc subasta · jr sin renta si el dueño está en la cárcel
 // mort hipotecas · even construcción pareja · cash dinero inicial · qa abandono → subasta de sus propiedades
-const OPTS={dbl:false,pot:false,auc:true,jr:false,mort:true,even:true,cash:1500,qa:false};
+const OPTS={dbl:false,pot:false,auc:true,jr:false,mort:true,even:true,cash:1500,qa:false,tl:0};   // tl: minutos de partida (0 = sin límite)
 const GR=[],RR=[],UU=[];B.forEach((s,i)=>{if(s.t=='p')(GR[s.g]=GR[s.g]||[]).push(i);if(s.t=='r')RR.push(i);if(s.t=='u')UU.push(i)});
 const JF={s:D.cards.s.findIndex(c=>c.jf),c:D.cards.c.findIndex(c=>c.jf)};
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -17,7 +17,7 @@ const after=(G,k)=>G.again&&!G.jail[k]?'roll':'end';
 function start(R){const o=Object.assign({},OPTS,R.opts),n=R.players.length;
  R.G={phase:'orden',round:0,tc:0,turn:0,ord:{g:[[...Array(n).keys()]],r:Array(n).fill(0),w:Array(n).fill(1)},players:R.players.map(p=>({id:p.id,name:p.name})),o,
   cash:Array(n).fill(o.cash),pos:Array(n).fill(0),jail:Array(n).fill(0),jfc:R.players.map(()=>[]),bk:Array(n).fill(0),
-  own:Array(NB).fill(-1),hs:Array(NB).fill(0),mg:Array(NB).fill(0),dice:[0,0],rn:0,dbl:0,again:false,st:'roll',pot:0,
+  own:Array(NB).fill(-1),hs:Array(NB).fill(0),mg:Array(NB).fill(0),dice:[0,0],rn:0,dbl:0,again:false,st:'roll',pot:0,tEnd:o.tl?Date.now()+o.tl*60000:0,
   debts:[],auc:null,aq:[],trade:null,card:null,dk:{s:shuf([...Array(16).keys()]),c:shuf([...Array(16).keys()])}};
  lg(R.G,-1,'cada quien tira un dado: el más alto empieza')}
 // ---- orden de salida: un dado cada quien; los empatados vuelven a tirar en su lugar de la fila ----
@@ -72,7 +72,12 @@ function roll(R,k){const G=R.G,a=1+Math.random()*6|0,b=1+Math.random()*6|0,d=a==
  else if(d){if(++G.dbl>=3){lg(G,k,'sacó dobles 3 veces seguidas');return toJail(G,k)}G.again=true}
  moveTo(G,k,(G.pos[k]+a+b)%NB,true);land(R,k,{sum:a+b});if(G.st!='buy')G.st=after(G,k)}
 function nextTurn(G){const q=G.seq||G.players.map((_,k)=>k);let t=G.turn,j=q.indexOf(t);do t=q[j=(j+1)%q.length];while(G.bk[t]&&t!==G.turn);
- G.turn=t;G.tc++;G.st='roll';G.dbl=0;G.again=false;G.card=null}
+ G.turn=t;G.tc++;G.st='roll';G.dbl=0;G.again=false;G.card=null;tiempo(G)}
+// partida con tiempo: al pasar el turno después de la hora gana quien vale más (dinero + precio de sus colonias, la mitad si están
+// hipotecadas, + lo que costaron sus casas)
+function valor(G,k){let v=G.cash[k];G.own.forEach((o,i)=>{if(o!==k)return;const s=B[i];v+=G.mg[i]?s.p/2:s.p;if(G.hs[i]&&s.t=='p')v+=G.hs[i]*D.hc[s.g]});return v}
+function tiempo(G){if(!G.tEnd||Date.now()<G.tEnd||G.phase!='play')return false;const L=alive(G);let w=L[0];L.forEach(k=>{if(valor(G,k)>valor(G,w))w=k});
+ G.phase='final';G.win=w;G.tf=1;G.vf=G.players.map((_,k)=>G.bk[k]?0:valor(G,k));G.auc=null;G.aq=[];G.trade=null;G.debts=[];lg(G,-1,'se acabó el tiempo');lg(G,w,'¡gana con la mayor fortuna: '+$(G.vf[w])+'!');return true}
 function won(G){const L=alive(G);if(L.length>1)return false;G.phase='final';G.win=L[0]??-1;G.auc=null;G.aq=[];G.trade=null;G.debts=[];
  if(G.win>=0)lg(G,G.win,'¡gana la partida!');return true}
 // ---- subasta: cada puja reinicia el reloj; si nadie puja en AUC_MS, se la lleva el más alto ----
@@ -159,11 +164,11 @@ function inner(R,G,i,t,m){const a=G.auc;
   G.jail[i]=0;return}
  if(t=='end'){if(G.st!='end')return G.st=='roll'?'Primero tira los dados.':'Primero decide si compras.';nextTurn(G);return}
  return 'Esa acción no existe.'}
-function view(R,tok,me,now){const G=R.G,v=Object.assign({},G,{dk:{s:G.dk.s.length,c:G.dk.c.length},sh:G.sh||{s:0,c:0},jf:G.jfc.map(x=>x.length)});delete v.jfc;delete v.dp;
+function view(R,tok,me,now){const G=R.G,v=Object.assign({},G,{tLeft:G.tEnd?Math.max(0,G.tEnd-(now||Date.now())):0,dk:{s:G.dk.s.length,c:G.dk.c.length},sh:G.sh||{s:0,c:0},jf:G.jfc.map(x=>x.length)});delete v.jfc;delete v.dp;
  if(G.auc)v.auc=Object.assign({},G.auc,{left:Math.max(0,G.auc.t-now)});return {G:v,claim:false,pend:false}}
 function kick(R,k){quit(R,k)}
 // quien sale de la sala abandona; si solo se desconecta, un bot juega por él (server.js botGo)
 function tick(R){const G=R.G;if(!G||(G.phase!='play'&&G.phase!='orden'))return;const now=Date.now();let ch=0;
  R.players.forEach((p,k)=>{if(!G.bk[k]&&p.out){quit(R,k);ch=1}});if(ch&&R.poke)R.poke()}
 const bot=require('./g_merida_bot.js')({B,GR,D,BAIL});
-module.exports={id:'merida',name:'Mérida en Venta',min:2,max:6,opts:OPTS,rng:{cash:[500,5000]},start,view,act,kick,tick,bot,_:{B,GR,rent,broke}};
+module.exports={id:'merida',name:'Mérida en Venta',min:2,max:6,opts:OPTS,rng:{cash:[500,5000],tl:[0,120]},start,view,act,kick,tick,bot,_:{B,GR,rent,broke}};

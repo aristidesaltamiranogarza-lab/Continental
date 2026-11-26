@@ -16,7 +16,8 @@ function billete(a,b,v,fmt,j){if(RM())return;const A=pill(a),Bp=pill(b);if(!A||!
 function ay(v,fmt,ins){const e=document.createElement('div');e.className='mdin-ay';e.innerHTML=`<div><small>¡Ay!</small><b>${fmt(v)}</b></div>`;
  if(ins)e.style.cssText=`top:${ins.t}px;bottom:${ins.b}px;right:${ins.r}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),1700)}
 // big(pagador) = true si el que paga acaba de caer (renta): solo entonces sale el aviso
-function pasa(dc,fmt,ins,big){const L=pares(dc);L.forEach((p,j)=>billete(p[0],p[1],p[2],fmt,j));if(L.length==1&&L[0][2]>=400&&big&&big(L[0][0]))ay(L[0][2],fmt,ins);return L}
+function pasa(dc,fmt,ins,big){const L=pares(dc);L.forEach((p,j)=>billete(p[0],p[1],p[2],fmt,j));
+ if(window.MPT&&L.length==1&&L[0][2]>=20){const [a,b,v]=L[0];setTimeout(()=>{MPT.reac(a,v>=400?'enojo':'triste');MPT.reac(b,'feliz')},700)}   /* caras: cuando llega el billete */if(L.length==1&&L[0][2]>=400&&big&&big(L[0][0]))ay(L[0][2],fmt,ins);return L}
 const css=document.createElement('style');css.textContent=`
 .mdin-b{position:fixed;z-index:69;pointer-events:none;padding:5px 12px;border-radius:8px;background:#2f9e5b;color:#fff;font:900 15px var(--mu-f,system-ui);box-shadow:0 6px 16px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.55);white-space:nowrap}
 .mdin-ay{position:fixed;left:0;top:0;right:0;bottom:0;z-index:67;display:flex;align-items:center;justify-content:center;pointer-events:none}

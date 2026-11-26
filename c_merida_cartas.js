@@ -7,14 +7,18 @@ const fams=()=>{const B=H.B,F=H.GR.map((L,g)=>({k:'g'+g,g,L:L.slice()}));
  F.sort((a,b)=>a.L[0]-b.L[0]);
  [['r','r'],['u','u']].forEach(([k,t])=>{const L=[];B.forEach((s,i)=>{if(s.t==t)L.push(i)});if(L.length)F.push({k,L})});return F};
 const houses=h=>h==5?'<span class="mc-hs"><i class="ht"></i></span>':h?`<span class="mc-hs">${'<i></i>'.repeat(h)}</span>`:'';
+const rentaH=i=>{const G=H.G,s=H.B[i],o=G.own[i];if(o<0)return '';
+ if(s.t=='p'){const h=G.hs[i];return H.$m(h?s.r[h]:s.r[0]*(G.o.dbl&&H.GR[s.g].every(j=>G.own[j]===o)?2:1))}
+ if(s.t=='r'){const n=H.B.reduce((a,x,j)=>a+(x.t=='r'&&G.own[j]===o?1:0),0);return H.$m(25*2**(n-1))}
+ return H.B.every((x,j)=>x.t!='u'||G.own[j]===o)?'×10':'×4'};
 const gc=i=>{const s=H.B[i];return s.t=='p'?H.D.gcol[s.g]:''};
 // letra que cabe: la palabra mas larga entra entera en la carta (sin partirla)
 const fz=n=>{const w=Math.max(...String(n).split(/\s+/).map(x=>x.length));const p=Math.min(9.5,Math.max(6.2,58/(w*.68)));return p<9.5?` style="font-size:${p.toFixed(1)}px"`:"";};
 function card(i,o={}){const G=H.G,s=H.B[i],c=gc(i),cl='mc'+(o.c?' '+o.c:'')+(G.mg[i]?' dorso':'')+(c?'':' srv'),nm=H.esc(s.n);
  const on=o.on||`MRU.sel(${i})`,dr=o.drag?` draggable="true" ondragstart="MCAR.drag(event,'${o.drag}',${i})"`:'';
- return `<button class="${cl}"${c?` style="--gc:${c};--go:${H.onCol(c)}"`:''} onclick="${on}"${dr} title="${nm}"><span class="mc-b">${c?'':H.icon(s)}</span><b${fz(s.n)}>${nm}</b>${G.mg[i]?'':houses(G.hs[i])}</button>`}
-function hole(i){const G=H.G,s=H.B[i],w=G.own[i],c=gc(i);
- return `<button class="mc hole${c?'':' srv'}"${c?` style="--gc:${c}"`:''} onclick="MRU.sel(${i})" title="${H.esc(s.n)}"><span class="mc-b">${c?'':H.icon(s)}</span><b${fz(s.n)}>${H.esc(s.n)}</b>${w>=0?`<span class="mc-who">${H.tok(w,'xs')}</span>`:''}</button>`}
+ return `<button class="${cl}"${c?` style="--gc:${c};--go:${H.onCol(c)}"`:''} onclick="${on}"${dr} title="${nm}"><span class="mc-b">${c?'':H.icon(s)}</span><b${fz(s.n)}>${nm}</b><span class="mc-r">${G.mg[i]?'<small>Hipotecada</small>':houses(G.hs[i])+rentaH(i)}</span></button>`}
+function hole(i){const G=H.G,s=H.B[i],w=G.own[i],c=gc(i),m=H.me(),tr=w>=0&&w!==m&&m>=0&&G.phase=='play'&&!G.trade&&!G.bk[w]&&!(s.t=='p'&&H.GR[s.g].some(j=>G.hs[j]));
+ return `<button class="mc hole${c?'':' srv'}${tr?' pide':''}"${c?` style="--gc:${c}"`:''} onclick="${tr?`MRU.pide(${w},${i})`:`MRU.sel(${i})`}" title="${H.esc(s.n)}"><span class="mc-b">${c?'':H.icon(s)}</span><b${fz(s.n)}>${H.esc(s.n)}</b>${w>=0?`<span class="mc-who">${H.tok(w,'xs')}</span>`:''}</button>`}
 // Mis propiedades: una fila por grupo, con huecos punteados para lo que falta
 MC.mias=()=>{const G=H.G,m=H.me(),R=fams().filter(f=>f.L.some(i=>G.own[i]===m));
  if(!R.length)return `<div class="mu-empty"><span>${H.MIC.h('rancho')}</span><b>Sin propiedades</b></div>`;
@@ -57,20 +61,22 @@ const CSS=`
 .mc-ft{display:flex;align-items:center;gap:8px;margin-top:6px;min-height:28px}
 .mc-n{font:800 13px var(--mu-f);color:var(--ui-sub);font-variant-numeric:tabular-nums}
 .mc-con{margin-left:auto;flex:none!important;min-height:38px!important;font-size:13px!important;padding:0 12px!important}
-.mc{appearance:none;position:relative;display:flex;flex-direction:column;align-items:stretch;width:64px;height:84px;padding:0;border-radius:8px;border:1.5px solid rgba(0,0,0,.35);background:#fffef8;color:#18201b;overflow:hidden;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.18);font-family:var(--mu-f);transition:transform .12s}
+.mc{appearance:none;position:relative;display:flex;flex-direction:column;align-items:stretch;width:68px;height:92px;padding:0;border-radius:10px;border:1px solid rgba(24,32,27,.16);background:#fffaf0;color:#18201b;overflow:hidden;cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 3px 8px rgba(0,0,0,.2);font-family:var(--mu-f);transition:transform .12s}
 .mc:active{transform:scale(.94)}
-.mc-b{flex:none;display:grid;place-items:center;height:22px;background:var(--gc);color:var(--go,#fff);border-bottom:1.5px solid rgba(0,0,0,.3)}
+.mc-b{flex:none;display:grid;place-items:center;height:14px;background:var(--gc);color:var(--go,#fff)}
+.mc-r{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px 6px;font:900 13px/1 var(--mu-f);font-variant-numeric:tabular-nums}.mc-r small{font:800 8px var(--mu-f);text-transform:uppercase;letter-spacing:.04em}
+.mc-r .mc-hs{position:static}.mc.sm .mc-r,.mc.in .mc-r{display:none}.mc.sm .mc-hs{position:absolute}
 .mc.srv .mc-b{background:#ece6d8;color:#18201b;height:26px}.mc.srv .mc-b svg{width:18px;height:18px}
-.mc>b{flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:3px 3px 0;font:800 9.5px/1.15 var(--mu-f);text-align:center;text-transform:uppercase;letter-spacing:-.02em;word-break:normal;overflow-wrap:anywhere}
+.mc>b{flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:7px 4px 0;font:800 9.5px/1.15 var(--mu-f);text-align:center;text-transform:uppercase;letter-spacing:-.02em;word-break:normal;overflow-wrap:anywhere}
 .mc-hs{position:absolute;left:0;right:0;bottom:3px;display:flex;justify-content:center;gap:2px}
 .mc-hs i{width:10px;height:9px;background:#3E8E4F;clip-path:polygon(50% 0,100% 45%,100% 100%,0 100%,0 45%)}
 .mc-hs i.ht{width:18px;background:#C2412A}
-.mc.dorso{background:repeating-linear-gradient(45deg,#C2512A 0 6px,#a8421f 6px 12px);color:#fff;border-color:#7a2f15}
-.mc.dorso .mc-b{background:transparent;border:0}.mc.dorso>b{opacity:.85;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-.mc.hole{background:transparent;border:2px dashed var(--mu-line);box-shadow:none;color:var(--ui-sub)}
+.mc.dorso{background:#e9e2d3;color:#7d776b;filter:saturate(.35)}.mc.dorso .mc-b{opacity:.5}
+.mc.dorso>b{opacity:.85}
+.mc.hole{background:transparent;border:2px dashed var(--mu-line);box-shadow:none;color:var(--ui-sub)}.mc.hole.pide{border-color:color-mix(in srgb,var(--gc,#9aa59f) 70%,transparent)}.mc.hole .mc-r{display:none}
 .mc.hole .mc-b{background:color-mix(in srgb,var(--gc,#9aa59f) 35%,transparent);border:0}.mc.hole>b{opacity:.75}
 .mc.hole.srv .mc-b{background:transparent;color:var(--ui-sub)}
-.mc-who{position:absolute;left:0;right:0;bottom:4px;display:flex;justify-content:center}
+.mc-who{position:absolute;left:0;right:0;bottom:5px;display:flex;justify-content:center}.mc-who .mu-tok.xs{width:24px;height:24px}
 .mc.sm{width:30px;height:40px;border-radius:5px}.mc.sm>b{display:none}.mc.sm .mc-b{height:12px}.mc.sm.srv .mc-b{height:22px}.mc.sm.srv .mc-b svg{width:14px;height:14px}
 .mc.sm .mc-hs{bottom:2px;gap:1px;flex-wrap:wrap;padding:0 2px}.mc.sm .mc-hs i{width:6px;height:6px}.mc.sm .mc-hs i.ht{width:12px}
 .mc.in{width:52px;height:68px}.mc.in>b{font-size:8.5px}

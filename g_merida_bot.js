@@ -46,30 +46,32 @@ function propose(G,k){const m=mem(G),n=G.players.length;if(G.tc-(m.last[k]??-99)
   const Tr={a:k,b:o,ac:0,ap:sw,aj:0,bc:0,bp:falt,bj:0},vt=tval(G,o,Tr),c=Math.max(0,Math.ceil((40-vt)/10)*10+T(0,4)*10);Tr.ac=c;
   if(G.cash[k]-c>=RES&&tval(G,k,Tr)>30){m.last[k]=G.tc;m.t[k]=Date.now();return {t:'tprop',to:o,ac:c,ap:sw,bp:falt}}}
  m.last[k]=G.tc;return null}
-function bot0(R,k){const G=R.G;if(!G||G.bk[k])return null;
+// aus: el asiento es de una persona sin conexión (no de un bot): solo mantiene la partida andando (tira, paga, termina, junta dinero si debe);
+// no compra, no puja, no construye, no deshipoteca y no acepta ni propone tratos (al volver, sus decisiones siguen siendo suyas)
+function bot0(R,k){const G=R.G;if(!G||G.bk[k])return null;const aus=!!(R.players[k]&&!R.players[k].bot);
  if(G.phase=='orden')return G.turn===k?{ms:T(900,1600),m:{t:'roll'}}:null;
  if(G.phase!='play')return null;
  // subasta: puja hasta lo que le sirve la casilla, sin quedarse sin colchón
- const a=G.auc;if(a){if(!a.in.includes(k)||a.hi===k)return null;
+ const a=G.auc;if(a){if(!a.in.includes(k)||a.hi===k)return null;if(aus)return {ms:T(1200,2000),m:{t:'apass'}};
   const tope=Math.min(G.cash[k]-60,Math.round(worth(G,k,a.sq)*(.85+Math.random()*.25))),step=a.bid<100?10:a.bid<300?20:50,v=a.bid+step;
   return v<=tope?{ms:T(1200,3200),m:{t:'bid',v}}:{ms:T(1500,3000),m:{t:'apass'}}}
  // tratos
- const Tr=G.trade;if(Tr){if(Tr.b===k)return {ms:T(2500,4000),m:{t:tval(G,k,Tr)>20?'tyes':'tno'}};if(Tr.a===k){const t0=mem(G).t[k],ya=t0&&Date.now()-t0<40000;return {ms:ya?Math.max(800,t0+25000-Date.now()):T(4000,6000),m:{t:'tno'}}}}
+ const Tr=G.trade;if(Tr){if(Tr.b===k)return {ms:T(2500,4000),m:{t:!aus&&tval(G,k,Tr)>20?'tyes':'tno'}};if(Tr.a===k){const t0=mem(G).t[k],ya=t0&&Date.now()-t0<40000;return {ms:ya?Math.max(800,t0+25000-Date.now()):T(4000,6000),m:{t:'tno'}}}}
  // deudas
  if(G.debts.length){const d=G.debts[0];if(d.k!==k)return null;
   if(G.cash[k]>=d.amt)return {ms:T(800,1400),m:{t:'paydebt'}};
   const r=raise(G,k);return {ms:T(900,1500),m:r||{t:'broke'}}}
  if(G.turn!==k)return null;
  if(G.st=='buy'){const s=B[G.pos[k]],w=worth(G,k,G.pos[k]),res=w>s.p*1.5?40:RES;
-  return {ms:T(1600,2400),m:{t:G.cash[k]-s.p>=res?'buy':'nobuy'}}}
- const b=build(G,k);if(b)return {ms:T(900,1500),m:b};
+  return {ms:T(1600,2400),m:{t:!aus&&G.cash[k]-s.p>=res?'buy':'nobuy'}}}
+ const b=!aus&&build(G,k);if(b)return {ms:T(900,1500),m:b};
  // deshipotecar con dinero de sobra
- if(G.o.mort){const q=mine(G,k).find(i=>G.mg[i]&&G.cash[k]-Math.ceil(B[i].p*.55)>RES+300);if(q!=null)return {ms:T(900,1500),m:{t:'unm',sq:q}}}
- if(G.st=='roll'){if(G.jail[k]){const libres=B.filter((s,i)=>s.p&&G.own[i]<0).length;
+ if(G.o.mort&&!aus){const q=mine(G,k).find(i=>G.mg[i]&&G.cash[k]-Math.ceil(B[i].p*.55)>RES+300);if(q!=null)return {ms:T(900,1500),m:{t:'unm',sq:q}}}
+ if(G.st=='roll'){if(G.jail[k]&&!aus){const libres=B.filter((s,i)=>s.p&&G.own[i]<0).length;
    if(G.jfc[k].length&&libres>6)return {ms:T(1000,1600),m:{t:'jcard'}};
    if(libres>10&&G.cash[k]>=BAIL+RES)return {ms:T(1000,1600),m:{t:'bail'}}}
   return {ms:T(1100,1800),m:{t:'roll'}}}
- if(G.st=='end'){const p=!Tr&&propose(G,k);return p?{ms:T(1500,2500),m:p}:{ms:T(1800,2600),m:{t:'end'}}}
+ if(G.st=='end'){const p=!Tr&&!aus&&propose(G,k);return p?{ms:T(1500,2500),m:p}:{ms:T(1800,2600),m:{t:'end'}}}
  return null}
 // ritmo: piensa la mitad que antes, pero nunca antes de que su ficha termine de caminar en la pantalla (y de que se vea la carta)
 function espera(G){const m=mem(G),now=Date.now();if(G.rn!==m.rn){m.rn=G.rn;const n=(G.dice[0]||0)+(G.dice[1]||0);m.w=n?now+n*240+700:0}

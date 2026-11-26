@@ -3,6 +3,7 @@
 // ?g=merida&casas=1: ya jugando, es tu turno, $3000 y los cuatro primeros grupos de colonias completos (para el modo enfoque de construir)
 // ?g=md: Monopoly Deal contra bots, tu turno (&mesa=1: todos con banco, sets y comodines puestos)
 // ?g=merida&casas=1&hotel=1: igual, pero cada colonia ya con 4 casas (para ver caer el hotel)
+// Mérida: los demás son bots; con &aus=1 son personas sin conexión (el bot solo tira, paga y termina por ellas)
 const CON=['TT','TC','CC','TTT','TTC','CCT','CCC'];
 function saca(G,b){const k=G.deck.findIndex(x=>x%53==b);return k<0?null:G.deck.splice(k,1)[0]}
 function bajaTodos(R){const G=R.G;let v=0;
@@ -31,7 +32,7 @@ module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
  const c=rnd(5),t=cr.randomBytes(12).toString('hex'),n=Math.max(2,Math.min(q.get('g')==='uno'?8:5,+q.get('n')||5));
  const uno=q.get('g')==='uno',md=q.get('g')==='md',mer=q.get('g')==='merida',R=rooms[c]={code:c,gt:uno?'uno':md?'monopolydeal':mer?'merida':'continental',opts:md?{sets:3}:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
  R.poke=()=>bump(R);
- ['Lupe','Toño','Paty','Memo','Chuy','Rosa','Beto'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||md||(mer&&(q.get('grupos')||q.get('bot')))?{bot:true}:{})));
+ ['Lupe','Toño','Paty','Memo','Chuy','Rosa','Beto'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||md||(mer&&!q.get('aus'))?{bot:true}:{})));
  if(mer){GAMES.merida.start(R);const G=R.G;let k=0;while(G.phase=='orden'&&G.turn!==0&&k++<50)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
   if(q.get('casas')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board;
    B.forEach((s,i)=>{if(s.t=='p'&&s.g<4){G.own[i]=0;if(q.get('hotel'))G.hs[i]=4}});G.cash[0]=3000;if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}
