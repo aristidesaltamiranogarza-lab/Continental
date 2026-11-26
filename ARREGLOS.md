@@ -74,6 +74,16 @@ En blender/barrio_trasera.py + jardin() de barrio_manzana.py; mostrar render cen
 - [x] Barrotes del balcón de la planta alta que asoman en el techo de la planta baja (bajo) — eran franjas horneadas: el techo llegaba al eje del muro; ahora termina 2 cm dentro (techos() de pb y sm); revisar al hornear
 - [x] Escaleras: el horneado se ve pixeleado donde llega poca luz (más densidad ahí) — PRIO_MAT escalon 2 (R4_ESC); falta verlo en el horneado
 
+## 5b. Revisión del horneado (26 nov, sin rehornear; interiores de día y de noche)
+- [ ] Sótano, billar: el muro oeste `sm_muro_v0_0` (x≈-17.85) sale negro arriba del lambrín aunque tiene su aplique; el vecino (h300) sí tiene luz. Revisar normales volteadas o una cara tapándolo
+- [ ] Pasillo del sótano: las tiras `sm_led` se ven como neón naranja en el remate de los muros y queman una franja del techo; bajar EMITE['led'] (1.5) y revisar 'foco' (8) en casona_sm.py:30. Los apliques de PB (corredor, salón, zaguán) dejan manchas blancas en el muro: bajarlos
+- [ ] Ruido de noche (500 muestras) en muros con poca luz: rayas verticales y manchas (cuarto bajo la escalera, cuartos de PA, algo en la cocina). El cuarto bajo la escalera sigue manchado de día: más muestras o densidad ahí
+- [ ] Rincón de un cuarto de PA (x≈-18, z≈-14): franja oscura irregular a lo alto de la esquina, de día y de noche (raya de rincón, R4)
+- [ ] Pilares de los arcos del patio: raya oscura fina en el canto sobre el capitel; el intradós del arco se ve en facetas de distinto tono
+- [ ] Puerta abierta del baño de PB (`pb_bano_puerta`): franja negra arriba contra el techo y la hoja más plana y clara que el cuarto (¿sin hornear?)
+- [ ] Traspatio: círculo negro duro bajo el árbol de noche y mancha oscura en la horqueta del tronco
+- [ ] Zaguán: mancha oscura en el techo alrededor del pie de la lámpara colgante
+
 ## 6. Horneado final
 - [ ] Hornear solo lo que cambió (barrio, sm, pb), noche con menos muestras; SOLO cuando el usuario diga que todo está terminado (barrio: plaza, parque y manzana cambiaron el 25 nov); subir cada nivel al terminar; revisar dinteles, cantos y rincones (R4)
 
