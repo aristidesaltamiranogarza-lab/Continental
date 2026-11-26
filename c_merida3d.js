@@ -309,12 +309,12 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
 // Reposo: si nada se mueve (fichas, dados, casas, cámara, polvo) y nadie toca, el tablero no se vuelve a dibujar; antes eran 30–60
 // cuadros por segundo de casa + tablero sin parar y el celular se calentaba. Lo vivo (flecha que rebota, ficha que se mece, anillo)
 // se apaga suave en el último medio segundo de 'despierto'. Despiertan: tocar el tablero, un cambio del juego y cualquier llamada a M3.
-let awake=0,rzF=1,gSig='';const WAKE=4000,wake=ms=>{awake=Math.max(awake,performance.now()+(ms||WAKE))};
+let awake=0,rzF=1,gSig='',tRep=0;const WAKE=4000,wake=ms=>{awake=Math.max(awake,performance.now()+(ms||WAKE))};
 const amp=now=>Math.max(0,Math.min(1,(awake-now)/500));
 function busy(now){return anim.some(Boolean)||HFX.length>0||BL.some(m=>m.visible)||!!FT||now-rollT<DR+900||(SHK&&now-SHK<750)||(window.POLI&&POLI.on())||(window.MFX&&MFX.activo&&MFX.activo())
  ||VK.some(q=>Math.abs(VT[q]-VW[q])>1e-3)||Math.abs(fitD-fitV)>.01}
 function loop(now){raf=0;if(!shown)return;raf=requestAnimationFrame(loop);const dt=Math.min(100,now-(tPrev||now));tPrev=now;
- if(busy(now))wake(1200);else if(now>awake+60&&!rzF)return;
+ if(busy(now))wake(1200);else if(now>awake+60&&!rzF&&now-tRep<1500)return;tRep=now;   // en reposo, un cuadro cada 1.5 s por si algo borró el lienzo (pantalla negra)
  if(shR&&cv.parentNode!==root){if(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))return;root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(rzF){rzF=0;const b=root.getBoundingClientRect();if(Math.abs(b.width-W)>1||Math.abs(b.height-H)>1)resize()}
  try{step(now,dt);applyCam();temblor(now);
@@ -338,6 +338,6 @@ window.M3={ok:()=>!failed,
  M3[n]=n=='sync'?function(G,sel){const g=G?JSON.stringify(G)+'|'+sel:'';if(g!==gSig){gSig=g;wake()}return f.apply(this,arguments)}
   :n=='layout'||n=='theme'||n=='show'?function(x){const k=JSON.stringify(x);if(k!==this['_'+n]){this['_'+n]=k;wake();rzF=1}return f.apply(this,arguments)}   // se llaman en cada render: solo despiertan si cambian
   :function(){wake();return f.apply(this,arguments)}});
-addEventListener('resize',()=>{rzF=1;wake(800)});
+['resize','orientationchange','focus','pageshow'].forEach(e=>addEventListener(e,()=>{rzF=1;wake(800)}));document.addEventListener('visibilitychange',()=>{if(!document.hidden){rzF=1;wake(800)}});
 ['pointerdown','pointermove','wheel','touchstart'].forEach(e=>addEventListener(e,ev=>{if(shown&&root&&root.contains(ev.target))wake()},{passive:true,capture:true}));
 })();
