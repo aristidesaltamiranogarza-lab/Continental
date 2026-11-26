@@ -53,5 +53,16 @@ Radios: paneles `var(--ui-r)` (22px); botones y pastillas 999px. Letra: `var(--u
 8. No tocar el modo 2D Ligero (`continental.html`, `style.css`, la pantalla 2D clásica). Excepción: el inicio y la sala de espera sin casa los dibuja `c_lobby.js` (LOBBY) con `ui_lobby.css` bajo `html.lbon`. Los estilos de `ui.css` no deben afectar fuera de `.ui…`, `.w7…` y los elementos de la casa.
 9. Código nuevo en módulos pequeños (como `c_casa_hud.js`), no en los archivos grandes.
 
+## Movimiento (nivel de la portada: obligatorio)
+El usuario pidió mantener el nivel de calidad de la portada (`c_portada.js`): es la referencia para toda pantalla nueva o cambiada. Abrirla antes de animar algo.
+- Toda pantalla tiene entrada y salida. Las piezas entran escalonadas (≈50–150 ms entre una y otra) con rebote: `cubic-bezier(.3,1.4,.5,1)`; las salidas son rápidas y hacia afuera (telón, irse volando).
+- Botones y tarjetas reaccionan: se levantan al pasar el mouse (`@media (hover:hover)`), se hunden al tocar (`scale(.95)`), latido al elegir.
+- Cargas: nunca negro ni texto suelto. Una escena dibujada con progreso real (la fachada con ventanas que se prenden) y salida con transición (entrar por la puerta).
+- Detalles vivos y baratos: cosas que flotan, nubes, un personaje que respira.
+- Solo `transform`/`opacity` (y `translate`/`scale`/`rotate` sueltos); nada de blur grande. Respetar `prefers-reduced-motion`.
+- `render()` rehace el HTML: animar con un tiempo de inicio y `animation-delay` negativo (patrón `--edl` de PLANO2D) para que no se reinicie.
+- Nada sale preseleccionado: sin `focus()` automático en botones ni bordes de "última vez"; el aro de foco solo con teclado (`html.teclado`, c_ui.js).
+- Probar a 840×360 y 360×840.
+
 ## Pendiente
 Todas las pantallas de los juegos 3D ya van en Cálida: Uno 3D, Continental 3D, Rummy y Ruleta con GHUD; Conecta 4, Backgammon, Cubilete e "Ir a…" con `GHUD.win`; Mérida y YuCATÁN mapean sus variables `--mu-…` a los tokens y siguen el tema de la casa (en c_meridaui.js hay un `UI` local: usar `window.UI`); bienvenida con tokens; sobras w7 de la casa con `.ui-glass`. Monopoly Deal: c_mdeal_hud.js envuelve su pantalla (☰ con GHUD.sheet) y ui_juegos.css la reestiliza bajo `html.mdui`, sin tocar c_monopolydeal.js ni style.css (los comparte el 2D Ligero).
