@@ -67,9 +67,16 @@ const ART={},TODAS=[];let artIni=false,artCod=null;
 const ak=(k,full)=>k+(full?'f':'');
 function pinta(cn,k,full){const a=ART[ak(k,full)];if(!a)return false;const g=cn.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cn.width,cn.height);g.drawImage(a,0,0,cn.width,cn.height);g.restore();return true}
 // dibuja todas las ilustradas con el personaje del jugador; al cambiarlo (evento av-mio) se vuelven a dibujar
+// Dibujar una cuesta ~0.4 s (más en celular): se guardan con CIMG por versión (código de CARTA2D/AV2D/AV + tu personaje) y se dibujan
+// una por tarea, primero las chicas (mano y mesa) y luego las grandes, para no trabar la entrada ni el reparto.
+const respira=()=>new Promise(r=>setTimeout(r,0));
+function avisa(){TODAS.forEach(([c,n,f])=>pinta(c,n,f));for(const u in U){const id=+String(u).replace('f','');if(mdCAT[id]&&mdCAT[id].t=='a')delete U[u]}dispatchEvent(new Event('md3k-arte'))}
 async function arte(){const cod=(()=>{try{return localStorage.cont_av}catch(e){}})();if(artIni&&cod===artCod)return;artIni=true;artCod=cod;
- try{await AV.listo();for(const n in CARTA2D.CARTAS)for(const full of [false,true])ART[ak(n,full)]=await CARTA2D.dibuja(n,{full})}catch(e){console.warn('[MD3K] cartas ilustradas',e);return}
- if(cod!==artCod)return;TODAS.forEach(([c,n,f])=>pinta(c,n,f));for(const u in U){const id=+String(u).replace('f','');if(mdCAT[id]&&mdCAT[id].t=='a')delete U[u]}dispatchEvent(new Event('md3k-arte'))}
+ try{const C=window.CIMG,ver=C?(await C.ver(/c_carta2d|c_av2d|c_avatar\.js/))+'_'+(cod||''):'';let av=false;
+  for(const full of [false,true]){for(const n in CARTA2D.CARTAS){if(cod!==artCod)return;const key=ak(n,full);let im=C?await C.saca('carta',ver,key,'bmp'):null;
+    if(!im){if(!av){await AV.listo();av=true}await respira();im=await CARTA2D.dibuja(n,{full});if(C)C.pon('carta',ver,key,im)}
+    ART[ak(n,full)]=im}
+   if(cod!==artCod)return;avisa();await respira()}}catch(e){console.warn('[MD3K] cartas ilustradas',e)}}
 function ilustra(cn,k,full){TODAS.push([cn,k,!!full]);if(pinta(cn,k,full))return;if(!artIni&&window.CARTA2D&&window.AV2D&&window.AV)arte()}
 addEventListener('av-mio',()=>{if(artIni)arte()});
 window.MD3K={TW,TH,ACOL,BILL,cara,billete,dorso,url:id=>U[id]||(U[id]=cara(id).toDataURL()),

@@ -6,11 +6,13 @@ const ico=n=>window.UI&&UI.ico?UI.ico(n):'';
 // con reacción (feliz, sorpresa, enojo, triste: AV2D.CARAS) se guarda aparte como 'código|cara'; las que piden los juegos van primero, las demás se adelantan cuando el navegador está libre
 const PT=new Map(),cola=[],luego=[],REAC={},CARAS=['feliz','sorpresa','enojo','triste'];let ocupado=false;
 function cod(k){const p=(V.players||[])[k]||{},n=(V.G&&V.G.players[k]&&V.G.players[k].name)||p.name||'';return p.av||(window.MPJ&&MPJ.codigo?MPJ.codigo(n):'')}
-function pide(c,v,ya){const q=v?c+'|'+v:c;if(!c||PT.has(q)||!window.AV2D||(v&&!AV2D.CARAS))return;PT.set(q,null);(ya||!v?cola:luego).push(q);sigue()}
-const libre=f=>window.requestIdleCallback?requestIdleCallback(f,{timeout:3000}):setTimeout(f,400);
+function pide(c,v,ya){const q=v?c+'|'+v:c;if(!t0)t0=performance.now();if(!c||PT.has(q)||!window.AV2D||(v&&!AV2D.CARAS))return;PT.set(q,null);(ya||!v?cola:luego).push(q);sigue()}
+// las caras de reacción esperan a que pase la entrada y el reparto (6 s desde el primer retrato) para no trabarlos
+let t0=0;const libre=f=>setTimeout(()=>window.requestIdleCallback?requestIdleCallback(f,{timeout:3000}):f(),Math.max(400,t0+6000-performance.now()));
 async function sigue(){if(ocupado)return;let q=cola.shift();if(!q){if(luego.length&&!sigue.e){sigue.e=1;libre(()=>{sigue.e=0;const x=luego.shift();if(x){cola.push(x);sigue()}})}return}
  ocupado=true;const [c,v]=q.split('|');
- try{const cv=await AV2D.retrato(c,{tam:160,plano:v?'cara':'busto',giro:v?.2:.35,fondo:null,...(v?AV2D.CARAS[v]:{})});PT.set(q,cv.toDataURL('image/png'));pon(c);if(!v)CARAS.forEach(x=>pide(c,x))}catch(e){PT.set(q,'')}
+ try{const C=window.CIMG,vr=C?await C.ver(/c_av2d|c_avatar\.js|c_mesa2d/):'';let u=C?await C.saca('retrato',vr,q,'url'):null;   // ya dibujado en otra partida: CIMG
+  if(!u){const cv=await AV2D.retrato(c,{tam:160,plano:v?'cara':'busto',giro:v?.2:.35,fondo:null,...(v?AV2D.CARAS[v]:{})});u=cv.toDataURL('image/png');if(C)C.pon('retrato',vr,q,cv,300)}PT.set(q,u);pon(c);if(!v)CARAS.forEach(x=>pide(c,x))}catch(e){PT.set(q,'')}
  ocupado=false;setTimeout(sigue,40)}
 // la imagen que toca a un asiento: su reacción si está vigente y ya dibujada; f fuerza una cara (pantalla final)
 function img(k,c,f){const r=REAC[k],v=f||(r&&r.hasta>Date.now()?r.t:'');return (v&&PT.get(c+'|'+v))||PT.get(c)||''}
