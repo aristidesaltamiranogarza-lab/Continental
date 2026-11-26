@@ -149,3 +149,11 @@ html[data-tema=noche] .uh-ai{background:rgba(0,0,0,.14)}
 .gic{width:1.5em;height:1.5em;vertical-align:-.4em;object-fit:contain}
 span.gic{display:inline-block}span.gic svg{width:100%;height:100%;display:block}
 .pic{width:1.2em;height:1.2em;vertical-align:-.22em;margin-right:.15em}
+/* GENTE (c_gente.js): Invitar en la lista y tarjeta de invitación arriba al centro */
+.uh-per .gen-x{margin-left:auto;flex:none;min-height:36px;padding:0 14px}
+.gen-inv{position:fixed;z-index:60;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);width:min(340px,calc(100% - 28px));padding:12px 14px 16px;display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center;pointer-events:auto;overflow:hidden;animation:uiIn .2s ease-out}
+.gen-inv>span{display:flex;flex-direction:column;min-width:0}
+.gen-inv b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gen-inv .gen-acc{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.gen-inv .gen-t{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--ui-accent);transform-origin:left;animation:genT linear forwards}
+@keyframes genT{to{transform:scaleX(0)}}

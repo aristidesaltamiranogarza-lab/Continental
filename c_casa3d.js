@@ -335,7 +335,7 @@ async function net(now){if(netBusy||now-netT<300)return;netBusy=true;netT=now;
  const av=window.AV?AV.mio():'';if(av!==me.av){me.av=av;refresh(me)}   // si lo cambió en Mi personaje
  const b={id:myId,av,name:(pname||'').trim()||'Jugador',x:me.pos.x,z:me.pos.z,yaw:me.yaw,w:me.w>.3?1:0,f:FL.id};if(outEm){b.em=outEm;outEm=null}if(outSay){b.say=outSay;outSay=null}
  if(window.CUB3){const c=CUB3.out();if(c)b.cub=c}if(window.JG3){const j=JG3.out();if(j)b.jg=j}if(window.BJ3){const j=BJ3.out();if(j)b.bj=j}if(window.PK3){const j=PK3.out();if(j)b.pk=j}if(window.BIJ){const j=BIJ.out();if(j)b.bi=j}
- try{const d=await api('casa',b);if(window.GENTE)GENTE.pon(d.q);if(active()){netSync(d);if(window.BJC)BJC.estado(d.bj);if(window.BJ3)BJ3.estado(d.bj,d.bjerr);if(window.PK3)PK3.estado(d.pk,d.pkerr);if(window.BIJ)BIJ.estado(d.bi,d.bierr);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
+ try{const d=await api('casa',b);if(window.GENTE)GENTE.pon(d.q,d.inv);if(active()){netSync(d);if(window.BJC)BJC.estado(d.bj);if(window.BJ3)BJ3.estado(d.bj,d.bjerr);if(window.PK3)PK3.estado(d.pk,d.pkerr);if(window.BIJ)BIJ.estado(d.bi,d.bierr);const ch=(window.CUB3&&CUB3.sync(d.cub,myId))|(window.JG3&&JG3.sync(d.jg,d.jerr));if(ch&&!inputBusy())render()}}catch(e){}netBusy=false}
 function netSync(d){const seen=new Set(),n0=others.size;
  (d.p||[]).forEach(o=>{if(o.f==='2d')return;seen.add(o.id);let a=others.get(o.id);const pos=v3(+o.x||0,0,+o.z||0);
   if(!a){a=newAv(o.name,pos,+o.yaw||0,o.av);a.emN=o.emN;a.sayN=o.sayN;others.set(o.id,a);if(synced)toast(`${o.name} entró a la casa`)}

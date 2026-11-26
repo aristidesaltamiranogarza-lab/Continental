@@ -30,7 +30,7 @@ function view(R,tok){const me=R.players.findIndex(p=>p.tok==tok),now=Date.now(),
  const v={code:R.code,v:R.v,host:R.host==tok,me,game:R.gt,opts:R.opts,players:R.players.map(p=>({id:p.id,name:p.name,on:!!p.bot||now-p.seen<35000,cx:cx(p,now),ag:p.bot?0:Math.round((now-p.seen)/1000),out:!!p.out,bot:!!p.bot,av:p.av,fi:p.fi,em:now-(p.emT||0)<3500?p.em:null,emN:p.emT||0})),G:null,claim:false,pend:!!R.pb,chat:R.chat.slice(-40),
   watch:!!specOf(R,tok),spec:(R.spec||[]).filter(s=>now-s.seen<35000).map(s=>s.name),
   tt:R.G?now-(R.tt||now):0,tom:TOM_MS,fx:(R.fx||[]).filter(f=>now-f.ts<6000)};   // tt: cuánto lleva el turno; fx: tomates recientes
- if(R.G)Object.assign(v,M.view(R,tok,me,now));v.q=gente((R.players[me]||specOf(R,tok)||{}).me);return v}
+ if(R.G)Object.assign(v,M.view(R,tok,me,now));{const m=(R.players[me]||specOf(R,tok)||{}).me;v.q=gente(m);v.inv=invDe(m)}return v}
 // ---- tomates 🍅: a quien se tarda más de TOM_MS en su turno se le pueden lanzar (jugadores y espectadores) ----
 const TOM_MS=15000,turnKey=G=>G?[G.phase,G.turn,G.tc,G.round].join(':'):'';
 function tomato(R,tok,i){const G=R.G,now=Date.now();if(!G||G.phase!='play'||G.turn==null)return 'No hay a quién lanzarle tomates.';const k=G.turn;
@@ -112,9 +112,17 @@ const huella=m=>cr.createHash('sha1').update(String(m)).digest('hex').slice(0,10
 function gente(yo){const now=Date.now(),M=new Map(),pon=(m,n,av,d,pr)=>{const k=m||'?'+M.size,o=M.get(k);if(!o||o.pr<pr)M.set(k,{m:k,n,av:av||'',d,pr})};
  for(const id in casa){const o=casa[id];if(now-o.ts<8000)pon(o.me||'c'+id,o.name,o.av,{f:o.f},1)}
  for(const R of Object.values(rooms)){const st=R.G?(R.G.phase=='final'?'fin':'play'):'lobby';
-  R.players.forEach(p=>{if(!p.bot&&!p.out&&now-p.seen<35000)pon(p.me,p.name,p.av,{g:R.gt,st},3)});
-  (R.spec||[]).forEach(s=>{if(now-s.seen<35000)pon(s.me,s.name,'',{g:R.gt,st:'mira'},2)})}
+  R.players.forEach(p=>{if(!p.bot&&!p.out&&now-p.seen<35000)pon(p.me,p.name,p.av,{g:R.gt,st,c:R.code},3)});
+  (R.spec||[]).forEach(s=>{if(now-s.seen<35000)pon(s.me,s.name,'',{g:R.gt,st:'mira',c:R.code},2)})}
  return [...M.values()].map(o=>Object.assign({k:huella(o.m),n:o.n,av:o.av},o.d,yo&&o.m===yo?{yo:1}:null))}
+// invitaciones (SOCIAL.md S4): quien está en una sala invita a alguien de la lista (k = su huella); se entrega en /casa y /poll durante 60 s
+const invs={},INV_MS=60000;
+function invita(b){const yo=String(b.me||'').slice(0,40),k=String(b.k||'').slice(0,10),now=Date.now();if(!yo||!k)return {err:'Falta a quién.'};
+ let R=null,de=null;for(const x of Object.values(rooms)){const p=x.players.find(p=>p.me===yo&&!p.out&&!p.bot)||(x.spec||[]).find(s=>s.me===yo);if(p&&(!R||x.ts>R.ts)){R=x;de=p}}
+ if(!R)return {err:'Primero entra a una sala.'};if(huella(yo)===k)return {err:'Ya estás aquí.'};
+ const o=invs[k];if(o&&o.de===de.name&&o.c===R.code&&now-o.ts<10000)return {ok:1};
+ invs[k]={n:(o?o.n:0)+1,de:de.name,av:de.av||'',g:R.gt,c:R.code,st:R.G?'play':'lobby',ts:now};return {ok:1}}
+function invDe(yo){if(!yo)return null;const k=huella(yo),o=invs[k],now=Date.now();if(!o)return null;if(now-o.ts>INV_MS||!rooms[o.c]){delete invs[k];return null}return Object.assign({},o,{ts:undefined})}
 function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
  if(id){const o=casa[id]||(casa[id]={id,emT:0,sayT:0});o.name=String(b.name||'').trim().slice(0,14)||'Jugador';o.me=String(b.me||'').slice(0,40)||null;if(AVRE.test(String(b.av||'')))o.av=String(b.av);
   ['x','z','yaw'].forEach(k=>{const v=+b[k];if(isFinite(v))o[k]=Math.round(v*100)/100});o.w=b.w?1:0;o.f=['sot','alta','ter','2d','cm1','c0','c1','c2'].includes(b.f)?b.f:'pb';   // f: piso (sótano, planta baja, planta alta o terraza)
@@ -124,7 +132,7 @@ function casaAct(b){const now=Date.now(),id=String(b.id||'').slice(0,16);
  let bjerr=id&&b.bj?BJ.act(id,casa[id].name,b.bj):null; let pkerr=id&&b.pk?PK.act(id,casa[id].name,b.pk):null; let bierr=id&&b.bi?BI.act(id,casa[id].name,b.bi,k=>!!casa[k]):null;
  for(const k in casa)if(now-casa[k].ts>8000)delete casa[k];
  CUB.tick(k=>!!casa[k]);JG.tick(k=>!!casa[k]);BJ.tick(k=>!!casa[k]);PK.tick(k=>!!casa[k]);BI.tick(k=>!!casa[k]);
- return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,av:o.av||'',x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),q:gente(String(b.me||'').slice(0,40)||null),cub:CUB.view(),jg:JG.view(id),jerr,bj:BJ.view(),bjerr,pk:PK.view(id),pkerr,bi:BI.view(id),bierr}}
+ return {p:Object.values(casa).filter(o=>o.id!==id).map(o=>({id:o.id,name:o.name,av:o.av||'',x:o.x,z:o.z,yaw:o.yaw,w:o.w,f:o.f,em:now-o.emT<3500?o.em:null,emN:o.emT,say:now-o.sayT<6000?o.say:null,sayN:o.sayT})),r:salas(),q:gente(String(b.me||'').slice(0,40)||null),inv:invDe(String(b.me||'').slice(0,40)),cub:CUB.view(),jg:JG.view(id),jerr,bj:BJ.view(),bjerr,pk:PK.view(id),pkerr,bi:BI.view(id),bierr}}
 // ---- HTTP ----
 http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathname,q=u.searchParams;
  if(files[p])return SM.envia(req,res,path.join(__dirname,files[p][0]),files[p][1],files[p][1]=='audio/mpeg'?'public, max-age=604800':'no-store');   // por partes (srv_modelos.js)
@@ -142,6 +150,7 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(req.method!='POST'){res.writeHead(404);return res.end()}
  const b=await body(req);
  if(p=='/casa')return out(res,casaAct(b));
+ if(p=='/inv')return out(res,invita(b));
  if(p=='/new'){const code=rnd(5),tok=cr.randomBytes(12).toString('hex'),gt=GAMES[b.game]?b.game:'continental',
    R=rooms[code]={code,gt,opts:Object.assign({},GAMES[gt].opts),host:tok,players:[],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
   R.poke=()=>bump(R);

@@ -110,7 +110,7 @@ function joinSpec(){code=V.code;S=null;V=null;joinR()}
 const mirTxt=()=>V&&V.watch?'👁 Mirando la partida':'Mirando como host';
 async function joinR(){pname=pname.trim()||'Jugador';try{enter(await api('join',{c:code.trim(),name:pname,av:window.AV?AV.mio():''}))}catch(e){msg='No se pudo conectar con el servidor.';render()}}
 function leave(){S=null;V=null;store();render()}
-async function loop(){const my=S;while(S===my){try{const d=await(await fetch(`poll?c=${S.c}&t=${S.t}&v=${v}`)).json();online=true;if(window.GENTE&&d)GENTE.pon(d.q);
+async function loop(){const my=S;while(S===my){try{const d=await(await fetch(`poll?c=${S.c}&t=${S.t}&v=${v}`)).json();online=true;if(window.GENTE&&d)GENTE.pon(d.q,d.inv);
   if(d.gone||d.kicked){msg=d.kicked?'Fuiste expulsado de la sala.':'La sala ya no existe.';S=null;V=null;store();render();return}
   if(!d.same){const o=V&&V.G;if(!o||!d.G||o.tc!==d.G.tc||o.phase!==d.G.phase||o.round!==d.G.round){sel=new Set();staged=[];armando=false}V=d;v=d.v;onNew(o,d.G);chatUp();tomSync()}render()}
  catch(e){online=false;render();await sleep(1500)}}}
