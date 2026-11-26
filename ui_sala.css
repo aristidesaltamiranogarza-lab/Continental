@@ -97,6 +97,8 @@ html[data-tema=noche] .sl-add .sl-av.ai{color:color-mix(in srgb,var(--sl-c) 45%,
 .sl-mira:empty{display:none}
 /* accesos: reglas, cómo jugar, música y salir */
 .sl-acc{display:flex;flex-wrap:wrap;gap:6px}
+.sl-tip{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 8px;color:var(--ui-sub);font:700 13px var(--ui-font);animation:slTip .45s .2s cubic-bezier(.3,1.4,.5,1) both}.sl-tip[hidden]{display:none}.sl-tip svg{color:var(--ui-icon)}
+@keyframes slTip{from{opacity:0;transform:translateY(6px)}}
 .sl-p{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:0;border-radius:999px;cursor:pointer;background:var(--ui-chip);color:var(--ui-text);font:800 14px var(--ui-font);transition:transform .1s}
 .sl-p .ui-ico{width:18px;height:18px;color:var(--ui-sub)}
 .sl-p.sl-i{width:44px;padding:0;justify-content:center}

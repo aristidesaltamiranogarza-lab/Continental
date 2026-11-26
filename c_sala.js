@@ -45,7 +45,7 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
    <button class="sl-t" onclick="SALA.ver('juego')" aria-label="Cambiar de juego"><h2 id="slName"></h2>${I('abajo')}</button>
    <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala"><b id="slCode"></b>${I('compartir')}</button>${window.GENTE?GENTE.boton():''}</header>
   <div class="sl-bd" id="slBd">
-   <div class="sl-v1" id="slV1"><div class="sl-mesa" id="slMesa"></div><p class="ui-sub sl-mira" id="slMira"></p>
+   <div class="sl-v1" id="slV1"><div class="sl-mesa" id="slMesa"></div><p class="sl-tip" id="slTip" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M17 11v2"/></svg>Se juega mejor en horizontal</p><p class="ui-sub sl-mira" id="slMira"></p>
     <nav class="sl-acc"><button class="sl-p" id="slRegB" onclick="SALA.ver('reglas')">${I('ajustes')}Reglas</button><button class="sl-p sl-est" id="slEstB" hidden onclick="SALA.ver('est')"><span class="sl-estv" id="slEstV"></span>Estilo</button><button class="sl-p sl-est" id="slFiB" hidden onclick="SALA.ver('ficha')"><span class="sl-estv" id="slFiV"></span>Ficha</button><button class="sl-p sl-i" onclick="SALA.reglas()" aria-label="Cómo jugar" title="Cómo jugar">${I('ayuda')}</button>
      <button class="sl-p sl-i" onclick="SALA.ver('mus')" aria-label="Música">${I('musica')}</button><button class="sl-p sl-i sl-peligro" id="slSalir" onclick="SALA.salir()">${I('salir')}</button></nav></div>
    <div class="sl-v2" id="slV2" hidden><button class="sl-back" onclick="SALA.ver(null)">${I('atras')}<b id="slSubT"></b></button><div id="slSubB"></div></div>
@@ -72,7 +72,7 @@ const estK=()=>{try{return [sbg,scards,sback,cbl].join()}catch(e){return ''}};
 function sync(g){const H=H3(),v=vv();if(!g||!v||v.G)return false;const d2=!H&&!!window.SL2D&&SL2D.ok();if(!H&&!d2)return false;arma();el.classList.toggle('sl2d',d2);if(d2)SL2D.monta(el);else if(window.SL2D)SL2D.quita();cur=g;
  if(!shown){shown=true;sub=null;vista();sig={};prev=null;hola={};if(H&&H.arranca)H.arranca(v.game);el.classList.remove('sale','open','in');void el.offsetWidth;el.classList.add('in');requestAnimationFrame(paso)}
  pinta(g,v);return true}
-function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;el.style.setProperty('--sl-c',COL[k]||'#C2512A');el.classList.toggle('host',host);
+function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;{const tp=$('slTip');if(tp)tp.hidden=!(k==='continental'&&innerHeight>innerWidth)}el.style.setProperty('--sl-c',COL[k]||'#C2512A');el.classList.toggle('host',host);
  if(sig.k!==k){sig.k=k;const ic=$('slIc');ic.innerHTML=ico(k);ic.classList.remove('pop');void ic.offsetWidth;ic.classList.add('pop');$('slName').textContent=nom(k)}
  $('slCode').textContent=v.code||'';{const eo=estOk(k),eb=$('slEstB');eb.hidden=!eo;if(eo){const ek=k+estK();if(eb.dataset.k!==ek){eb.dataset.k=ek;$('slEstV').innerHTML=k==='uno'?I('pincel'):LOBBY.vista?LOBBY.vista():''}}else if(sub==='est')ver(null)}if(!host&&sub==='juego')ver(null);
  {const fb=$('slFiB'),fo=!!g.ficha;fb.hidden=!fo;if(fo){const fk=g.ficha.key();if(fb.dataset.k!==fk){fb.dataset.k=fk;$('slFiV').innerHTML=g.ficha.ico()}}else if(sub==='ficha')ver(null)}
