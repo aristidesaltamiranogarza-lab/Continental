@@ -366,7 +366,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
   // resultados en una tarjeta arriba (se puede cerrar para ver la mesa)
   if(!winHide)o+=`<div id="u3win" class="ui ui-card gj-win" role="dialog" aria-labelledby="u3wt"><div class="ui-hd"><h2 class="ui-h" id="u3wt">Fin de la partida</h2><button class="ui-x" onclick="u3dWin()" aria-label="Cerrar">${uic('x')}</button></div>
    <div class="ui-bd"><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
-   <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${V.players[k].out?'expulsado':k==w?'Ganó':hc(k)+(hc(k)==1?' carta':' cartas')}</b></div>`).join('')}</div></div></div>`}
+   <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${V.players[k].out?'expulsado':k==w?'Ganó':`<i data-cnt="${hc(k)}">${hc(k)}</i>`+(hc(k)==1?' carta':' cartas')}</b></div>`).join('')}</div></div></div>`}
  else if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${uic('salir')}Dejar de mirar</button>`:''}`;
  else{const vk=G.vuln&&G.vuln.k!=i&&hc(G.vuln.k)==1&&!G.uno[G.vuln.k]?G.vuln.k:-1,my1=h.length==1&&!G.uno[i],said=h.length==1&&!!G.uno[i];
   if(mine&&G.step=='play'&&pend&&!G.ad)b+=`<button class="ui-btn go" onclick="udraw()">Robar ${G.pend}</button>`;

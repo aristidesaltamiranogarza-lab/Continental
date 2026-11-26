@@ -195,7 +195,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
  if(mesa.n!==V.G.players.length){layout();if(mesa.n!==V.G.players.length)return}
  const G=V.G,n=G.players.length,me=V.me,live=new Set(),fin=G.phase=='final',mine=!fin&&me>=0&&G.turn==me,P=V.players||[];
  hits.length=0;glows.forEach(g=>{g.userData.used=0});
- if(G.dn!==dealN){dealing=dealN>=0;dealN=G.dn;logN=-1;setsN=null;meshes.forEach((m,k)=>drop(k));home()}else dealing=false;dl=0;
+ if(G.dn!==dealN){dealing=dealN>=0||G.cd>600;dealN=G.dn;logN=-1;setsN=null;meshes.forEach((m,k)=>drop(k));home()}else dealing=false;dl=0;
  if(mine&&myTc!==G.tc){myTc=G.tc;if(VT.who>=0)home()}
  const from={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;if(e.c!=null&&e.k>=0)from[e.c]=e.k;if(logN>=0&&e.k!=null&&e.k>=0)react(e)});
  logN=Math.max(logN,G.ln||0);
@@ -318,7 +318,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  if(fin){b=`<button class="ui-btn" onclick="send({t:'reset'})">${uic('nuevo')}Nueva partida</button><button class="ui-btn sec" onclick="leave()">${uic('salir')}Salir</button>`;
   if(!winHide)o+=`<div id="md3win" class="ui ui-card gj-win" role="dialog" aria-labelledby="md3wt"><div class="ui-hd"><h2 class="ui-h" id="md3wt">Fin de la partida</h2><button class="ui-x" onclick="md3Win()" aria-label="Cerrar">${uic('x')}</button></div>
    <div class="ui-bd"><div class="u3wn">${w>=0?(w==i?'¡Ganaste!':`Ganó <b>${nm(w)}</b>`):'Fin'}</div>
-   <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${P[k].out?'expulsado':mdSets(k)+(mdSets(k)==1?' set':' sets')+' · $'+mdBank(k)+'M'}</b></div>`).join('')}</div></div></div>`}
+   <div class="u3res">${G.players.map((p,k)=>`<div class="${k==w?'w':''}">${chip(k)}<span>${esc(p.name)}${k==i?' (tú)':''}</span><b>${P[k].out?'expulsado':`<i data-cnt="${mdSets(k)}">${mdSets(k)}</i>`+(mdSets(k)==1?' set':' sets')+` · $<i data-cnt="${mdBank(k)}">${mdBank(k)}</i>M`}</b></div>`).join('')}</div></div></div>`}
  else if(i<0)b=`<span class="gj-note">${mirTxt()}</span>${V.watch?`<button class="ui-btn sec" onclick="leave()">${uic('salir')}Dejar de mirar</button>`:''}`;
  else{if(pl)b+=`<button class="ui-btn go" onclick="mdSel=null;send({t:'end'})">${h.length>7?'Terminar (descartar '+(h.length-7)+')':'Terminar turno'}</button>`;
   b+=`<button class="ui-btn sec" onclick="cyc()" title="Ordenar">${uic('ordenar')}${manual?'Mi orden':sortS?'Por valor':'Por tipo'}</button>`;

@@ -126,7 +126,7 @@ function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((
  M2D.suelta=null;M2D.teclas=null;
  return M2D.mesa({cls:'md2',redonda:1,domo:1,estilo:M2D.fieltro('monopolydeal'),der:window.md3Toggle?UI.dim(0,'md3Toggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>${w>=0?`<div class="m2-fs">${metas(w)}</div>`:''}
-  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span class="m2-fm">${P[k].out?'':metas(k)}</span><span>${P[k].out?'fuera':'$'+mdBank(k)+'M'}</span></div>`).join('')}</div>
+  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span class="m2-fm">${P[k].out?'':metas(k)}</span><span>${P[k].out?'fuera':`$<i data-cnt="${mdBank(k)}">${mdBank(k)}</i>M`}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:MD.rules})}
 MD.body=cuerpo;
 // las cartas que vuelan (game.js fly) llevan las mismas caras

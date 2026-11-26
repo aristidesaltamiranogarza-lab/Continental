@@ -48,7 +48,7 @@ function fin(){const G=V.G,w=G.win,P=V.players,ks=G.players.map((p,k)=>k).sort((
  M2D.suelta=null;M2D.teclas=null;
  return M2D.mesa({cls:'u2',redonda:1,domo:1,estilo:`--uc:${UCH[G.color]||'#c2512a'};${fieltro()}`,der:window.u3dToggle?UI.dim(0,'u3dToggle()'):'',
   capa:`<div class="m2d-fin">${w>=0?M2D.retrato(w,'big','feliz'):''}<h2>${w>=0?(w==V.me?'¡Ganaste!':nm(w)+' gana'):'Fin de la partida'}</h2>
-  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span>${P[k].out?'expulsado':k==w?'sin cartas':hc(k)+(hc(k)==1?' carta':' cartas')}</span></div>`).join('')}</div>
+  <div class="m2d-tab">${ks.map(k=>`<div class="${k==w?'w':''}">${M2D.retrato(k,'',w>=0?(k==w?'feliz':'triste'):'')}<b>${nm(k)}</b><span>${P[k].out?'expulsado':k==w?'sin cartas':`<i data-cnt="${hc(k)}">${hc(k)}</i>`+(hc(k)==1?' carta':' cartas')}</span></div>`).join('')}</div>
   <div class="m2d-bts"><button class="ui-btn" onclick="send({t:'reset'})">Nueva partida</button><button class="ui-btn sec" onclick="leave()">Salir</button></div></div>`,rules:unoRules})}
 GM.uno.body=cuerpo;
 // globitos: lo que hizo cada quien sale de su asiento (los números jugados ya se ven volar al descarte)
