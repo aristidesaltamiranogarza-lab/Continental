@@ -461,11 +461,14 @@ function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+(
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   // asiento de la mesa (0 = el tuyo)
 // abanico de tu mano en la parte de abajo de la pantalla (las cartas son hijas de la cámara)
-function fan(ids,x0=0,x1=W){const n=ids.length,ch=L.ch*(VT.top?.68:1),cw=ch/CH*CW,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];
- let rows=1,per=n,stp=n>1?Math.min(cw*.62,(av-cw)/(n-1)):0;if(n>8&&stp<cw*.4){rows=2;per=Math.ceil(n/2);stp=Math.min(cw*.62,(av-cw)/(per-1))}
- ids.forEach((id,i)=>{const r=rows==2&&i>=per?1:0,j=r?i-per:i,rn=r?n-per:Math.min(n,per),off=j-(rn-1)/2,dx=off*stp,u=dx/((x1-x0)/2);
-  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.22-(rows==2&&!r?ch*.42:0);if(sel.has(id))y-=ch*.2;else if(hov===id)y-=ch*.08;
-  const ang=Math.max(-.32,Math.min(.32,-u*.26)),hv=hov===id&&!sel.has(id),up=hv||sel.has(id),d=D-i*.004-(r?.03:0);
+function fan(ids,x0=0,x1=W){const n=ids.length,upp=(loc(W,0,D).x-loc(0,0,D).x)/W,av=x1-x0-20,cx=(x0+x1)/2,out=[];let ch=L.ch*(VT.top?.68:1),cw=ch/CH*CW;
+ // cada carta deja ver al menos 40% de su ancho: si no cabe, filas (hasta 3) sin achicarla a menos de 3/4; lo que falte, se achica
+ const fit=k=>av/(.4*Math.max(k-1,0)+1);let rows=1,per=n;
+ if(n>1&&fit(n)<cw){if(n>6)for(rows=2;rows<3;rows++){per=Math.ceil(n/rows);if(fit(per)>=cw*.75)break}per=Math.ceil(n/rows);cw=Math.min(cw,fit(per));ch=cw/CW*CH}
+ const stp=per>1?Math.min(cw*.62,(av-cw)/(per-1)):0;
+ ids.forEach((id,i)=>{const r=Math.floor(i/per),j=i-r*per,rn=Math.min(per,n-r*per),off=j-(rn-1)/2,dx=off*stp,u=dx/((x1-x0)/2);
+  let y=H-Math.max(L.bar,72)-8-ch/2+u*u*ch*.22-(rows-1-r)*ch*.42;if(sel.has(id))y-=ch*.2;else if(hov===id)y-=ch*.08;
+  const ang=Math.max(-.32,Math.min(.32,-u*.26)),hv=hov===id&&!sel.has(id),up=hv||sel.has(id),d=D-i*.004-r*.03;
   out.push({id,x:cx+dx,y,pos:loc(cx+dx,y,d),q:new THREE.Quaternion().setFromAxisAngle(Z,ang).multiply(new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-(up?.04:.3))),s:ch*upp/CH*(hv?1.06:1)})});
  return out}
 // al: hacia dónde se cargan los renglones dentro de r (x: -1 izquierda, 1 derecha; z: -1 arriba, 1 abajo; 0 al centro)
@@ -593,7 +596,7 @@ function sync(){if(!ready||!L||!active())return;
   g.ids.forEach((id,j)=>{const key='c'+id,c=ens(key,id);live.add(key);c.castShadow=true;c.userData.hit={t:'slot',k};hits.push(c);
    go(c,SC,v3(p.x+SL.pad+SL.cw/2+j*SL.ov,.014+j*.0035,p.z),FU,SL.s,{ms:380})})});
  // tu mano en abanico
- if(me>=0&&Array.isArray(G.hands[me])){const ids=disp().map(c=>c.id),F=fan(ids,8,W-76);   // la orilla derecha es de los botones (tiempo, chat): la mano no pasa por debajoL.hand=F;
+ if(me>=0&&Array.isArray(G.hands[me])){const ids=disp().map(c=>c.id),F=W>H?fan(ids,8,W-76):fan(ids,8,W-8);   // en horizontal la orilla derecha es de los botones (tiempo, chat): la mano no pasa por debajoL.hand=F;
   F.forEach((f,i)=>{const key='c'+f.id,m=ens(key,f.id);live.add(key);m.castShadow=false;m.renderOrder=hov===f.id&&!sel.has(f.id)?300:10+i*2;m.userData.hit={t:'hand',id:f.id};hits.push(m);
    selGlow(m,sel.has(f.id)||(drag&&drag.m===m));if(drag&&drag.m===m)return;go(m,CA,f.pos,f.q,f.s,{ms:260})});
 }

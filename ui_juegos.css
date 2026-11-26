@@ -414,3 +414,7 @@ html.c2don .pk-ojo{top:calc(72px + env(safe-area-inset-top,0px))}
 .t3ord.open button.on{background:var(--ui-accent);color:var(--ui-on)}
 .t3ord.open button.on svg{color:var(--ui-on)}
 @media (prefers-reduced-motion:reduce){.t3ord button,.t3ord em{transition:none}}
+/* pantalla angosta: el turno baja a una segunda línea en vez de aplastarse (quedaba una píldora verde vacía) */
+@media (max-width:560px){.gj-tl{flex-wrap:wrap;align-content:flex-start;row-gap:6px}.gj-turn{flex:none}.gj-top .gj-turn{height:36px}
+ .gj-top{align-items:flex-start}.gj-top .gj-st{flex:0 1 auto;min-width:0;height:auto;min-height:46px;padding:6px 12px;white-space:normal;line-height:1.15}
+ .gj-top:has(.gj-turn) ~ .gj-hint,.gj-top:has(.gj-turn) ~ .gj-cam{top:calc(110px + env(safe-area-inset-top,0px))}}

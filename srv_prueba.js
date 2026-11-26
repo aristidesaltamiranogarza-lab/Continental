@@ -1,4 +1,4 @@
-// /prueba (solo localhost): sala nueva de Continental con 5 jugadores y todos ya bajados. ?r=ronda (0–6), ?n=jugadores (2–5; Uno 2–8) · &casa=caja: abre la partida en la mesa de la casona
+// /prueba (solo localhost): sala nueva de Continental con 5 jugadores y todos ya bajados. ?r=ronda (0–6), ?n=jugadores (2–5; Uno 2–8) · &casa=caja: abre la partida en la mesa de la casona · &mano=N: tu mano con N cartas
 // ?g=uno: partida de Uno ya empezada contra bots · ?g=merida: Mérida en orden de salida (los demás ya tiraron)
 // ?g=merida&casas=1: ya jugando, es tu turno, $3000 y los cuatro primeros grupos de colonias completos (para el modo enfoque de construir)
 // ?g=md: Monopoly Deal contra bots, tu turno (&mesa=1: todos con banco, sets y comodines puestos)
@@ -42,6 +42,8 @@ module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
    [37,39,26,28,29].forEach(i=>G.own[i]=b);Object.assign(G.hs,{37:4,39:5,26:1,28:1,29:0});G.cash[b]=560}
   // grupos=1: cada jugador con grupos de color completos (0..7 repartidos) y dinero de sobra, para ver construir casas y hoteles
   if(q.get('grupos')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board,np=R.players.length;
-   B.forEach((s,i)=>{if(s.t=='p')G.own[i]=s.g%np});G.cash=G.cash.map(()=>999999);if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}}else if(md)mdPrueba(R,GAMES.monopolydeal,q.get('mesa'));else if(uno)GAMES.uno.start(R);else{GAMES.continental.start(R,{round:+q.get('r')||0});bajaTodos(R)}
+   B.forEach((s,i)=>{if(s.t=='p')G.own[i]=s.g%np});G.cash=G.cash.map(()=>999999);if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}}else if(md)mdPrueba(R,GAMES.monopolydeal,q.get('mesa'));else if(uno)GAMES.uno.start(R);else{GAMES.continental.start(R,{round:+q.get('r')||0});if(!q.get('mano'))bajaTodos(R)}
+ // &mano=N: tu mano con N cartas sacadas del mazo (Continental sin bajarse nadie), para probar manos grandes
+ {const mn=+q.get('mano'),G=R.G;if(mn&&G&&G.hands&&Array.isArray(G.hands[0])&&Array.isArray(G.deck)){const h=G.hands[0];while(h.length<mn&&G.deck.length)h.push(G.deck.pop())}}
  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
  res.end('<script>localStorage.setItem("cont_s",JSON.stringify({c:"'+c+'",t:"'+t+'"}));localStorage.setItem("cont_g","'+R.gt+'");location.replace("/'+(q.get('casa')?'?casa='+encodeURIComponent(q.get('casa')):'')+'")</script>')};
