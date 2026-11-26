@@ -10,7 +10,7 @@ const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 const css=document.createElement('style');css.textContent=`
 #port{--pt-c1:#F7DDB0;--pt-c2:#EFB27C;--pt-muro:#E7B47A;--pt-muro2:#D39A5E;--pt-marco:#FFF4E2;--pt-vid:#5C86A6;--pt-luz:#FFD98A;--pt-teja:#A8532E;--pt-hoja:#5F8A45;--pt-sol:#FFE7A8;--pt-nube:#FFFAF0;--pt-nubea:.75;
  position:fixed;inset:0;z-index:1001;overflow:hidden;color:var(--ui-text);font-family:var(--ui-font);background:linear-gradient(180deg,var(--pt-c1),var(--pt-c2));
- display:grid;grid-template-rows:auto 1fr;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .6s cubic-bezier(.6,0,.3,1),opacity .5s}
+ display:grid;grid-template-rows:auto 1fr;grid-template-columns:minmax(0,1fr);touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .6s cubic-bezier(.6,0,.3,1),opacity .5s}
 html[data-tema=noche] #port{--pt-c1:#1C1430;--pt-c2:#47284A;--pt-muro:#6E4A34;--pt-muro2:#583926;--pt-marco:#E9D6BE;--pt-vid:#2B2F4A;--pt-teja:#6A2E1A;--pt-hoja:#2F4A2A;--pt-sol:#F2E6C8;--pt-nube:#FFF0E6;--pt-nubea:.12}
 #port button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #port .pt-sol{position:absolute;right:12%;top:9%;width:min(18vmin,110px);aspect-ratio:1;border-radius:50%;background:var(--pt-sol);box-shadow:0 0 60px 10px color-mix(in srgb,var(--pt-sol) 45%,transparent);animation:ptSol .9s .1s cubic-bezier(.3,1.4,.5,1) both}
@@ -78,25 +78,32 @@ html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in
 @keyframes ptMueve{30%{transform:rotate(-5deg) scale(1.06)}65%{transform:rotate(4deg) scale(1.04)}}
 @keyframes ptFuera{to{transform:translateY(40px) scale(.8);opacity:0}}
 @keyframes ptLatido{40%{transform:scale(1.07)}}
-@media (orientation:landscape) and (max-height:500px){#port .pt-mid{padding:4px 16px 20vh;justify-content:flex-end}#port .pt-ops{max-width:440px;margin-right:2vw}
- #port .pt-il{width:min(100%,110px)}#port .pt-go{padding:8px 8px 10px}#port .pt-fach{width:min(110vw,140vh,760px);left:30%}#port .pt-sp{height:40px}#port.a3d .pt-fach{left:50%;bottom:10vh}}
+@media (orientation:landscape) and (max-height:500px){#port .pt-mid{padding:4px max(16px,3vw) 10px 50vw;justify-content:center}#port .pt-ops{flex-direction:column;width:min(290px,44vw);max-width:none;gap:10px}
+ #port .pt-op{position:relative;max-width:none}#port .pt-sp{display:none}
+ #port .pt-go{display:grid;grid-template-columns:auto 1fr;justify-items:start;align-items:center;column-gap:12px;row-gap:0;width:100%;padding:8px 12px 8px 10px}
+ #port .pt-il{grid-row:1/3;width:min(76px,20vh)}#port .pt-go b{align-self:end}#port .pt-go small{align-self:start}
+ #port .pt-seg{position:absolute;right:12px;top:50%;translate:0 -50%;padding:2px;box-shadow:none;background:var(--ui-chip)}#port .pt-seg button{min-height:30px;min-width:0;padding:0 10px;font-size:.8em}
+ #port .pt-fach{width:min(48vw,120vh,760px);left:26%}#port.a3d .pt-fach{left:50%;bottom:10vh}
+ #port .pt-fl.k1{left:40%!important;top:30%!important}#port .pt-fl.k3{display:none}#port .pt-fl.k4{left:26%!important;top:22%!important}}
 #port .pt-yo{position:relative}#port .pt-top{z-index:5}
 #port .pt-tema{flex:none;width:48px;height:48px;display:grid;place-items:center;padding:0;border:1px solid var(--ui-line);border-radius:50%;background:var(--ui-panel);box-shadow:var(--ui-shadow);color:var(--ui-icon);animation:ptPop .6s .65s cubic-bezier(.3,1.5,.5,1) both;transition:transform .3s}
 #port .pt-tema:active{transform:rotate(-40deg) scale(.9)}#port .pt-tema svg{width:24px;height:24px}
 #port .pt-guia{position:absolute;top:calc(100% + 4px);left:6px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;pointer-events:none;color:var(--ui-accent);font:800 14px/1.2 var(--ui-font);max-width:min(230px,46vw);animation:ptPop .5s 1.4s cubic-bezier(.3,1.5,.5,1) both;transform-origin:20px 0;z-index:2}
-#port .pt-guia svg{width:34px;height:34px;animation:ptFlecha 1.1s 2s ease-in-out infinite}
+#port .pt-guia svg{flex:none;width:34px;height:34px;animation:ptFlecha 1.1s 2s ease-in-out infinite}
 #port .pt-guia span{padding:6px 12px;border-radius:999px;background:var(--ui-panel);box-shadow:var(--ui-shadow);color:var(--ui-text)}
 #port .pt-guia.va{animation:ptFuera .3s ease-in both}
 @keyframes ptFlecha{50%{transform:translateY(-6px)}}
 #port .pt-ops{position:relative}
-#port .pt-sp{display:grid;place-items:center}
-#port .pt-ayu{width:26px;height:26px;display:grid;place-items:center;padding:0;border:1.5px solid color-mix(in srgb,var(--ui-sub) 45%,transparent);border-radius:50%;background:transparent;color:var(--ui-sub);font:800 13px/1 var(--ui-font);opacity:.7;animation:ptPop .5s 1s cubic-bezier(.3,1.5,.5,1) both;transition:opacity .2s}
+html[data-tema=noche] #port .pt-go{background:color-mix(in srgb,var(--ui-sheet),#fff 9%);border-color:var(--ui-line)}html[data-tema=noche] #port .pt-go:is(:hover,:focus-visible){border-color:var(--ui-accent)}
+#port .pt-ops{flex-wrap:wrap}#port .pt-ayu{flex-basis:100%;margin:0 auto;min-height:32px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--ui-sub);font:700 13px/1 var(--ui-font);text-decoration:underline dotted;text-underline-offset:3px;opacity:.8;animation:ptPop .5s 1s cubic-bezier(.3,1.5,.5,1) both;transition:opacity .2s}
 #port .pt-ayu:hover{opacity:1}
-#port .pt-ayu.on{opacity:1;color:var(--ui-accent);border-color:var(--ui-accent)}
+#port .pt-ayu:hover{opacity:1}
+#port .pt-ayu.on{opacity:1;color:var(--ui-accent)}
 #port .pt-ayp{position:absolute;inset:0 0 auto 0;margin:auto;max-width:340px;z-index:4;padding:14px 16px;border-radius:18px;background:var(--ui-panel);backdrop-filter:blur(8px);box-shadow:var(--ui-shadow);border:1px solid var(--ui-line);display:grid;gap:8px;font-size:14px;line-height:1.3;transform-origin:20% 100%;animation:ptPop .3s cubic-bezier(.3,1.4,.5,1) both}
 #port .pt-ayp.va{animation:ptFuera .25s ease-in both}
 #port .pt-ayp b{display:block;font-weight:900}#port .pt-ayp p{margin:0;color:var(--ui-sub)}
-@media (orientation:landscape) and (max-height:500px){#port .pt-ayp{inset:50% calc(100% + 14px) auto auto;width:270px;max-width:none;translate:0 -50%;transform-origin:100% 50%}#port .pt-guia{font-size:13px}#port .pt-guia svg{width:26px;height:26px}}
+@media (orientation:landscape) and (max-height:500px){#port .pt-ayp{inset:50% calc(100% + 14px) auto auto;width:270px;max-width:none;translate:0 -50%;transform-origin:100% 50%}#port .pt-guia{font-size:13px;max-width:none;white-space:nowrap;top:50%;left:auto;right:calc(100% + 6px);translate:0 -50%;flex-direction:row-reverse;align-items:center;transform-origin:100% 50%}#port .pt-guia svg{width:26px;height:26px;rotate:90deg}}
+@media (max-width:420px){#port .pt-top{gap:8px}#port .pt-logo{font-size:24px}#port .pt-yo{gap:6px;padding:3px}#port .pt-pj{width:36px;height:36px}#port .pt-dado{width:34px;height:34px}#port .pt-tema{width:42px;height:42px}#port .pt-yo{min-height:44px}}
 @media (prefers-reduced-motion:reduce){#port *,#port{animation-duration:.01s!important;animation-iteration-count:1!important}}`;
 document.head.appendChild(css);
 
@@ -128,15 +135,16 @@ function snd(k){if(typeof sfx=='function')try{sfx(k||'tick')}catch(e){}}
 function arma(){
  el=document.createElement('div');el.id='port';el.className='ui';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','gamemash');
  const nb=[[14,40,90],[52,26,70],[30,55,110]].map(([t,s,w],i)=>`<i class="pt-nb" style="top:${t}%;width:${w}px;animation-duration:${s}s;animation-delay:-${(i*13+5)}s"></i>`).join('');
- const fl=FLP.map(([l,t,d,a,b],i)=>`<i class="pt-fl" style="left:${l}%;top:${t}%;--a0:${a}deg;--a1:${b}deg;animation-duration:${d/3}s;animation-delay:-${i*.7}s">${FL[i]}</i>`).join('');
+ const fl=FLP.map(([l,t,d,a,b],i)=>`<i class="pt-fl k${i}" style="left:${l}%;top:${t}%;--a0:${a}deg;--a1:${b}deg;animation-duration:${d/3}s;animation-delay:-${i*.7}s">${FL[i]}</i>`).join('');
  const nm=String(typeof pname!=='undefined'&&pname||'').trim(),u=ult(),c3=hay3();
  el.innerHTML=`<i class="pt-sol"></i>${nb}${fl}<div class="pt-fach">${fach()}</div>
  <header class="pt-top"><h1 class="pt-logo" aria-label="gamemash">${[...'gamemash'].map((c,i)=>`<span style="animation-delay:${(.05+i*.05).toFixed(2)}s">${c}</span>`).join('')}</h1>
-  <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button>${ls.get('cont_av_hecho')?'':'<div class="pt-guia" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 31C10 28 8 18 12 6"/><path d="M5 12l7-7 7 6"/></svg><span>Toca para cambiar tu personaje y tu nombre</span></div>'}</div><button class="pt-tema" aria-label="Día o noche">${I(noche()?'sol':'luna')}</button></header>
+  <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button>${ls.get('cont_av_hecho')?'':'<div class="pt-guia" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 31C10 28 8 18 12 6"/><path d="M5 12l7-7 7 6"/></svg><span>Cambia tu personaje y tu nombre</span></div>'}</div><button class="pt-tema" aria-label="Día o noche">${I(noche()?'sol':'luna')}</button></header>
  <div class="pt-mid"><div class="pt-ops">
-  <div class="pt-op" data-q="ligero"><button class="pt-go${u==='ligero'||!c3?' ult':''}"><span class="pt-il">${IL2}</span><b>Plano</b><small>2D</small></button><div class="pt-sp">${c3?'<button class="pt-ayu" aria-label="¿Cuál elijo?" aria-expanded="false">?</button>':''}</div></div>
+  <div class="pt-op" data-q="ligero"><button class="pt-go${u==='ligero'||!c3?' ult':''}"><span class="pt-il">${IL2}</span><b>Plano</b><small>2D</small></button><div class="pt-sp"></div></div>
   ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go${u==='3d'?' ult':''}"><span class="pt-il">${IL3}</span><b>Casa</b><small>3D</small></button>
    <div class="pt-seg" role="radiogroup" aria-label="Calidad"><button data-c="medio" role="radio">Medio</button><button data-c="completo" role="radio">HD</button></div></div>`:''}
+  ${c3?'<button class="pt-ayu" aria-expanded="false">¿Cuál elijo?</button>':''}
   </div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
  document.body.appendChild(el);
  const seg=()=>el.querySelectorAll('.pt-seg button').forEach(b=>{const on=b.dataset.c===cal;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});seg();
