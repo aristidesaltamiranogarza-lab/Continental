@@ -71,11 +71,11 @@ function target(m,par,pos,q,s,o={}){const T=m.userData.T;
  const ly=par===CA?1:0;if(m.userData.ly!==ly){m.userData.ly=ly;m.traverse(o=>o.layers.set(ly));const hd=ly==1;m.material.forEach(x=>{x.depthTest=!hd;x.depthWrite=!hd;x.transparent=hd;x.needsUpdate=true});m.material[3].visible=!hd;if(!hd)m.renderOrder=0}
  const ms=RM||(first&&!dealing)?0:(o.ms==null?430:o.ms);
  if(!ms){m.position.copy(pos);m.quaternion.copy(q);m.scale.setScalar(s);m.userData.tw=null;return}
- m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.7:.12):o.arc,spin:o.spin||0}}
+ m.userData.tw={p0:m.position.clone(),q0:m.quaternion.clone(),s0:m.scale.x,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?(par===SC?.7:.12):o.arc,spin:o.spin||0,pv:o.pv}}
 function step(now){meshes.forEach((m,key)=>{const w=m.userData.tw,T=m.userData.T;if(!w||(drag&&drag.m===m))return;let k=(now-w.t0)/w.ms;if(k<0)return;if(k>1)k=1;
  const e=1-Math.pow(1-k,3),a=Math.sin(Math.PI*k)*w.arc;m.position.lerpVectors(w.p0,T.pos,e);if(T.par===SC)m.position.y+=a;else m.position.z+=a;
  m.quaternion.slerpQuaternions(w.q0,T.q,e);if(w.spin)m.rotateY(w.spin*(1-e));m.scale.setScalar(w.s0+(T.s-w.s0)*e);
- if(k===1){m.userData.tw=null}})}
+ if(k===1){m.userData.tw=null;if(w.pv&&window.MFX&&T.par===SC)MFX.polvo(SC,T.pos,T.s)}})}
 // brillos (mazo, descarte, turno). Son planos con textura suave; también sirven para tocar.
 function glow(key,pos,w,h,col,lvl,hit,ry){let g=glows.get(key);
  if(!g){g=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:glowTex(),transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));g.rotation.x=-Math.PI/2;g.renderOrder=1;SC.add(g);glows.set(key,g)}
@@ -265,7 +265,7 @@ function sync(){if(!ready||!L||!active())return;
  // descarte: las últimas cartas que han caído, un poco desordenadas
  if(top!=null&&pile[pile.length-1]!==top){pile=pile.filter(x=>x!==top);pile.push(top);if(pile.length>4)pile.shift()}
  pile.forEach((id,i)=>{const key='c'+id,h=hh(id),fk=from[id],m=ens(key,id,fk!=null&&fk!==me?seatW(fk):null);live.add(key);m.userData.hit={t:'disc'};hits.push(m);
-  const tp=i===pile.length-1,j=tp?.3:1;go(m,SC,v3(L.disc.x+((h%13)-6)*.03*j,.012+i*CT*L.sd*1.6+(tp?.03:0),L.disc.z+(((h>>5)%11)-5)*.03*j),Qe(0,((h>>9)%41-20)*.022*j,0),L.sd,{spin:fk!=null?Math.PI*2:0})});
+  const tp=i===pile.length-1,j=tp?.3:1;go(m,SC,v3(L.disc.x+((h%13)-6)*.03*j,.012+i*CT*L.sd*1.6+(tp?.03:0),L.disc.z+(((h>>5)%11)-5)*.03*j),Qe(0,((h>>9)%41-20)*.022*j,0),L.sd,{spin:fk!=null?Math.PI*2:0,pv:tp})});
  glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.sd*1.4,CH*L.sd*1.3,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
@@ -358,7 +358,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  if(mt&&age<4500)o+=GHUD.toast(msg?esc(msg):'<b>'+esc(G.note)+'</b>',age,mini);
  // jugadores alrededor de la mesa
  G.players.forEach((p,k)=>{if(k===i)return;const pl=V.players[k],on=!fin&&G.turn==k,n=hc(k),u1=fin?w==k:G.uno[k]&&n==1;
-  o+=`<div class="ui gj-seat u3s${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}"><b>${esc(p.name)}</b>${pl.on?'':'<i class="dot"></i>'}${pl.out?'<small>expulsado</small>':`<span class="u3n" aria-label="${n} ${n==1?'carta':'cartas'}">${n}</span>`}${u1?`<em class="u3b">${fin?'¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
+  o+=`<div class="ui gj-seat u3s${on?' on':''}${pl.out?' out':''}${VT.who==k?' look':''}${n==1?' u3one':''}" data-seat="${k}" onclick="u3dLook(${k})" title="Ver a ${esc(p.name)}"><b>${esc(p.name)}</b>${pl.on?'':'<i class="dot"></i>'}${pl.out?'<small>expulsado</small>':`<span class="u3n" aria-label="${n} ${n==1?'carta':'cartas'}"><i data-gvn="u${k}">${n}</i></span>`}${u1?`<em class="u3b">${fin?'¡Ganó!':'¡UNO!'}</em>`:''}</div>`});
  if(G.disc.length&&U(G.disc[G.disc.length-1]).c>=4)o+=`<div class="ui gj-pl" id="t3pds">${chipC(G.color)} ${UCN[G.color]}</div>`;   // solo si lo eligió un comodín
  // botones de abajo: robar el acumulado, pasar, ¡UNO!, cobrar UNO y ordenar
  let b='';

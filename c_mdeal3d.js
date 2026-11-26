@@ -299,7 +299,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  if(!fin)winHide=false;
  const pl=mine&&G.step=='play'&&!G.pa,dis=mine&&G.step=='disc',left=3-G.plays;
  const hint=fin?(w>=0&&w==i?'¡Juntaste '+G.opts.sets+' sets completos!':'Juntó '+G.opts.sets+' sets completos. ¿Otra partida?'):G.pa?'Hay una acción pendiente.':i<0?mirTxt():dis?`Descarta ${h.length-7}`:mine?(mdSel!=null||mdTg||mdSt?'':window.MD3A?MD3A.pips():left+'/3'):'Esperando a '+nm(t)+'…';
- const inf=i>=0?`Sets <b>${mdSets(i)}/${G.opts.sets}</b> · Banco <b>$${mdBank(i)}M</b>`:`Gana con <b>${G.opts.sets}</b> sets`;
+ const inf=i>=0?`Sets <b><i data-gvn="s${i}">${mdSets(i)}</i>/${G.opts.sets}</b> · Banco <b>$<i data-gvn="b${i}">${mdBank(i)}</i>M</b>`:`Gana con <b>${G.opts.sets}</b> sets`;
  const trn=fin?'Fin de la partida':mine?'¡Tu turno!':'Turno de '+nm(t);
  const lg=(G.log||[]).slice(-1)[0],lgT=lg&&lg.k>=0&&G.players[lg.k]?`${chip(lg.k)}<b>${esc(G.players[lg.k].name)}</b> ${esc(lg.t)}`:'';
  let o=GHUD.top({st:inf,turn:trn,me:mine,open:menu,menu:'md3Menu()',right:(window.MCAM?MCAM.boton(VT.top,'md3Arriba()'):'')+GHUD.view('md3Home()')});
@@ -311,7 +311,7 @@ function hud(){const G=V.G,i=V.me,t=G.turn,fin=G.phase=='final',w=G.win,mine=!fi
  const W2={wait:mdSK(G.pa&&G.pa.k)?'debe responder':'debe pagar',say:'«Di que no»',paid:'listo',no:'anulado'};
  G.players.forEach((p,k)=>{if(k===i)return;const pp=P[k],on2=!fin&&G.turn==k,px=G.pa&&G.pa.tg.find(y=>y.k==k),tg=mdTg&&mine&&!pp.out;
   o+=`<div class="ui gj-seat md3seat${on2?' on':''}${pp.out?' out':''}${VT.who==k?' look':''}${tg?' tgm':''}" data-seat="${k}" onclick="md3Seat(${k})" title="${tg?'Elegir a ':'Ver a '}${esc(p.name)}">${chip(k)}<b>${esc(p.name)}</b> <i class="dot${pp.on?' on':''}"></i>
-  <small>${pp.out?'expulsado':`${hc(k)} cartas · $${mdBank(k)}M · ${mdSets(k)}/${G.opts.sets} sets`}</small>${pp.out?'':`<span class="md3pips">${MD3U.pips(k)}</span>`}${px?`<em class="u3b">${W2[px.st]}</em>`:G.pa&&G.pa.by==k?'<em class="u3b">cobra</em>':fin&&w==k?'<em class="u3b">¡Ganó!</em>':''}</div>`});
+  <small>${pp.out?'expulsado':`${hc(k)} cartas · $<i data-gvn="b${k}">${mdBank(k)}</i>M · <i data-gvn="s${k}">${mdSets(k)}</i>/${G.opts.sets} sets`}</small>${pp.out?'':`<span class="md3pips">${MD3U.pips(k)}</span>`}${px?`<em class="u3b">${W2[px.st]}</em>`:G.pa&&G.pa.by==k?'<em class="u3b">cobra</em>':fin&&w==k?'<em class="u3b">¡Ganó!</em>':''}</div>`});
  o+=`<div class="ui gj-pl" id="md3pdk">Mazo · ${G.deck}</div>`;
  o+=MD3U.caja();
  let b='';
