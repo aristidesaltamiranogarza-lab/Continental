@@ -307,8 +307,8 @@ function step(now,dt){const G=G0;if(!G)return;let moving=false;hstep(now);bstep(
    if(anim[k]&&a.path.length){const to=a.path[0];a.lastTo=to;const last=a.path.length==1&&!a.cop,[x,z]=last?slot(k,G):cpos(to),u=Math.min(1,t),w=hp?window.MRIT.paso(u,hp):u;
     T.position.set(a.from.x+(x-a.from.x)*w,.1+(hp?window.MRIT.alto(u,hp)*.4*hp.h:Math.sin(u*Math.PI)*.4),a.from.z+(z-a.from.z)*w);if(a.fol&&!touched){VT.x=T.position.x;VT.z=T.position.z;VT.k=Math.max(VT.k,back?Math.max(back.k,1.7):1.7);clampV()}}}
   const on=k===G.turn&&G.phase=='play';T.rotation.y=VW.a+(on?Math.sin(now/420)*.3*amp(now):0);tfx3(k,T,now);
-  const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.42,Math.min(2.6,d*.03))*(on?1.35:1);   // casi del mismo tamaño en pantalla, de cerca o de lejos
-  A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.72+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w*amp(now),T.position.z)});
+  const A=arrs[k],d=CA.position.distanceTo(T.position),w=Math.max(.24,Math.min(1.5,d*.017))*(on?1.3:.85);   // casi del mismo tamaño en pantalla, de cerca o de lejos; chicas para no tapar las fichas
+  A.scale.set(w,w*A.userData.r,1);A.position.set(T.position.x,T.position.y+.82+(Math.sin(now/(on?170:260)+k)*.5+.5)*.22*w*amp(now),T.position.z)});
  const k=G.turn,T=toks[k];ring.visible=!!T&&G.phase=='play'&&!G.bk[k];if(T){ring.position.set(T.position.x,T.position.y+.02,T.position.z);ring.scale.setScalar(1+Math.sin(now/250)*.08*amp(now))}
  dados(now);
  // la cámara se desliza hacia donde va
