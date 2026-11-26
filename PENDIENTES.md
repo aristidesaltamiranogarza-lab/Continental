@@ -300,8 +300,10 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 - [ ] Hojas y paneles: abrir con un leve resorte y las filas entrando una tras otra.
 
 ## Mano con muchas cartas (Uno y Continental, 26 nov 2026)
-Hecho: 4 colores de palo (picas negro, corazones rojo, diamantes naranja, tréboles azul oscuro); mano 2D medida con su ancho real y en dos filas si no se ve la esquina (M2D.fila); 3D Continental en dos filas antes y libre la orilla de los botones; la carta que se asoma es la que se toma; soltar cerca del pozo ya no descarta; Uno en táctil: primer toque levanta, segundo juega.
-- [ ] Dedo que pasa (lupa) en táctil: deslizar sobre la mano agranda la carta de abajo; marcar al soltar. Choca con arrastrar: arrastrar pasaría a presión larga.
-- [ ] Reordenar con presión larga; la mano se abre para dejar hueco; botón "Acomodar" en Continental (tercias y corridas con espacio entre grupos).
-- [ ] Continental: botón "Descartar <carta>" con el nombre de la carta marcada.
-- [ ] Animaciones: carta marcada con rebote, cambio a dos filas con viaje (FLIP), comprar y descartar volando.
+Hecho: 4 colores de palo; mano siempre en UNA fila (el usuario no quiere filas), tamaño fijo y se enciman más (como Balatro); Continental en celular vertical pide girar (c_girar.js); soltar cerca del pozo ya no descarta; Uno táctil: primer toque levanta, segundo juega. Continental 3D y 2D (c_mano2d.js): tomar la carta cuya esquina asoma (en reposo), arrastre con resorte e inclinación, hueco que sigue al dedo. Cartas nuevas iguales en 2D y 3D (c_cont_cartas.js, CCART; comodín con antifaz).
+- [ ] Probar en celular real: aviso de girar, arrastre 2D/3D con el dedo, cartas nuevas.
+- [ ] Botones fijos bajo la mano como Balatro: Bajar / Descartar <carta> y ordenar por número o palo; tocar una carta solo la levanta (nada se descarta por accidente).
+- [ ] Botón "Acomodar" en Continental (tercias y corridas con espacio entre grupos).
+- [ ] Animaciones: carta marcada con rebote, comprar y descartar volando (nivel portada).
+- [ ] Uno: mismo tomar/arrastrar de Balatro (el usuario dijo que Uno está bien por ahora).
+- [ ] Quedan emojis en otros archivos (Monopoly Deal, Cubilete, chat, etc.); quitarlos al tocar cada uno.
