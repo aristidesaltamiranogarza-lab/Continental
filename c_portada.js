@@ -63,10 +63,10 @@ html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in
 #port.sale .pt-op.yo .pt-go{animation:ptLatido .4s ease-out}
 #port.a2d.va{transform:translateY(-104%)}
 #port.a3d .pt-top,#port.a3d .pt-ops{transition:opacity .35s .15s,transform .45s .15s}#port.a3d .pt-top{opacity:0;transform:translateY(-30px)}#port.a3d .pt-ops{opacity:0;transform:translateY(30px) scale(.9)}
-#port.a3d .pt-fach{bottom:22vh;transform:scale(1.08)}
+#port.a3d .pt-fach{bottom:22vh;transform:scale(1.08);transform-origin:47.75% 84%}
 #port.a3d .pt-bar{opacity:1;transition-delay:.5s}
 #port.a3d .pt-fl{animation-duration:2.4s!important}
-#port.a3d.va{opacity:0;transition:opacity .7s .25s}#port.a3d.va .pt-fach{transform:scale(5.5);transition:transform 1s cubic-bezier(.6,0,.4,1)}
+#port.a3d.va{opacity:0;transition:opacity .45s .4s}#port.a3d.va .pt-bar{opacity:0;transition:opacity .2s}#port.a3d.va .pt-fach{transform:scale(9);transition:transform 1s cubic-bezier(.6,0,.4,1)}
 @keyframes ptSol{from{transform:scale(0)}}
 @keyframes ptNube{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
 @keyframes ptFlota{from{transform:translateY(0) rotate(var(--a0))}to{transform:translateY(-26px) rotate(var(--a1))}}
