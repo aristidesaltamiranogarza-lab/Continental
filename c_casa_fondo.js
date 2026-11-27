@@ -10,9 +10,13 @@ const PC=new THREE.Plane(),PH=new THREE.Plane(),F=new THREE.Vector3(),PCS=[PC],P
 // lo que queda entre la cámara y la mesa (lámparas, ventiladores, el techo) no se dibuja: un plano corta todo lo que esté más cerca
 // que el borde más cercano de la cubierta. Solo al ver desde arriba (de lado taparía el piso de enfrente). corte(cam,c,r,mg): c centro de la cubierta, r su radio
 // techo (opcional): viendo desde arriba también se quita lo que cuelga más alto que techo sobre la cubierta (focos y guirnaldas de una pérgola)
-function corte(cam,c,r,mg,techo){cam.getWorldDirection(F);const k=Math.min(1,Math.max(0,(-F.y-.55)/.2));
- PC.normal.copy(F);PC.constant=k?-F.dot(cam.position)-(F.dot(P.copy(c).sub(cam.position))-r*Math.sqrt(Math.max(0,1-F.y*F.y))-mg):1e9;
- if(techo&&k){PH.normal.set(0,-1,0);PH.constant=c.y+techo;return PCS2}return PCS}
+// nunca más cerca que el piso que se ve: la esquina de abajo del cuadro (con margen por el corrimiento de la vista) pega en el piso a dF;
+// el piso queda ~1.5 bajo la cubierta (todas las mesas a la misma altura). Sin esto, viendo inclinado se iba el piso cercano y se veía el de abajo.
+function corte(cam,c,r,mg,techo){cam.getWorldDirection(F);const cy0=c.y;   // c puede ser P (se modifica abajo)
+const k=Math.min(1,Math.max(0,(-F.y-.55)/.2));
+ const sy=-F.y,cy=Math.sqrt(Math.max(0,1-sy*sy)),dF=(cam.position.y-cy0+1.5)/Math.max(.05,sy+Math.tan((cam.fov||50)*Math.PI/360)*1.6*cy)-.1;
+ PC.normal.copy(F);PC.constant=k?-F.dot(cam.position)-Math.min(dF,F.dot(P.copy(c).sub(cam.position))-r*cy-mg):1e9;
+ if(techo&&k){PH.normal.set(0,-1,0);PH.constant=cy0+techo;return PCS2}return PCS}
 const casa=()=>window.CASA3D&&CASA3D.fondo&&CASA3D.R&&CASA3D.R()?CASA3D:null;
 let tA=0;
 // pinta(R, cam, g, o) cada cuadro, antes de dibujar el juego. o: {r: medio ancho de la mesa del juego (sus unidades), y: altura de su cubierta,
