@@ -9,7 +9,7 @@ const rules=`<details><summary>Reglas</summary>${RU.TOT} fichas: dos juegos del 
 <br>Gana quien se quede sin fichas. Si se acaba la bolsa y nadie puede jugar, gana quien tenga menos puntos en mano (el comodín vale ${RU.JV}).</details>`;
 function lobby(host){const o=V.opts||{},row=(k,n,L,f)=>`<div class="top">${n}: <b>${f(o[k])}</b></div>`+(host?L.map(v=>`<button class="b g sm2${o[k]===v?' on':''}" onclick="send({t:'opts',o:{${k}:${JSON.stringify(v)}}})">${f(v)}</button>`).join(''):'');
  return `<div class="box"><b>Reglas de esta sala</b><br>`+row('t','Tiempo por turno',[30,45,60,90],v=>v+' s')+`</div>`
-  +(host?`<button class="b" ${V.players.length<2?'disabled':''} onclick="send({t:'start'})">Empezar partida</button><div class="top">De 2 a 5 jugadores, sin bots.</div>`:'')}
+  +(host?`<div class="box"><b>Bots</b><br><button class="b g sm2" ${V.players.length>=5?'disabled':''} onclick="send({t:'addbot'})">Agregar bot</button><div class="top">Juegan solos. Para quitar uno, usa «Expulsar» en la lista.</div></div><button class="b" ${V.players.length<2?'disabled':''} onclick="send({t:'start'})">Empezar partida</button><div class="top">De 2 a 5 jugadores.</div>`:'')}
 const body=()=>`<div class="box"><b>🀄 Rummy</b><p>No se pudo cargar la mesa. Recarga la página.</p></div>`;
 GM.rummy={name:'Rummy',emoji:'🀄',max:5,rules,lobby,body,face:()=>({h:''})};
 })();

@@ -1,8 +1,8 @@
-// Rummy de fichas: 106 fichas (dos juegos de 1–13 en 4 colores y 2 comodines), de 2 a 5 personas, sin bots. 14 fichas a cada quien; el resto va a la bolsa. Una sola mano.
+// Rummy de fichas: 106 fichas (dos juegos de 1–13 en 4 colores y 2 comodines), de 2 a 5 personas; bots en g_rummy_bot.js. 14 fichas a cada quien; el resto va a la bolsa. Una sola mano.
 // Turno: el cliente manda la mesa final (t:'end', mesa) y el servidor la valida con rummy_reglas.js. Sin fichas propias en la mesa: roba 1. Mesa inválida o se acaba el tiempo: la mesa vuelve a como estaba y roba 1.
 // Mientras arma, el cliente manda la mesa temporal (t:'tmp', mesa) para que los demás vean los movimientos en vivo (G.tmp, G.tn). La bolsa y los atriles ajenos nunca salen en la vista.
 // Fin: gana quien se queda sin fichas; si la bolsa está vacía y nadie juega en una ronda completa, gana quien tenga menos puntos en mano (comodín 30).
-const cr=require('crypto'),RU=require('./rummy_reglas.js'),NAV=8,LATE=800;
+const cr=require('crypto'),RU=require('./rummy_reglas.js'),{bot}=require('./g_rummy_bot.js'),NAV=8,LATE=800;
 // opciones: t segundos por turno
 const OPTS={t:90},RNG={t:[30,120]};
 const pn=(G,k)=>G.players[k].name,vivos=G=>G.ord.filter(k=>!G.out[k]);
@@ -21,7 +21,7 @@ function next(G,k){const L=G.ord,p=L.indexOf(k);for(let s=1;s<=L.length;s++){con
 function pasa(R,i,por,err){const G=R.G,x=G.bag.pop(),n=pn(G,i);G.tmp=null;
  if(x!=null){G.racks[i].push(x);G.idle=0;fx(G,'roba',i)}else G.idle++;
  if(por)fx(G,por,i);
- lg(G,(por=='tiempo'?'⏳ A '+n+' se le acabó el tiempo. ':por=='mal'?'❌ '+err+' La mesa de '+n+' volvió a como estaba. ':'')+(x!=null?n+' robó una ficha.':n+' pasó: ya no hay fichas en la bolsa.'));
+ lg(G,(por=='tiempo'?'A '+n+' se le acabó el tiempo. ':por=='mal'?err+' La mesa de '+n+' volvió a como estaba. ':'')+(x!=null?n+' robó una ficha.':n+' pasó: ya no hay fichas en la bolsa.'));
  if(!G.bag.length&&G.idle>=vivos(G).length)return fin(R,null,'bolsa');
  begin(R,next(G,i))}
 function juega(R,i,r){const G=R.G;G.mesa=r.mesa;G.racks[i]=G.racks[i].filter(x=>!r.jug.includes(x));G.tmp=null;G.idle=0;
@@ -51,4 +51,4 @@ function kick(R,k){const G=R.G;if(!G||G.phase!='play'||G.out[k])return;G.out[k]=
 function view(R,tok,me,now){const G=R.G,i=R.players.findIndex(p=>p.tok==tok),v=Object.assign({},G);delete v.bag;delete v.racks;
  v.nb=G.bag.length;v.nr=G.racks.map(r=>r.length);v.mio=i>=0?G.racks[i].slice():null;if(G.phase!='play')v.racks=G.racks;
  v.el=now-G.t0;v.left=G.at?Math.max(0,G.at-now):0;v.fx=G.fx.filter(f=>now-f.ts<8000).map(f=>Object.assign({},f,{ago:now-f.ts}));return {G:v,claim:false,pend:false}}
-module.exports={id:'rummy',name:'Rummy',min:2,max:5,opts:OPTS,rng:RNG,start,view,act,kick,tick};
+module.exports={id:'rummy',name:'Rummy',min:2,max:5,opts:OPTS,rng:RNG,start,view,act,kick,tick,bot};
