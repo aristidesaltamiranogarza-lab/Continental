@@ -5,7 +5,7 @@
 // (c_bienvenida.js), que al Entrar usa PTDA.ve(q) para las mismas transiciones. Se carga después de c_bienvenida.js y antes de c_casa3d.js.
 (function(){
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
-const inGame=()=>typeof S!=='undefined'&&!!S,I=n=>window.UI&&UI.ico?UI.ico(n):'',noche=()=>document.documentElement.dataset.tema==='noche';
+const inGame=()=>{if(typeof S!=='undefined')return !!S;try{return !!JSON.parse(ls.get('cont_s')||'null')}catch(e){return false}},I=n=>window.UI&&UI.ico?UI.ico(n):'',noche=()=>document.documentElement.dataset.tema==='noche';
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const css=document.createElement('style');css.textContent=`
 #port{--pt-c1:#F7DDB0;--pt-c2:#EFB27C;--pt-muro:#D9A27F;--pt-muro2:#C58C6B;--pt-marco:#FFF4E2;--pt-vid:#5C86A6;--pt-luz:#FFD98A;--pt-teja:#A8532E;--pt-hoja:#5F8A45;--pt-sol:#FFE7A8;--pt-nube:#FFFAF0;--pt-nubea:.75;--pt-can:#EEE0C8;--pt-lam:#5C8771;--pt-per:#6F9D86;--pt-fe:#2B211C;--pt-por:#7E4F33;--pt-mad:#8A6244;--pt-tin:#3A3D42;--pt-v1:#E3C47C;--pt-v2:#A7C2BE;--pt-ban:#D6C4AB;--pt-calle:#A99A8B;--pt-bug:#C9417C;--pt-sil:#4A2A1A;--pt-farol:#F6EAD0;--pt-lin:#7A3E1E;--pt-cua:rgba(122,62,30,.11);
@@ -67,7 +67,7 @@ html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in
 @media (hover:hover){#port .pt-in:hover{transform:translateY(-4px) scale(1.03)}}
 #port .pt-in:active{transform:scale(.95);transition-duration:.08s}html.teclado #port .pt-in:focus-visible{outline:3px solid var(--ui-text);outline-offset:3px}
 #port .pt-modo{display:flex;padding:3px;border-radius:999px;background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow);animation:ptPop .5s .75s cubic-bezier(.3,1.5,.5,1) both}
-#port .pt-modo button{min-height:40px;padding:0 16px;border:0;border-radius:999px;background:transparent;font-weight:800;font-size:.92em;color:var(--ui-sub);transition:background .2s,color .2s,box-shadow .2s,transform .15s}
+#port .pt-modo button{min-height:40px;min-width:60px;padding:0 16px;border:0;border-radius:999px;background:transparent;font-weight:800;font-size:.92em;color:var(--ui-sub);transition:background .2s,color .2s,box-shadow .2s,transform .15s}
 #port .pt-modo button.on{background:var(--ui-chip);color:var(--ui-text);box-shadow:inset 0 0 0 1.5px var(--ui-accent)}#port .pt-modo button:active{transform:scale(.92)}
 #port.sale .pt-in{animation:ptLatido .4s ease-out}
 #port .pt-rec{position:absolute;top:-10px;left:50%;translate:-50% 0;padding:3px 10px;border-radius:999px;background:var(--ui-accent);color:var(--ui-on);font:800 12px/1.2 var(--ui-font);white-space:nowrap}
@@ -93,7 +93,7 @@ html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in
 @keyframes ptMueve{30%{transform:rotate(-5deg) scale(1.06)}65%{transform:rotate(4deg) scale(1.04)}}
 @keyframes ptFuera{to{transform:translateY(40px) scale(.8);opacity:0}}
 @keyframes ptLatido{40%{transform:scale(1.07)}}
-@media (orientation:portrait){#port .pt-fach{width:min(175vw,92vh,1080px)}#port .pt-mid{padding-bottom:36vh}}
+@media (orientation:portrait){#port .pt-fl.k3{top:47%!important}#port .pt-fach{width:min(175vw,92vh,1080px)}#port .pt-mid{padding-bottom:36vh}}
 @media (orientation:landscape) and (max-height:500px){#port .pt-mid{padding:4px max(16px,3vw) 10px 50vw;justify-content:center}#port .pt-ops{flex-direction:column;width:min(290px,44vw);max-width:none;gap:10px}
  #port .pt-op{position:relative;max-width:none}#port .pt-sp{display:none}
  #port .pt-go{display:grid;grid-template-columns:auto 1fr;justify-items:start;align-items:center;column-gap:12px;row-gap:0;width:100%;padding:8px 12px 8px 10px}
@@ -216,7 +216,7 @@ function arma(){
  el=document.createElement('div');el.id='port';el.className='ui';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','gamemash');
  const nb=[[14,40,90],[52,26,70],[30,55,110]].map(([t,s,w],i)=>`<i class="pt-nb" style="top:${t}%;width:${w}px;animation-duration:${s}s;animation-delay:-${(i*13+5)}s"></i>`).join('');
  const fl=FLP.map(([l,t,d,a,b],i)=>`<i class="pt-fl k${i}" style="left:${l}%;top:${t}%;--a0:${a}deg;--a1:${b}deg;animation-duration:${d/3}s;animation-delay:-${i*.7}s">${FL[i]}</i>`).join('');
- const nm=String(typeof pname!=='undefined'&&pname||'').trim(),u=ult(),c3=hay3(),pri=!ls.get('casa_cal');modo=u==='ligero'||!c3?'ligero':'3d';
+ const nm=String(typeof pname!=='undefined'&&pname||ls.get('cont_n')||'').trim(),u=ult(),c3=hay3(),pri=!ls.get('casa_cal');modo=u==='ligero'||!c3?'ligero':'3d';
  const debil=matchMedia('(pointer:coarse)').matches&&((navigator.deviceMemory||8)<=4||(navigator.hardwareConcurrency||8)<=4),rec=t=>(debil?'ligero':'3d')===t&&c3?'<i class="pt-rec">Recomendado</i>':'';
  const F=fach();el.innerHTML=`<i class="pt-sol"></i>${nb}${fl}<div class="pt-fach"><div class="pt-fz"><i class="pt-cuad"></i><div class="pt-col">${F}</div><div class="pt-ln">${F.replace(/ptArco/g,'ptArcoL')}</div></div></div>
  <header class="pt-top"><h1 class="pt-logo" aria-label="gamemash">${[...'gamemash'].map((c,i)=>`<span style="animation-delay:${(.05+i*.05).toFixed(2)}s">${c}</span>`).join('')}</h1>
@@ -225,7 +225,7 @@ function arma(){
   <div class="pt-op" data-q="ligero"><button class="pt-go">${rec('ligero')}<span class="pt-il">${IL2}</span><b>Plano</b><small>2D, ligero</small></button></div>
   ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go">${rec('3d')}<span class="pt-il">${IL3}</span><b>Casa</b><small>3D</small></button></div>`:''}`
  :`<div class="pt-ent"><button class="pt-in"><span>Entrar</span>${I('jugar')}</button>
-  ${c3?'<div class="pt-modo" role="radiogroup" aria-label="Modo"><i class="pt-mi"></i><button data-m="3d" role="radio">Casa 3D</button><button data-m="ligero" role="radio">Plano 2D</button></div>':''}</div>`}</div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
+  ${c3?'<div class="pt-modo" role="radiogroup" aria-label="Modo"><i class="pt-mi"></i><button data-m="ligero" role="radio">2D</button><button data-m="3d" role="radio">3D</button></div>':''}</div>`}</div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
  document.body.appendChild(el);
  // alzado: largo de cada trazo y su turno (de abajo hacia arriba, de izquierda a derecha; los detalles chicos al final)
  const ln=el.querySelector('.pt-ln svg');let listo=false;
@@ -247,7 +247,7 @@ function arma(){
  const ent=el.querySelector('.pt-in');if(ent)ent.onclick=()=>elige(modo==='3d'?cal:'ligero');
  el.querySelectorAll('.pt-op').forEach(o=>o.querySelector('.pt-go').onclick=()=>elige(o.dataset.q==='3d'?cal:'ligero'));
  const pj=el.querySelector('.pt-pj');pinta(pj);
- const nmI=el.querySelector('.pt-nm'),ancho=()=>{nmI.style.width=Math.max(4,nmI.value.length+1)+'ch'};ancho();nmI.oninput=()=>{nmI.classList.remove('mal');ancho()};
+ const nmI=el.querySelector('.pt-nm'),ancho=()=>{nmI.style.width=Math.max(4,nmI.value.length+1)+'ch'};ancho();if(!nmI.value)addEventListener('DOMContentLoaded',()=>{if(el&&!nmI.value&&window.BIEN&&BIEN.rnd){nmI.value=BIEN.rnd();ancho()}});nmI.oninput=()=>{nmI.classList.remove('mal');ancho()};
  el.querySelector('.pt-dado').onclick=()=>{if(window.BIEN&&BIEN.rnd){nmI.value=BIEN.rnd(nmI.value);ancho();snd()}};
  const guia=()=>{const g=el.querySelector('.pt-guia');if(g&&!g.classList.contains('va')){g.classList.add('va');setTimeout(()=>g.remove(),300)}};
  nmI.addEventListener('focus',guia);
