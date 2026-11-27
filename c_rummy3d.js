@@ -10,7 +10,7 @@ if(typeof THREE==='undefined'||!window.RUMMY||!window.RUK)return;
 const RU=window.RUMMY,K=window.RUK,v3=(x,y,z)=>new THREE.Vector3(x,y,z),cl=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,t)=>a+(b-a)*t;
 const RMo=()=>typeof RM!='undefined'&&RM;
 const FELT=['#2f7d63','#123f33'],SO=.34,DC=3,TILT=K.TILT;   // SO: fichas de los atriles ajenos · DC: distancia de tu atril a su cámara
-(window.MESA_J=window.MESA_J||{}).rummy={col:()=>FELT,logo:null};
+(window.MESA_J=window.MESA_J||{}).rummy={col:()=>FELT,logo:null,ext:true};
 let R,SC,CA,CR,root,cv,ready=false,failed=false,shown=false,shR=false,fz=0,W=0,H=0,dirty=true,gen=0,anim=true,first=true,lastNow=0;
 let IN={t:0,r:0,rb:0},S=null,mesa=null,tbl=null,bag=null,clock=null,TW=null,TC=null,myR=null,myK='',rk={},glowM=null,LT=null,RK=null,dealT=0,gameK='';
 const P=new Map(),pool={s:[],r:[],b:[]},idxW=[],idxC=[],X=v3(1,0,0),Y=v3(0,1,0);
@@ -37,7 +37,7 @@ function init(){if(ready||failed)return;try{
  glowM=K.plano(K.brillo(),{blending:THREE.AdditiveBlending});glowM.visible=false;SC.add(glowM);
  ready=true;requestAnimationFrame(loop)}catch(e){console.warn('Rummy 3D:',e);failed=true}}
 function build(n){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
- tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n,col:FELT,logo:null,aire:true});mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));
+ tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n,col:FELT,logo:null,aire:true,ext:true});mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));
  if(window.C3D&&C3D.buildRoom){const room=C3D.buildRoom(false,mesa.r,mesa.r);tbl.add(room);tbl.userData.room=room}
  const r=mesa.r;bag=K.bolsa();bag.position.set(r*.6,0,r*.62);bag.rotation.y=.5;tbl.add(bag);
  clock=K.reloj();clock.position.set(-r*.63,0,r*.6);clock.scale.setScalar(1.1);tbl.add(clock);

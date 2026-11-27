@@ -527,7 +527,7 @@ function faDe(t){if(t.fa==null){const o=TB.filter(x=>x!==t),b=o.length?null:(FL|
 // la mesa del juego en la casa (MESA.casa): n sillas, yo = tu lugar en la sala (tu silla del lado de faDe, como en la partida). true si se rearmó
 function mesaJ(t,n,yo){let a=0;try{a=faDe(t)}catch(e){}const J=MESA.juegos[t.g],col=J.col(),k=n+'|'+yo+'|'+a+'|'+col;if(t.mjK===k)return false;t.mjK=k;const H=t.hits;
  if(t.G.mj)t.G.mj.traverse(o=>{const i=H.indexOf(o);if(i>=0)H.splice(i,1)});
- const q=MESA.casa(t.G,{n,yo,a,y:TH+.07,col,logo:J.logo,hit:t.hit,r:J.r?J.r(n):0,aire:t.aire});t.chairs=q.sillas;t.mesa=q.m;t.r=q.m.R/q.s;t.G.mj.traverse(o=>{if(o.userData.hit)H.push(o)});return true}
+ const q=MESA.casa(t.G,{n,yo,a,y:TH+.07,col,logo:J.logo,hit:t.hit,r:J.r?J.r(n):0,aire:t.aire,ext:J.ext});t.chairs=q.sillas;t.mesa=q.m;t.r=q.m.R/q.s;t.G.mj.traverse(o=>{if(o.userData.hit)H.push(o)});return true}
 const cp=c=>c.userData.off||c.position;
 // después de rearmar: los que ya estaban sentados pasan a su silla nueva (sin volver a aparecer)
 function reubica(t){seated.forEach((s,k)=>{if(s.t!==t)return;const c=t.chairs[s.j];if(!c){if(s.av){AV.quita(s.g);if(s.ch&&s.ch.parent)s.ch.parent.remove(s.ch)}else disposeG(s.g);seated.delete(k);return}
