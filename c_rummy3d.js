@@ -134,7 +134,7 @@ function sync(s){S=s;if(!ready||!act())return;const G=s.G,n=G.players.length;if(
  if(!first&&!dealing)L.gr.forEach(r=>{const g=s.mesa[r.g],key=g&&g.slice().sort((a,b)=>a-b).join();if(key&&val.has(key)&&!prevVal.has(key)&&g.some(id=>!A.has(id))){if(window.MFX)MFX.destello(SC,v3(r.x,.02,r.z),r.w+L.tw*.4,L.th*1.4,0xffe7a0);sfx('grupo',.8)}});
  prevVal=val;
  // tu atril
- if(s.atril){const L2=rackLay(),n2=s.atril.length;s.atril.forEach((id,j)=>{const k='t'+id,x=P.get(k),sl=rackSlot(j,n2),up=id===s.sel;if(id===dg){if(x)x.vivo=gen;return}let de=null,delay=0,ms=300;
+ if(s.atril){const L2=rackLay(),n2=s.atril.length;s.atril.forEach((id,j)=>{const k='t'+id,x=P.get(k),sl=rackSlot(j,n2),up=id===s.sel||!!(s.mx&&s.mx.includes(id));if(id===dg){if(x)x.vivo=gen;return}let de=null,delay=0,ms=300;
    if(!x){de={fr:'w',p:boca(),q:QI,s:L.tw};ms=dealing?640:560;if(dealing)delay=(j*n+rel(s.me))*26}
    const p=up?sl.p.clone().add(v3(0,L2.sc*.42,0).applyQuaternion(myR.quaternion)):sl.p;
    pon(k,id,'c',p,sl.q,L2.sc,{de,delay,ms,arc:de?L2.sc*1.5:undefined,snd:!!de&&!dealing,tint:up?TSEL:null,hit:{t:'atril',id,i:j}})})}
@@ -270,9 +270,9 @@ function tap(h){if(!window.RMU||!S)return;const sel=S.sel;
  if(h.t=='bolsa'){sfx('tap');return RMU.bolsa&&RMU.bolsa()}
  if(h.t=='hueco')return sel!=null&&RMU.put(sel,h.d.g<0?{g:-1}:{g:h.d.g,at:h.d.at});
  if(h.t=='atril2'){sfx('tap');return}
- if(h.id===sel)return RMU.pick(null);
+ if(h.id===sel)return S.mx&&S.mx.length&&RMU.mas?RMU.mas(h.id):RMU.pick(null);
  if(sel==null)return RMU.pick(h.id);
- if(h.t=='atril')return RMU.put(sel,{r:h.i});
+ if(h.t=='atril'){if(S.my&&RMU.mas&&S.atril&&S.atril.includes(sel))return RMU.mas(h.id);return RMU.put(sel,{r:h.i})}
  if(h.t=='mesa'){const fromRack=S.atril&&S.atril.includes(sel);if(!fromRack&&!S.mesa.flat().includes(sel))return RMU.pick(h.id);return RMU.put(sel,{g:h.g,at:h.i+1})}}
 addEventListener('keydown',e=>{if(!act()||/INPUT|TEXTAREA/.test((e.target&&e.target.tagName)||''))return;if(e.key==='Escape'&&S&&S.sel!=null)RMU.pick(null)});
 

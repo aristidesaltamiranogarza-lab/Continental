@@ -9,7 +9,7 @@ const origBody=GM.rummy.body,cp=m=>m.map(g=>g.slice()),LOCK='Antes de tu primera
 const ls=(k,d)=>{try{const x=localStorage.getItem(k);return x==null?d:x}catch(e){return d}},lss=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const lig=()=>ls('casa_3d','1')==='0'||window.CALIDAD==='ligero';
 // key: turno que se arma (G.tc:G.turn) · base: la mesa al empezar · work: la mesa de trabajo · placed: fichas del atril puestas · hist: Deshacer
-let on=false,ok=true,key='',base=[],work=[],placed=new Set(),hist=[],sel=null,order=[],modo=ls('rm_orden','grupos'),manual=false,ayuda=ls('rm_ayuda','1')!=='0';
+let on=false,ok=true,key='',base=[],work=[],placed=new Set(),hist=[],sel=null,mx=[],order=[],modo=ls('rm_orden','grupos'),manual=false,ayuda=ls('rm_ayuda','1')!=='0';
 let aviso='',avT=0,lastV=null,tmpT=0,tmpK='',busy=false,dl=0,vista=ls('rm_view',lig()?'2d':'3d'),menu=false,sugK='',sug=[],lastF=-1,turnoT=0,finT=0,big=false;
 const active=()=>typeof S!='undefined'&&!!S&&typeof V!='undefined'&&!!V&&V.game==='rummy'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final');
 const me=()=>V.me,mine=()=>V.G.mio||[];
@@ -31,10 +31,10 @@ function sugs(){const M=mine().filter(x=>!placed.has(x)),k=M.slice().sort((a,b)=
 function ordenar(M){if(modo=='grupos'&&ayuda){const S2=sugs(),u=new Set(S2.flat());return S2.flat().filter(x=>M.includes(x)).concat(RU.ordena(M.filter(x=>!u.has(x)),false))}return RU.ordena(M,modo=='numero')}
 function syncOrder(){const M=mine();if(!manual||!order.length){order=ordenar(M);return}order=order.filter(x=>M.includes(x));M.forEach(x=>{if(!order.includes(x))order.push(x)})}
 // lo que dibuja el tablero: en tu turno tu mesa de trabajo; si no, la mesa temporal de quien juega
-function view(){const G=V.G,my=myTurn(),live=G.phase=='play'&&!my&&G.tmp,mesa=my?work:live?G.tmp:G.mesa,A=new Set(G.mesa.flat());
+function view(){mx=sel!=null&&inRack(sel)&&myTurn()?mx.filter(x=>x!==sel&&inRack(x)):[];const G=V.G,my=myTurn(),live=G.phase=='play'&&!my&&G.tmp,mesa=my?work:live?G.tmp:G.mesa,A=new Set(G.mesa.flat());
  const bad=new Set(),lock=new Set();mesa.forEach((g,k)=>{if(!RU.grp(g))bad.add(k);if(my&&!G.down[me()]&&g.some(x=>A.has(x)))lock.add(k)});
  const nuevas=new Set(my?placed:live?G.tmp.flat().filter(x=>!A.has(x)):[]),atril=me()>=0?order.filter(x=>!placed.has(x)):null;
- return {mesa,atril,sel,bad,nuevas,lock,my,G,me:me(),dl,cnt:G.players.map((_,k)=>cnt(k)),sug:me()>=0&&ayuda&&modo=='grupos'?sugs().filter(g=>g.every(x=>atril.includes(x))):[]}}
+ return {mesa,atril,sel,mx:mx.slice(),bad,nuevas,lock,my,G,me:me(),dl,cnt:G.players.map((_,k)=>cnt(k)),sug:me()>=0&&ayuda&&modo=='grupos'?sugs().filter(g=>g.every(x=>atril.includes(x))):[]}}
 function cnt(k){const G=V.G;if(G.phase!='play')return G.nr[k];if(k===me()&&myTurn())return mine().length-placed.size;
  if(k===G.turn&&G.tmp){const A=new Set(G.mesa.flat());return G.nr[k]-G.tmp.flat().filter(x=>!A.has(x)).length}return G.nr[k]}
 function why(id){return !myTurn()?'Espera tu turno.':placed.has(id)||V.G.down[me()]?'':LOCK}
@@ -53,9 +53,15 @@ function parte(g,id){const r=RU.grp(g);if(!r||r.k!='esc'||RU.isJ(id)||RU.col(id)
  return RU.grp(g.slice(0,p).concat(id))&&RU.grp(g.slice(p))?p:-1}
 window.RMU={
  can(id){if(V.G.phase!='play')return false;if(inRack(id))return true;return myTurn()&&onTable(id)&&!why(id)},
- pick(id){if(id!=null&&!RMU.can(id))return no(why(id)||'Esa ficha no se puede mover.');if(id!=null&&id!==sel)SFX('alza');sel=id;render()},
+ pick(id){if(id!=null&&!RMU.can(id))return no(why(id)||'Esa ficha no se puede mover.');if(id!=null&&id!==sel)SFX('alza');if(id!=null&&mx.includes(id)&&sel!=null)mx=mx.filter(x=>x!==id).concat(sel);else mx=[];sel=id;render()},
+ // varias fichas del atril: con una elegida, tocar otras del atril las suma (o las quita)
+ mas(id){if(!myTurn()||sel==null||!inRack(sel)||!inRack(id))return;if(id===sel){if(!mx.length){sel=null;render();return}sel=mx.shift()}else if(mx.includes(id))mx=mx.filter(x=>x!==id);else{mx.push(id);SFX('alza')}render()},
  // a: {g, at} en el grupo g · {g:-1} grupo nuevo · {r:at} al atril (reacomodar el atril se vale en cualquier momento) · {g, at, parte:1} partir la escalera
  put(id,a){const G=V.G;if(G.phase!='play')return;const fromRack=inRack(id);
+  if(fromRack&&a.r==null&&mx.length&&id===sel){const ids=[id].concat(mx);mx=[];if(!myTurn())return no('Espera tu turno.');if(a.g<0||!work[a.g])return RMU.grupo(ids);
+   if(!G.down[me()]&&work[a.g].some(x=>baseSet().has(x)))return no(LOCK);save();const W=cp(work);W[a.g]=RU.arregla(W[a.g].concat(ids));work=W;ids.forEach(x=>placed.add(x));sel=null;
+   ids.forEach((_,i)=>setTimeout(()=>SFX('clac',.7),i*70));return changed()}
+  mx=[];
   if(a.r!=null){if(!fromRack){if(!myTurn()||!placed.has(id))return no('Las fichas de la mesa no pueden regresar a tu atril.');save();work=work.map(g=>g.filter(x=>x!==id)).filter(g=>g.length);placed.delete(id)}
    const sh=order.filter(x=>x!==id&&!placed.has(x)),b=sh[a.r];order=order.filter(x=>x!==id);order.splice(b==null?order.length:order.indexOf(b),0,id);manual=true;sel=null;SFX('clac',.5);return changed()}
   if(!myTurn())return no('Espera tu turno.');if(!fromRack&&!RMU.can(id))return no(why(id)||'Esa ficha no se puede mover.');
@@ -67,6 +73,7 @@ window.RMU={
   work=W.filter(g=>g.length);if(fromRack)placed.add(id);sel=null;SFX('clac');changed()},
  // dónde cabe la ficha id: [{g, at, parte}] (at en el grupo sin la ficha). Antes de bajar no se tocan los grupos que ya estaban
  destinos(id){if(!myTurn()||id==null)return [];const G=V.G,A=baseSet(),out=[];
+  if(id===sel&&mx.length){const ids=[id].concat(mx),U=new Set(ids);work.forEach((g,gi)=>{if(!G.down[me()]&&g.some(x=>A.has(x)))return;const r=RU.arregla(g.concat(ids));if(RU.grp(r))out.push({g:gi,at:r.findIndex(x=>U.has(x))})});return out}
   work.forEach((g0,gi)=>{const g=g0.filter(x=>x!==id);if(!g.length)return;if(!G.down[me()]&&g.some(x=>A.has(x)))return;
    const r=RU.arregla(g.concat(id));if(RU.grp(r,r.length<3)){const at=r.indexOf(id);if(r.slice(0,at).concat(r.slice(at+1)).join()===g.join())out.push({g:gi,at})}
    const p=parte(g,id);if(p>=0)out.push({g:gi,at:p,parte:1})});return out},
