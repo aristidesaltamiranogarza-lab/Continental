@@ -345,7 +345,7 @@ function sala(k){const c=typeof V!='undefined'&&V&&V.code;if(!c||c===sala0)retur
 function active(){sala('md_3d');return on&&typeof S!='undefined'&&!!S&&typeof V!='undefined'&&!!V&&V.game==='monopolydeal'&&!!V.G&&(V.G.phase==='play'||V.G.phase==='final')}
 function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(100,now-(lastNow||now));lastNow=now;
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('md3on',a);
- if(!a){first=true;home();VW.x=VW.z=0;VW.k=1;return}
+ if(!a){first=true;menu=false;home();VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root&&!(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))){root.prepend(cv);W=0}
  if(!L||!mesa||innerWidth!==W||innerHeight!==H){layout();sync()}
  viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);avStep(now);pulse(now);labels();viewBtn();
