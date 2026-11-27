@@ -296,7 +296,7 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 - [ ] Sentarse a jugar: el HUD del juego entra deslizándose mientras la cámara baja a tu silla; las cartas se reparten volando. Mérida hecho (c_merida_entra.js); Uno y Monopoly Deal 2D/3D hechos (c_juegos_entra.js, GENT).
 - [ ] Ganar o perder: la tarjeta del resultado brota, los puntos suben contando, los retratos de los demás reaccionan. Mérida hecho (podio que cuenta en c_merida_fin.js); Uno y Monopoly Deal 2D/3D hechos (GENT).
 - [ ] Entrar por enlace (#CODIGO) o a una sala: hoy texto "Entrando a la sala"; usar una versión chica de la carga de la casona.
-- [ ] Plano 2D, cambiar de piso: el plano se desliza de lado al siguiente nivel en vez de saltar.
+- [x] Plano 2D, cambiar de piso: corte vivo de la casa en vez de pestañas (c_plano_corte.js: caras por piso, juegos en curso, globos de otros pisos) y hojas de albanene apiladas (c_plano_pila.js): bajar levanta la hoja, subir la deja caer; los pisos de abajo se ven tenues.
 - [ ] Hojas y paneles: abrir con un leve resorte y las filas entrando una tras otra.
 
 ## Mano con muchas cartas (Uno y Continental, 26 nov 2026)

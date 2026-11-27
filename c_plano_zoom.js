@@ -12,7 +12,7 @@ function zoomA(n,px,py){const k0=k;k=Math.min(MAX,Math.max(1,n));x=px-(px-x)*k/k
 let antes=1;const fin=()=>{if((antes>1.001)!==(k>1.001)&&typeof render=='function')render();antes=k};
 const rel=e=>{const r=box().getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]};
 let tap=0,tx=0,ty=0;
-addEventListener('pointerdown',e=>{if(!e.target.closest||!e.target.closest('.pl-area')||!box())return;P.set(e.pointerId,rel(e));
+addEventListener('pointerdown',e=>{if(!e.target.closest||!e.target.closest('.pl-area')||e.target.closest('.pl-corte')||!box())return;P.set(e.pointerId,rel(e));
  if(P.size===2){const [a,b]=[...P.values()];g={t:'pinch',d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k0:k,mx:(a[0]+b[0])/2,my:(a[1]+b[1])/2,x0:x,y0:y}}
  else if(P.size===1){const [px,py]=rel(e);g={t:'pan',sx:px,sy:py,x0:x,y0:y,mov:false};
   const n=performance.now();if(e.target.closest('button'))tap=0;else if(n-tap<300&&Math.hypot(px-tx,py-ty)<30){tap=0;zoomA(k>1.2?1:2.2,px,py);pon(true);fin();g=null;arr=n;return}tap=n;tx=px;ty=py}},true);
@@ -24,7 +24,7 @@ const suelta=e=>{if(!P.delete(e.pointerId))return;if(P.size===0){g=null;fin()}el
 addEventListener('pointerup',suelta,true);addEventListener('pointercancel',suelta,true);
 // después de arrastrar o pellizcar, el toque no abre la mesa
 addEventListener('click',e=>{if(performance.now()-arr<250&&e.target.closest&&e.target.closest('.pl-area')){e.preventDefault();e.stopPropagation()}},true);
-addEventListener('wheel',e=>{const a=e.target.closest&&e.target.closest('.pl-area');if(!a||!box())return;e.preventDefault();const [px,py]=rel(e);zoomA(k*Math.exp(-e.deltaY*.0018),px,py);pon();fin()},{passive:false});
+addEventListener('wheel',e=>{const a=e.target.closest&&e.target.closest('.pl-area');if(!a||e.target.closest('.pl-corte')||!box())return;e.preventDefault();const [px,py]=rel(e);zoomA(k*Math.exp(-e.deltaY*.0018),px,py);pon();fin()},{passive:false});
 addEventListener('gesturestart',e=>{if(e.target.closest&&e.target.closest('.pl'))e.preventDefault()});   // Safari: sin zoom de página sobre el plano
 window.PZOOM={css,k:()=>k,cero:()=>{k=1;x=0;y=0;antes=1;pon(true)}};
 })();

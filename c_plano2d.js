@@ -1,5 +1,5 @@
 // c_plano2d.js — PLANO2D: el inicio 2D como la planta de la casona vista desde arriba (SOCIAL.md S5). Pestañas por nivel (Azotea, Planta alta,
-// Planta baja, Sótano); cada nivel se dibuja como un plano de arquitecto con los datos de plano_casona.js (blender/plano.py): pisos de madera,
+// Planta baja, Sótano) en el corte vivo (c_plano_corte.js) y cada nivel es una hoja apilada (c_plano_pila.js); cada nivel se dibuja como un plano de arquitecto con los datos de plano_casona.js (blender/plano.py): pisos de madera,
 // loseta y jardín, muros con sus puertas y ventanas, escalera, árboles y muebles, la calle al frente; nombre de cada cuarto.
 // Las mesas son mesas de verdad (fieltro del color del juego y sus sillas) con el ícono y el nombre del juego: con partida, los retratos de
 // quien juega en las sillas; con sala esperando, un aro que late. Tocar una mesa abre el mismo panel que CMESA en 3D (Mirar, Unirme, Crear sala).
@@ -16,6 +16,8 @@ const LBL={calle:'Calle',salon:'Sala',zaguan:'Zaguán',comedor:'Comedor',patio:'
 const NOMB={domino:'Dominó',loteria:'Lotería',cubilete:'Cubilete',backgammon:'Backgammon',conecta4:'Conecta 4',ruleta:'Ruleta'};   // mesas sin sala en 2D
 const es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let piso='',sel='',D=null,ult='',ROT=false,entraT=0;
+// marco común de todas las hojas (el lote entero): así la escalera y el patio caen en el mismo lugar en cada piso
+let FRM=null;const fr=()=>{if(FRM)return FRM;const C=P();let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const f in C){const [x,z,w,h]=C[f].caja;a=Math.min(a,x);b=Math.min(b,z);c=Math.max(c,x+w);d=Math.max(d,z+h)}return FRM=[a,b,c-a,d-b]};
 const vis=()=>!!document.querySelector('.pl-box');   // el plano está en pantalla
 const U=()=>window.LOBBY&&LOBBY.u;
 const P=()=>window.PLANO_C;
@@ -34,11 +36,14 @@ const sillas=(m,n)=>Array.from({length:n},(_,i)=>{const a=Math.PI/2+i*2*Math.PI/
 const nSil=g=>{const G=GM[MK[g]||g];return Math.max(2,Math.min(6,G&&G.max||(g==='billar'?2:4)))};
 function suelo(a){if(a.c==='calle')return 'calle';if(a.c==='cuarto')return 'madera';if(a.c==='void')return 'vacio';if(a.c==='earth')return 'tierra';
  return /patio|traspatio/.test(a.n)?'jardin':'loseta'}
-function svg(L,rot){const [x0,z0,w,d]=L.caja,o=[];
- o.push(`<defs><pattern id="plRay" width=".7" height=".7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width=".7" height=".7" class="pl-vacio"/><line x1="0" y1="0" x2="0" y2=".7" class="pl-ray"/></pattern></defs>`);
- o.push(`<rect class="pl-lote" x="${x0}" y="${z0}" width="${w}" height="${d}"/>`);
+function svg(L,rot,f){const [x0,z0,w,d]=fr(),o=[],alto=f==='c1'||f==='c2';
+ o.push(`<defs><pattern id="plRay-${f}" width=".7" height=".7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">${alto?'':'<rect width=".7" height=".7" class="pl-vacio"/>'}<line x1="0" y1="0" x2="0" y2=".7" class="${alto?'pl-ray2':'pl-ray'}"/></pattern>`+
+  `<pattern id="plTie-${f}" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="1" height="1" class="pl-tierra"/><line x1="0" y1="0" x2="0" y2="1" class="pl-ray"/></pattern></defs>`);
+ if(f==='cm1')o.push(`<rect x="${x0}" y="${z0}" width="${w}" height="${d}" fill="url(#plTie-${f})"/>`);
+ if(alto)o.push(`<g opacity=".24" transform="translate(.3 .45)">${L.areas.filter(a=>a.c!=='void').map(a=>`<rect class="pl-sombra" x="${a.x}" y="${a.z}" width="${a.w}" height="${a.d}"/>`).join('')}</g>`);
+ else{const [cx,cz,cw,cd]=L.caja;o.push(`<rect class="pl-lote" x="${cx}" y="${cz}" width="${cw}" height="${cd}"/>`)}
  L.balc.forEach(b=>o.push(`<rect class="pl-loseta pl-orilla" x="${b.x}" y="${b.z}" width="${b.w}" height="${b.d}"/>`));
- L.areas.forEach(a=>{const s=suelo(a);o.push(`<rect class="pl-${s}" x="${a.x}" y="${a.z}" width="${a.w}" height="${a.d}"${s==='vacio'?' fill="url(#plRay)"':''}/>`)});
+ L.areas.forEach(a=>{const s=suelo(a);o.push(`<rect class="pl-${s}" x="${a.x}" y="${a.z}" width="${a.w}" height="${a.d}"${s==='vacio'?` style="fill:url(#plRay-${f})"`:s==='tierra'?` style="fill:url(#plTie-${f})"`:''}/>`)});
  if(L.barda){const b=L.barda;o.push(`<rect class="pl-barda" x="${b.x}" y="${b.z}" width="${b.w}" height="${b.d}"/>`)}
  // calle: banqueta y raya al centro
  L.areas.filter(a=>a.c==='calle').forEach(a=>o.push(`<line class="pl-raya" x1="${a.x}" y1="${f2(a.z+a.d*.62)}" x2="${a.x+a.w}" y2="${f2(a.z+a.d*.62)}"/><rect class="pl-banq" x="${a.x}" y="${a.z}" width="${a.w}" height=".7"/>`));
@@ -73,25 +78,36 @@ function mesa(m,L,at){const t=tipo(m.g),k=MK[m.g]||m.g,u=U(),R=salas().filter(r=
  const al=ps.slice(0,S.length).map((n,i)=>`<span class="pl-j vivo" style="${at(S[i].x,S[i].z)};--dl:${(i*.9+(k.length%3)*.4).toFixed(1)}s">${av(n)}</span>`).join('');
  const est=ps.length?` · ${ps.length} jugando`:op?' · sala esperando':'';
  return `<button class="pl-m${pr.length?' juega':''}${op?' esp':''}${sel===m.g?' yo':''}" style="${at(m.x,m.z)};--f:${u.COL[k]||'var(--ui-accent)'}" onclick="PLANO2D.ir('${m.g}')" aria-label="${nm}${est}"><span class="pl-ic">${u.ico(k)}</span></button>${al}<span class="pl-n" style="${bajo(m,m.r+(ps.length?2.1:1.1),at)}">${nm}</span>`}
-// gente en este nivel: los de 3D en su x,z; los de 2D junto a la mesa que eligieron. Tú: en una silla libre de tu mesa, caminando desde la entrada al llegar.
-const CAMINA=900;let llegaT=0,zoomT=0,zoomAnt='none';
+// entrada de cada piso: el zaguán en planta baja, la escalera en los demás (de ahí salen quienes llegan o cambian de piso)
 function entrada(L){const a=L.areas.find(a=>a.n==='zaguan')||L.areas.find(a=>a.n==='escalera');if(!a)return null;return a.n==='zaguan'?{x:a.x+a.w/2,z:a.z+a.d}:{x:a.x+a.w/2,z:a.z+a.d/2}}
-const cam0=s=>s.replace('left:','--x0:').replace(';top:',';--y0:');
-function gente(L,f,at){const Ps=(D&&D.p||[]).filter(p=>p.f===f&&isFinite(p.x)&&isFinite(p.z));let h='';
- const m=sel&&busca(sel);if(m&&m.f===f){const k=MK[m.g]||m.g,ocup=salas().filter(r=>r.g===k&&r.st!=='lobby').reduce((a,r)=>a+(r.ps||[]).length,0),S=sillas(m,nSil(m.g));
-  const s=S[Math.min(ocup,S.length-1)]||{x:m.x,z:m.z+m.r+1.3},t=Date.now()-llegaT,e=entrada(L),n=typeof pname=='string'&&pname.trim()||'Tú',cam=e&&t<CAMINA;
-  h=`<span class="pl-p yo${cam?' camina':''}" style="${at(s.x,s.z)}${cam?';'+cam0(at(e.x,e.z))+';--dl:-'+t+'ms':''}" title="${es(n)}">${av(n)}</span>`}
- return Ps.map(p=>`<span class="pl-p" style="${at(p.x,p.z)}" title="${es(p.name)}">${av(p.name)}${p.say?`<b class="pl-say">${es(String(p.say).slice(0,40))}</b>`:''}</span>`).join('')+h}
-function tabs(){const C=P(),R=salas();
- return `<nav class="pl-tabs" role="tablist" aria-label="Nivel">${NIV.map(([f,n])=>{const L=C[f];const hay=L&&L.mesas.some(m=>R.some(r=>r.g===(MK[m.g]||m.g)))||(D&&D.p||[]).some(p=>p.f===f);
-  return `<button class="pl-t${f===piso?' on':''}" role="tab" aria-selected="${f===piso}" onclick="PLANO2D.piso('${f}')">${n}${hay?'<i class="pl-dot" aria-label="hay gente"></i>':''}</button>`}).join('')}</nav>`}
+// gente: cada quien es un nodo que se conserva entre redibujos, así camina (transición de left/top) en vez de brincar. Los de 3D en su x,z;
+// tú en una silla libre de tu mesa, caminando desde la entrada al elegirla. Al cambiar de piso aparecen en la entrada (zaguán o escalera).
+let GE={},sayV=null;
+function yoSilla(m){const k=MK[m.g]||m.g,ocup=salas().filter(r=>r.g===k&&r.st!=='lobby').reduce((a,r)=>a+(r.ps||[]).length,0),S=sillas(m,nSil(m.g));
+ return S[Math.min(ocup,S.length-1)]||{x:m.x,z:m.z+m.r+1.3}}
+function pone(k,f,x,z,n,say,yo,at,vivos){const g=PPILA.gente(f);if(!g)return;vivos.add(k);let o=GE[k];
+ if(!o){const el=document.createElement('span');el.className='pl-p'+(yo?' yo':'');el.title=n;el.innerHTML=av(n);o=GE[k]={el,f:null,x,z,say:null}}
+ const el=o.el,lleva=(p,dur)=>{el.style.transitionDuration=dur;const [l,t]=at(p.x,p.z);el.style.left=l+'%';el.style.top=t+'%'};
+ if(o.f!==f||!el.isConnected){const cambia=o.f&&o.f!==f||yo&&o.f!==f,e=cambia&&entrada(P()[f]);g.appendChild(el);lleva(e||{x,z},'0s');void el.offsetWidth;o.f=f}
+ if(Math.abs(o.x-x)>.01||Math.abs(o.z-z)>.01||el.style.transitionDuration==='0s'){o.x=x;o.z=z;lleva({x,z},yo?'.9s':'1.6s')}
+ if((say||null)!==o.say){o.say=say||null;const b=el.querySelector('.pl-say');if(b)b.remove();if(say){const nb=document.createElement('b');nb.className='pl-say';nb.textContent=String(say).slice(0,40);el.appendChild(nb)}}}
+function genteSync(at){const C=P(),Ps=(D&&D.p||[]).filter(p=>C[p.f]&&isFinite(p.x)&&isFinite(p.z)),vivos=new Set(),cg=[];
+ Ps.forEach(p=>{pone(p.id,p.f,p.x,p.z,p.name,p.say,false,at,vivos);cg.push({k:p.id,f:p.f,x:p.x,av:av(p.name)})});
+ const m=sel&&busca(sel);if(m){const s=yoSilla(m),n=typeof pname=='string'&&pname.trim()||'Tú';pone('yo',m.f,s.x,s.z,n,null,true,at,vivos);cg.push({k:'yo',f:m.f,x:s.x,av:av(n),yo:true})}
+ for(const k in GE)if(!vivos.has(k)){GE[k].el.remove();delete GE[k]}
+ // lo que dijo alguien de otro piso sale junto al corte (lo de este piso ya va en su globo)
+ const prim=!sayV;sayV=sayV||{};Ps.forEach(p=>{if(p.say&&p.sayN&&sayV[p.id]!==p.sayN){sayV[p.id]=p.sayN;if(!prim&&p.f!==piso)PCORTE.dice(p.f,p.name,p.say,p.id)}});
+ // puntitos de juego por piso: uno por juego con partida (late si hay sala esperando)
+ const pj={};salas().forEach(r=>{const mm=busca(r.g);if(!mm||!C[mm.f])return;const o=pj[r.g]||(pj[r.g]={g:r.g,f:mm.f,x:mm.x,c:U().COL[r.g]||'var(--ui-accent)',esp:false});if(r.st==='lobby')o.esp=true});
+ const [x0,,w]=fr();PCORTE.pon({cur:piso,gente:cg,pips:Object.values(pj),x0,w})}
 // ---------- tarjetas de juegos: todas las mesas que se juegan en 2D, con lo que pasa ahí o, si nada, en qué piso están ----------
 const PNOM={cm1:'Sótano',c0:'Planta baja',c1:'Planta alta',c2:'Azotea'};
+const pisito=f=>`<i class="pl-piso" aria-hidden="true">${['c2','c1','c0','cm1'].map(k=>`<i${k===f?' class="on"':''}></i>`).join('')}</i>`;
 function juegos(){const C=P(),u=U(),ord=u.lista().concat(['pk','bj','billar']),L=[];
  for(const f in C)C[f].mesas.forEach(m=>{if(tipo(m.g))L.push(Object.assign({f},m))});
  L.sort((a,b)=>ord.indexOf(MK[a.g]||a.g)-ord.indexOf(MK[b.g]||b.g));
  return L.map(m=>{const k=MK[m.g]||m.g,R=salas().filter(r=>r.g===k),op=R.find(r=>r.st==='lobby'),pl=R.filter(r=>r.st==='play').reduce((a,r)=>a+r.n,0);
-  const st=op?`<small class="vivo">${es(op.host)} espera</small>`:pl?`<small class="vivo">${pl} jugando</small>`:`<small>${PNOM[m.f]}</small>`;
+  const st=op?`<small class="vivo">${es(op.host)} espera</small>`:pl?`<small class="vivo">${pl} jugando</small>`:`<small>${pisito(m.f)}${PNOM[m.f]}</small>`;
   return `<button class="pl-c${sel===m.g?' on':''}" style="--f:${u.COL[k]||'var(--ui-accent)'}" onclick="PLANO2D.ir('${m.g}')" aria-pressed="${sel===m.g}"><span class="pl-ci">${u.ico(k)}${op||pl?'<i class="pl-cv"></i>':''}</span><span class="pl-ct"><b>${es(nomM(k))}</b>${st}</span></button>`}).join('')}
 // ---------- el botón grande: lo que tiene sentido hacer en la mesa elegida ----------
 const I=n=>window.UI?UI.ico(n):'';
@@ -104,31 +120,46 @@ function accion(){if(!sel)return '';const t=tipo(sel),k=MK[sel]||sel,R=salas().f
  return `<div class="pl-acc">${b}${ex}</div>`}
 // ---------- acercamiento al cuarto de la mesa elegida (todo el plano escala junto; se anima al cambiar) ----------
 let ZOOM=false;
-function zoomT0(L){const m=ZOOM&&sel&&busca(sel);if(!m||!L||m.f!==piso)return 'none';const [x0,z0,w,d]=L.caja,bw=ROT?d:w,bh=ROT?w:d;
+function zoomT0(L){const m=ZOOM&&sel&&busca(sel);if(!m||!L||m.f!==piso)return 'none';const [x0,z0,w,d]=fr(),bw=ROT?d:w,bh=ROT?w:d;
  const k=Math.min(2.4,Math.max(1.5,Math.min(bw,bh)/20)),fx=ROT?(m.z-z0)/d:(m.x-x0)/w,fy=ROT?(x0+w-m.x)/w:(m.z-z0)/d,cl=(v,a,b)=>Math.min(b,Math.max(a,v));
  const tx=cl(.5-fx*k,1-k,0),ty=cl(.5-fy*k,1-k,0);return `translate(${(tx*100).toFixed(2)}%,${(ty*100).toFixed(2)}%) scale(${k.toFixed(3)})`}
 function html(){const C=P();if(!C)return '';
  if(ult&&!(typeof S!='undefined'&&S)){const m=busca(ult);if(m){piso=m.f;sel=m.g;ZOOM=true}ult=''}   // saliste de una partida: vuelves junto a esa mesa
  if(!C[piso])piso='c0';
- const L=C[piso],[x0,z0,w,d]=L.caja,rot=ROT=innerWidth>innerHeight*1.2&&d>w*1.05;   // nivel alto y angosto en pantalla acostada: se gira
- const bw=rot?d:w,bh=rot?w:d,r=(bw/bh).toFixed(4),at=rot?(x,z)=>`left:${((z-z0)/d*100).toFixed(2)}%;top:${((x0+w-x)/w*100).toFixed(2)}%`
-  :(x,z)=>`left:${((x-x0)/w*100).toFixed(2)}%;top:${((z-z0)/d*100).toFixed(2)}%`;
- const tz=zoomT0(L),k=tz==='none'?1:+tz.match(/scale\(([\d.]+)/)[1],dz=Date.now()-zoomT,an=dz<600?`;--t0:${zoomAnt};--dl:-${dz}ms`:'';
  const mp=window.CMESA&&CMESA.abierta&&CMESA.abierta()&&sel&&tipo(sel)==='sala'?CMESA.panel2d(ctx(MK[sel]||sel)):'';
- const de=Date.now()-entraT,lz=window.PZOOM?PZOOM.k()>1.001:false;
- return `<div class="pl${tz!=='none'?' cerca':''}${de<1500?' entra" style="--edl:-'+de+'ms':''}">${tz==='none'?tabs():''}<div class="pl-area"><div class="pl-box" style="aspect-ratio:${bw}/${bh};width:min(100cqw,calc(100cqh*${r}))"><div class="pl-lib" style="${window.PZOOM?PZOOM.css():''}"><div class="pl-zoom${an?' anim':''}" style="transform:${tz};--k:${k}${an}">${svg(L,rot)}${letreros(L,at)}${L.mesas.map(m=>mesa(m,L,at)).join('')}${gente(L,piso,at)}</div></div>
-  ${tz!=='none'||lz?`<button class="ui-pill pl-toda" onclick="PLANO2D.lejos()">${I('casa')}Toda la casa</button>`:''}</div></div>
+ const de=Date.now()-entraT;queueMicrotask(monta);
+ return `<div class="pl${ZOOM&&sel?' cerca':''}${de<1500?' entra" style="--edl:-'+de+'ms':''}"><div class="pl-area" id="plArea"></div>
   <div class="pl-pie"><div class="pl-js ui-desl" role="group" aria-label="Juegos">${juegos()}</div>${accion()}</div></div>${mp}`}
+let AREA=null,BOX=null,ZM=null,TODA=null,visT=0;
+function areaEl(){if(AREA)return AREA;AREA=document.createElement('div');AREA.className='pl-area';AREA.id='plArea';AREA._fijo=1;
+ AREA.innerHTML=`<div class="pl-box"><div class="pl-lib"><div class="pl-zoom"></div></div><button class="ui-pill pl-toda" onclick="PLANO2D.lejos()">${I('casa')}Toda la casa</button></div>`;
+ BOX=AREA.querySelector('.pl-box');ZM=AREA.querySelector('.pl-zoom');TODA=AREA.querySelector('.pl-toda');ZM.appendChild(PPILA.nodo());AREA.appendChild(PCORTE.nodo());
+ PCORTE.alElegir=f=>PLANO2D.piso(f);return AREA}
+// render() pone un hueco (#plArea): aquí entra el área de siempre (MORPH la deja como está por _fijo); si llevaba rato fuera de pantalla, la pila se arma de nuevo
+function monta(){const ph=document.getElementById('plArea');if(!ph)return;const nuevo=Date.now()-visT>1500;if(ph!==areaEl())ph.replaceWith(AREA);visT=Date.now();sync(nuevo)}
+setInterval(()=>{if(AREA&&AREA.isConnected)visT=Date.now()},700);
+function sync(nuevo){if(!AREA||!AREA.isConnected)return;const C=P();if(!C[piso])piso='c0';
+ const [x0,z0,w,d]=fr(),rot=ROT=innerWidth>innerHeight*1.2&&d>w*1.05,bw=rot?d:w,bh=rot?w:d;   // girado en pantalla acostada
+ BOX.style.aspectRatio=bw+'/'+bh;BOX.style.width=`min(100cqw,calc(100cqh*${(bw/bh).toFixed(4)}))`;
+ const re=PPILA.arma(rot,f=>svg(C[f],rot,f),piso);if(re)GE={};
+ if(nuevo){const de=Date.now()-entraT;PPILA.entrada(piso,de<1500?Math.max(150,850-de):120)}else if(PPILA.cur()!==piso)PPILA.ir(piso);
+ const at=rot?(x,z)=>[(z-z0)/d*100,(x0+w-x)/w*100]:(x,z)=>[(x-x0)/w*100,(z-z0)/d*100],atS=(x,z)=>{const [l,t]=at(x,z);return `left:${l.toFixed(2)}%;top:${t.toFixed(2)}%`};
+ const L=C[piso],tz=zoomT0(L),k=tz==='none'?1:+tz.match(/scale\(([\d.]+)/)[1],lz=window.PZOOM?PZOOM.k()>1.001:false;
+ ZM.style.transform=tz==='none'?'':tz;ZM.style.setProperty('--k',k);AREA.classList.toggle('cerca',tz!=='none');AREA.classList.toggle("gira",rot);TODA.classList.toggle('ver',tz!=='none'||lz);
+ PPILA.capa(letreros(L,atS)+L.mesas.map(m=>mesa(m,L,atS)).join(''));
+ genteSync(at)}
+addEventListener('resize',()=>setTimeout(()=>{if(AREA&&AREA.isConnected)sync()},80));
 // ---------- acciones ----------
 function snd(){if(typeof sfx=='function')try{sfx('tick')}catch(e){}}
-function cambiaZoom(z){if(window.PZOOM)PZOOM.cero();const C=P();zoomAnt=zoomT0(C&&C[piso]);ZOOM=z;zoomT=Date.now()}
+function cambiaZoom(z){if(window.PZOOM)PZOOM.cero();ZOOM=z}
 // elegir una mesa (tarjeta o en el plano): cambia de piso, se acerca y caminas a tu silla. Tocarla otra vez ya de cerca abre su panel
 function ir(g){const m=busca(g);if(!m)return;snd();
  if(sel===g&&ZOOM&&piso===m.f){if(tipo(g)==='sala'){pgame=MK[g]||g;CMESA.abre2d(pgame);render()}else mesa2();return}
- if(piso!==m.f){if(window.PZOOM)PZOOM.cero();piso=m.f;zoomAnt='none';ZOOM=true;zoomT=Date.now()}else cambiaZoom(true);
- if(sel!==g)llegaT=Date.now();sel=g;if(tipo(g)==='sala')pgame=MK[g]||g;
+ sel=g;if(tipo(g)==='sala')pgame=MK[g]||g;
  if(window.GENTE&&GENTE.late)GENTE.late();   // los demás te ven junto a la mesa de una vez
- render();setTimeout(()=>{if(vis())render()},CAMINA+50)}   // al terminar de caminar se quita la animación
+ // otro piso: primero pasan las hojas y luego se acerca a la mesa
+ if(piso!==m.f){if(window.PZOOM)PZOOM.cero();ZOOM=false;piso=m.f;PPILA.ir(m.f,()=>{if(sel===g&&piso===m.f){ZOOM=true;sync()}})}else cambiaZoom(true);
+ render()}
 function lejos(){snd();cambiaZoom(false);render()}
 function mesa2(){const t=tipo(sel),k=MK[sel]||sel;if(t==='bil')B2D.abre();else if(t==='cas')C2D.abre(k)}
 function crea(){if(!sel)return;pgame=MK[sel]||sel;if(window.CMESA)CMESA.cerrar();mk('listo')}
@@ -140,13 +171,15 @@ function mas(){if(!sel)return;pgame=MK[sel]||sel;CMESA.abre2d(pgame);render()}
 function pos(){const m=sel&&busca(sel);if(!m||!vis())return {f:'2d',x:0,z:0,yaw:0};const r=(m.r||1.5)+1.3;return {f:m.f,x:m.x,z:m.z+r,yaw:Math.PI}}
 // la respuesta de /casa (la trae GENTE.latido): salas y gente; se vuelve a dibujar solo si cambió algo que se ve
 let sig='';
-function casa(d){if(!d)return;D=d;if(!ok()||!vis())return;const s=JSON.stringify([d.r,(d.p||[]).map(p=>[p.f,p.x,p.z,p.name,p.say])]);if(s===sig)return;sig=s;
- if(typeof render=='function'&&!(typeof S!='undefined'&&S)&&!document.querySelector('.uh-mesa input:focus'))render()}
+// las salas cambian tarjetas y botón (render); la gente y lo que dicen solo se ponen al día en el plano (sync), sin rehacer nada
+function casa(d){if(!d)return;D=d;if(!ok()||!vis())return;const s=JSON.stringify(d.r);
+ if(s!==sig&&typeof render=='function'&&!(typeof S!='undefined'&&S)&&!document.querySelector('.uh-mesa input:focus')){sig=s;render()}else sync()}
 function ok(){return !!(P()&&window.LOBBY&&LOBBY.u&&window.CMESA&&CMESA.panel2d)}
 // al girar el teléfono se vuelve a dibujar (el plano puede girarse)
 let gi=innerWidth>innerHeight;addEventListener('resize',()=>{const g=innerWidth>innerHeight;if(g!==gi){gi=g;if(vis()&&typeof render=='function')render()}});
 setInterval(()=>{if(typeof S!='undefined'&&S&&typeof V!='undefined'&&V&&V.game)ult=V.game},1000);
 window.PLANO2D={ok,html,toca:ir,ir,crea,une,mira,reglas,mas,lejos,mesa:mesa2,pos,casa,visible:vis,
  entra:()=>{entraT=Date.now()},
- piso:f=>{if(window.PZOOM)PZOOM.cero();piso=f;if(window.CMESA)CMESA.cerrar();snd();render()}};
+ piso:f=>{if(f===piso||!P()||!P()[f])return;if(window.PZOOM)PZOOM.cero();ZOOM=false;piso=f;PPILA.ir(f);
+  if(window.CMESA&&CMESA.abierta&&CMESA.abierta())CMESA.cerrar();if(document.querySelector('.pl.cerca'))render();else sync()}};
 })();

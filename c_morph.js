@@ -2,6 +2,7 @@
 // animaciones, foco y lo que se escribe), compara el HTML nuevo con lo que hay y cambia solo lo distinto.
 // MORPH.auto(el): desde ahí, el.innerHTML=... hace morph solo (se usa en #app, donde game.js dibuja todo cada vez).
 // MORPH.set(el,html): morph de una vez. Para forzar un nodo nuevo, ponle otro id o data-k.
+// Un nodo con el._fijo=1 (y su id en el HTML) se queda como está, con todo lo de adentro.
 (function(){
 const pInner=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
 const sinDelay=s=>String(s||'').replace(/animation-delay:[^;]*;?/g,'').trim();
@@ -34,6 +35,7 @@ function attrs(o,n){const nw=snap(n),pv=o._ha;o._ha=nw;
 }
 function nodo(o,n){
  if(o.nodeType!==1){if(o.nodeValue!==n.nodeValue)o.nodeValue=n.nodeValue;return}
+ if(o._fijo)return;   // nodo que maneja su dueño (el área del plano 2D, PLANO2D): mismo id, no se toca
  if(o.isEqualNode(n)){if(!o._ha)marca(o);return}
  attrs(o,n);
  if(o.nodeName!=='TEXTAREA')hijos(o,n);
