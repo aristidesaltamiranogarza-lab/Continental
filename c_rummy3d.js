@@ -103,8 +103,8 @@ function pon(k,id,fr,p,q,s,o){o=o||{};let x=P.get(k);
  x.tw={p0:x.p.clone(),q0:x.q.clone(),s0:x.s,t0:performance.now()+(o.delay||0),ms,arc:o.arc==null?.3*s:o.arc,spin:o.spin||0,snd:o.snd};return x}
 const QS=new THREE.Quaternion();
 function piezas(now){if(!anim)return;let nw=0,nc=0,any=false;
- const dk=drg&&drg.T?'t'+drg.id:null;
- P.forEach(x=>{if(x.k===dk&&x.T===drg.T){x.p.lerp(x.T.p,.5);x.q.slerp(x.T.q,.4);x.s+=(x.T.s-x.s)*.4;any=true}const w=x.tw;if(w){const k0=(now-w.t0)/w.ms;any=true;if(k0>=0){const k=Math.min(1,k0),e=1-Math.pow(1-k,3);x.p.lerpVectors(w.p0,x.T.p,e);x.p.y+=Math.sin(Math.PI*k)*w.arc;
+ const dk=drg&&drg.T?new Set((drg.ids||[drg.id]).map(i=>'t'+i)):null;
+ P.forEach(x=>{if(dk&&dk.has(x.k)&&x.T&&x.T.dr){x.p.lerp(x.T.p,.5);x.q.slerp(x.T.q,.4);x.s+=(x.T.s-x.s)*.4;any=true}const w=x.tw;if(w){const k0=(now-w.t0)/w.ms;any=true;if(k0>=0){const k=Math.min(1,k0),e=1-Math.pow(1-k,3);x.p.lerpVectors(w.p0,x.T.p,e);x.p.y+=Math.sin(Math.PI*k)*w.arc;
    x.q.slerpQuaternions(w.q0,x.T.q,e);if(w.spin)x.q.multiply(QS.setFromAxisAngle(Y,w.spin*(1-e)));x.s=w.s0+(x.T.s-w.s0)*e;if(k===1){x.tw=null;if(w.snd)sfx('clac',.45)}}}
   let hy=0;if(x.hop){const k=(now-x.hop.t0)/440;if(k>=1)x.hop=null;else if(k>0)hy=Math.sin(Math.PI*k)*x.hop.a;any=true}
   SV.copy(x.p);SV.y+=hy;M4.compose(SV,x.q,SCL.setScalar(x.s));
@@ -122,8 +122,8 @@ function sync(s){S=s;if(!ready||!act())return;const G=s.G,n=G.players.length;if(
  // fichas de la mesa (las nuevas de otro salen de su atril; las tuyas vienen de tu atril)
  const A=new Set(G.mesa.flat()),onNow=new Set();let gi=0;
  const turnK=G.turn,tc=turnK>=0&&turnK!==s.me&&!fin?(s.cnt[turnK]||0):0;
- const dg=drg?drg.id:null;
- L.items.forEach(it=>{const id=it.id,k='t'+id,x=P.get(k);onNow.add(id);if(id===dg){if(x)x.vivo=gen;return}let de=null,spin=0;
+ const dg=drg?new Set(drg.ids||[drg.id]):null;
+ L.items.forEach(it=>{const id=it.id,k='t'+id,x=P.get(k);onNow.add(id);if(dg&&dg.has(id)){if(x)x.vivo=gen;return}let de=null,spin=0;
   if(!x&&!first&&turnK>=0&&turnK!==s.me){const e=enAtril(turnK,tc+(gi++),tc+gi);if(e)de={fr:'w',p:e.p,q:e.q,s:SO}}
   if(RU.isJ(id)&&prevJ[id]!=null&&prevJ[id]!==JSON.stringify(s.mesa[it.g]))spin=Math.PI*2;
   const lk=s.lock&&s.lock.has(it.g),nw=s.nuevas&&s.nuevas.has(id),up=id===sel;
@@ -134,7 +134,7 @@ function sync(s){S=s;if(!ready||!act())return;const G=s.G,n=G.players.length;if(
  if(!first&&!dealing)L.gr.forEach(r=>{const g=s.mesa[r.g],key=g&&g.slice().sort((a,b)=>a-b).join();if(key&&val.has(key)&&!prevVal.has(key)&&g.some(id=>!A.has(id))){if(window.MFX)MFX.destello(SC,v3(r.x,.02,r.z),r.w+L.tw*.4,L.th*1.4,0xffe7a0);sfx('grupo',.8)}});
  prevVal=val;
  // tu atril
- if(s.atril){const L2=rackLay(),n2=s.atril.length;s.atril.forEach((id,j)=>{const k='t'+id,x=P.get(k),sl=rackSlot(j,n2),up=id===s.sel||!!(s.mx&&s.mx.includes(id));if(id===dg){if(x)x.vivo=gen;return}let de=null,delay=0,ms=300;
+ if(s.atril){const L2=rackLay(),n2=s.atril.length;s.atril.forEach((id,j)=>{const k='t'+id,x=P.get(k),sl=rackSlot(j,n2),up=id===s.sel||!!(s.mx&&s.mx.includes(id));if(dg&&dg.has(id)){if(x)x.vivo=gen;return}let de=null,delay=0,ms=300;
    if(!x){de={fr:'w',p:boca(),q:QI,s:L.tw};ms=dealing?640:560;if(dealing)delay=(j*n+rel(s.me))*26}
    const p=up?sl.p.clone().add(v3(0,L2.sc*.42,0).applyQuaternion(myR.quaternion)):sl.p;
    pon(k,id,'c',p,sl.q,L2.sc,{de,delay,ms,arc:de?L2.sc*1.5:undefined,snd:!!de&&!dealing,tint:up?TSEL:null,hit:{t:'atril',id,i:j}})})}
@@ -242,27 +242,32 @@ function destino(cx,cy){if(RK&&cy>RK.top-8&&S.atril){const n=S.atril.length;let 
  LT.items.forEach(t=>{if(t.id===drg.id)return;const d=Math.hypot(t.p.x-p.x,(t.p.z-p.z)*.8);if(d<bd){bd=d;best={g:t.g,at:p.x>t.p.x?t.i+1:t.i}}});
  if(best&&bd<LT.tw*1.3)return best;return Math.hypot(p.x,p.z)<mesa.r-1?{g:-1}:null}
 // la ficha que arrastras sigue al dedo cuadro por cuadro (piezas() la acerca suave a drg.T, sin animaciones que se reinicien)
-function arrastra(cx,cy){const x=P.get('t'+drg.id);if(!x)return;const enR=RK&&cy>RK.top-8;let T;
+function arrastra(cx,cy){const x=P.get('t'+drg.id);if(!x)return;const enR=!drg.ids&&RK&&cy>RK.top-8;let T;
  if(enR){const p=scr(cx,cy);p.z=-DC+.25;T={fr:'c',p,q:rackSlot(0,1).q,s:RK.sc*1.12}}
  else{const p=suelo(cx,cy);if(!p)return;p.y=.55*(LT?LT.tw:.6);T={fr:'w',p,q:QI,s:(LT?LT.tw:.6)*1.1}}
- if(x.fr!==T.fr)aMarco(x,T.fr);x.T=T;x.tw=null;x.tint=TSEL;drg.T=T;anim=true}
+ T.dr=1;if(x.fr!==T.fr)aMarco(x,T.fr);x.T=T;x.tw=null;x.tint=TSEL;drg.T=T;anim=true;
+ if(drg.ids){const tw=(LT?LT.tw:.6)*1.06;drg.ids.forEach((id,k)=>{if(id===drg.id)return;const y=P.get('t'+id);if(!y)return;const U={fr:'w',p:T.p.clone(),q:QI,s:T.s,dr:1};U.p.x+=(k-drg.i)*tw;if(y.fr!=='w')aMarco(y,'w');y.T=U;y.tw=null;y.tint=TSEL})}}
 function pDown(e){if(!act())return;toca();
  if(e.pointerType==='touch'){tch.set(e.pointerId,[e.clientX,e.clientY]);if(tch.size==2){st=null;drg=null;const [a,b]=[...tch.values()];pin={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,k:VT.k,ang:Math.atan2(b[1]-a[1],b[0]-a[0]),a:VT.a,mx:(a[0]+b[0])/2,my:(a[1]+b[1])/2,x:VT.x,z:VT.z};return}if(tch.size>2)return}
- st={x:e.clientX,y:e.clientY,hit:pick(e),pid:e.pointerId,pan:e.button==2,g:null,vx:VT.x,vz:VT.z,va:VT.a,vt:VT.t};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
+ st={x:e.clientX,y:e.clientY,hit:pick(e),pid:e.pointerId,pan:e.button==2,g:null,vx:VT.x,vz:VT.z,va:VT.a,vt:VT.t};try{cv.setPointerCapture(e.pointerId)}catch(_){}
+ const h=st.hit;if(h&&h.t=='mesa'&&window.RMU&&RMU.movible&&S&&S.mesa[h.g]&&S.mesa[h.g].length>1&&RMU.movible(h.g)){const s0=st;setTimeout(()=>{if(st!==s0||st.g||drg)return;
+  drg={id:h.id,ids:S.mesa[h.g].slice(),i:S.mesa[h.g].indexOf(h.id),grp:h.g,x:s0.lx||s0.x,y:s0.ly||s0.y};if(S.sel!=null)RMU.pick(null);sfx('tap');cv.style.cursor='grabbing';arrastra(drg.x,drg.y)},420)}}
 function pMove(e){if(!act())return;
  if(tch.has(e.pointerId)){tch.set(e.pointerId,[e.clientX,e.clientY]);if(pin&&tch.size>=2){const [a,b]=[...tch.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1])||1,ang=Math.atan2(b[1]-a[1],b[0]-a[0]);toca();
    VT.k=cl(pin.k*d/pin.d,.75,2.6);VT.a=pin.a+Math.atan2(Math.sin(ang-pin.ang),Math.cos(ang-pin.ang));const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,f=.012/VW.k;VT.x=pin.x-(mx-pin.mx)*f;VT.z=pin.z-(my-pin.my)*f;return}}
  if(!st){if(e.pointerType==='mouse'&&performance.now()-hovT>60){hovT=performance.now();const h=pick(e),id=h&&(h.t=='atril'||h.t=='mesa')&&window.RMU&&RMU.can(h.id)?h.id:null;cv.style.cursor=h&&h.t!='atril2'?'pointer':'default';if(id!==hov)hov=id}return}
- if(e.pointerId!==st.pid)return;const mv=Math.hypot(e.clientX-st.x,e.clientY-st.y);
+ if(e.pointerId!==st.pid)return;st.lx=e.clientX;st.ly=e.clientY;const mv=Math.hypot(e.clientX-st.x,e.clientY-st.y);
  if(drg){drg.x=e.clientX;drg.y=e.clientY;arrastra(e.clientX,e.clientY);return}
  if(mv>9&&st.hit&&(st.hit.t=='atril'||st.hit.t=='mesa')&&!st.g&&window.RMU&&RMU.can(st.hit.id)){drg={id:st.hit.id,x:e.clientX,y:e.clientY};cv.style.cursor='grabbing';if(S.sel!==drg.id)RMU.pick(drg.id);arrastra(e.clientX,e.clientY);return}
  if(mv>9||st.g){toca();st.g=true;if(st.pan||e.buttons==4){VT.a=st.va+(e.clientX-st.x)*.006;VT.t=st.vt+(e.clientY-st.y)*.004}else{const f=.013/VW.k*(CAM.p>.5?.7:1);VT.x=st.vx-(e.clientX-st.x)*f;VT.z=st.vz-(e.clientY-st.y)*f}
   const lim=mesa?mesa.r*.6:4;VT.x=cl(VT.x,-lim,lim);VT.z=cl(VT.z,-lim,lim)}}
 function pUp(e){if(tch.delete(e.pointerId)&&pin){if(tch.size<2)pin=null;st=null;return}
  if(!st||e.pointerId!==st.pid)return;const s=st;st=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}cv.style.cursor='default';
+ if(drg&&drg.ids){const d=drg;drg=null;encuadre();d.ids.forEach(id=>{const x=P.get('t'+id);if(x)x.T=null});const p=suelo(d.x,d.y);let b=-1,bd=1e9;
+  if(p&&LT)LT.items.forEach(t=>{if(t.g===d.grp)return;const q=Math.hypot(t.p.x-p.x,(t.p.z-p.z)*.8);if(q<bd){bd=q;b=t.g}});if(b>=0&&bd<LT.tw*(1.3+d.ids.length*.55))RMU.une(d.grp,b);dirty=true;if(S)sync(S);return}
  if(drg){const d=drg,t=destino(d.x,d.y);drg=null;encuadre();const x=P.get('t'+d.id);if(x)x.T=null;if(t)RMU.put(d.id,t);else{RMU.pick(null)}dirty=true;if(S)sync(S);return}
  if(s.g)return;tap(s.hit)}
-function pCancel(e){tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drg){const x=P.get('t'+drg.id);if(x)x.T=null;drg=null;if(S)sync(S)}st=null}
+function pCancel(e){tch.delete(e.pointerId);if(tch.size<2)pin=null;if(drg){(drg.ids||[drg.id]).forEach(id=>{const x=P.get('t'+id);if(x)x.T=null});drg=null;if(S)sync(S)}st=null}
 function tap(h){if(!window.RMU||!S)return;const sel=S.sel;
  if(!h){if(sel!=null)RMU.pick(null);return}
  if(h.t=='sug')return RMU.grupo(h.ids);

@@ -77,6 +77,11 @@ window.RMU={
   work.forEach((g0,gi)=>{const g=g0.filter(x=>x!==id);if(!g.length)return;if(!G.down[me()]&&g.some(x=>A.has(x)))return;
    const r=RU.arregla(g.concat(id));if(RU.grp(r,r.length<3)){const at=r.indexOf(id);if(r.slice(0,at).concat(r.slice(at+1)).join()===g.join())out.push({g:gi,at})}
    const p=parte(g,id);if(p>=0)out.push({g:gi,at:p,parte:1})});return out},
+ // un grupo entero de la mesa: ¿se puede levantar? y unirlo a otro (b)
+ movible(g){return myTurn()&&!!work[g]&&work[g].every(x=>RMU.can(x))},
+ une(a,b){if(!myTurn())return no('Espera tu turno.');if(a===b||!work[a]||!work[b])return;if(!RMU.movible(a))return no(LOCK);
+  if(!V.G.down[me()]&&work[b].some(x=>baseSet().has(x)))return no(LOCK);const r=RU.arregla(work[b].concat(work[a]));if(!RU.grp(r))return no('Esos grupos no se pueden unir.');
+  save();const W=cp(work);W[b]=r;W.splice(a,1);work=W;sel=null;mx=[];SFX('clac');changed()},
  // bajar de un toque un grupo de tu atril (sugerencia)
  grupo(ids){if(!myTurn())return no('Espera tu turno.');if(!ids.every(inRack))return;save();work=work.concat([RU.arregla(ids.slice())]);ids.forEach(x=>placed.add(x));sel=null;
   ids.forEach((_,i)=>setTimeout(()=>SFX('clac',.7),i*70));changed()},
