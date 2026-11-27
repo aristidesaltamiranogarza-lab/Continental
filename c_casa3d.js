@@ -547,7 +547,8 @@ window.CASA3D={poseCam,ponCam,std,box,cyl,ctex,rr,mesa:mesaEn,look:lookOf,on:()=
  sala:{gente:(g,n,av,yo)=>{salaPs=n&&n.length?{g,n,av:av||[],me:yo>0?yo:0}:null;if(ready)seatSync()},baja:()=>{salaDive=1},   // c_sala.js: quiénes se sientan, y bajar a tu silla al empezar
   sillas:()=>{const t=salaT;return t&&t.chairs?t.chairs.map(c=>v3(t.x+cp(c).x,TH+1.02,t.z+cp(c).z)):[]}}};
 window.casaPiso=id=>{goFloor(id)};   // materiales y Miis para otros cuartos (el sótano de c_ruleta3d.js)
-window.casaToggle=()=>{on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
+window.casaToggle=()=>{if(!on&&window.PTDA&&!PTDA.pend()){let q='medio';try{q=localStorage.getItem('casa_cal3')||q}catch(e){}return PTDA.ve(q)}   // del plano a la casa: la portada pone la carga (nunca negro)
+ on=!on;try{localStorage.setItem('casa_3d',on?'1':'0')}catch(e){}if(window.BIEN)BIEN.toggled(on);if(on&&ready)applyQ(window.CALIDAD);render()};
 window.casaGo=g=>{if(window.CUB3&&CUB3.isOpen())CUB3.close();if(window.JG3)JG3.close(1);if(sel===g){if(window.CMESA)CMESA.abrir();return}goTable(g)};
 window.casaHome=()=>{camHome();sfx('tick')};window.casaClose=()=>{closed=sel;sel=null;sfx('tick');render()};
 // sentarse: vuela a la mesa, baja a la altura de la silla y funde a negro; luego entra al juego (c_casa_cam.js)
