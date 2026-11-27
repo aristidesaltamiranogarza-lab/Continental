@@ -76,6 +76,13 @@ function bolsa(){const g=new THREE.Group(),pts=[[.02,0],[.3,.02],[.5,.1],[.6,.25
  const cu=new THREE.Mesh(new THREE.TorusGeometry(.32,.035,6,20),new THREE.MeshStandardMaterial({color:0xe8d3a0,roughness:.8}));cu.rotation.x=Math.PI/2;cu.position.y=1.0;g.add(cu);
  g.userData.cuerpo=m;g.userData.boca=v3(0,1.2,0);return g}
 // ---- reloj de arena (alto 1): r.arena(f) con f = lo que queda arriba (1 a 0); r.voltea() lo gira medio giro ----
+// ---- radio vieja de madera (bocina con tela, carátula y dos perillas); luz(on) prende la carátula ----
+function radio(){const g=new THREE.Group(),M=madera(),w=.92,h=.6,d=.36,cuerpo=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M);cuerpo.position.y=h/2;cuerpo.castShadow=true;cuerpo.receiveShadow=true;g.add(cuerpo);
+ const tapa=new THREE.Mesh(new THREE.CylinderGeometry(d/2,d/2,w,18,1,false,0,Math.PI),M);tapa.rotation.z=Math.PI/2;tapa.rotation.y=Math.PI/2;tapa.position.y=h;tapa.scale.set(1,1,.5);g.add(tapa);
+ const tela=new THREE.Mesh(new THREE.PlaneGeometry(w*.5,h*.62),new THREE.MeshStandardMaterial({color:0xc9b48a,roughness:1}));tela.position.set(-w*.18,h*.5,d/2+.002);g.add(tela);
+ const cara=new THREE.MeshStandardMaterial({color:0xf3e2b0,roughness:.5,emissive:0xffb347,emissiveIntensity:0}),dial=new THREE.Mesh(new THREE.CircleGeometry(.12,20),cara);dial.position.set(w*.27,h*.6,d/2+.003);g.add(dial);
+ const per=new THREE.MeshStandardMaterial({color:0x3b2a1e,roughness:.4});[-.06,.08].forEach(x=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.045,.05,.05,12),per);p.rotation.x=Math.PI/2;p.position.set(w*.27+x*1.4,h*.22,d/2+.02);g.add(p)});
+ g.userData.luz=on=>{cara.emissiveIntensity=on?.55:0};return g}
 function reloj(){const g=new THREE.Group(),inner=new THREE.Group(),M=madera(),vid=new THREE.MeshStandardMaterial({color:0xdff3ff,roughness:.05,transparent:true,opacity:.28,depthWrite:false});
  g.add(inner);[.04,.96].forEach(y=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.08,16),M);c.position.y=y;c.castShadow=true;inner.add(c)});
  for(let i=0;i<3;i++){const a=i*2.094,p=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.9,6),M);p.position.set(Math.cos(a)*.25,.5,Math.sin(a)*.25);inner.add(p)}
@@ -93,5 +100,5 @@ const hueco=(mas)=>tx(mas?'h+':'h',128,174,(g,w,h)=>{g.setLineDash([16,10]);g.li
 const raya=()=>tx('r',64,16,(g,w,h)=>{g.fillStyle='#ff6a4d';rr(g,0,3,w,10,5);g.fill()});
 const brillo=()=>tx('b',128,128,(g,w,h)=>{const r=g.createRadialGradient(64,64,10,64,64,62);r.addColorStop(0,'rgba(255,214,110,.9)');r.addColorStop(1,'rgba(255,214,110,0)');g.fillStyle=r;g.fillRect(0,0,w,h)});
 function plano(t,o){const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial(Object.assign({map:t,transparent:true,depthWrite:false},o||{})));m.rotation.x=-Math.PI/2;m.renderOrder=2;return m}
-window.RUK={H,D,TILT,INK,cell,atlas,fichas,atril,bolsa,reloj,hueco,raya,brillo,plano,madera};
+window.RUK={H,D,TILT,INK,cell,atlas,fichas,atril,bolsa,radio,reloj,hueco,raya,brillo,plano,madera};
 })();

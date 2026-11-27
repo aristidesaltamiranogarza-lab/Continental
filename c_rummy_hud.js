@@ -26,7 +26,7 @@ function html(){const G=V.G,st=RMU.st,m=V.me,fin=G.phase!='play',my=st.myTurn,e=
  if(is3)h+=b?`<div class="ui rm-acc">${b}</div>`:'';else if(b)h+=GHUD.bar(b);
  if(fin)h+=final(G,now-st.finT);
  if(st.menu){const rg=String(GM.rummy.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
-  const aj=GHUD.ajustes(GHUD.row('','Vista',UI.dim(is3?1:0,'RMU.mode()'))+GHUD.row('','Sugerencias en el atril',GHUD.sw(st.ayuda,'RMU.ayuda()','Sugerencias en el atril')),
+  const aj=GHUD.ajustes(GHUD.row('','Vista',UI.dim(is3?1:0,'RMU.mode()'))+GHUD.row('','Sugerencias en el atril',GHUD.sw(st.ayuda,'RMU.ayuda()','Sugerencias en el atril'))+GHUD.row('','Radio',GHUD.sw(st.radio,'RMU.radio()','Radio')),
    `<button class="ui-btn sec full" onclick="leave()">${ic('salir')}${V.watch?'Dejar de mirar':'Salir de la sala'}</button>`);
   h+=GHUD.sheet('Rummy',[['aj','Ajustes',aj],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'RMU.menu(0)')}
  return h+'</div>'}

@@ -12,7 +12,7 @@ const RMo=()=>typeof RM!='undefined'&&RM;
 const FELT=['#2f7d63','#123f33'],SO=.34,DC=3,TILT=K.TILT;   // SO: fichas de los atriles ajenos · DC: distancia de tu atril a su cámara
 (window.MESA_J=window.MESA_J||{}).rummy={col:()=>FELT,logo:null,ext:true};
 let R,SC,CA,CR,root,cv,ready=false,failed=false,shown=false,shR=false,fz=0,W=0,H=0,dirty=true,gen=0,anim=true,first=true,lastNow=0;
-let IN={t:0,r:0,rb:0},S=null,mesa=null,tbl=null,bag=null,clock=null,TW=null,TC=null,myR=null,myK='',rk={},glowM=null,LT=null,RK=null,dealT=0,gameK='';
+let IN={t:0,r:0,rb:0},S=null,mesa=null,tbl=null,bag=null,rad=null,clock=null,TW=null,TC=null,myR=null,myK='',rk={},glowM=null,LT=null,RK=null,dealT=0,gameK='';
 const P=new Map(),pool={s:[],r:[],b:[]},idxW=[],idxC=[],X=v3(1,0,0),Y=v3(0,1,0);
 const QI=new THREE.Quaternion(),M4=new THREE.Matrix4(),SV=v3(0,0,0),SCL=v3(1,1,1),ray=new THREE.Raycaster(),P2=new THREE.Vector2(),PL=new THREE.Plane(v3(0,1,0),0);
 ray.layers.enableAll();
@@ -40,6 +40,8 @@ function build(n){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.traverse
  tbl=new THREE.Group();SC.add(tbl);mesa=MESA.arma(tbl,{n,col:FELT,logo:null,aire:true,ext:true});mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));
  if(window.C3D&&C3D.buildRoom){const room=C3D.buildRoom(false,mesa.r,mesa.r);tbl.add(room);tbl.userData.room=room}
  const r=mesa.r;bag=K.bolsa();bag.position.set(r*.6,0,r*.62);bag.rotation.y=.5;tbl.add(bag);
+ if(K.radio){const as=[];for(let i=0;i<n;i++)as.push(((mesa.asiento(i).a%(2*Math.PI))+2*Math.PI)%(2*Math.PI));as.sort((x,y)=>x-y);const a0=as.length?mesa.asiento(0).a:Math.PI/2;let ba=a0+Math.PI,bg=-1;as.forEach((x,i)=>{const y=i+1<as.length?as[i+1]:as[0]+2*Math.PI,m=(x+y)/2,dm=Math.abs(Math.atan2(Math.sin(m-a0),Math.cos(m-a0)));if(dm>1.1&&y-x>bg){bg=y-x;ba=m}});
+  rad=K.radio();const d=r-.75;rad.position.set(Math.cos(ba)*d,0,Math.sin(ba)*d);rad.rotation.y=Math.atan2(-Math.cos(ba),-Math.sin(ba));rad.scale.setScalar(1.15);rad.userData.luz(!!(window.RMS&&RMS.radioOn));tbl.add(rad)}   // radio vieja: en el hueco más grande entre sillas, lejos de ti; tocarla la prende o apaga
  clock=K.reloj();clock.position.set(-r*.63,0,r*.6);clock.scale.setScalar(1.1);tbl.add(clock);
  rk={};for(let i=1;i<n;i++){const A=mesa.asiento(i),g=K.atril(4.6,SO,2),d=r-.62;g.position.set(Math.cos(A.a)*d,0,Math.sin(A.a)*d);g.rotation.y=Math.PI/2-A.a;tbl.add(g);rk[i]=g}
  tbl.updateMatrixWorld(true);P.clear();fz=-1;dirty=true}
@@ -231,8 +233,8 @@ function rayo(e,cam){const r=cv.getBoundingClientRect();P2.set((e.clientX-r.left
 function pick(e){const seen=o=>!window.FONDO||FONDO.seen(o);
  let h=rayo(e,CR).intersectObjects([TC.m].concat(pool.b.filter(o=>o.visible)),false);
  for(const x of h){if(x.object===TC.m){const q=P.get(idxC[x.instanceId]);if(q&&q.hit)return q.hit}else if(x.object.userData.hit)return x.object.userData.hit}
- h=rayo(e,CA).intersectObjects([TW.m].concat(pool.s.filter(o=>o.visible),pool.r.filter(o=>o.visible),bag?[bag]:[]),true).filter(x=>seen(x.object));
- for(const x of h){if(x.object===TW.m){const q=P.get(idxW[x.instanceId]);if(q&&q.hit)return q.hit}else{let o=x.object;while(o&&!o.userData.hit&&o!==bag)o=o.parent;if(o===bag)return {t:'bolsa'};if(o&&o.userData.hit)return o.userData.hit}}
+ h=rayo(e,CA).intersectObjects([TW.m].concat(pool.s.filter(o=>o.visible),pool.r.filter(o=>o.visible),bag?[bag]:[],rad?[rad]:[]),true).filter(x=>seen(x.object));
+ for(const x of h){if(x.object===TW.m){const q=P.get(idxW[x.instanceId]);if(q&&q.hit)return q.hit}else{let o=x.object;while(o&&!o.userData.hit&&o!==bag&&o!==rad)o=o.parent;if(o===bag)return {t:'bolsa'};if(o&&o===rad)return {t:'radio'};if(o&&o.userData.hit)return o.userData.hit}}
  return null}
 function suelo(cx,cy){const r=cv.getBoundingClientRect();P2.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1);ray.setFromCamera(P2,CA);return ray.ray.intersectPlane(PL,v3(0,0,0))}
 // adónde caería la ficha que arrastras: hueco, junto a una ficha de la mesa, al atril o a un grupo nuevo
@@ -273,6 +275,7 @@ function tap(h){if(!window.RMU||!S)return;const sel=S.sel;
  if(h.t=='sug')return RMU.grupo(h.ids);
  if(h.t=='raya')return RMU.porque(h.g);
  if(h.t=='bolsa'){sfx('tap');return RMU.bolsa&&RMU.bolsa()}
+ if(h.t=='radio'){sfx('tap');return RMU.radio&&RMU.radio()}
  if(h.t=='hueco')return sel!=null&&RMU.put(sel,h.d.g<0?{g:-1}:{g:h.d.g,at:h.d.at});
  if(h.t=='atril2'){sfx('tap');return}
  if(h.id===sel)return S.mx&&S.mx.length&&RMU.mas?RMU.mas(h.id):RMU.pick(null);
@@ -294,5 +297,5 @@ function loop(now){requestAnimationFrame(loop);const a=act(),dt=Math.min(100,now
 
 window.R3={ok:()=>{init();return ready&&!failed},show(b){shown=!!b;if(b)init()},layout(i){const o=Object.assign({t:0,r:0,rb:0},i||{});if(o.t!==IN.t||o.r!==IN.r||o.rb!==IN.rb){IN=o;dirty=true}},sync(s){S=s;if(ready&&mesa&&mesa.n===s.G.players.length)sync(s);else dirty=true},
  cam(x){if(x=='home'){Object.assign(VT,{x:0,z:0,k:1,a:0,t:0});tocado=0}},sort(){},fx,home:()=>R3.cam('home'),get vista(){return Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.k-1)>.03||Math.abs(VT.a)>.02},
- get rackTop(){return RK?RK.top:H},_paso:t=>loop(t)};   // _paso: para probar con el panel oculto (sin requestAnimationFrame)
+ radio(on){if(rad)rad.userData.luz(on)},get rackTop(){return RK?RK.top:H},_paso:t=>loop(t)};   // _paso: para probar con el panel oculto (sin requestAnimationFrame)
 })();

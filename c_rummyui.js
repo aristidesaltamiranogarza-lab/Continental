@@ -18,11 +18,12 @@ const is3=()=>vista=='3d'&&!!window.R3&&R3.ok(),stage=()=>is3()?window.R3:window
 const inRack=id=>mine().includes(id)&&!placed.has(id),onTable=id=>work.some(g=>g.includes(id)),baseSet=()=>new Set(base.flat());
 const tell=t=>{aviso=t;avT=Date.now()};
 const SFX=(n,v)=>{if(window.RMS)RMS.snd(n,v)};
+const VOZ=(L,p)=>{if(window.RMS&&Math.random()<(p==null?1:p))RMS.voz(L[Math.random()*L.length|0])};   // exclamación de algún abuelo (RMS.voz ya espacia y cae a murmullo)
 // ---- lo que manda el servidor (G.fx): sonidos y aviso al 3D ----
 function fxs(){const G=V.G,F=G.fx||[];if(lastF<0)lastF=F.filter(f=>(f.ago||0)>2500).reduce((m,f)=>Math.max(m,f.n),0);
  F.forEach(f=>{if(f.n<=lastF)return;lastF=f.n;const yo=f.k===me();if(window.R3&&is3())R3.fx(f);
-  if(f.t=='mez')SFX('mez');else if(f.t=='roba')SFX('roce');else if(f.t=='tiempo'||f.t=='mal')SFX('mal');
-  else if(f.t=='gana'){SFX('gana');setTimeout(()=>SFX('aplauso'),400);if(typeof confetti=='function')setTimeout(()=>confetti(yo?90:30),900)}})}
+  if(f.t=='mez')SFX('mez');else if(f.t=='roba'){SFX('roce');if(!yo)VOZ(['¡Ay, no!','Ándale, roba.','Ni modo.','¡Uy!'],.35)}else if(f.t=='juega'&&(f.to||0)>=5)VOZ(['¡Ándale!','¡Órale!','¡Qué bárbaro!']);else if(f.t=='tiempo'||f.t=='mal')SFX('mal');
+  else if(f.t=='gana'){SFX('gana');setTimeout(()=>VOZ(yo?['¡Ay, no!','¡Qué suerte!']:['¡Ándale!','¡Bravo!','¡Ay, no!']),1300);setTimeout(()=>SFX('aplauso'),400);if(typeof confetti=='function')setTimeout(()=>confetti(yo?90:30),900)}})}
 // ---- estado local: se reinicia en cada turno; si recargas a media jugada se recupera de G.tmp ----
 function syncTurn(){const G=V.G,k=G.tc+':'+G.turn;if(k===key)return;const was=key;key=k;base=cp(G.mesa);hist=[];sel=null;placed=new Set();tmpK='';work=cp(base);
  if(myTurn()){if(G.tmp){const A=baseSet(),M=new Set(mine());work=cp(G.tmp);work.flat().forEach(x=>{if(!A.has(x)&&M.has(x))placed.add(x)})}if(was){turnoT=Date.now();SFX('turno')}}}
@@ -100,19 +101,20 @@ window.RMU={
  mode(x){if(stage())stage().cam('home');big=false;vista=x||(is3()?'2d':'3d');lss('rm_view',vista);menu=false;render()},
  ayuda(){ayuda=!ayuda;lss('rm_ayuda',ayuda?'1':'0');sugK='';if(!ayuda&&modo=='grupos')modo='color';manual=false;render()},
  home(){if(stage())stage().cam('home');render()},
+ radio(){if(!window.RMS)return;const v=RMS.radio();if(window.R3)R3.radio(v);tell(v?'Radio prendida.':'Radio apagada.');render()},
  // por qué no sirve el grupo g de la mesa (al tocar su raya roja)
  porque(g){const G=work[g]||[];if(G.length<3)return tell('Un grupo necesita 3 fichas o más.'),render();const nj=G.filter(x=>!RU.isJ(x)),n=new Set(nj.map(RU.num)),c=new Set(nj.map(RU.col));
   tell(n.size==1?(c.size<nj.length?'En una serie no se repite color.':'Una serie lleva máximo 4 fichas.'):c.size==1?'Una escalera va seguida, sin huecos (el 1 solo antes del 2).':'Ni serie (mismo número) ni escalera (mismo color y seguidos).');SFX('tap');render()},
- get st(){return {estado:estado(),sel,hist:hist.length,placed:placed.size,modo,ayuda,menu,vista:is3()?'3d':'2d',aviso:aviso&&Date.now()-avT<4500?aviso:'',avT,turnoT,finT,big,busy,cnt,myTurn:myTurn(),bajada:RU.bajada(base,work)}}};
+ get st(){return {radio:!!(window.RMS&&RMS.radioOn),estado:estado(),sel,hist:hist.length,placed:placed.size,modo,ayuda,menu,vista:is3()?'3d':'2d',aviso:aviso&&Date.now()-avT<4500?aviso:'',avT,turnoT,finT,big,busy,cnt,myTurn:myTurn(),bajada:RU.bajada(base,work)}}};
 // ---- enganche con game.js ----
 GM.rummy.body=function(){if(!active()||!window.RUH)return origBody();GHUD.save();try{ok=true;syncTurn();syncOrder();const G=V.G;
   if(G.phase=='final'){if(!finT)finT=Date.now()}else finT=0;return RUH.html()}catch(e){console.warn('Rummy UI:',e);ok=false;return origBody()}};
 GM.rummy.after=function(){if(!active()||!ok){off();return}
- if(!on){on=true;document.documentElement.classList.add('rmui');if(window.RUH)RUH.entra()}if(V!==lastV){lastV=V;dl=Date.now()+(V.G.left||0);fxs()}
+ if(!on){on=true;document.documentElement.classList.add('rmui');if(window.RMS)RMS.amb(true);if(window.RUH)RUH.entra()}if(V!==lastV){lastV=V;dl=Date.now()+(V.G.left||0);fxs()}
  const s=stage();if(window.R2&&s!==R2)R2.show(false);if(window.R3&&s!==R3)R3.show(false);s.show(true);
  if(s!==R2&&!s.ok()){vista='2d';return render()}   // el 3D no pudo arrancar: queda el 2D
  GHUD.restore();s.layout(RUH.ins(is3()));s.sync(view());RUH.after()};
-function off(){if(!on)return;on=false;document.documentElement.classList.remove('rmui');if(window.R2){R2.cam('home');R2.show(false)}if(window.R3)R3.show(false);
+function off(){if(!on)return;on=false;document.documentElement.classList.remove('rmui');if(window.RMS)RMS.amb(false);if(window.R2){R2.cam('home');R2.show(false)}if(window.R3)R3.show(false);
  menu=false;key='';order=[];sel=null;hist=[];aviso='';lastF=-1;sugK='';manual=false;big=false}
 let rzT=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rzT);rzT=setTimeout(()=>{if(active())render()},120)});
 addEventListener('keydown',e=>{if(!on||/INPUT|TEXTAREA/.test((e.target&&e.target.tagName)||''))return;const k=e.key.toLowerCase();
