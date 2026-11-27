@@ -30,7 +30,7 @@ COLOR = dict(muro=(.72, .45, .3), lambrin=(.12, .26, .19), rod=(.85, .8, .68), c
              persiana=(.18, .36, .26), hierro=(.05, .05, .05), tapete=(.5, .2, .15), hamaca=(.7, .35, .3), tronco=(.35, .25, .18),
              copa=(.24, .4, .18), barro=(.6, .32, .2), escalon=(.34, .1, .07), calle=(.35, .35, .37), banqueta=(.62, .6, .56),
              barda=(.78, .7, .58), agua=(.06, .14, .15), arbotante=(1, .8, .5), farol=(1, .78, .45), mesa=(.25, .15, .08), foco=(1, .86, .58))
-EMITE = dict(arbotante=6, farol=8, foco=10)
+EMITE = dict(arbotante=4, farol=8, foco=10)
 PRIO = {}            # escala de la isla en el mapa de luz (menos texeles para lo que casi no se ve)
 # por material: muros y arcos con más texeles (se veían borrosos); techos con menos. Las caras exteriores del lote (hacia los
 # vecinos) no se ven: casi sin texeles. El margen fijo del empaque dobla lo que se aprovecha del mapa (24% -> 51%).
@@ -226,6 +226,17 @@ def puerta(base, e, L, u0, u1, nm):
         caja_l(CA, e, L, u0, u0 + f, 0, P, -o, o); caja_l(CA, e, L, u1 - f, u1, 0, P, -o, o); caja_l(CA, e, L, u0, u1, P - f, P, -o, o)
 
 # ---------- patio: arquería, columnas, árbol ----------
+def intrados(bm, s):
+    """5b: el intradós en facetas de distinto tono -> caras curvas lisas (orillas duras contra los paños planos); la cara de abajo
+    que asienta sobre cada capitel no se ve y horneaba negro (raya en el canto): fuera."""
+    bm.normal_update()
+    fuera = [f for f in bm.faces if abs(f.normal.z) > .99 and all(abs(v.co.z - s) < 1e-3 for v in f.verts)]
+    bmesh.ops.delete(bm, geom=fuera, context='FACES_ONLY')
+    bm.normal_update()
+    cur = lambda f: max(abs(f.normal.x), abs(f.normal.y), abs(f.normal.z)) < .999
+    for f in bm.faces: f.smooth = cur(f)
+    for ed in bm.edges: ed.smooth = len(ed.link_faces) == 2 and all(cur(f) for f in ed.link_faces)
+
 def arqueria():
     s, cw, o = K['SPRING'], K['COL'] / 2, .25
     for e, L in (('h', 14), ('h', 30), ('v', 12), ('v', 24)):
@@ -235,7 +246,7 @@ def arqueria():
         p = [(cs[-1] + cw, H), (cs[0] - cw, H), (cs[0] - cw, s)]
         for c0, c1 in zip(cs, cs[1:]): p += [(c0 + cw, s)] + arco((c0 + c1) / 2, (c1 - c0) / 2 - cw, s, 18) + [(c1 - cw, s)]
         p += [(cs[-1] + cw, s)]
-        prisma(bmn(base, 'muro'), e, L, limpio(p), -o, o)
+        bm = bmn(base, 'muro'); prisma(bm, e, L, limpio(p), -o, o); intrados(bm, s)
         caja_l(bmn(base + '_cor', 'cantera'), e, L, cs[0] - cw - .12, cs[-1] + cw + .12, H - .24, K['H'] + .035 - dv(e), -o - .12, o + .12)
         ex(base, linea=lid); ex(base + '_cor', linea=lid)
 
@@ -507,6 +518,10 @@ def pozo(x, z):
 
 def traspatio():
     arbol('mamey', 6, 41, 3.3, 3.3, 5, prio=.5)      # sombra de la banca
+    HI, FA = bmn('pb_mamey_farol_hierro', 'hierro', luz=False), bmn('pb_mamey_farol', 'farol', luz=False)   # 5b: de noche bajo la copa quedaba un círculo negro
+    fx, fz = 7.3, 40.2; caja(HI, fx - .01, fx + .01, 2.55, 3.9, fz - .01, fz + .01); caja(HI, fx - .11, fx + .11, 2.5, 2.55, fz - .11, fz + .11)
+    caja(FA, fx - .08, fx + .08, 2.2, 2.5, fz - .08, fz + .08); caja(HI, fx - .1, fx + .1, 2.16, 2.2, fz - .1, fz + .1)
+    LUCES.append(('POINT', (fx, 2.0, fz), 35, .3)); LUCES.append(('POINT', (5.2, 2.6, 41.8), 14, .6))   # relleno suave en la horqueta
     CA = bmn('pb_traspatio', 'cantera', prio=.5)
     caja(CA, 31, 34, 0, 1.0, 35.4, 36.8); caja(CA, 31.2, 33.8, 1.0, 1.2, 35.6, 36.6)
     pozo(*POZO)
@@ -641,7 +656,7 @@ def lamparas():
         base, lid = linea_de(e, L, u); n = base + '_arb'; bm = bmn(n, 'arbotante', luz=False); ex(n, linea=lid)
         o = (nz if e == 'h' else nx)
         caja_l(bm, e, L, u - .15, u + .15, 3.0, 3.4, o * h, o * (h + .14)) if o > 0 else caja_l(bm, e, L, u - .15, u + .15, 3.0, 3.4, o * (h + .14), o * h)
-        LUCES.append(('POINT', (x + nx * .55, 3.25, z + nz * .55), 70, .12))
+        LUCES.append(('POINT', (x + nx * .8, 3.25, z + nz * .8), 50, .35))   # 5b: a .55 y r .12 dejaba mancha blanca
     F = bmn('pb_farol', 'farol', luz=False); caja(F, 18.32, 18.68, 3.95, 4.45, 4.82, 5.18)
     HI = bmn('pb_farol_hierro', 'hierro', luz=False); caja(HI, 18.28, 18.72, 4.45, 4.52, 4.78, 5.22); caja(HI, 18.48, 18.52, 4.52, K['H'], 4.98, 5.02)
     LUCES.append(('POINT', (18.5, 4.2, 5), 260, .2))
@@ -656,7 +671,7 @@ def arbotante(x, z, nx, nz, y0=3.0, E=70):
     base, lid = linea_de(e, L, u); n = base + '_arb'; bm = bmn(n, 'arbotante', luz=False); ex(n, linea=lid)
     o = (nz if e == 'h' else nx)
     caja_l(bm, e, L, u - .15, u + .15, y0, y0 + .4, o * h, o * (h + .14)) if o > 0 else caja_l(bm, e, L, u - .15, u + .15, y0, y0 + .4, o * (h + .14), o * h)
-    LUCES.append(('POINT', (x + nx * .55, y0 + .25, z + nz * .55), E, .12))
+    LUCES.append(('POINT', (x + nx * .8, y0 + .25, z + nz * .8), E * .7, .35))
 
 def guirnalda(pre, A, Bp, caida=.45, paso=.7, cada=3, E=16):
     """Cable con focos de A a Bp (plano: x, alto, z) que cuelga 'caida' al centro; una luz puntual cada 'cada' focos (horneado de noche)."""
@@ -832,7 +847,8 @@ def noche(sc):
 def hornear_noche(sc, obs, res, mu):
     """Segundo horneado con las mismas UV: NOM_luz_noche.webp (CMAT la usa cuando CIELO está de noche)."""
     mu = int(os.environ.get('NOCHE_MU', max(256, mu // 2)))   # noche con la mitad de muestras (luz suave, casi sin sombras duras)
-    noche(sc); img = hornear(sc, obs, res, mu); guardar(img, ruta=os.path.join(SAL, NOM + '_luz_noche.webp'))
+    noche(sc); CLAMP[0] = 1   # 5b: menos manchas y rayas en muros con poca luz
+    img = hornear(sc, obs, res, mu); CLAMP[0] = 2; guardar(img, ruta=os.path.join(SAL, NOM + '_luz_noche.webp'))
 
 def motor(sc):
     try: sc.render.engine = 'CYCLES'
@@ -856,7 +872,10 @@ def armar():
     for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
     sc = bpy.context.scene; motor(sc)
     muros(); arqueria(); columnas(); patio(); hamaca(); frente(); traspatio(); deco(); pisos(); techos(); escalera(); marcas(); lamparas()
-    col = coleccion('pb'); obs = crear(col); luces(sc)
+    col = coleccion('pb'); obs = crear(col)
+    for o in col.objects:   # 5b: el farol y su cable no echan sombra (mancha oscura en el techo del zaguán)
+        if o.name.startswith('pb_farol'): o.visible_shadow = False
+    luces(sc)
     print('pb: %d mallas, %d con luz, %d empties' % (len([o for o in col.objects if o.type == 'MESH']), len(obs), len(EMP)))
     return sc, col, obs
 
@@ -973,6 +992,26 @@ def _pasadas(sc, img, muestras, sel, n=2):   # R4: cada llamada a bake cuesta ~1
         print('Horneado: %d%% (faltan ~%.1f min)' % (100 * (k + 1) // n, t / (k + 1) * (n - k - 1) / 60), flush=True)
     img.pixels.foreach_set(acc / n); img.update()
 
+def tapas(img, obs):
+    """5b: la tapa de cada muro queda metida en el techo y hornea negra; con el corte la cámara alta la ve (billar del sótano).
+    Toma .8 de la luz de la cara lateral más clara del mismo muro."""
+    import numpy as np, re
+    w, h = img.size; px = _pix(img); n = 0
+    for o in obs:
+        if not re.search(r'_muro_b?[hv]\d+_\d+$', o.name) or 'luz' not in o.data.uv_layers: continue
+        me = o.data; uv = me.uv_layers['luz'].data; R = o.matrix_world.to_3x3()
+        def caja_uv(p):
+            us = [uv[l].uv for l in p.loop_indices]
+            return int(min(u.x for u in us) * w), int(max(u.x for u in us) * w) + 1, int(min(u.y for u in us) * h), int(max(u.y for u in us) * h) + 1
+        lados = [caja_uv(p) for p in me.polygons if abs((R @ p.normal).z) < .1 and p.area > .5]
+        vs = [float(px[y0:y1, x0:x1, :3].mean(axis=(0, 1)).max()) for x0, x1, y0, y1 in lados if x1 > x0 and y1 > y0]
+        if not vs: continue
+        val = max(vs) * .8; zt = max((o.matrix_world @ v.co).z for v in me.vertices)
+        for p in me.polygons:
+            if (R @ p.normal).z > .99 and (o.matrix_world @ p.center).z > zt - .05:
+                x0, x1, y0, y1 = caja_uv(p); px[max(0, y0 - 1):y1 + 1, max(0, x0 - 1):x1 + 1, :3] = val; n += 1
+    img.pixels.foreach_set(px.ravel()); print('tapas de muro:', n)
+
 def _pix(i):
     import numpy as np
     w, h = i.size; a = np.empty(w * h * 4, dtype=np.float32); i.pixels.foreach_get(a); return a.reshape(h, w, 4)
@@ -1077,6 +1116,7 @@ def _dentro(sc, obs, sel, res):
     print('dentro de otra pieza:', int(m.sum()), 'texeles', flush=True)
     return m
 
+CLAMP = [2]   # rebote máximo (noche: 1)
 def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     """Hornea la luz (directa + indirecta, sin color) en UV 'luz'. solo: hornear solo esas mallas (prueba rápida).
     limpio: quita el ruido con OpenImageDenoise guiado por normales (sin guía borraba el detalle de los muros)."""
@@ -1085,13 +1125,13 @@ def hornear(sc, obs, res, muestras, solo=None, limpio=True):
     _img(obs, img)
     sc.cycles.samples = muestras; sc.cycles.use_denoising = False
     bk = sc.render.bake; bk.use_pass_direct = True; bk.use_pass_indirect = True; bk.use_pass_color = False; bk.margin = 2; bk.target = 'IMAGE_TEXTURES'
-    sc.cycles.sample_clamp_indirect = 2     # sin destellos del rebote (dejaban manchas al quitar el ruido)
+    sc.cycles.sample_clamp_indirect = CLAMP[0]     # sin destellos del rebote (dejaban manchas al quitar el ruido)
     _pasadas(sc, img, muestras, solo or obs)
     den = _dentro(sc, obs, solo or obs, res)
     nrm = bpy.data.images.new('pb_nrm', res, res, float_buffer=True); _img(obs, nrm)
     bk.margin = 0; sc.cycles.samples = 1; _sel(solo or obs); bpy.ops.object.bake(type='NORMAL', normal_space='OBJECT'); bk.margin = 2
     cara = _pix(nrm)[:, :, :3].sum(2) > 1e-4        # texeles de alguna cara (sin el margen: lo pone _rellenar)
-    _img(obs, img); _rellenar(img, cara, den)
+    _img(obs, img); _rellenar(img, cara, den); tapas(img, solo or obs)
     if limpio: img = oidn(sc, img, nrm); _rellenar(img, cara)
     for o in obs: o.data.uv_layers.active = o.data.uv_layers[0]
     img.filepath_raw = os.path.join(DIR, 'blender', NOM + '_luz.exr'); img.file_format = 'OPEN_EXR'; img.save()

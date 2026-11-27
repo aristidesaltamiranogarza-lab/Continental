@@ -27,7 +27,7 @@ P.COLOR.update(piedra=(.5, .45, .39), tabique=(.42, .2, .14), zoclo=(.26, .23, .
                alfombra=(.34, .07, .09), ladrillo=(.55, .28, .18), losa_s=(.45, .42, .37), cemento=(.27, .26, .24), tierra=(.16, .13, .1),
                botellas=(.18, .22, .14), barrica=(.4, .24, .13), cuero=(.3, .09, .07), madera_osc=(.18, .1, .06), duela=(.48, .3, .18),
                techo=(.45, .41, .36), foco=(1, .82, .55))
-P.EMITE['foco'] = 8; P.COLOR['led'] = (1, .66, .36); P.EMITE['led'] = 1.5     # tiras LED tenues
+P.EMITE['foco'] = 5; P.COLOR['led'] = (1, .74, .5); P.EMITE['led'] = .5     # tiras LED tenues (5b: 1.5 se veía neón y quemaba el techo)
 P.PRIO_MAT.update(piedra=1.4, tabique=1.3, tapiz_vino=1.3, tapiz_verde=1.3, lambrin_s=1.2, techo=.7, tierra=.2)   # R4: techo .35 -> .7 y prio .3 -> .9 (salía a 2 tx/m; pb 12.4)
 P.MUROS = P.MUROS + ('piedra', 'zoclo', 'lambrin_s', 'tapiz_vino', 'tapiz_verde', 'tabique')
 bmn, ex, vacio, caja, caja_l, quad, disco, tubo, T = P.bmn, P.ex, P.vacio, P.caja, P.caja_l, P.quad, P.disco, P.tubo, P.T

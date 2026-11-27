@@ -110,7 +110,7 @@ def bano():
     tubo(HI, (7.76, 2.6, 20.8), (7.76, 2.6, 21.6), .03, .03, 8); caja(TO, 7.66, 7.74, 1.75, 2.62, 20.85, 21.55)
     # puerta entreabierta hacia adentro (vano z 18.5..20.5 en el muro x=8), bisagra en la jamba del norte
     a = math.radians(70); ux, uz = -math.sin(a), math.cos(a); hx, hz, R = 7.72, 18.7, 1.62
-    hoja_puerta(bmn('pb_bano_puerta', 'porton'), hx, hz, ux, uz, R, K['PUERTA'] - .03, g=.07, ab=.02)
+    hoja_puerta(bmn('pb_bano_puerta', 'porton', prio=2.0), hx, hz, ux, uz, R, K['PUERTA'] - .03, g=.07, ab=.02)
     tubo(HI, (hx + ux * (R - .15) - uz * .04, 1.5, hz + uz * (R - .15) + ux * .04), (hx + ux * (R - .15) - uz * .1, 1.5, hz + uz * (R - .15) + ux * .1), .03, .03, 8)
     ex('pb_bano_puerta', segs=T(hx, hz) + T(hx + ux * R, hz + uz * R), r=.1)
     ex('pb_bano_loza', obs=T(4.0, 17.9) + [.6] + T(5.2, 21.3) + [.55])
