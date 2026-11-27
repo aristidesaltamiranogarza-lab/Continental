@@ -58,6 +58,9 @@ function aplica(p,cod){const u=p.userData.av,o=leer(cod),M=o.s===2?'_M':'',vest=
 
 function crearYa(cod){if(!base)return null;const {escena,clips,SU}=base;
  const p=SU.clone(escena);p.name='Personaje';
+ {const sk=[],C=new THREE.Matrix4(),T=new THREE.Matrix4();p.traverse(o=>{if(!o.isSkinnedMesh)return;const s=o.skeleton;   // SkeletonUtils da un esqueleto por pieza: si sus huesos son los mismos y solo cambia la pose de enlace (bind·C), la pieza usa el de otra con bindMatrix=C·bind: los huesos se calculan y su textura se sube una vez por personaje, no ~17
+  const q=sk.find(t=>{if(t.bones.length!==s.bones.length||!t.bones.every((b,i)=>b===s.bones[i]))return false;C.copy(t.boneInverses[0]).invert().multiply(s.boneInverses[0]);return s.boneInverses.every((m,i)=>T.multiplyMatrices(t.boneInverses[i],C).elements.every((v,k)=>Math.abs(v-m.elements[k])<1e-5))});
+  if(q){o.bindMatrix.premultiply(C);o.skeleton=q}else sk.push(s)})}
  const u=p.userData.av={piezas:new Map(),mat:{},acc:{},obj:null,vel:4,hasta:0};
  p.traverse(o=>{if(/^(Pelo|Cejas|Boca|Nariz|Arriba|Abajo|Mangas|Piernas|Cuerpo)/.test(o.name)&&o.parent&&o.parent.name==='Rig')u.piezas.set(o.name,o);
   if(o.isMesh){const cl=m=>{if(!RANURA.includes(m.name))return m;return u.mat[m.name]||(u.mat[m.name]=m.clone())};

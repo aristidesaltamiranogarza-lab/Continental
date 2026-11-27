@@ -28,7 +28,8 @@ const backT=()=>texC.d||(texC.d=tx(MD3K.dorso()));
 function glowTex(){if(texC.glow)return texC.glow;const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.shadowColor='#fff';g.shadowBlur=34;g.fillStyle='#fff';g.beginPath();g.roundRect?g.roundRect(52,52,152,152,16):g.rect(52,52,152,152);g.fill();g.fill();return texC.glow=tx(c)}
 const GI=152/256;
 let GEO=null;
-function mkCard(f){GEO=GEO||new THREE.BoxGeometry(CW,CT,CH);const ed=new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:.6});
+const agrupa=(g,P)=>{const ix=g.index.array,G=g.groups.slice(),o=[];g.clearGroups();P.forEach(([ks,mi])=>{const s=o.length;ks.forEach(k=>{for(let i=G[k].start;i<G[k].start+G[k].count;i++)o.push(ix[i])});g.addGroup(s,o.length-s,mi)});g.setIndex(o);return g};   // caja de carta con menos grupos de material (en MD3 los cantos van con la cara, pintados del margen crema): 2 dibujos por carta y no 6, también en la sombra
+function mkCard(f){GEO=GEO||(()=>{const g=new THREE.BoxGeometry(CW,CT,CH),uv=g.attributes.uv;for(const f of [0,1,4,5])for(let i=0;i<4;i++)uv.setXY(f*4+i,.5,.985);return agrupa(g,[[[2,0,1,4,5],2],[[3],3]])})();const ed=new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:.6});
  const top=new THREE.MeshStandardMaterial({map:f?faceT(f):backT(),roughness:.55,alphaTest:.5}),bot=new THREE.MeshStandardMaterial({map:backT(),roughness:.55,alphaTest:.5});
  const m=new THREE.Mesh(GEO,[ed,ed,top,bot,ed,ed]);m.castShadow=true;m.receiveShadow=true;m.userData={f};return m}
 function setFace(m,f){const t=f?faceT(f):backT();m.userData.f=f;if(m.material[2].map!==t){m.material[2].map=t;m.material[2].needsUpdate=true}}
@@ -115,9 +116,11 @@ function dropAt(x,y){const p=ground(x,y),me=V.me;if(!p||!mesa||me<0)return null;
  if(Math.abs(u)<Z.w*1.15&&Math.abs(v)<Z.h*1.35){const out=lay(me).out;let b=null,bd=1e9;out.forEach(c=>{const du=Math.abs(U(c)-u);if(du<bd){bd=du;b=c}});
   if(b&&bd<b.s*CW*.75)return {z:b.hit.t=='bank'?'bank':'prop',col:b.hit.col};const bk=out.some(c=>c.hit.t=='bank'),u0=out.length?Math.min(...out.map(U)):0;return {z:!bk&&u<u0?'bank':'prop'}}
  return Math.hypot(p.x,p.z)<Math.min(L.rx,L.rz)*.5?{z:'centro'}:null}
-function dragPos(){const m=meshes.get('c'+drg.id),f=L.hand&&L.hand.find(h=>h.id===drg.id);if(!m||!f)return;const p=ground(drg.x,drg.y);
- if(p&&(p.x*p.x)/(L.rx*L.rx)+(p.z*p.z)/(L.rz*L.rz)<1.1){p.y=.35;target(m,SC,p,Qe(0,zona(V.me).yaw,0),L.ps*1.15,{ms:90,arc:0})}
- else target(m,CA,loc(drg.x,drg.y,D-.05),f.q,f.s*1.08,{ms:60,arc:0})}const SWD=1000;
+function dragPos(){const m=meshes.get('c'+drg.id),f=L.hand&&L.hand.find(h=>h.id===drg.id);if(!m||!f)return;const p=ground(drg.x,drg.y),ini=!drg.up;drg.up=1;
+ if(p&&(p.x*p.x)/(L.rx*L.rx)+(p.z*p.z)/(L.rz*L.rz)<1.1){p.y=.35;sigue(m,SC,p,Qe(0,zona(V.me).yaw,0),L.ps*1.15,90,ini)}
+ else sigue(m,CA,loc(drg.x,drg.y,D-.05),f.q,f.s*1.08,60,ini)}
+// la carta va pegada al dedo: solo al levantarla o al pasar de la mano a la mesa (cambia de padre) hay una vuelta corta; si ya va en camino, se le mueve la meta sin reiniciarla
+function sigue(m,par,pos,q,s,ms,ini){const T=m.userData.T;if(!ini&&T&&T.par===par){if(m.userData.tw){T.pos.copy(pos);T.q.copy(q);T.s=s;return}ms=0}target(m,par,pos,q,s,{ms,arc:0})}const SWD=1000;
 function viewStep(dt){const now=performance.now(),sp=sw&&!RM?Math.min(1,(now-sw)/SWD):1;if(sp>=1)sw=0;const arc=sp<1?Math.sin(Math.PI*sp):0;
  const sway=!RM&&!sw&&VT.who>=0?{a:.06*Math.sin(now/2600),t:.025*Math.sin(now/3700)}:null;
  const f=RM?1:1-Math.exp(-dt/(sw?210:110));let ch=0;VK.forEach(q=>{let tg=VT[q]+(q=='t'?.3*arc:q=='k'?-.35*arc*VT.k/2:0)+(sway&&sway[q]||0);if(q=='t')tg=Math.min(tg,1.5-L.el);const d=tg-VW[q];if(Math.abs(d)>1e-4){VW[q]+=d*f;ch=1}else if(d){VW[q]=tg;ch=1}});if(ch)cam()}
@@ -347,7 +350,7 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(!L||!mesa||innerWidth!==W||innerHeight!==H){layout();sync()}
  viewStep(dt);vivo(now,dt);step(now);if(window.MFX)MFX.paso(now);avStep(now);pulse(now);labels();viewBtn();
  const fs=window.FONDO?FONDO.pinta(R,CA,'monopolydeal',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz){fz=fs;casaModo()}
- if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
+ if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);SC.matrixWorldAutoUpdate=false;R.render(SC,CA);SC.matrixWorldAutoUpdate=true;CA.layers.set(0)}   // 2a pasada (tu mano): las matrices ya quedaron en la 1a
 function casaModo(){const v=!fz;if(L.roomG)L.roomG.visible=v;L.baseM.visible=v;mesa.escala((fz||MESA.CASA_S)*((window.FONDO&&FONDO.MII)||1));mesa.sillas[0].visible=true;if(V&&V.G)sync()}   // personajes del tamaño de la casa, con o sin la casa de fondo (como Uno)
 function toggle(){on=!on;menu=false;try{localStorage.setItem('md_3d',on?'1':'0')}catch(e){}render()}
 G0.body=function(){

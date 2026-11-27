@@ -15,7 +15,8 @@ const RMo=()=>typeof RM!=='undefined'&&RM;
 function codigo(nom){let x=2166136261;for(const c of String(nom||'Jugador'))x=Math.imul(x^c.charCodeAt(0),16777619);x=x||1;
  const r=n=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)%n};
  return AV.codificar({s:1+r(2),p:1+r(7),c:1+r(3),b:1+r(3),n:1+r(3),a:1+r(3),d:1+r(3),col:[r(8),r(8),r(10),r(10)]})}
-function cartaM(){if(!geo){geo=new THREE.BoxGeometry(CWm,CHm,.008);const ed=new THREE.MeshStandardMaterial({color:0xe9e6dc,roughness:.6});
+const agrupa=(g,P)=>{const ix=g.index.array,G=g.groups.slice(),o=[];g.clearGroups();P.forEach(([ks,mi])=>{const s=o.length;ks.forEach(k=>{for(let i=G[k].start;i<G[k].start+G[k].count;i++)o.push(ix[i])});g.addGroup(s,o.length-s,mi)});g.setIndex(o);return g};   // caja de carta en 2 grupos (dorso; cantos y frente lisos): 2 dibujos por carta y no 6, también en la sombra
+function cartaM(){if(!geo){geo=agrupa(new THREE.BoxGeometry(CWm,CHm,.008),[[[4],4],[[0,1,2,3,5],5]]);const ed=new THREE.MeshStandardMaterial({color:0xe9e6dc,roughness:.6});
   mats=[ed,ed,ed,ed,new THREE.MeshStandardMaterial({roughness:.6}),new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:.7})]}
  if(mats[4].map!==dorso){mats[4].map=dorso;mats[4].needsUpdate=true}const m=new THREE.Mesh(geo,mats);m.castShadow=true;return m}
 function nuevo(w){const p=AV.crearYa(w.cod);if(!p)return null;AV.sentar(p,true);AV.pose(p,'AgarreFrente',0);AV.agarre(p,'I',.55);AV.agarre(p,'D',.55);p.position.copy(SEAT);AV.encoge(p,AV.K);p.userData.sit=p.position.clone();
