@@ -310,7 +310,7 @@ Hecho: 4 colores de palo; mano siempre en UNA fila (el usuario no quiere filas),
 
 ## Rummy nuevo (mesa de la azotea) — pendientes
 Hecho (fe99873): c_rummy_kit.js (RUK: fichas de hueso en una malla, atril, bolsa, reloj), c_rummy3d.js (R3: mesa MESA + MPJ + FONDO, posturas inclinado/recargado, huecos, arrastre), c_rummyui.js (RMU: turno, botón único, sugerencias con RUMBOT), c_rummy_hud.js (RUH). Probar: `/prueba?g=rummy&n=4&casa=caja` (sin casa=caja sale el cuarto viejo de respaldo).
-- [ ] Botones de abajo: que "Robar ficha"/"Listo" no mueva Ordenar y Deshacer al aparecer o cambiar de texto (se aprieta otro por accidente). Ancho fijo y lugares fijos; en el turno de otro, mismo lugar.
+- [x] Botones de abajo: que "Robar ficha"/"Listo" no mueva Ordenar y Deshacer al aparecer o cambiar de texto (se aprieta otro por accidente). Ancho fijo y lugares fijos; en el turno de otro, mismo lugar.
 - [ ] Azotea: desde ciertos ángulos (recargado, vista de lado) no se dibuja el piso c2, solo los de abajo. Revisar FONDO/CASA3D.fondo con la mesa en c2 (¿el corte o el piso que carga la casa?).
 - [ ] La mesa debe verse de azotea (aire libre, pérgola, atardecer): hoy es la mesa redonda de fieltro verde de interior. Rehacerla si hace falta (madera/herrería de exterior, mantel, luz cálida), con MESA_J.rummy para que la casa ponga la misma.
 - [ ] Levantar un grupo entero manteniéndolo apretado y soltarlo junto a otro para unirlos.

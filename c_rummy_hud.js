@@ -20,8 +20,9 @@ function html(){const G=V.G,st=RMU.st,m=V.me,fin=G.phase!='play',my=st.myTurn,e=
  // botones: Ordenar siempre; en tu turno Deshacer (mantener = todo) y el grande
  let b='';
  if(!fin&&m>=0){b+=`<button class="ui-rb rm-ord" onclick="RMU.sort()" aria-label="Ordenar el atril" title="Ordenar (O)">${ic('ordenar')}</button>`;
-  if(my){b+=`<button class="ui-rb rm-und" ${st.hist?'':'disabled'} onpointerdown="RUH.lp(1)" onpointerup="RUH.lp(0)" onpointerleave="RUH.lp(-1)" onclick="RUH.clic()" aria-label="Deshacer (mantén para regresar todo)" title="Deshacer (Ctrl+Z) · mantén para regresar todo">${ic('deshacer')}</button>`;
-   b+=`<button class="ui-btn rm-go ${e.k}" ${st.busy?'disabled':''} onclick="RMU.end()">${e.k=='listo'?ic('ok'):''}<span>${e.t}</span></button>`}}
+  {const h0=my?'':' rm-hid" tabindex="-1" aria-hidden="true';const e0=e||{k:'robar',t:''};
+   b+=`<button class="ui-rb rm-und${h0}" ${my&&st.hist?'':'disabled'} onpointerdown="RUH.lp(1)" onpointerup="RUH.lp(0)" onpointerleave="RUH.lp(-1)" onclick="RUH.clic()" aria-label="Deshacer (mantén para regresar todo)" title="Deshacer (Ctrl+Z) · mantén para regresar todo">${ic('deshacer')}</button>`;
+   b+=`<button class="ui-btn rm-go ${e0.k}${h0}" ${!my||st.busy?'disabled':''} onclick="RMU.end()">${e0.k=='listo'?ic('ok'):''}<span>${e0.t}</span></button>`}}
  if(is3)h+=b?`<div class="ui rm-acc">${b}</div>`:'';else if(b)h+=GHUD.bar(b);
  if(fin)h+=final(G,now-st.finT);
  if(st.menu){const rg=String(GM.rummy.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
@@ -72,7 +73,7 @@ html.rmui #app{pointer-events:none;max-width:none;margin:0;padding:0}html.rmui #
 .rm-clk{position:fixed;left:0;right:0;bottom:var(--rm-rack,0px);height:3px;background:var(--ui-accent);opacity:.55;transform-origin:0 50%;transition:transform .25s linear;pointer-events:none}.rm-clk.yo{opacity:.95;height:4px}
 .rm-clk.w.yo{animation:rmBl .5s ease-in-out infinite alternate}
 .rm-acc{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(var(--rm-rack,90px) + 10px);display:flex;align-items:center;gap:8px;background:none;border:0;box-shadow:none}
-.rm-go{min-width:136px;height:48px;font-size:16px;font-weight:800;padding:0 20px}.rm-go span{white-space:nowrap}
+.rm-hid{visibility:hidden}.rm-go{width:196px;justify-content:center;height:48px;font-size:16px;font-weight:800;padding:0 20px}.rm-go span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rm-go.robar,.rm-go.faltan,.rm-go.mal{background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);box-shadow:var(--ui-shadow)}
 .rm-go.faltan span,.rm-go.mal span{color:var(--ui-accent)}.rm-go.mal{border-color:var(--ui-accent)}
 .rm-und:disabled{opacity:.4}
