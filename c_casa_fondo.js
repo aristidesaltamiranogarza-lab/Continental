@@ -16,7 +16,7 @@ function corte(cam,c,r,mg,techo){cam.getWorldDirection(F);const cy0=c.y;   // c 
 const k=Math.min(1,Math.max(0,(-F.y-.55)/.2));
  const sy=-F.y,cy=Math.sqrt(Math.max(0,1-sy*sy)),dF=(cam.position.y-cy0+1.5)/Math.max(.05,sy+Math.tan((cam.fov||50)*Math.PI/360)*1.6*cy)-.1;
  PC.normal.copy(F);PC.constant=k?-F.dot(cam.position)-Math.min(dF,F.dot(P.copy(c).sub(cam.position))-r*cy-mg):1e9;
- if(techo&&k){PH.normal.set(0,-1,0);PH.constant=cy0+techo;return PCS2}return PCS}
+ if(techo&&(k||cam.position.y>cy0+techo)){PH.normal.set(0,-1,0);PH.constant=cy0+techo;return PCS2}return PCS}   // con la cámara arriba de la pérgola nunca se dibuja (de lado tapaba la mesa con trabes y focos); sentado, abajo de ella, sí se ve
 const casa=()=>window.CASA3D&&CASA3D.fondo&&CASA3D.R&&CASA3D.R()?CASA3D:null;
 let tA=0;
 // pinta(R, cam, g, o) cada cuadro, antes de dibujar el juego. o: {r: medio ancho de la mesa del juego (sus unidades), y: altura de su cubierta,
