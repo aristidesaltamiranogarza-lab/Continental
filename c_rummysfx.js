@@ -14,14 +14,19 @@ function noise(A,dst,t,d,v,f0,f1,q,ty,at){const s=A.createBufferSource(),f=A.cre
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+d*(at||.15));g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(dst);s.start(t,Math.random()*1.5);s.stop(t+d+.03)}
 // ---------- efectos ----------
 function snd(n,v){const A=!muted()&&ctx();if(!A)return;const t=A.currentTime+.01,D=master(A),T=(...a)=>tone(A,D,...a),N=(...a)=>noise(A,D,...a);v=v||1;
- if(n=='clac'){N(t,.05,.45*v,2600,900,1.3,'bandpass',.04);T(t,560,190,.07,.22*v,'triangle')}                       // ficha de madera que cae en la mesa
+ if(n=='clac'){N(t,.035,.5*v,3900,1500,1.6,'bandpass',.03);T(t,900,420,.05,.17*v,'triangle');N(t+.028,.02,.16*v,4800,2600,2,'bandpass',.01)}                       // ficha de madera que cae en la mesa
  else if(n=='roce'){N(t,.38,.2,800,2600,.8,'bandpass',.35);N(t+.34,.05,.35,2200,900,1.2,'bandpass',.05)}             // mano en la bolsa y la ficha que sale
  else if(n=='mez'){for(let i=0;i<10;i++){const d=i*.12+Math.random()*.05;N(t+d,.12,.22,rnd(1100,2500),600,1,'bandpass',.2);if(i%2)T(t+d,rnd(280,480),150,.05,.07,'triangle')}}
  else if(n=='mal'){T(t,330,300,.18,.16,'triangle');T(t+.2,247,220,.32,.16,'triangle')}
  else if(n=='gana'){[523,659,784,1047].forEach((f,i)=>T(t+i*.12,f,0,.4,.15,'triangle'))}
  else if(n=='aplauso'){for(let i=0;i<70;i++)N(t+Math.random()*2.4,.05,rnd(.15,.35),rnd(1700,3200),0,.8,'bandpass',.1)}
  else if(n=='tap'){T(t,150,90,.06,.1,'sine');N(t,.03,.06,700,0,1,'lowpass',.1)}                                       // dedos en la mesa
- else if(n=='tic')T(t,1300,900,.04,.05,'sine')}
+ else if(n=='tic')T(t,1300,900,.04,.05,'sine');
+ else if(n=='grupo'){T(t,880,0,.28,.08*v,'sine');T(t+.09,1320,0,.4,.07*v,'sine');T(t+.18,1760,0,.5,.04*v,'sine')}          // grupo completo
+ else if(n=='golpe'){T(t,130,52,.26,.55*v,'sine');N(t,.14,.4*v,420,140,.8,'lowpass');for(let i=0;i<7;i++)N(t+.06+i*.028+Math.random()*.02,.03,.18*v,3600,1600,1.4,'bandpass',.01)}   // jugadón: la mesa da un golpe y las fichas brincan
+ else if(n=='tension'){T(t,294,0,.2,.09,'triangle');T(t+.22,349,0,.2,.09,'triangle');T(t+.44,440,0,.42,.11,'triangle')}   // le queda una
+ else if(n=='turno'){T(t,660,0,.14,.11,'triangle');T(t+.11,990,0,.26,.11,'triangle')}                                 // te toca
+ else if(n=='alza')N(t,.025,.22*v,5200,3200,2,'bandpass',.005)}                                                          // levantar una ficha
 // murmullo de abuelo: un "mmm" grave con la boca cerrada
 function murmullo(){const A=!muted()&&ctx();if(!A)return;const t=A.currentTime+.02,o=A.createOscillator(),f=A.createBiquadFilter(),g=A.createGain(),f0=rnd(105,190);o.type='sawtooth';
  o.frequency.setValueAtTime(f0,t);o.frequency.linearRampToValueAtTime(f0*rnd(.8,1.25),t+.5);f.type='lowpass';f.frequency.value=420;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.07,t+.08);g.gain.exponentialRampToValueAtTime(.0001,t+.6);

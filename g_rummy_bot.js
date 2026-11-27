@@ -1,8 +1,10 @@
 // Bot del Rummy de fichas. plan(mesa,atril,bajo) arma la mesa final de su turno y los pasos para mostrarla en vivo:
 // sin primera bajada, solo grupos nuevos de su atril que sumen 30 o más; ya bajado: grupos nuevos, pegar fichas a la mesa,
 // partir escaleras para meter un repetido, completar parejas con fichas que sobran en la mesa y recuperar comodines.
+// En el navegador queda en window.RUMBOT (mejor() da las sugerencias del atril).
 // bot(R,k): manda cada paso como mesa temporal (t:'tmp') con pausas de persona y al final t:'end'; si no puede jugar, pasa y roba.
-const RU=require('./rummy_reglas.js'),{isJ,col,num,grp}=RU,J=52,CAP=40000;
+(function(){
+const RU=typeof module!='undefined'&&module.exports?require('./rummy_reglas.js'):window.RUMMY,{isJ,col,num,grp}=RU,J=52,CAP=40000;
 const kd=x=>isJ(x)?J:col(x)*13+num(x)-1,cl=m=>m.map(g=>g.slice()),ok=g=>!!grp(g);
 // ---- grupos abstractos (por clase de ficha: color*13+número-1, 52 = comodín) que se pueden hacer con cnt ----
 function grupos(cnt){const nj=Math.min(cnt[J],2),G=[];
@@ -79,4 +81,5 @@ function bot(R,k){const G=R.G;if(!G||G.phase!='play'||G.turn!==k||G.out[k])retur
  if(!P.length)return {m:{t:'end',mesa:null},ms};
  if(mem.i<P.length)return {m:{t:'tmp',mesa:P[mem.i]},ms};
  return {m:{t:'end',mesa:mem.p.mesa},ms}}
-module.exports={bot,plan,mejor};
+const RB={bot,plan,mejor};if(typeof module!='undefined'&&module.exports)module.exports=RB;else window.RUMBOT=RB;
+})();
