@@ -1,5 +1,5 @@
 // /prueba (solo localhost): sala nueva de Continental con 5 jugadores y todos ya bajados. ?r=ronda (0–6), ?n=jugadores (2–5; Uno 2–8) · &casa=caja: abre la partida en la mesa de la casona · &mano=N: tu mano con N cartas, nadie bajado y los demás son bots (menú de c_prueba_mano.js)
-// ?g=ruleta: Ruleta Rusa contra bots (?n lugares, 2–6)
+// ?g=ruleta: Ruleta Rusa contra bots (?n lugares, 2–6) · ?g=rummy: Rummy contra bots (?n 2–5)
 // ?g=uno: partida de Uno ya empezada contra bots · ?g=merida: Mérida en orden de salida (los demás ya tiraron)
 // ?g=merida&casas=1: ya jugando, es tu turno, $3000 y los cuatro primeros grupos de colonias completos (para el modo enfoque de construir)
 // ?g=md: Monopoly Deal contra bots, tu turno (&mesa=1: todos con banco, sets y comodines puestos; &disc=N: te sobran N cartas y toca descartar)
@@ -32,10 +32,10 @@ function mdPrueba(R,MG,mesa,dz){MG.start(R);const G=R.G,C=MG.CAT,toma=f=>{const 
 module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
  const ip=req.socket.remoteAddress||'';if(!/^(::1|127\.|::ffff:127\.)/.test(ip)){res.writeHead(404);return res.end()}
  const c=rnd(5),t=cr.randomBytes(12).toString('hex'),n=Math.max(2,Math.min(q.get('g')==='uno'?8:5,+q.get('n')||5));
- const uno=q.get('g')==='uno',md=q.get('g')==='md',mer=q.get('g')==='merida',rr=q.get('g')==='ruleta',R=rooms[c]={code:c,gt:rr?'ruleta':uno?'uno':md?'monopolydeal':mer?'merida':'continental',opts:md?{sets:3}:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
+ const uno=q.get('g')==='uno',md=q.get('g')==='md',mer=q.get('g')==='merida',rr=q.get('g')==='ruleta',ru=q.get('g')==='rummy',R=rooms[c]={code:c,gt:rr?'ruleta':ru?'rummy':uno?'uno':md?'monopolydeal':mer?'merida':'continental',opts:md?{sets:3}:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
  R.poke=()=>bump(R);
  if(rr){R.opts={n,vel:2};GAMES.ruleta.start(R)}else
- ['Lupe','Toño','Paty','Memo','Chuy','Rosa','Beto'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||md||(mer&&!q.get('aus'))||(q.get('mano')&&!mer)?{bot:true}:{})));
+ ['Lupe','Toño','Paty','Memo','Chuy','Rosa','Beto'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||md||ru||(mer&&!q.get('aus'))||(q.get('mano')&&!mer)?{bot:true}:{})));
  if(mer){GAMES.merida.start(R);const G=R.G;let k=0;while(G.phase=='orden'&&G.turn!==0&&k++<50)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
   if(q.get('casas')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board;
    B.forEach((s,i)=>{if(s.t=='p'&&s.g<4){G.own[i]=0;if(q.get('hotel'))G.hs[i]=4}});G.cash[0]=3000;if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}
@@ -45,7 +45,7 @@ module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
    [37,39,26,28,29].forEach(i=>G.own[i]=b);Object.assign(G.hs,{37:4,39:5,26:1,28:1,29:0});G.cash[b]=560}
   // grupos=1: cada jugador con grupos de color completos (0..7 repartidos) y dinero de sobra, para ver construir casas y hoteles
   if(q.get('grupos')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board,np=R.players.length;
-   B.forEach((s,i)=>{if(s.t=='p')G.own[i]=s.g%np});G.cash=G.cash.map(()=>999999);if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}}else if(md)mdPrueba(R,GAMES.monopolydeal,q.get('mesa'),+q.get('disc')||0);else if(uno)GAMES.uno.start(R);else if(!rr){GAMES.continental.start(R,{round:+q.get('r')||0});if(!q.get('mano'))bajaTodos(R)}
+   B.forEach((s,i)=>{if(s.t=='p')G.own[i]=s.g%np});G.cash=G.cash.map(()=>999999);if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}}else if(ru)GAMES.rummy.start(R);else if(md)mdPrueba(R,GAMES.monopolydeal,q.get('mesa'),+q.get('disc')||0);else if(uno)GAMES.uno.start(R);else if(!rr){GAMES.continental.start(R,{round:+q.get('r')||0});if(!q.get('mano'))bajaTodos(R)}
  // &mano=N: tu mano con N cartas sacadas del mazo (Continental sin bajarse nadie), para probar manos grandes
  {const mn=+q.get('mano'),G=R.G;if(mn&&G&&G.hands&&Array.isArray(G.hands[0])&&Array.isArray(G.deck)){const h=G.hands[0];while(h.length<mn&&G.deck.length)h.push(G.deck.pop())}}
  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
