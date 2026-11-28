@@ -106,7 +106,7 @@ setInterval(()=>latido(),2000);setTimeout(()=>latido(),600);
 // pantallas con interfaz propia que aún no traen la pastilla (Rummy 2D, Ruleta 2D…; S3, hasta el marco común S7):
 // si en una partida no se ve ninguna, GENTE pone la suya flotando arriba a la derecha, debajo de la barra del juego
 function flota(){let f=document.getElementById('genFlota');const otra=[...document.querySelectorAll('.gen-b')].some(b=>!b.closest('#genFlota')&&b.offsetParent);
- const v=sala(),ver=!!v&&!otra&&!/^(merida|haciendas)$/.test(v.game);   // Mérida y YuCATÁN: "Conectados" en su menú de Opciones
+ const v=sala(),ver=!!v&&!otra&&!/^(merida)$/.test(v.game);   // Mérida y YuCATÁN: "Conectados" en su menú de Opciones
 if(!ver){if(f)f.remove();return}
  if(!f){f=document.createElement('div');f.id='genFlota';f.className='ui';f.innerHTML=boton();document.body.appendChild(f)}}
 setInterval(flota,1000);

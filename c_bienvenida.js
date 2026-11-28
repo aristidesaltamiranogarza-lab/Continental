@@ -12,7 +12,7 @@ window.CALIDAD=saved||(ls.get('casa_3d')==='0'?'ligero':'completo');
 let last3=ls.get('casa_cal3');if(last3!=='medio'&&last3!=='completo')last3=CALIDAD!=='ligero'?CALIDAD:'medio';
 
 // nombres solo para las etiquetas del lobby (dentro de cada juego se queda el suyo)
-const LN={merida:'Monopoly',haciendas:'YuCATÁN'};
+const LN={merida:'Monopoly'};
 window.lobbyName=k=>LN[k]||(typeof GM!=='undefined'&&GM[k]?GM[k].name:k);
 
 // nombres al azar: título + antojo yucateco, o antojo + apodo (máx. 14 letras, sin números)

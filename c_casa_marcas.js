@@ -5,6 +5,7 @@
 // en líneas para el corte (por el extra linea si lo traen; si no, por su eje) · pisos dan los límites.
 // MARC.leer(root) → {mesas,escaleras,puertas,llegada,llegadaEsc,planos,WL,OB,lineas,escalones,caja}. MARC.corte(lineas,cam,yo) esconde muros.
 (function(){
+const ALI=g=>g=='haciendas'?'colonos':g;   // la mesa de Haciendas en los GLB ya horneados es la de Colonos
 const AIRE=['uno','rummy','conecta4','loteria'];   // mesas al aire libre si el GLB no trae el extra aire (sin lámpara colgante: MESA o.aire)
 if(typeof THREE==='undefined')return;
 const w=new THREE.Vector3(),bb=new THREE.Box3();
@@ -25,7 +26,7 @@ function leer(root){root.updateMatrixWorld(true);
     const k=u.linea?'L'+u.linea:(h?'h':'v')+(h?(bb.min.z+bb.max.z)/2:(bb.min.x+bb.max.x)/2).toFixed(1),l=lin[k]||(lin[k]={u:new THREE.Box3(),cu:null,ms:[]});
     l.u.union(bb);if(u.seg||u.segs)(l.cu||(l.cu=new THREE.Box3())).union(bb);l.ms.push(o)}
    return}
-  if(/^mesa_/.test(n)){const p=pos(o);R.mesas.push({g:u.juego||n.slice(5),x:p.x,y:p.y,z:p.z,r:u.r||2.2,fam:u.fam||(u.libre?'f':'k'),libre:!!u.libre,aire:u.aire!=null?!!u.aire:AIRE.includes(u.juego||n.slice(5)),o})}
+  if(/^mesa_/.test(n)){const p=pos(o);R.mesas.push({g:ALI(u.juego||n.slice(5)),x:p.x,y:p.y,z:p.z,r:u.r||2.2,fam:u.fam||(u.libre?'f':'k'),libre:!!u.libre,aire:u.aire!=null?!!u.aire:AIRE.includes(u.juego||n.slice(5)),o})}
   else if((m=n.match(/^escalera_(sube|baja)_/))){const p=pos(o),d=u.pie||[0,0];R.escaleras[m[1]]={x:p.x,z:p.z,r:u.r||1,ax:p.x+d[0],az:p.z+d[1],to:u.to||null}}
   else if(/^llegada_escalera_/.test(n))R.llegadaEsc=pos(o);
   else if(/^llegada_/.test(n))R.llegada=pos(o);

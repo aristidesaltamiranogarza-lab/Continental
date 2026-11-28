@@ -82,7 +82,7 @@ function piso(){if(F)return F;if(!ok()){bad=true;return null}
  const PL=new THREE.Group();S.add(PL);{const lf=std(0x2e7d32,.8);cyl(.55,.42,1.1,std(0xb5643c,.7),5.1,.55,ZB+1.2,PL);for(let i=0;i<10;i++){const a=i/10*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.22,2.2,6),lf);l.position.set(5.1+Math.cos(a)*.3,2.1,ZB+1.2+Math.sin(a)*.3);l.rotation.set(Math.sin(a)*.45,0,-Math.cos(a)*.45);l.castShadow=true;PL.add(l)}}
 
  // ---------- mesas del estudio: Monopoly y YuCATÁN (las arma c_casa3d.js) y el Backgammon (c_juegos3d.js) ----------
- const TB=[{g:'merida',x:-9,z:-5.4,felt:['#e9c97c','#9a6a26']},{g:'haciendas',x:-1.6,z:-5.4,felt:['#79a96a','#2f5a2a']}].filter(t=>typeof GM!='undefined'&&GM[t.g]);
+ const TB=[{g:'merida',x:-9,z:-5.4,felt:['#e9c97c','#9a6a26']},{g:'colonos',x:-1.6,z:-5.4,felt:['#79a96a','#2f5a2a']}].filter(t=>typeof GM!='undefined'&&GM[t.g]);
  TB.forEach(t=>{t.r=2.2;H.mesa(t,S,hits,OB)});
  const BGP={x:-5.2,z:3.4};if(window.JG3)JG3.build({THREE,SC:S,hits,OB,std,cyl:H.cyl,box:H.box,only:'bg',at:BGP,fl:'alta'});
  // lámparas colgantes (sin luz propia: ya la trae cada mesa)

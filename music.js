@@ -102,8 +102,8 @@ const SONGS={
    if(s==0)play(o,t,'bass',bar.r,.4,sd*7);if(s==8)play(o,t,'bass',bar.r+7,.3,sd*5);
    mel(bar.m,s,n=>{if(pass==0)play(o,t,'gtr',n[1],.3);else{play(o,t,'ep',n[1],.16,sd*n[2]);play(o,t,'ep',n[1]-12,.08,sd*n[2])}});
    if(s==0)kick(o,t,.14);if(s==4||s==6)bongo(o,t,.1,1);if(s==10||s==12)bongo(o,t,.09);if(s%2==0)shaker(o,t,s%4?.025:.04)}},
- // Haciendas de Yucatán: jarana en Sol (seis por ocho contra tres por cuatro), marimba, metales, guitarras, güiro y timbal
- haciendas:{bpm:126,sw:0,bars:[
+ // Colonos (antes Haciendas): jarana en Sol (seis por ocho contra tres por cuatro), marimba, metales, guitarras, güiro y timbal
+ colonos:{bpm:126,sw:0,bars:[
   {c:[67,71,74],r:43,m:[[0,79,3],[3,78,2],[5,79,3],[8,83,3],[11,81,2],[13,79,3]]},{c:[66,69,72],r:38,m:[[0,78,3],[3,76,2],[5,74,3],[8,72,3],[11,74,2],[13,76,3]]},
   {c:[67,71,74],r:43,m:[[0,74,3],[3,79,2],[5,83,3],[8,86,5],[13,83,3]]},{c:[64,67,72],r:36,m:[[0,84,3],[3,83,2],[5,81,3],[8,79,3],[11,76,2],[13,79,3]]},
   {c:[67,71,74],r:43,m:[[0,79,3],[3,81,2],[5,83,3],[8,84,3],[11,83,2],[13,81,3]]},{c:[64,67,71],r:40,m:[[0,79,3],[3,76,2],[5,79,3],[8,83,5],[13,81,3]]},

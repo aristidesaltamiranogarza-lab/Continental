@@ -69,7 +69,7 @@ function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.
  if(P)CCAM.blendIn(CA,P,600);sfx('tick');render()}
 const EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DANCE=['💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
 const DESC={continental:'Siete rondas de tríos y corridas. Gana quien termine con menos puntos.',
- uno:'Iguala color o número y quédate sin cartas. No olvides decir UNO.',monopolydeal:'Cobra, roba y negocia hasta completar tres colores.',merida:'Compra Mérida colonia por colonia y cobra la renta. Gana quien no quiebre.',haciendas:'Levanta ranchos y sacbés, cosecha y comercia por Yucatán.',
+ uno:'Iguala color o número y quédate sin cartas. No olvides decir UNO.',monopolydeal:'Cobra, roba y negocia hasta completar tres colores.',merida:'Compra Mérida colonia por colonia y cobra la renta. Gana quien no quiebre.',colonos:'Funda poblados en la isla, cosecha, comercia y llega a 10 puntos.',
  ruleta:'Un revólver, una bala. Gana quien siga en pie.',
  rummy:'Fichas de madera en la terraza. Arma series y escaleras hasta quedarte sin fichas.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
@@ -86,7 +86,7 @@ const DECO={continental:[['c1','#fff','#151515','♠'],['c2','#fff','#c62828','�
  uno:[['u1','#e53935','#fff','7'],['u2','#fbc02d','#fff','+2'],['u3','#43a047','#fff','⊘'],['u4','#1e88e5','#fff','4'],['u5','#1c1c1c','#fdd835','UNO']],
  monopolydeal:[['m1','#8bc34a','#fff','$5'],['m2','#e53935','#fff','🏠'],['m3','#1e88e5','#fff','$2'],['m4','#fbc02d','#333','$1'],['m5','#7b1fa2','#fff','🏨']],
  merida:[['r1','#d63a3a','#fff','🏠'],['r2','#f4f1e8','#333','$400'],['r3','#22b3c4','#fff','🚌'],['r4','#f2c230','#333','🎲'],['r5','#2e9e57','#fff','🏨']],
- haciendas:[['h1','#79a96a','#fff','🌿'],['h2','#e8c24a','#333','🌽'],['h3','#a7a49a','#fff','🪨'],['h4','#df9234','#fff','🍯'],['h5','#eef1ee','#333','🧂']],
+ colonos:[['k1','#5E8C4F','#fff','6'],['k2','#C8744A','#fff','8'],['k3','#A9CB6F','#333','5'],['k4','#E3B651','#333','9'],['k5','#9298A2','#fff','10']],
  rummy:[['k1','#f3ead2','#c62828','7'],['k2','#f3ead2','#1e5aa8','12'],['k3','#f3ead2','#1a1a1a','3'],['k4','#f3ead2','#e07a10','9'],['k5','#f3ead2','#2e7d32','★']]};
 
 // ---------- escena ----------
@@ -533,7 +533,7 @@ const cp=c=>c.userData.off||c.position;
 function reubica(t){seated.forEach((s,k)=>{if(s.t!==t)return;const c=t.chairs[s.j];if(!c){if(s.av){AV.quita(s.g);if(s.ch&&s.ch.parent)s.ch.parent.remove(s.ch)}else disposeG(s.g);seated.delete(k);return}
  c.visible=false;const o=cp(c),ry=Math.atan2(-o.x,-o.z);if(s.ch){s.ch.rotation.y=ry;s.ch.position.set(t.x+o.x,1.55,t.z+o.z)}else{s.g.rotation.y=ry;s.g.position.set(t.x+o.x-(s.av?.2*Math.sin(ry):0),s.av?.24:1.55,t.z+o.z-(s.av?.2*Math.cos(ry):0))}})}
 // arranca(g): si recargaste a media partida la casa no se armó (se arma sin dibujarse); si la mesa está en otro piso, te pasa junto a ella
-const PISOJ={continental:'pb',uno:'pb',merida:'alta',haciendas:'alta'},PISOC={continental:'c0',uno:'c0',monopolydeal:'c0',merida:'c1',haciendas:'c1',rummy:'c2'};   // PISOC: casona (?casa=caja)
+const PISOJ={continental:'pb',uno:'pb',merida:'alta',colonos:'alta'},PISOC={continental:'c0',uno:'c0',monopolydeal:'c0',merida:'c1',colonos:'c1',rummy:'c2'};   // PISOC: casona (?casa=caja)
 function arranca(g){if(!on)return false;if(!ready)try{init()}catch(e){console.warn('Casa 3D:',e);return false}const p=(window.CAJA&&CAJA.on?PISOC:PISOJ)[g];if(p&&p!==FL.id&&!fBusy)irA(p,g);return true}
 function fondoFin(){const t=fzT;if(!t)return;fzT=null;t.G.children.concat(t.lampara||[]).forEach(o=>{if(o.userData.fz){o.visible=true;delete o.userData.fz}});seated.forEach(s=>{if(s.t===t)(s.ch||s.g).visible=true})}
 function fondo(cam,g,sillas){const t=ready&&TB.find(x=>x.g===g&&!x.door);if(!t||!t.G)return false;const now=performance.now();

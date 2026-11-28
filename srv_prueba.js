@@ -1,5 +1,5 @@
 // /prueba (solo localhost): sala nueva de Continental con 5 jugadores y todos ya bajados. ?r=ronda (0–6), ?n=jugadores (2–5; Uno 2–8) · &casa=caja: abre la partida en la mesa de la casona · &mano=N: tu mano con N cartas, nadie bajado y los demás son bots (menú de c_prueba_mano.js)
-// ?g=ruleta: Ruleta Rusa contra bots (?n lugares, 2–6) · ?g=rummy: Rummy contra bots (?n 2–5)
+// ?g=colonos: Colonos contra bots (&fase=main: ya en tu turno, con cartas) · ?g=ruleta: Ruleta Rusa contra bots (?n lugares, 2–6) · ?g=rummy: Rummy contra bots (?n 2–5)
 // ?g=uno: partida de Uno ya empezada contra bots · ?g=merida: Mérida en orden de salida (los demás ya tiraron)
 // ?g=merida&casas=1: ya jugando, es tu turno, $3000 y los cuatro primeros grupos de colonias completos (para el modo enfoque de construir)
 // ?g=md: Monopoly Deal contra bots, tu turno (&mesa=1: todos con banco, sets y comodines puestos; &disc=N: te sobran N cartas y toca descartar)
@@ -29,14 +29,18 @@ function mdPrueba(R,MG,mesa,dz){MG.start(R);const G=R.G,C=MG.CAT,toma=f=>{const 
   for(let j=0;j<3+k%3;j++){const x=toma(c=>c.t=='m');if(x!=null)G.bank[k].push(x)}});
  if(mesa){const h=G.hands[0];['cobro','ladron','casa','dino'].forEach(n=>{const x=toma(c=>c.k==n);if(x!=null)h.push(x)});const r=toma(c=>c.t=='r'&&c.cs=='any');if(r!=null)h.push(r)}
  if(dz>0){const h=G.hands[0];while(h.length<7+dz&&G.deck.length)h.push(G.deck.pop());G.step='disc'}}
+// ?g=colonos: Colonos contra bots (?n 3–6) · &fase=main: los bots ya pusieron todo el inicio (también por ti), es tu turno y tienes cartas para construir
+function coPrueba(R,M,q){R.opts={n:R.players.length};M.start(R);const G=R.G;if(!q.get("fase"))return;let k=0;
+ while(G.st=="setup"&&k++<60){const a=G.sq[G.si],d=M.bot(R,a);if(!d)break;M.act(R,R.players[a].tok,d.m)}
+ G.turn=0;G.st="main";G.played=false;G.res[0]=[3,3,2,3,3];G.offers=[];G.und=[]}
 module.exports=(req,res,q,{rooms,GAMES,mkP,rnd,cr,bump})=>{
  const ip=req.socket.remoteAddress||'';if(!/^(::1|127\.|::ffff:127\.)/.test(ip)){res.writeHead(404);return res.end()}
  const c=rnd(5),t=cr.randomBytes(12).toString('hex'),n=Math.max(2,Math.min(q.get('g')==='uno'?8:5,+q.get('n')||5));
- const uno=q.get('g')==='uno',md=q.get('g')==='md',mer=q.get('g')==='merida',rr=q.get('g')==='ruleta',ru=q.get('g')==='rummy',R=rooms[c]={code:c,gt:rr?'ruleta':ru?'rummy':uno?'uno':md?'monopolydeal':mer?'merida':'continental',opts:md?{sets:3}:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
+ const col=q.get('g')==='colonos',uno=q.get('g')==='uno',md=q.get('g')==='md',mer=q.get('g')==='merida',rr=q.get('g')==='ruleta',ru=q.get('g')==='rummy',R=rooms[c]={code:c,gt:col?'colonos':rr?'ruleta':ru?'rummy':uno?'uno':md?'monopolydeal':mer?'merida':'continental',opts:md?{sets:3}:{},host:t,players:[mkP(t,q.get('name')||'Tío Lentejas')],G:null,v:1,w:[],cl:{},kk:[],pb:null,chat:[],lc:{},ts:Date.now()};
  R.poke=()=>bump(R);
  if(rr){R.opts={n,vel:2};GAMES.ruleta.start(R)}else
- ['Lupe','Toño','Paty','Memo','Chuy','Rosa','Beto'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||md||ru||(mer&&!q.get('aus'))||(q.get('mano')&&!mer)?{bot:true}:{})));
- if(mer){GAMES.merida.start(R);const G=R.G;let k=0;while(G.phase=='orden'&&G.turn!==0&&k++<50)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
+ ['Lupe','Toño','Paty','Memo','Chuy','Rosa','Beto'].slice(0,n-1).forEach(nm=>R.players.push(Object.assign(mkP(cr.randomBytes(12).toString('hex'),nm,require('./bots_nombres.js').avDe(nm)),uno||md||ru||col||(mer&&!q.get('aus'))||(q.get('mano')&&!mer)?{bot:true}:{})));
+ if(col)coPrueba(R,GAMES.colonos,q);else if(mer){GAMES.merida.start(R);const G=R.G;let k=0;while(G.phase=='orden'&&G.turn!==0&&k++<50)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});
   if(q.get('casas')){k=0;while(G.phase=='orden'&&k++<80)GAMES.merida.act(R,R.players[G.turn].tok,{t:'roll'});const B=require('./merida_data.js').board;
    B.forEach((s,i)=>{if(s.t=='p'&&s.g<4){G.own[i]=0;if(q.get('hotel'))G.hs[i]=4}});G.cash[0]=3000;if(G.seq){const j=G.seq.indexOf(0);G.seq=G.seq.slice(j).concat(G.seq.slice(0,j))}G.turn=0}
   // bot=1: te toca a ti; al pasar el turno, el bot que sigue pone un hotel (en 37) y una casa (en 29), sin dinero para más

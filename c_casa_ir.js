@@ -6,7 +6,7 @@ let open=false;
 // g: juego de GM (mesa o puerta), o 'cub' / 'c4' / 'bg' (Cubilete, Conecta 4 y Backgammon, sin salas)
 const PISOS=[
  {id:'ter',n:'Terraza',g:['rummy','c4']},
- {id:'alta',n:'Planta alta',g:['merida','haciendas','bg']},
+ {id:'alta',n:'Planta alta',g:['merida','colonos','bg']},
  {id:'pb',n:'Planta baja',g:['continental','uno','monopolydeal']},
  {id:'sot',n:'Sótano',g:['ruleta','cub','billar','blackjack','poker']}];
 // Icono de cada piso: la casa en corte con ese piso pintado
@@ -15,7 +15,7 @@ PISOS.forEach(p=>{const h=PHL[p.id];p.i='<svg class="pic" viewBox="0 0 24 24" ar
 // casona (?casa=caja, CASONA.md paso 4): los cuatro niveles; tocar el nombre del nivel te lleva a su escalera
 const PISOS_C=[
  {id:'c2',n:'Azotea',g:['rummy','conecta4']},
- {id:'c1',n:'Planta alta',g:['merida','haciendas','backgammon']},
+ {id:'c1',n:'Planta alta',g:['merida','colonos','backgammon']},
  {id:'c0',n:'Planta baja',g:['continental','monopolydeal','uno']},
  {id:'cm1',n:'Sótano',g:['cubilete','poker','blackjack','billar','ruleta']}];
 PISOS_C.forEach((p,i)=>p.i=PISOS[i].i);

@@ -2,13 +2,13 @@
 // Reemplaza home() de game.js; render() llama LOBBY.sala(g) en la sala de espera. Iconos y colores de cada juego: SALA (c_sala.js). Estilos: ui_lobby.css.
 (function(){
 const I=n=>window.UI?UI.ico(n):'',es=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const COL={continental:'#1F6B4A',uno:'#B23A2E',monopolydeal:'#2D5D8A',merida:'#3F7D4F',haciendas:'#8A6A2A',rummy:'#24527A',ruleta:'#6A2436',bj:'#1E5A3C',pk:'#2E3F6E',billar:'#2F6B3A'};
+const COL={continental:'#1F6B4A',uno:'#B23A2E',monopolydeal:'#2D5D8A',merida:'#3F7D4F',colonos:'#3B7A8C',rummy:'#24527A',ruleta:'#6A2436',bj:'#1E5A3C',pk:'#2E3F6E',billar:'#2F6B3A'};
 // mesas del sótano (no son salas): Blackjack y Póker abren C2D; el Billar, B2D (c_billar2d.js)
 const CAS={bj:{n:'Blackjack',ic:'blackjack'},pk:{n:'Póker',ic:'poker'},billar:{n:'Billar',ic:'billar'}};
 let cas='';
 const c2d=()=>!!(window.C2D&&C2D.ok&&C2D.ok());
 const b2d=()=>!!(window.B2D&&B2D.ok&&B2D.ok());
-const ORD=['continental','uno','monopolydeal','merida','haciendas','rummy','ruleta'];
+const ORD=['continental','uno','monopolydeal','merida','colonos','rummy','ruleta'];
 const nom=k=>CAS[k]?CAS[k].n:window.lobbyName?lobbyName(k):(GM[k]||{}).name||k;
 const ico=k=>CAS[k]?`<img src="iconos/${CAS[k].ic}.png" alt="">`:window.SALA&&SALA.ico?SALA.ico(k):`<span class="lb-emo">${(GM[k]||{}).emoji||''}</span>`;
 const lista=()=>ORD.filter(x=>GM[x]).concat(Object.keys(GM).filter(x=>!ORD.includes(x)));
