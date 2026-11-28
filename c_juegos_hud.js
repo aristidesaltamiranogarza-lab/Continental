@@ -36,7 +36,7 @@ const sw=(on,fn,l)=>`<label class="ui-sw"><input type="checkbox"${on?' checked':
 const row=(ic,t,ctl)=>`<div class="ui-row"><span>${ic?I(ic):''}${t}</span>${ctl}</div>`;
 // pestaña Ajustes: tema, música y sonidos de siempre + filas del juego (rows) + botones (btns)
 function ajustes(rows,btns){const mus=typeof musName=='function'?musName():null,snd=!(typeof mute!='undefined'&&mute);
- return `<span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'GHUD.tema')}
+ return `<div class="ui-row"><span>Modo oscuro</span>${UI.temaSw()}</div>
  ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
  <div class="gj-sws">${row('sonido','Sonidos',sw(snd,'GHUD.snd(this.checked)','Sonidos'))}${rows||''}</div>
  ${jug()}${btns?`<div class="gj-btns">${btns}</div>`:''}`}

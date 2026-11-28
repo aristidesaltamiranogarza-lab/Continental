@@ -151,7 +151,7 @@ function htmlHud(){const v=vista();if(!v)return `<div class="ui-card b2-card"><p
    <div class="b2-r2">${equipo(v,0)}${equipo(v,1)}</div></div>`;
   let h='';if(tu){h=v.canta&&hoyo<0?'Toca el hoyo donde va a entrar la 8':v.mano?'Arrastra la blanca para acomodarla; toca la mesa para apuntar':v.saque?'Saque: apunta al triángulo y jala fuerte la barra':'Toca la mesa para apuntar, arrastra para afinar y jala la barra para tirar'}
   else if(!v.yo&&!rep)h='Estás mirando esta partida';
-  const mn=menu?`<div class="ui ui-card b2-menu">${v.yo?B(I('salir')+'Abandonar la partida','B2D.sale()','sec full'):B(I('salir')+'Volver al inicio','B2D.cierra()','sec full')}${window.BIEN?B(I('pantalla')+'Volver al 3D','BIEN.a3();B2D.cierra()','sec full'):''}${B('Seguir jugando','B2D.menu()','ghost full')}</div>`:'';
+  const mn=menu?`<div class="ui ui-card b2-menu">${UI.temaSw?`<div class="ui-row"><span>Modo oscuro</span>${UI.temaSw("void 0")}</div>`:''}${v.yo?B(I('salir')+'Abandonar la partida','B2D.sale()','sec full'):B(I('salir')+'Volver al inicio','B2D.cierra()','sec full')}${window.BIEN?B(I('pantalla')+'Volver al 3D','BIEN.a3();B2D.cierra()','sec full'):''}${B('Seguir jugando','B2D.menu()','ghost full')}</div>`:'';
   return top+(h?`<div class="b2-hint">${h}</div>`:'')+e+mn}
  if(v.fase==='fin')return fin(v)+e;
  if(v.fase==='arma')return arma(v)+e;

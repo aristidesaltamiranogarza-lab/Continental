@@ -59,7 +59,9 @@ pincel:'<path d="M14.5 4.5l5 5-8 8-5-5z"/><path d="M6.5 12.5c-2 0-3 1.5-3 3.2 0 
 const ico=(n,c)=>'<svg class="ui-ico'+(c?' '+c:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+(P[n]||'')+'</svg>';
 // selector 2D | 3D (marca la vista actual; tocarlo cambia a la otra)
 const dim=(es3,on,cls)=>`<button class="ui-dim${cls?' '+cls:''}" onclick="${on}" aria-label="${es3?'Cambiar a 2D':'Cambiar a 3D'}"><b class="${es3?'':'on'}">2D</b><b class="${es3?'on':''}">3D</b></button>`;
-window.UI={tema:get,setTema,noche,ico,dim,on:f=>subs.push(f)};
+// interruptor de modo oscuro, el mismo en el menú de todos los juegos (after: qué redibujar; por omisión render())
+const temaSw=after=>`<label class="ui-sw"><input type="checkbox"${noche()?" checked":""} onchange="UI.setTema(this.checked?'noche':'dia');${after||"if(typeof render=='function')render()"}" aria-label="Modo oscuro"><i></i></label>`;
+window.UI={tema:get,setTema,noche,ico,dim,temaSw,on:f=>subs.push(f)};
 // nunca hay barras de scroll (ui.css las oculta): lo que se desliza (.ui-desl, .ui-bd) se desvanece en el borde donde hay más
 (function(){const SEL='.ui-desl,.ui-bd',T=(e,c,v)=>{if(e.classList.contains(c)!==v)e.classList.toggle(c,v)};
  function borde(e){const h=e.scrollWidth>e.clientWidth+2,v=e.scrollHeight>e.clientHeight+2;

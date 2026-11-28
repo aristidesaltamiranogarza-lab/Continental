@@ -167,7 +167,7 @@ const modal=(h,close)=>`<div class="mu-modal" onclick="if(event.target===this)${
 function menuBox(){const m3ok=!!(window.M3&&M3.ok()),sn=stageName(),G=V.G,seg=(L)=>`<div class="mu-seg">${L.map(([on,c,t,dis])=>`<button class="${on?'on':''}" onclick="${c}"${dis?' disabled':''}>${t}</button>`).join('')}</div>`;
  return `<div class="mu-card mu-menu"><header><b class="mu-h">Opciones</b><button class="mu-x" onclick="MRU.menu(0)" aria-label="Cerrar">${SV.x}</button></header>
   <div class="mu-opt"><span>Vista</span>${seg([[sn=='3d',"MRU.mode('3d')",'3D',!m3ok],[sn=='2d',"MRU.mode('2d')",'2D']])}</div>
-  <div class="mu-opt"><span>Tema</span>${seg([[window.UI.tema()=='auto',"GHUD.tema('auto')",'Automático'],[window.UI.tema()=='dia',"GHUD.tema('dia')",'Día'],[window.UI.tema()=='noche',"GHUD.tema('noche')",'Noche']])}</div>
+  <div class="mu-opt"><span>Modo oscuro</span>${window.UI.temaSw()}</div>
   <div class="mu-opt"><span>Seguir la ficha que se mueve</span>${seg([[follow,'MRU.follow(1)','Sí'],[!follow,'MRU.follow(0)','No']])}</div>
   <div class="mu-opt"><span>Sonidos</span>${seg([[!mute,'mute=false;render()',MIC.h('sonido')+' Sí'],[mute,'mute=true;render()',MIC.h('mudo')+' No']])}</div>
   ${typeof musUI=='function'?`<div class="mu-opt"><span>Música</span>${musUI()}</div>`:''}

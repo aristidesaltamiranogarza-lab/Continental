@@ -61,7 +61,7 @@ function bb(k,t,c){const s=document.querySelector(`#app .m2d [data-seat="${k}"]`
 // ---------- menú (una hoja con lo que no es la partida) ----------
 let abierto=false;
 function menuHtml(o){const G=V.G;return `<div class="ui-scrim ligero" onclick="M2D.menu(0)"></div><div class="ui-sheet der m2d-menu"><div class="ui-hd"><b class="ui-h">Partida</b><button class="ui-x" onclick="M2D.menu(0)" aria-label="Cerrar">${ico('x')}</button></div><div class="ui-bd">
- ${o.menu||''}<div class="ui-row"><span>Sonidos</span><label class="ui-sw"><input type="checkbox" ${mute?'':'checked'} onchange="mute=!this.checked;render()"><i></i></label></div>
+ ${o.menu||''}${window.UI&&UI.temaSw?`<div class="ui-row"><span>Modo oscuro</span>${UI.temaSw()}</div>`:''}<div class="ui-row"><span>Sonidos</span><label class="ui-sw"><input type="checkbox" ${mute?'':'checked'} onchange="mute=!this.checked;render()"><i></i></label></div>
  ${typeof musUI=='function'?`<div class="ui-row m2d-mus">${musUI()}</div>`:''}
  ${G&&G.log&&G.log.length?`<details><summary>Historial</summary>${logv()}</details>`:''}<details><summary>Jugadores</summary>${plist()}</details>${o.rules||''}
  ${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ico('x')}Cerrar sala</button>`:''}</div></div>`}
