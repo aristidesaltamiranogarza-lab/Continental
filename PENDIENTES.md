@@ -293,10 +293,11 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 ## Animaciones y transiciones al nivel de la portada (26 nov 2026)
 **Lo que pidió el usuario, textual en espíritu: mantener ese nivel de calidad.** Le encantó la portada (c_portada.js) por sus animaciones y transiciones; para él eso es lo que "vende" un juego, junto con nunca quedarse en pantalla negra ni con tirones. Cada punto de esta lista debe sentirse igual de cuidado que la portada; si algo queda más simple que ella, no está terminado. Antes de empezar uno, abrir c_portada.js y copiar su forma de hacerlo (reglas en la skill casa-ui, sección "Movimiento").
 - [x] Cambio de piso en 3D (c_cortina.js, CORT): cortina en la dirección del viaje, corte de la casona con tu figura saltando al piso y relleno con el progreso real; los demás fundidos son un iris cálido. Antes: fundido a negro + panel CCARGA. Que sea una escena dibujada del piso que se llena con el progreso real (como la fachada) y una salida animada.
-- [ ] Sentarse a jugar: el HUD del juego entra deslizándose mientras la cámara baja a tu silla; las cartas se reparten volando. Mérida hecho (c_merida_entra.js); Uno y Monopoly Deal 2D/3D hechos (c_juegos_entra.js, GENT).
-- [ ] Ganar o perder: la tarjeta del resultado brota, los puntos suben contando, los retratos de los demás reaccionan. Mérida hecho (podio que cuenta en c_merida_fin.js); Uno y Monopoly Deal 2D/3D hechos (GENT).
+- [x] Sentarse a jugar (Continental 2D/3D también con GENT): el HUD del juego entra deslizándose mientras la cámara baja a tu silla; las cartas se reparten volando. Mérida hecho (c_merida_entra.js); Uno y Monopoly Deal 2D/3D hechos (c_juegos_entra.js, GENT).
+- [x] Ganar o perder (Continental: fin de ronda y final con GENT, puntos que cuentan): la tarjeta del resultado brota, los puntos suben contando, los retratos de los demás reaccionan. Mérida hecho (podio que cuenta en c_merida_fin.js); Uno y Monopoly Deal 2D/3D hechos (GENT).
 - [x] (CORT.mini en LOBBY.carga) Entrar por enlace (#CODIGO) o a una sala: hoy texto "Entrando a la sala"; usar una versión chica de la carga de la casona.
 - [x] Plano 2D, cambiar de piso: corte vivo de la casa en vez de pestañas (c_plano_corte.js: caras por piso, juegos en curso, globos de otros pisos) y hojas de albanene apiladas (c_plano_pila.js): bajar levanta la hoja, subir la deja caer; los pisos de abajo se ven tenues.
+- [x] Cambio 2D/3D en cualquier juego (botón UI.dim): iris con el selector deslizándose (c_cortina.js).
 - [x] (ui.css uiUp/uiIn/uiMid + .ui-entra de c_ui.js) Hojas y paneles: abrir con un leve resorte y las filas entrando una tras otra.
 
 ## Mano con muchas cartas (Uno y Continental, 26 nov 2026)

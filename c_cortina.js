@@ -30,6 +30,11 @@ html[data-tema=noche] #cort{--co-c1:#33241B;--co-c2:#1E1510;--co-lin:#F0D9BF;--c
 #cort .co-logo{width:66px;height:66px;border-radius:22px;display:grid;place-items:center;background:rgba(255,250,240,.55);color:var(--co-lin);animation:coLat 1.1s ease-in-out infinite}
 html[data-tema=noche] #cort .co-logo{background:rgba(255,240,220,.08)}
 #cort .co-logo svg{width:34px;height:34px}
+#cort .co-dim{position:relative;display:flex;padding:6px;border-radius:999px;background:rgba(255,250,240,.55);font:800 clamp(22px,5vmin,30px)/1 var(--ui-font,system-ui)}
+html[data-tema=noche] #cort .co-dim{background:rgba(255,240,220,.08)}
+#cort .co-dim b{position:relative;z-index:1;width:2.6em;padding:.45em 0;text-align:center;transition:color .3s}
+#cort .co-dim i{position:absolute;left:6px;top:6px;bottom:6px;width:2.6em;border-radius:999px;background:var(--co-acc);transition:transform .5s cubic-bezier(.3,1.5,.5,1)}
+#cort .co-dim.d3 i{transform:translateX(100%)}#cort .co-dim.d3 b+b,#cort .co-dim:not(.d3) b:first-child{color:#FFF8EE}
 @keyframes coLetra{from{transform:translateY(-120%) rotate(-14deg);opacity:0}}
 @keyframes coLat{40%{transform:scale(1.08)}}
 @keyframes coSal{40%{translate:0 -9px}}
@@ -66,7 +71,7 @@ function prepara(){
   cas.querySelectorAll('.bd').forEach(g=>g.classList.toggle('no',g.dataset.k!==pend.a&&g.dataset.k!==pend.de));
   cas.querySelector('.pj').style.transform=`translate(60px,${o.y}px)`;
   el.style.transition='none';el.style.clipPath='none';el.style.opacity='1';el.style.transform=`translateY(${sube?-101:101}%)`}
- else{modo={k:'iris'};cas.innerHTML=`<span class="co-logo">${I('casa')}</span>`;
+ else{modo={k:'iris'};cas.innerHTML=pend&&pend.dim?`<div class="co-dim${pend.a3?'':' d3'}"><i></i><b>2D</b><b>3D</b></div>`:`<span class="co-logo">${I('casa')}</span>`;if(pend&&pend.dim)modo.dim=pend.a3;
   el.style.transition='none';el.style.transform='none';el.style.opacity='1';el.style.clipPath='circle(0% at 50% 50%)'}
  pend=null;el.classList.remove('ver','sale');el.classList.add('on');void el.offsetWidth}
 
@@ -78,10 +83,12 @@ function cubre(ms){arma();prepara();
   if(modo&&modo.k==='piso'){const a=NIV[modo.a],pj=cas.querySelector('.pj');nom.innerHTML=letras(a.n);
    setTimeout(()=>{pj.classList.add('va');pj.style.transform=`translate(60px,${a.y}px)`;const d=cas.querySelector(`.bd[data-k="${modo.a}"]`);if(d)d.classList.remove('no')},120);
    prog(.08)}
+  if(modo&&modo.dim!=null){const d=cas.querySelector('.co-dim');setTimeout(()=>d&&d.classList.toggle('d3',modo&&modo.dim),90)}
   return espera(ms*.45+20)}).then(()=>{tCub=performance.now()})}
 
 function abre(ms){if(!el||!el.classList.contains('on'))return espera(ms+20);
  const m=modo||{k:'iris'};let pre=Promise.resolve();
+ if(m.dim!=null){const falta=300-(performance.now()-tCub);if(falta>0)pre=espera(falta)}
  if(m.k==='piso'){prog(1);const falta=760-(performance.now()-tCub);if(falta>0)pre=espera(falta)}   // que se alcance a leer el viaje
  return pre.then(()=>{el.classList.add('sale');return espera(RM?0:140)}).then(()=>{
   if(RM){el.style.transition=`opacity ${ms}ms`;el.style.opacity='0'}
@@ -92,6 +99,14 @@ function abre(ms){if(!el||!el.classList.contains('on'))return espera(ms+20);
 // CCAM.fade(to,ms) llega aquí
 function fade(to,ms){ms=RM?Math.min(ms||0,150):(ms||400);return to>0?cubre(ms):abre(ms)}
 function prog(v,reint){if(!modo||modo.k!=='piso'||!cas)return;const l=cas.querySelector(`.bd[data-k="${modo.a}"] .ll`);if(l)l.style.transform=`scaleX(${Math.max(0,Math.min(1,v)).toFixed(3)})`;if(re)re.textContent=reint?'Reintentando':''}
+
+// botones 2D/3D (UI.dim) de todos los juegos: el cambio pasa detrás del iris, con el selector deslizándose al modo nuevo.
+// Del plano a la casa (casaToggle) no: ahí la portada pone su propia carga.
+let paso=false;
+addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ui-dim');if(!b||paso||!window.CCAM)return;
+ const a3=!!(b.querySelector('b')||{}).classList?.contains('on'),oc=b.getAttribute('onclick')||'';if(a3&&/casaToggle/.test(oc))return;
+ e.preventDefault();e.stopImmediatePropagation();pend={dim:true,a3};
+ CCAM.fade(1,260).then(()=>{paso=true;try{b.isConnected?b.click():new Function(oc)()}catch(er){console.error('[cort] dim',er)}paso=false;return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}).then(()=>CCAM.fade(0,380))},true);
 
 window.CORT={fade,prog,destino:(a,de)=>{pend={a,de}},enPiso:()=>!!(modo&&modo.k==='piso'),
  mini:t=>{arma();return `<div class="co-mini" role="progressbar" aria-label="${String(t||'Cargando').replace(/[&<>"]/g,'')}">${svg()}<b>${String(t||'').replace(/[&<>"]/g,'')}</b></div>`}};

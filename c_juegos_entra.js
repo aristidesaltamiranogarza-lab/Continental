@@ -3,17 +3,17 @@
 // un tiempo de inicio + animation-delay negativo (--ge-edl, --ge-fdl) para que los render (que rehacen el HTML) no reinicien nada.
 // Solo translate/scale/rotate sueltos y opacity; donde el elemento ya se ubica con transform se usa translate (va por fuera).
 (function(){
-const JS=['uno','monopolydeal'],R=document.documentElement,RM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
+const JS=['uno','monopolydeal','continental'],R=document.documentElement,RM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
 const ease=p=>1-Math.pow(1-p,3);
-let key='',t0=0,tf=0,raf=0,tm=0;
+let key='',t0=0,tf=0,raf=0,tm=0,fph='';
 function cnt(){cancelAnimationFrame(raf);raf=0;if(!tf)return;const now=Date.now();let more=false;
  document.querySelectorAll('.gj-win [data-cnt],.m2d-fin [data-cnt]').forEach(e=>{const row=e.closest('.u3res>div,.m2d-tab>div'),i=row?[...row.parentNode.children].indexOf(row):0;
   const p=RM()?1:Math.max(0,Math.min(1,(now-tf-550-i*100)/800)),s=String(Math.round(+e.dataset.cnt*ease(p)));if(e.textContent!==s)e.textContent=s;if(p<1)more=true});
  if(more)raf=requestAnimationFrame(cnt)}
-function after(){const G=typeof V!='undefined'&&V&&V.G,ok=G&&JS.includes(V.game)&&(G.phase=='play'||G.phase=='final');
+function after(){const G=typeof V!='undefined'&&V&&V.G,fp=G&&(G.phase=='final'||G.phase=='end'),ok=G&&JS.includes(V.game)&&(G.phase=='play'||fp);   // 'end': fin de ronda del Continental
  if(!ok){R.classList.remove('ge-in','ge-fin');tf=0;key='';return}
  const now=Date.now(),k=V.game+':'+(V.room||'')+':'+G.dn;
- if(G.phase=='play'){if(k!==key){key=k;t0=now+Math.min(G.cd||0,6000)}tf=0}else{if(!key)key=k;if(!tf)tf=now}   // con cuenta regresiva entra al terminar ella
+ if(G.phase=='play'){if(k!==key){key=k;t0=now+Math.min(G.cd||0,6000)}tf=0}else{if(!key)key=k;if(!tf||fph!==G.phase)tf=now;fph=G.phase}   // con cuenta regresiva entra al terminar ella
  const a=now-t0,on=G.phase=='play'&&a<1900;R.classList.toggle('ge-in',on);R.style.setProperty('--ge-edl',-a+'ms');
  clearTimeout(tm);if(on)tm=setTimeout(()=>R.classList.remove('ge-in'),1950-a);   // al terminar se quita: las animaciones ya no tapan las transiciones propias
  R.classList.toggle('ge-fin',!!tf);R.style.setProperty('--ge-fdl',-(tf?now-tf:0)+'ms');if(tf)cnt()}
