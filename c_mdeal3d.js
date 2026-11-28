@@ -141,6 +141,7 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 // ---------- posiciones ----------
 const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};
 const zona=k=>mesa.asiento(rel(k)).zona;
+const dentro=p=>{const R=mesa&&mesa.R?mesa.R*.74:0,d=Math.hypot(p.x,p.z);if(R&&d>R)p.multiplyScalar(R/d);return p};   // sin personaje, sus cartas sobre el fieltro (no en la orilla)
 function seatP(k,f){const a=mesa.asiento(rel(k)).a;return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.86);p.y=.3;return p};
 // lo que tiene un jugador en la mesa: banco (billetes de mayor a menor), propiedades por color (con su casa y hotel encima) y casas sueltas
@@ -230,7 +231,7 @@ function sync(){if(!ready||!L||!mesa||!active())return;
   
   // manos de los rivales (con personaje la cantidad va en sus manos; sin personaje, boca abajo frente a su silla)
   if(k===me)continue;const cnt=Math.min(hc(k)||0,12),pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj){MPJ.cartas(rel(k),hc(k)||0);continue}
-  const a=mesa.asiento(rel(k)).a,c0=seatP(k,.9),tv=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
+  const a=mesa.asiento(rel(k)).a,c0=dentro(seatP(k,.9)),tv=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a;
   for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null);live.add(key);m.userData.hit={t:'zone',k};hits.push(m);const off=j-(cnt-1)/2;go(m,SC,c0.clone().addScaledVector(tv,off*.2).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.45)}}
  if(me>=0&&window.MPJ&&MPJ.on)MPJ.cartas(0,hc(me)||0);
  // tu mano en abanico

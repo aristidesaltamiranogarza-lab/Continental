@@ -212,6 +212,7 @@ function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 // ---------- posiciones ----------
 const rel=k=>{const n=V.G.players.length,me=V.me<0?0:V.me;return (k-me+n)%n};   // asiento en la mesa (0 = el tuyo)
 function seatA(k){const n=V.G.players.length,me=V.me<0?0:V.me;return Math.PI/2+((k-me+n)%n)*(2*Math.PI/n)}
+const dentro=p=>{const R=mesa&&mesa.R?mesa.R*.74:0,d=Math.hypot(p.x,p.z);if(R&&d>R)p.multiplyScalar(R/d);return p};   // sin personaje, sus cartas quedan sobre el fieltro (no en la orilla)
 function seatP(k,f){const a=seatA(k);return v3(Math.cos(a)*L.rx*f,0,Math.sin(a)*L.rz*f)}
 // abanico de tu mano: las que puedes jugar se asoman un poco, la que robaste se asoma más
 // av: ancho para la mano; se le resta lo que las cartas de las orillas sobresalen al girar (en celular parado se salían por la izquierda)
@@ -269,7 +270,7 @@ function sync(){if(!ready||!L||!active())return;
  glow('disc',v3(L.disc.x,.004,L.disc.z),CW*L.sd*1.4,CH*L.sd*1.3,new THREE.Color(UC[G.color]||'#fff').getHex(),mine&&!G.ad?.55:.3,{t:'disc'});
  avSync();
  // manos de los demás: cartas boca abajo frente a su asiento
- for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=seatP(k,.84),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);
+ for(let k=0;k<n;k++){if(k===me)continue;const cnt=Math.min(hc(k)||0,15),a=seatA(k),c=dentro(seatP(k,.84)),tg=v3(Math.sin(a),0,-Math.cos(a)),ry=Math.PI/2-a,pj=window.MPJ&&MPJ.on&&!!MPJ.mano(rel(k));if(pj)MPJ.cartas(rel(k),hc(k)||0);
   if(!pj)for(let j=0;j<cnt;j++){const key='h'+k+'_'+j,m=ens(key,null);live.add(key);m.userData.hit={t:'seat',k};hits.push(m);const off=j-(cnt-1)/2;
    go(m,SC,c.clone().addScaledVector(tg,off*.22).setY(.012+j*.004),Qe(0,ry+off*.04,Math.PI),.5)}
   glow('t'+k,v3(c.x,.003,c.z),Math.max(1.4,cnt*.22+.8),1.2,fin?0xffd54a:0x55c8ff,(fin?G.win==k:G.turn==k)?.8:0,{t:'seat',k},ry)}

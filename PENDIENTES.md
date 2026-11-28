@@ -121,6 +121,7 @@ Plan del 11 nov 2026 (Aris lo arrancó el mismo día). Aris pidió una mesa din�
 - [x] Ruleta Rusa: ver la sección «Ruleta Rusa con los personajes nuevos» (abajo).
 - [x] Paso 5 de la UI (prompt_ui.md), en pausa.
 - [x] 4d Mesas ocupadas: c_casa_ocupada.js (OCUP), mazo, pila, cartas que vuelan y aro de turno.
+- [ ] Mesas ocupadas con la partida real (28 nov 2026): hoy OCUP es una animación genérica igual para todos los juegos (cartas que van y vienen). Que cada mesa muestre lo de su juego (Uno, Continental, MD, Mérida...) y, si se puede, la partida de verdad: su pila, cuántas cartas tiene cada quien y de quién es el turno.
 - [x] Monopoly Deal en su mesa: ver «Juegos nuevos» (abajo).
 - [x] Fase 5: Blackjack, Póker y Billar jugables en el sótano: ver «Juegos nuevos» (abajo).
 
