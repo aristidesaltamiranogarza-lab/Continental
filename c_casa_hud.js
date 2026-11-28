@@ -44,6 +44,7 @@ const P={
   <span class="ui-lbl">Tema</span>${seg([['auto','Automático'],['dia','Día'],['noche','Noche']],UI.tema(),'tema')}
   ${mus!=null&&window.musSlider?`<span class="ui-lbl">Música</span>${musSlider()}`:''}
   <div class="uh-sws"><div class="ui-row"><span>${I('sonido')}Sonidos</span>${sw(snd,'CHUD.snd(this.checked)','Sonidos')}</div>
+  ${window.BROMA&&BROMA.dueno()?`<div class="ui-row"><span>${I('persona')}Broma de la cabeza</span>${sw(BROMA.on(),'BROMA.set(this.checked)','Broma de la cabeza')}</div>`:''}
   ${c.canFp?`<div class="ui-row"><span>${I('ojo')}Primera persona${c.touchy?'':' <small class="ui-sub">(V)</small>'}</span>${sw(c.fp,'CHUD.fp()','Primera persona')}</div>`:''}</div>
   <div class="uh-2"><button class="ui-btn sec" onclick="CHUD.tog('ayuda')">${I('ayuda')}Cómo se juega</button><button class="ui-btn sec" onclick="CHUD.salir()">${I('salir')}${window.PTDA?'Inicio':'Salir de la casa'}</button></div>`,'der')},
  chat:c=>sheet('Chat de la casa',`<div class="uh-msgs" id="uiMsgs" aria-live="polite">${msgs.length?msgs.map(mm).join(''):vacio}</div>`,'izq',
