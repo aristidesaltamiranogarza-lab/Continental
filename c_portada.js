@@ -57,6 +57,9 @@ html.teclado #port .pt-go:focus-visible{transform:translateY(-6px) rotate(var(--
 #port .pt-il svg{width:100%;height:100%;display:block;overflow:visible}
 .pt-mini{border-radius:14px;overflow:hidden;background:var(--ui-chip);box-shadow:inset 0 0 0 1px var(--ui-line)}.pt-mini img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
 .pt-go:is(:hover,:focus-visible) .pt-mini img{transform:scale(1.08)}
+.pt-mini:not(.pt-car) img{animation:ptPlano 10s ease-in-out infinite alternate}
+@keyframes ptPlano{from{transform:scale(1.05) translate(-2%,1.5%)}to{transform:scale(1.15) translate(2.5%,-2%)}}
+@media (prefers-reduced-motion:reduce){.pt-mini:not(.pt-car) img{animation:none}}
 .pt-car{position:relative}.pt-car img{position:absolute;inset:0;opacity:0;transform:scale(1.12);transition:opacity .9s ease,transform 3.6s ease-out}.pt-car img.on{opacity:1;transform:scale(1)}
 @media (prefers-reduced-motion:reduce){.pt-car img{transition:opacity .4s;transform:none}}
 @media (hover:hover){#port .pt-go:hover .pt-il svg{animation:ptMueve .6s ease-in-out}}
