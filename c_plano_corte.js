@@ -8,7 +8,7 @@ const ESC='<svg class="pc-esc" viewBox="0 0 13 30" preserveAspectRatio="none" ar
 let el=null,PIS=null,SEL=null,B=[],O={cur:'c0',gente:[],pips:[],x0:-18,w:36},CA={},PI={},arr=false;
 function nodo(){if(el)return el;el=document.createElement('nav');el.className='pl-corte';el.setAttribute('aria-label','Pisos de la casa');
  el.innerHTML=`<svg class="pc-techo" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><rect x="36" y="1" width="60" height="1.8"/><rect x="40" y="1" width="1.6" height="11"/><rect x="58" y="1" width="1.6" height="11"/><rect x="76" y="1" width="1.6" height="11"/><rect x="93" y="1" width="1.6" height="11"/></svg>`+
-  `<div class="pc-pisos"><div class="pc-tierra" aria-hidden="true"></div><i class="pc-sel"></i>${NIV.map(([f,l,c],i)=>`<button class="pc-niv" data-f="${f}" style="--k:${3-i}" aria-label="${l}">${f==='c2'?'':ESC}<span class="pc-nom"><span class="l">${l}</span><span class="c">${c}</span></span></button>`).join('')}</div>`;
+  `<div class="pc-pisos"><div class="pc-tierra" aria-hidden="true"></div><i class="pc-sel"></i>${NIV.map(([f,l,c],i)=>`<button class="pc-niv" data-f="${f}" style="--k:${3-i}" aria-label="${l}">${f==='c2'?'':ESC}<span class="pc-nom"><span class="pc-lar">${l}</span><span class="pc-cor">${c}</span></span></button>`).join('')}</div>`;
  PIS=el.querySelector('.pc-pisos');SEL=el.querySelector('.pc-sel');B=[...el.querySelectorAll('.pc-niv')];
  // tocar o deslizar: el piso bajo el dedo; con teclado, Enter/Espacio en cada franja
  const elige=e=>{const r=PIS.getBoundingClientRect(),y=e.clientY-r.top;let f=null;
