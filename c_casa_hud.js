@@ -55,8 +55,8 @@ const P={
   return `<div class="ui uh-rueda${k?'':' tq'}" role="dialog" aria-label="Bailes y gestos"><div class="uh-ring" style="width:${2*R+T}px;height:${2*R+T}px">
    <div class="uh-hub" style="left:${R+T/2}px;top:${R+T/2}px"><span id="uhNom" class="uh-nom">Bailes</span><button class="ui-rb uh-ex" onclick="CHUD.close()" aria-label="Cerrar">${I('x')}</button></div>
    ${BAILES.map(([e,t,cl],i)=>{const a=-Math.PI/2+i*Math.PI/4,u=EI(cl);
-   return `<button class="uh-b" style="left:${(R+Math.cos(a)*R).toFixed(1)}px;top:${(R+Math.sin(a)*R).toFixed(1)}px" onclick="CHUD.em('${e}')" onmouseenter="CHUD.nom('${t}')" onmouseleave="CHUD.nom()" onfocus="CHUD.nom('${t}')" aria-label="${t}"><img data-eico="${cl}"${u?` src="${u}" class="ok"`:''} alt=""><span class="uh-bt">${t}</span></button>`}).join('')}</div>
-   <div class="uh-gz">${RUEDA.map((e,i)=>`<button class="uh-e" onclick="CHUD.em('${e}')" aria-label="Gesto ${i+1}">${e}${k?`<kbd>${i+1}</kbd>`:''}</button>`).join('')}</div></div>`},
+   return `<button class="uh-b" style="left:${(R+Math.cos(a)*R).toFixed(1)}px;top:${(R+Math.sin(a)*R).toFixed(1)}px" onclick="CHUD.em('${e}')" onmouseenter="CHUD.nom('${t}')" onmouseleave="CHUD.nom()" onfocus="CHUD.nom('${t}')" aria-label="${t}"><img data-eico="${cl}"${u?` src="${u}" class="ok"`:''} alt=""><span class="uh-bt">${t}</span>${k?`<kbd>${i+1}</kbd>`:''}</button>`}).join('')}</div>
+   <div class="uh-gz">${RUEDA.map((e,i)=>`<button class="uh-e" onclick="CHUD.em('${e}')" aria-label="Gesto ${i+1}">${e}</button>`).join('')}</div></div>`},
  ayuda:c=>sheet('Cómo se juega',(c.touchy?[['Camina','Con el joystick de abajo, o toca el piso.'],['Mira','Arrastra para girar; pellizca para acercar.'],['Juega','Toca una mesa; al llegar, toca «Jugar» abajo.'],['Platica','El botón grande es el chat; el de la carita, los gestos.'],['Pisos','Toca el nombre del piso, arriba, para ir a otro.']]
   :[['Camina','W A S D o flechas, o clic en el piso.'],['Mira','Arrastra para girar; la rueda acerca. V: primera persona.'],['Juega','Clic en una mesa; al llegar, E (o el botón de abajo) abre su panel.'],['Platica','Enter abre el chat; G los gestos; 1 a 8, un gesto directo.'],['Pisos','Clic en el nombre del piso, arriba, para ir a otro.']])
   .map(([t,d])=>`<div class="ui-row uh-ay"><b>${t}</b><span class="ui-sub">${d}</span></div>`).join(''),'der')};
@@ -74,7 +74,8 @@ function html(c){ctx=c;if(c.busy&&open)open=null;
 function baja(){const l=$('uiMsgs');if(l)l.scrollTop=l.scrollHeight}
 
 // ---------- acciones ----------
-function tog(p){open=open===p?null:p;if(open=='chat'){unread=0}tick();rr();if(open=='chat'&&!ctx.touchy){const i=$('uiSay');if(i)i.focus()}}
+function tog(p){open=open===p?null:p;if(open&&document.pointerLockElement)document.exitPointerLock();   // en primera persona: soltar el ratón para poder elegir
+ if(open=='chat'){unread=0}tick();rr();if(open=='chat'&&!ctx.touchy){const i=$('uiSay');if(i)i.focus()}}
 function close(){if(!open)return;open=null;rr()}
 function msg(n,t,mine){msgs.push({n,t,me:!!mine});if(msgs.length>60)msgs.shift();
  if(open=='chat'){const l=$('uiMsgs');if(l){if(msgs.length==1)l.innerHTML='';l.insertAdjacentHTML('beforeend',mm(msgs[msgs.length-1]));baja()}}

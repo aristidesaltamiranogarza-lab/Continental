@@ -88,7 +88,7 @@
 .uh-e{position:relative;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid var(--ui-line);background:var(--ui-sheet);box-shadow:var(--ui-shadow);font-size:26px;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .12s}
 .uh-e:active{transform:scale(.92)}
 @media (hover:hover){.uh-e:hover{transform:scale(1.08)}}
-.uh-e kbd{position:absolute;right:-4px;bottom:-4px;height:20px;min-width:20px;font-size:11px}
+.uh-e kbd,.uh-b kbd{position:absolute;right:-4px;bottom:-4px;height:20px;min-width:20px;font-size:11px}
 
 /* lo de antes con el mismo estilo: avisos, letreros de mesas, nombres, globitos, invitación */
 #h3toasts{left:50%!important;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 72px);bottom:auto!important;align-items:center}

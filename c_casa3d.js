@@ -112,7 +112,7 @@ addEventListener('orientationchange',()=>[250,700].forEach(t=>setTimeout(()=>{IW
  cv.addEventListener('contextmenu',e=>e.preventDefault());cv.addEventListener('pointerleave',()=>{if(window.ETQ)ETQ.hov(null)});
  cv.addEventListener('wheel',e=>{if(!active())return;e.preventDefault();if(fpOn())return;VT.k*=Math.exp(-e.deltaY*.0015);clampV()},{passive:false});
  const typing=e=>/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'');
- // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = gestos; G = rueda de gestos; Enter = chat
+ // teclado: W A S D / flechas = caminar; Q E = girar; R F = inclinar; + − = zoom; Inicio = cuadrar; 1-8 = bailes; G = rueda de gestos; Enter = chat
  addEventListener('keydown',e=>{if(window.CCAM&&active()&&!typing(e))CCAM.cut();if(!active()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){e.preventDefault();keys.add(k);tgt=null;tgtG=null}
   else if(k==' '&&!sel&&window.JOY&&JOY.saltar){e.preventDefault();JOY.saltar()}
@@ -124,7 +124,7 @@ addEventListener('orientationchange',()=>[250,700].forEach(t=>setTimeout(()=>{IW
   else if(k=='escape'){if(window.CHUD&&CHUD.key('escape'))return;if(window.CMESA&&CMESA.key('escape'))return;if(window.BJ3&&BJ3.key('escape'))return;if(window.PK3&&PK3.key('escape'))return;if(window.BIJ&&BIJ.key('escape'))return;if(sel){closed=sel;sel=null;render()}else camHome()}
   else if(k=='enter'){if(window.CHUD&&CHUD.key('enter'))e.preventDefault()}
   else if(k=='g'){if(window.CHUD&&CHUD.key('g'))e.preventDefault()}
-  else if(k>='1'&&k<='8')casaEm(EMO[+k-1])});
+  else if(k>='1'&&k<='8')casaEm(['💃','🕺','🌀','🎧','👟','👯','🤸','🎮'][+k-1])});
  addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>{keys.clear();suelta()});document.addEventListener('visibilitychange',()=>{if(document.hidden){keys.clear();suelta()}});   // al irte a otra ventana o pestaña no llegan keyup ni pointerup: nada se queda apretado
  // barra de cámara: dejar presionado repite
  const stopRep=()=>{if(camRep){clearTimeout(camRep.t);clearInterval(camRep.i);camRep=null}};
@@ -596,7 +596,7 @@ function salaPaso(now,dt){if(innerWidth!==IW||innerHeight!==IH)layout();if(W/H<.
  if(Math.abs(sOff.x)+Math.abs(sOff.y)>.5)CA.setViewOffset(W,H,sOff.x,sOff.y,W,H);else CA.clearViewOffset();CA.updateMatrixWorld();
  seated.forEach(s=>{if(!s.av)poseSeated(s,now);if(s.p0){const q=Math.min(1,(now-s.p0)/650),e=q-1;s.g.scale.setScalar(s.k0*Math.max(.001,1+2.7*e*e*e+1.7*e*e));if(q>=1)s.p0=0}});if(window.OCUP)OCUP.paso(now);
  if(FL===PB&&window.CAMB)CAMB.step(now,dt);if(FL.step)FL.step(now,dt);if(window.VENT)VENT.paso(FL.id,R,CA);
- const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);const cpS=R.clippingPlanes,pe=salaT&&salaT.aire&&CA.position.y>TH+1.3;if(pe){PERGC=PERGC||new THREE.Plane(new THREE.Vector3(0,-1,0),0);PERGC.constant=TH+1.3;R.clippingPlanes=[PERGC]}R.render(SC,CA);if(pe)R.clippingPlanes=cpS;if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
+ const exD=(FL===PB||!!FL.ext)&&!!window.CCALLE&&CCALLE.fondo(R,CA,SC,FL.id);shN^=1;R.shadowMap.autoUpdate=!shN||dt>12||FL!==shFL;shFL=FL;const fpH=fpOn()&&!(window.CCAM&&CCAM.busy());if(fpH)CAV.cuerpo(me.g,SC,1);const cpS=R.clippingPlanes,pe=salaT&&salaT.aire&&CA.position.y>TH+2.1;if(pe){PERGC=PERGC||new THREE.Plane(new THREE.Vector3(0,-1,0),0);PERGC.constant=TH+2.1;R.clippingPlanes=[PERGC]}R.render(SC,CA);if(pe)R.clippingPlanes=cpS;if(fpH)CAV.cuerpo(me.g,SC,0);R.shadowMap.autoUpdate=true;if(exD)R.autoClear=true}
 window.casaPlay=mode=>{if(!sel)return;pgame=sel;(window.SALA?sitSala:sit)(()=>mk(mode))};
 window.casaJoin=c=>{code=c;const r=rooms.find(x=>x.c===c);(window.SALA?sitSala:sit)(()=>joinR(),r&&r.g)};
 window.casaWatch=c=>sit(()=>watchR(c));
