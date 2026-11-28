@@ -290,6 +290,8 @@ Hecho: tope de cuadros y medidor (`c_fps.js`, F4 o `?fps`), piezas quietas junta
 - [x] P4 planta alta en Medio como el sótano (c_casa_glb.js); se quitó la maceta de 59k triángulos (alta: queda la de código; salón del sótano: las 3). Si se ve mal algún modelo en Medio, quitarlo en lugar de regresar a HD.
 - [x] P5 menos materiales distintos: las mallas juntas de MRG comparten material por clave (238 mallas con 139 materiales; sótano 243 → 230 visibles). Los demás son distintos de verdad (22 Physical con clearcoat, texturas de lienzo); los dibujos no cambian (119 en el sótano).
 
+- [ ] P6 (27 nov 2026) al entrar a Monopoly Deal el juego se traba mucho (tirones fuertes al arrancar la partida). Medir con F4 qué pasa en esos primeros segundos (shaders, texturas de cartas, retratos) y repartirlo o precalentarlo como en P3.
+
 ## Animaciones y transiciones al nivel de la portada (26 nov 2026)
 **Lo que pidió el usuario, textual en espíritu: mantener ese nivel de calidad.** Le encantó la portada (c_portada.js) por sus animaciones y transiciones; para él eso es lo que "vende" un juego, junto con nunca quedarse en pantalla negra ni con tirones. Cada punto de esta lista debe sentirse igual de cuidado que la portada; si algo queda más simple que ella, no está terminado. Antes de empezar uno, abrir c_portada.js y copiar su forma de hacerlo (reglas en la skill casa-ui, sección "Movimiento").
 - [x] Cambio de piso en 3D (c_cortina.js, CORT): cortina en la dirección del viaje, corte de la casona con tu figura saltando al piso y relleno con el progreso real; los demás fundidos son un iris cálido. Antes: fundido a negro + panel CCARGA. Que sea una escena dibujada del piso que se llena con el progreso real (como la fachada) y una salida animada.

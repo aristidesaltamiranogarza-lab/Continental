@@ -40,6 +40,8 @@
 
 /* ajustes */
 .uh-name{display:flex;align-items:flex-end;gap:12px}
+.uh-av.pj{overflow:hidden;align-items:flex-end;background:color-mix(in srgb,var(--c) 45%,#FFF8EE)!important}
+.uh-av.pj img{width:118%;height:118%;flex:none;object-fit:contain;object-position:50% 100%;margin-bottom:-4%}
 .uh-name .uh-av{width:48px;height:48px;font-size:20px}
 .uh-name label{flex:1;min-width:0}
 .uh-name .ui-lbl{margin-top:0}
@@ -165,3 +167,7 @@ span.gic{display:inline-block}span.gic svg{width:100%;height:100%;display:block}
 @keyframes genAv{0%{opacity:0;transform:translateY(-6px)}12%,80%{opacity:1;transform:none}100%{opacity:0}}
 /* pastilla flotante de GENTE en pantallas sin la suya (c_gente.js flota) */
 #genFlota{position:fixed;right:calc(env(safe-area-inset-right,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 60px);z-index:40}
+/* un toque crea la sala: el aviso late y se va hacia arriba mientras la cámara gira a la mesa */
+.uh-aviso.va{pointer-events:none;animation:uhVa .3s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes uhVa{0%{transform:translateX(-50%) scale(1)}35%{transform:translateX(-50%) scale(1.07)}100%{opacity:0;transform:translateX(-50%) translateY(-26px) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.uh-aviso.va{animation:none;opacity:0}}

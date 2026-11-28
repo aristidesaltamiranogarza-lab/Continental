@@ -14,7 +14,7 @@ function img(c){const u=RT.get(c);return u?`<img src="${u}" alt="">`:''}
 function pide(c){if(!c||RT.has(c)||!window.AV2D||!window.AV)return;RT.set(c,null);cola.push(c);sigue()}
 async function sigue(){if(ocup)return;const c=cola.shift();if(!c)return;ocup=true;
  try{await AV.listo();const cv=await AV2D.retrato(c,{tam:128,plano:'busto',giro:.35,fondo:null});RT.set(c,cv.toDataURL('image/png'));
-  document.querySelectorAll('#slF2s i[data-c="'+c+'"]').forEach(e=>{e.classList.add('pj');e.innerHTML=img(c)})}catch(e){RT.set(c,'')}
+  document.querySelectorAll('#slF2s i[data-c="'+c+'"],.sl-av[data-c="'+c+'"],.uh-av[data-c="'+c+'"]').forEach(e=>{const d=e.querySelector('.sl-dot');e.classList.add('pj');e.innerHTML=img(c);if(d)e.appendChild(d)})}catch(e){RT.set(c,'')}
  ocup=false;setTimeout(sigue,30)}
 function ok(){if(casa())return false;if(!css&&!document.querySelector('link[href="ui_sala.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='ui_sala.css';document.head.appendChild(l)}css=true;return true}
 function monta(el){document.documentElement.classList.add('sala2d');if($('slF2'))return;const f=document.createElement('div');f.id='slF2';f.className='sl-f2';f.setAttribute('aria-hidden','true');
@@ -26,7 +26,9 @@ function pinta(icon,ps,me,libres,hola,col){const i=$('slF2i');if(i&&i.dataset.k!
  // tú abajo al centro; los demás siguen alrededor de la mesa
  const yo=Math.max(0,ps.findIndex(p=>p.i===me)),L=ps.slice(yo).concat(ps.slice(0,yo)).map(p=>({p})).concat(Array.from({length:Math.max(0,libres)},()=>({ai:1}))),n=L.length,t=performance.now();box.classList.toggle('muchos',n>6);
  box.innerHTML=L.map((s,j)=>{const a=Math.PI/2+j*2*Math.PI/Math.max(n,2),x=50+Math.cos(a)*50,y=50+Math.sin(a)*50,st=`left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;--d:${(j*.09).toFixed(2)}s`;
-  if(s.ai)return `<div class="sl-f2x ai" style="${st}"><i>AI</i></div>`;const p=s.p,yo2=p.i===me,c=codOf(p);pide(c);const u=c&&RT.get(c);
+  if(s.ai)return `<div class="sl-f2x ai" style="${st}"><i>AI</i></div>`;const p=s.p,yo2=p.i===me,c=p.bot?'':codOf(p);pide(c);const u=c&&RT.get(c);
   return `<div class="sl-f2x${yo2?' yo':''}${t-(hola[p.name]||-1e9)<2500?' nuevo':''}" style="${st}"><i class="${u?'pj':''}" data-c="${es(c)}" style="--c:${col(p.name)}">${u?img(c):ini(p.name)}</i><b>${yo2?'Tú':es(p.name)}</b></div>`}).join('')}
-window.SL2D={ok,monta,quita,pinta};
+// retrato de una persona (nunca de la AI) para la sala de la casa: {c,h} con la imagen o '' mientras se dibuja
+const rt=p=>{const c=p.bot?'':codOf(p);pide(c);const u=c&&RT.get(c);return {c,h:u?img(c):''}};
+window.SL2D={ok,monta,quita,pinta,rt};
 })();

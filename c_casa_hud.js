@@ -10,7 +10,9 @@ const RUEDA=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕'],BAILES=[
 const QH={ligero:'Pantalla 2D clásica. Para celulares sencillos.',medio:'Casa 3D sin sombras. Va bien en casi todo.',completo:'Casa 3D con sombras y todas las luces.'};
 const COL=['#B5482A','#2F6FB0','#2E7D4F','#8E4FB0','#9A6A1E','#22807F','#B03A6A'];
 const col=s=>{let h=0;for(const c of String(s||''))h=(h*31+c.codePointAt(0))|0;return COL[Math.abs(h)%COL.length]};
-const av=n=>`<span class="uh-av" style="background:${col(n)}" aria-hidden="true">${es((Array.from(String(n||'?').trim())[0]||'?').toUpperCase())}</span>`;
+// una persona lleva su retrato (SL2D.rt); la inicial queda solo para la AI o mientras se dibuja
+const av=(n,o)=>{o=o||{};const r=!o.bot&&window.SL2D&&SL2D.rt?SL2D.rt({name:n,av:o.av}):{c:'',h:''};
+ return `<span class="uh-av${r.h?' pj':''}" data-c="${es(r.c)}" style="--c:${col(n)};background:${col(n)}" aria-hidden="true">${r.h||es((Array.from(String(n||'?').trim())[0]||'?').toUpperCase())}</span>`};
 let open=null,unread=0,ctl=ls.get('casa_ctl')!=='0',ctx={};
 const msgs=[];
 const tick=()=>{if(typeof sfx=='function')sfx('tick')};

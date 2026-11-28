@@ -50,7 +50,6 @@ function home(){document.documentElement.classList.add('lbon');const k=gk(),g=GM
   <div class="lbh-hd"><span class="lbh-hic">${ico(k)}</span><div class="lbh-t"><h2>${es(nom(k))}</h2><small>${c?'Mesa del sótano':'Hasta '+(g.max||6)+' jugadores'}</small></div>
    ${!c&&g.rules?`<button class="lbh-ay" onclick="LOBBY.pan('reg')" aria-label="Cómo se juega">${I('ayuda')}</button>`:''}</div>
   <div class="lbh-bd">${go(k)}
-   <div class="lbh-join"><input class="ui-in" placeholder="CÓDIGO" maxlength="5" value="${es(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala" autocomplete="off" autocapitalize="characters"><button class="ui-btn sec" onclick="joinR()">Unirme</button></div>
    ${msg?`<p class="lb-err" role="alert">${es(msg)}</p>`:''}</div>
  </section>`}${hoja(k,g)}</div>`}
 const v0=LOBBY.home;

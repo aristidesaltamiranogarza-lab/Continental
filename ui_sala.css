@@ -30,7 +30,7 @@ html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);-
 #sala:not(.host) .sl-t .ui-ico{display:none}
 .sl-t h2{margin:0;min-width:0;font:900 24px/1.1 var(--ui-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.25)}
 .sl-code{position:relative;z-index:1;flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;cursor:pointer;border-radius:999px;
- border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.16);color:#fff;font:800 14px var(--ui-font);letter-spacing:.14em}
+ border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.16);color:#fff;font:800 14px var(--ui-font)}
 .sl-code .ui-ico{width:17px;height:17px}
 .sl-code:active{transform:scale(.95)}
 
@@ -81,6 +81,8 @@ html[data-tema=noche] #sala{--sl-bg:color-mix(in srgb,var(--sl-c) 24%,#111214);-
 .sl-seat>span{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sl-seat .sl-av{position:relative;margin:0;width:46px;height:46px;font-size:17px;border:0}
 .sl-seat .sl-av.ai{border:2px dashed var(--ui-line);font-size:12px}
+.sl-seat .sl-av.pj{overflow:hidden;align-items:end;background:color-mix(in srgb,var(--c) 45%,#FFF8EE)}
+.sl-seat .sl-av.pj img{width:118%;height:118%;object-fit:contain;object-position:50% 100%;margin-bottom:-4%}
 .sl-seat.nuevo .sl-av{animation:slPop .55s cubic-bezier(.2,1.6,.4,1) both}
 .sl-add{cursor:pointer}
 .sl-add .sl-av.ai{border-color:color-mix(in srgb,var(--sl-c) 55%,transparent);color:var(--sl-c)}

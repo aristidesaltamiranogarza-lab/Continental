@@ -105,7 +105,7 @@ const casa={},EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','�
 function salas(){const now=Date.now();return Object.values(rooms).filter(R=>R.G?vivoH(R,now):R.players.some(p=>!p.bot&&!p.out&&now-p.seen<35000)).map(R=>{const ps=R.players.filter(p=>!p.out),h=R.players.find(p=>p.tok==R.host);
  // c: código para unirse (solo si espera jugadores); w: código para ir a mirar (si ya empezó)
  const fin=R.G&&R.G.phase=='final';   // partida terminada: ya no cuenta como en curso
- return {c:R.G?null:R.code,w:R.G&&!fin?R.code:null,g:R.gt,st:R.G?(fin?'fin':'play'):'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),av:ps.slice(0,6).map(p=>p.av||''),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
+ return {c:R.G?null:R.code,w:R.G&&!fin?R.code:null,g:R.gt,st:R.G?(fin?'fin':'play'):'lobby',n:ps.length,max:GAMES[R.gt].max,host:h?h.name:'Host',ps:ps.slice(0,6).map(p=>p.name),av:ps.slice(0,6).map(p=>p.av||''),bt:ps.slice(0,6).map(p=>p.bot?1:0),sp:(R.spec||[]).filter(s=>now-s.seen<35000).length}})}
 // gente: una sola lista de quién está conectado (casa 3D, 2D, salas y mirones), una vez por aparato (me); gana lo más concreto (jugar > mirar > casa).
 // k: huella del aparato (nunca la clave), yo: eres tú; f: piso (o '2d') si anda en la casa; g/st: juego y lobby|play|fin|mira si está en una sala
 const huella=m=>cr.createHash('sha1').update(String(m)).digest('hex').slice(0,10);

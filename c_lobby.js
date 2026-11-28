@@ -42,7 +42,7 @@ function home(){on();if(cas&&!c2d())cas='';const k=cas||(GM[pgame]?pgame:'contin
   ${cas?cab(k,'Mesa del sótano'):cab(k,'Hasta '+(g.max||6)+' jugadores')}
   <div class="lb-dos">${cas==='billar'?(b2d()?`<button class="ui-btn" onclick="B2D.abre()">${I('jugar')}Ir a la mesa</button>`:'<button class="ui-btn" disabled>No disponible</button>'):cas?`<button class="ui-btn" onclick="C2D.abre('${cas}')">${I('jugar')}Ir a la mesa</button>`:`<button class="ui-btn" onclick="mk('listo')">${I('jugar')}Crear y jugar</button>`}</div>
   ${cas?'<p class="ui-sub lb-nota">Juegas con quien esté en la casa.</p>':''}</section>
- <section class="ui-card lb-card"><h2>${I('gente')}Unirme a una sala</h2><div class="lb-join"><input class="ui-in lb-code" placeholder="CÓDIGO" maxlength="5" value="${es(code)}" oninput="code=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinR()" aria-label="Código de la sala" autocomplete="off" autocapitalize="characters"><button class="ui-btn" onclick="joinR()">Unirme</button></div>${err()}</section>
+ ${err()}
  ${ajustes()}${cas?'':reglas(g)}</div>`}
 
 // sala de espera sin casa: misma idea que el boleto de c_sala.js, en la página
@@ -63,7 +63,7 @@ function sala(g){on();const v=V,k=v.game,host=!!v.host,me=v.me;
  else if(v.watch)ft=`<button class="ui-btn full lb-go" onclick="joinSpec()">${I('jugar')}Unirme a jugar</button><p class="ui-sub lb-nota">La partida terminó: puedes unirte a la siguiente.</p>`;
  else ft=`<div class="lb-espera" role="status"><i></i><i></i><i></i><span>Esperando a que empiece la partida</span></div>`;
  return `<div class="ui lb" style="--lb-c:${COL[k]||'#C2512A'}">${top()}
- <section class="ui-card lb-card lb-boleto">${cab(k,`Sala <button class="lb-code-b" onclick="copyT('${es(v.code)}')" aria-label="Copiar código">${es(v.code)} ${I('copiar')}</button>`,`<button class="ui-btn sec lb-inv" onclick="LOBBY.invita()">${I('compartir')}Invitar</button>`)}
+ <section class="ui-card lb-card lb-boleto">${cab(k,`Sala`,`<button class="ui-btn sec lb-inv" onclick="LOBBY.invita()">${I('compartir')}Invitar</button>`)}
   <div class="lb-ft">${ft}${err()}<button class="ui-btn ghost full" onclick="LOBBY.salir()">${I('salir')}${host?'Cerrar sala':v.watch?'Dejar de mirar':'Salir de la sala'}</button></div></section>
  ${juego}${rr}${gente}${ajustes()}${reglas(g)}</div>`}
 
@@ -71,7 +71,7 @@ window.LOBBY={home,sala,carga:t=>{on();if(window.CORT)return CORT.mini(t);return
  elige:k=>{if(CAS[k])cas=k;else{cas='';pgame=k}render()},
  juego:k=>{if(V&&V.host&&k!==V.game)send({t:'game',g:k})},
  tema:()=>{if(window.UI)UI.setTema(UI.noche()?'dia':'noche');render()},
- invita:()=>{if(!V)return;const u=location.origin+'/#'+V.code;if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(V.game)+' conmigo! Código '+V.code,url:u}).catch(()=>{});
+ invita:()=>{if(!V)return;const u=location.origin+'/#'+V.code;if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(V.game)+' conmigo!',url:u}).catch(()=>{});
   else if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>banner('Enlace copiado ✓'),()=>copyT(u));else copyT(u)},
  salir:()=>{if(!V)return;if(V.host){if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}}else leave()}};
 LOBBY.u={COL,CAS,ico,nom,lista,c2d,b2d,est,avc,ini,es,I,cas:()=>cas};   // para c_lobby_home.js

@@ -43,7 +43,7 @@ function arma(){if(el)return;el=document.createElement('div');el.id='sala';el.cl
  <section class="sl-sh" id="slSh" role="dialog" aria-label="Sala de espera">
   <header class="sl-hd"><div class="sl-ic" id="slIc"></div>
    <button class="sl-t" onclick="SALA.ver('juego')" aria-label="Cambiar de juego"><h2 id="slName"></h2>${I('abajo')}</button>
-   <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala"><b id="slCode"></b>${I('compartir')}</button>${window.GENTE?GENTE.boton():''}</header>
+   <button class="sl-code" onclick="SALA.invita()" aria-label="Invitar a la sala">${I('compartir')}<b>Invitar</b></button>${window.GENTE?GENTE.boton():''}</header>
   <div class="sl-bd" id="slBd">
    <div class="sl-v1" id="slV1"><div class="sl-mesa" id="slMesa"></div><p class="sl-tip" id="slTip" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M17 11v2"/></svg>Se juega mejor en horizontal</p><p class="ui-sub sl-mira" id="slMira"></p>
     <nav class="sl-acc"><button class="sl-p" id="slRegB" onclick="SALA.ver('reglas')">${I('ajustes')}Reglas</button><button class="sl-p sl-est" id="slEstB" hidden onclick="SALA.ver('est')"><span class="sl-estv" id="slEstV"></span>Estilo</button><button class="sl-p sl-est" id="slFiB" hidden onclick="SALA.ver('ficha')"><span class="sl-estv" id="slFiV"></span>Ficha</button><button class="sl-p sl-i" onclick="SALA.reglas()" aria-label="Cómo jugar" title="Cómo jugar">${I('ayuda')}</button>
@@ -74,7 +74,7 @@ function sync(g){const H=H3(),v=vv();if(!g||!v||v.G)return false;const d2=!H&&!!
  pinta(g,v);return true}
 function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;{const tp=$('slTip');if(tp)tp.hidden=!(k==='continental'&&innerHeight>innerWidth)}el.style.setProperty('--sl-c',COL[k]||'#C2512A');el.classList.toggle('host',host);
  if(sig.k!==k){sig.k=k;const ic=$('slIc');ic.innerHTML=ico(k);ic.classList.remove('pop');void ic.offsetWidth;ic.classList.add('pop');$('slName').textContent=nom(k)}
- $('slCode').textContent=v.code||'';{const eo=estOk(k),eb=$('slEstB');eb.hidden=!eo;if(eo){const ek=k+estK();if(eb.dataset.k!==ek){eb.dataset.k=ek;$('slEstV').innerHTML=k==='uno'?I('pincel'):LOBBY.vista?LOBBY.vista():''}}else if(sub==='est')ver(null)}if(!host&&sub==='juego')ver(null);
+ {const eo=estOk(k),eb=$('slEstB');eb.hidden=!eo;if(eo){const ek=k+estK();if(eb.dataset.k!==ek){eb.dataset.k=ek;$('slEstV').innerHTML=k==='uno'?I('pincel'):LOBBY.vista?LOBBY.vista():''}}else if(sub==='est')ver(null)}if(!host&&sub==='juego')ver(null);
  {const fb=$('slFiB'),fo=!!g.ficha;fb.hidden=!fo;if(fo){const fk=g.ficha.key();if(fb.dataset.k!==fk){fb.dataset.k=fk;$('slFiV').innerHTML=g.ficha.ico()}}else if(sub==='ficha')ver(null)}
  // reglas del juego (su lobby de siempre): Empezar va abajo, "Agregar bot" es un asiento con +, los Sí/No son interruptores
  let raw='';try{raw=g.lobby(host?1:0)||''}catch(e){}
@@ -99,7 +99,7 @@ function pinta(g,v){const k=v.game,host=!!v.host,me=v.me;{const tp=$('slTip');if
  if(!H3()&&window.SL2D)SL2D.pinta({k,h:ico(k)},ps,me,libres,hola,colOf);
  const add=host&&sig.add&&!sig.add.dis&&n<max,lk=JSON.stringify([ps.map(p=>[p.name,p.on,p.id,p.i,p.bot]),me,host,libres,add]);
  if(lk!==sig.l){sig.l=lk;const t=performance.now();
-  $('slMesa').innerHTML=ps.map(p=>`<div class="sl-seat${t-(hola[p.name]||-1e9)<2500?' nuevo':''}"><i class="sl-av" style="--c:${colOf(p.name)}">${ini(p.name)}${p.bot?'':`<span class="sl-dot${p.on?' on':''}"></span>`}</i><span>${p.i===me?'Tú':es(p.name)}</span>`+
+  $('slMesa').innerHTML=ps.map(p=>`<div class="sl-seat${t-(hola[p.name]||-1e9)<2500?' nuevo':''}">${(r=>`<i class="sl-av${r.h?' pj':''}" data-c="${es(r.c)}" style="--c:${colOf(p.name)}">${r.h||ini(p.name)}${p.bot?'':`<span class="sl-dot${p.on?' on':''}"></span>`}</i>`)(!p.bot&&window.SL2D&&SL2D.rt?SL2D.rt(p):{c:'',h:''})}<span>${p.i===me?'Tú':es(p.name)}</span>`+
    (host&&p.i!==me?`<button class="sl-kick" onclick="kick('${es(p.id)}')" aria-label="Sacar a ${es(p.name)}">${I('x')}</button>`:'')+'</div>').join('')+
    (add?`<button class="sl-seat sl-add" onclick="${es(sig.add.on)}" aria-label="Agregar AI"><i class="sl-av ai">${I('mas')}</i><span>AI</span></button>`:'')+
    '<div class="sl-seat"><i class="sl-av ai">AI</i><span>AI</span></div>'.repeat(Math.max(0,libres))}
@@ -150,8 +150,8 @@ window.SALA={ico,sync,tapa,hueco,
  ver,copiaL,
  juego:k=>{if(vv()&&vv().host&&k!==vv().game){send({t:'game',g:k});ver(null)}},
  copia:()=>{const v=vv();if(v)copyT(v.code)},
- comparte:()=>{const v=vv();if(!v)return;const u=url();if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(v.game)+' conmigo! Código '+v.code,url:u}).catch(()=>{});else copiaL()},
- invita:()=>{const v=vv();if(!v)return;const u=url();modal(`<div class="sl-card" role="dialog" aria-label="Invitar a la sala"><h3>Invita a tu gente</h3>${window.GENTE?`<div class="sl-gen">${GENTE.invitables()}</div>`:''}<div class="sl-qr" id="slQr"></div><div class="sl-big">${es(v.code)}</div><div class="sl-link">${es(u)}</div>
+ comparte:()=>{const v=vv();if(!v)return;const u=url();if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(v.game)+' conmigo!',url:u}).catch(()=>{});else copiaL()},
+ invita:()=>{const v=vv();if(!v)return;const u=url();modal(`<div class="sl-card" role="dialog" aria-label="Invitar a la sala"><h3>Invita a tu gente</h3>${window.GENTE?`<div class="sl-gen">${GENTE.invitables()}</div>`:''}<div class="sl-qr" id="slQr"></div><div class="sl-link">${es(u)}</div>
   <div class="sl-dos"><button class="ui-btn sec" onclick="SALA.copiaL()">${I('copiar')}Copiar enlace</button><button class="ui-btn" onclick="SALA.comparte()">${I('compartir')}Compartir</button></div><button class="ui-btn ghost full" onclick="SALA.cierra()">Listo</button></div>`);qr(u)},
  reglas:()=>{if(!cur)return;modal(`<div class="sl-card sl-rul" role="dialog" aria-label="Cómo se juega"><div class="sl-rh"><h3>Cómo se juega ${es(nom(sig.k))}</h3><button class="ui-x" onclick="SALA.cierra()" aria-label="Cerrar">${I('x')}</button></div><div class="sl-rb">${cur.rules||''}</div></div>`);
   $('slModal').querySelectorAll('details').forEach(d=>d.open=true)},
