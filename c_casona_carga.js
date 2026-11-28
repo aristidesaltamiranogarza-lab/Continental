@@ -26,7 +26,8 @@ function espera(F,ms){if(!F||!F.listo)return Promise.resolve();let hecho=false;F
  return new Promise(res=>{const t0=performance.now(),tope=ms||90000;let vis=false,v=0;
   const tic=()=>{const t=performance.now()-t0;
    if(hecho||t>tope){(vis?quita():Promise.resolve()).then(res);return}
-   if(!vis&&t>250){vis=true;muestra()}
+   const C=window.CORT&&CORT.enPiso();if(C){const p=F.prog?F.prog():{p:0,re:0};v+=(Math.max(v,Math.min(.97,Math.max(p.p||0,Math.min(.35,t/15000))))-v)*.25;CORT.prog(v,p.re)}
+   if(!C&&!vis&&t>250){vis=true;muestra()}
    if(vis){const p=F.prog?F.prog():{p:0,re:0};v+=(Math.max(v,Math.min(.97,Math.max(p.p||0,Math.min(.35,t/15000))))-v)*.25;bar.style.width=(v*100).toFixed(1)+'%';sub.textContent=p.re?'Reintentando':''}
    setTimeout(tic,100)};
   tic()})}

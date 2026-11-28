@@ -73,3 +73,9 @@ aplica();
 // aro de foco solo con teclado: Tab o flechas lo prenden; tocar o hacer clic lo apaga (ui.css: html:not(.teclado))
 addEventListener('keydown',e=>{if(/^(Tab|Arrow)/.test(e.key))document.documentElement.classList.add('teclado')},true);
 addEventListener('pointerdown',()=>document.documentElement.classList.remove('teclado'),true);
+
+// paneles: al aparecer un .ui-sheet sus filas entran una tras otra (ui.css .ui-entra); solo al abrir, no en cada repintado
+(function(){const pon=n=>{if(n.nodeType!==1)return;const l=n.classList&&n.classList.contains('ui-sheet')?[n]:n.querySelectorAll?n.querySelectorAll('.ui-sheet'):[];
+ for(const s of l){if(s._entro)continue;s._entro=1;s.classList.add('ui-entra');setTimeout(()=>s.classList.remove('ui-entra'),760)}};
+ const go=()=>new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)pon(n)}).observe(document.body,{childList:true,subtree:true});
+ document.body?go():addEventListener('DOMContentLoaded',go)})();

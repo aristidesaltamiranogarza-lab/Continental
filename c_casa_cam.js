@@ -33,7 +33,7 @@ function apply(cam,now){const s=shot;if(!s||s.cam!==cam)return false;
  cam.updateMatrixWorld();return true}
 
 let fd=null;
-function fade(to,ms){ms=RM?Math.min(ms||0,150):(ms||400);
+function fade(to,ms){if(window.CORT)return CORT.fade(to,ms);ms=RM?Math.min(ms||0,150):(ms||400);
  if(!fd){fd=document.createElement('div');fd.id='ccamfade';fd.setAttribute('aria-hidden','true');
   fd.style.cssText='position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:900';document.body.appendChild(fd)}
  return new Promise(res=>{fd.style.transition=`opacity ${ms}ms ease`;fd.style.pointerEvents=to>0?'auto':'none';void fd.offsetWidth;fd.style.opacity=String(to);setTimeout(res,ms+20)})}

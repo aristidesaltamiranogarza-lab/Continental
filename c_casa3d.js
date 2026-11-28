@@ -57,7 +57,7 @@ function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=tr
   Object.assign(VT,{ox:0,oz:0,k:nf.k||1,a:fpOn()?s.yaw-Math.PI:0,t:0});VW.a=VT.a;snap();rstate();try{R.compile(SC,CA);subeTex(SC)}catch(e){}if(window.ETQ)ETQ.hov(null);if(then)then();render()};
  if(!window.CCAM){sw();fBusy=false;return true}
  // pisos que cargan su GLB (CAJA: F.listo): se espera en negro a que estén, para aparecer en su llegada y junto a la mesa (tope 5 s)
- CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return Promise.resolve(f&&f.listo&&(window.CCARGA?CCARGA.espera(f):Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))]))).then(()=>f&&precarga(f.SC))}).catch(e=>console.error('[casa] carga',e))
+ if(window.CORT)CORT.destino(id,FL.id);CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return Promise.resolve(f&&f.listo&&(window.CCARGA?CCARGA.espera(f):Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))]))).then(()=>f&&precarga(f.SC))}).catch(e=>console.error('[casa] carga',e))
   .then(()=>{try{sw()}catch(e){console.error('[casa] piso '+id,e)}return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
 // full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
