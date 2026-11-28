@@ -55,6 +55,10 @@ html.teclado #port .pt-go:focus-visible{transform:translateY(-6px) rotate(var(--
 #port .pt-go:active{transform:translateY(-2px) scale(.95);transition-duration:.08s}
 #port .pt-il{width:min(100%,150px);aspect-ratio:3/2;display:block;color:var(--ui-icon)}
 #port .pt-il svg{width:100%;height:100%;display:block;overflow:visible}
+.pt-mini{border-radius:14px;overflow:hidden;background:var(--ui-chip);box-shadow:inset 0 0 0 1px var(--ui-line)}.pt-mini img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.pt-go:is(:hover,:focus-visible) .pt-mini img{transform:scale(1.08)}
+.pt-car{position:relative}.pt-car img{position:absolute;inset:0;opacity:0;transform:scale(1.12);transition:opacity .9s ease,transform 3.6s ease-out}.pt-car img.on{opacity:1;transform:scale(1)}
+@media (prefers-reduced-motion:reduce){.pt-car img{transition:opacity .4s;transform:none}}
 @media (hover:hover){#port .pt-go:hover .pt-il svg{animation:ptMueve .6s ease-in-out}}
 html.teclado #port .pt-go:focus-visible .pt-il svg{animation:ptMueve .6s ease-in-out}
 #port .pt-go b{font-size:1.25em;font-weight:900}#port .pt-go small{font-weight:700;color:var(--ui-sub)}
@@ -222,11 +226,14 @@ function arma(){
  <header class="pt-top"><h1 class="pt-logo" aria-label="gamemash">${[...'gamemash'].map((c,i)=>`<span style="animation-delay:${(.05+i*.05).toFixed(2)}s">${c}</span>`).join('')}</h1>
   <div class="pt-yo"><button class="pt-pjb" aria-label="Mi personaje"><i class="pt-pj"></i></button><input class="pt-nm" maxlength="14" autocomplete="nickname" spellcheck="false" aria-label="Tu nombre" value="${es(nm||(window.BIEN&&BIEN.rnd?BIEN.rnd():''))}"><button class="pt-dado" aria-label="Otro nombre al azar">${I('dado')}</button>${ls.get('cont_av_hecho')?'':'<div class="pt-guia" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 31C10 28 8 18 12 6"/><path d="M5 12l7-7 7 6"/></svg><span>Cambia tu personaje y tu nombre</span></div>'}</div><button class="pt-tema" aria-label="Día o noche">${I(noche()?'sol':'luna')}</button></header>
  <div class="pt-mid"><div class="pt-ops">${pri?`
-  <div class="pt-op" data-q="ligero"><button class="pt-go">${rec('ligero')}<span class="pt-il">${IL2}</span><b>Plano</b><small>2D, ligero</small></button></div>
-  ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go">${rec('3d')}<span class="pt-il">${IL3}</span><b>Casa</b><small>3D</small></button></div>`:''}`
+  <div class="pt-op" data-q="ligero"><button class="pt-go">${rec('ligero')}<span class="pt-il pt-mini"><img src="iconos/mini_plano.webp" alt="" decoding="async"></span><b>Plano</b><small>2D, ligero</small></button></div>
+  ${c3?`<div class="pt-op" data-q="3d"><button class="pt-go">${rec('3d')}<span class="pt-il pt-mini pt-car"><img class="on" src="iconos/mini_casa1.webp" alt="" decoding="async">${[2,3,4].map(n=>`<img data-src="iconos/mini_casa${n}.webp" alt="" decoding="async">`).join('')}</span><b>Casa</b><small>3D</small></button></div>`:''}`
  :`<div class="pt-ent"><button class="pt-in"><span>Entrar</span>${I('jugar')}</button>
   ${c3?'<div class="pt-modo" role="radiogroup" aria-label="Modo"><i class="pt-mi"></i><button data-m="ligero" role="radio">2D</button><button data-m="3d" role="radio">3D</button></div>':''}</div>`}</div></div><div class="pt-bar" role="progressbar" aria-label="Cargando"><i></i></div>`;
  document.body.appendChild(el);
+ // carrusel de la tarjeta Casa: calle, Continental, casino y billar; las demás se piden cuando la primera ya está
+ {const car=el.querySelector('.pt-car');if(car){const ims=[...car.children];let k=0;setTimeout(()=>ims.forEach(i=>{if(i.dataset.src)i.src=i.dataset.src}),900);
+  const t=setInterval(()=>{if(!car.isConnected)return clearInterval(t);const n=ims[(k+1)%ims.length];if(!n.complete||!n.naturalWidth)return;ims[k].classList.remove('on');k=(k+1)%ims.length;n.classList.add('on')},3000)}}
  // alzado: largo de cada trazo y su turno (de abajo hacia arriba, de izquierda a derecha; los detalles chicos al final)
  const ln=el.querySelector('.pt-ln svg');let listo=false;
  const prepara=()=>{if(listo||!ln)return;listo=true;for(const g of ln.querySelectorAll('rect,circle,ellipse,path')){if(g.closest('.sil'))continue;

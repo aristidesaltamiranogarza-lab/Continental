@@ -141,6 +141,7 @@ http.createServer(async(req,res)=>{const u=new URL(req.url,'http://x'),p=u.pathn
  if(p=='/sw.js')return SM.envia(req,res,path.join(__dirname,'sw.js'),'text/javascript; charset=utf-8','no-store');   // caché de modelos y mapas de luz con versión
  if(p=='/manifest.webmanifest')return SM.envia(req,res,path.join(__dirname,'manifest.webmanifest'),'application/manifest+json','no-store');   // app instalable (ícono en la pantalla de inicio)
  if(/^\/iconos\/[a-z0-9_]+\.png$/.test(p))return SM.envia(req,res,path.join(__dirname,p),'image/png','public, max-age=86400');
+ if(/^\/iconos\/[a-z0-9_]+\.webp$/.test(p))return SM.envia(req,res,path.join(__dirname,p),'image/webp','public, max-age=86400');   // miniaturas de la portada
  if(p=='/poll'){const R=rooms[q.get('c')],tok=q.get('t');if(!R)return out(res,{gone:1});
   if(R.kk.includes(tok))return out(res,{kicked:1});
   const pl=R.players.find(x=>x.tok==tok),sp=specOf(R,tok);if(!pl&&R.host!=tok&&!sp)return out(res,{gone:1});
