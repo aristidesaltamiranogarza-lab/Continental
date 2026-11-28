@@ -792,11 +792,13 @@ function labels(){if(!L)return;document.querySelectorAll('#app .gj-seat').forEac
 
 // ---------- engancharse a la vista de siempre ----------
 // al cerrar la ronda la mesa se queda 3 s más: el ganador baila y los demás se llevan la mano a la cabeza (c_mesa_pj.js)
-let finT=0,finPh='',finCut=-1;
+let finT=0,finPh='',finCut=-1,finFd=0;
 const lig=()=>{try{return localStorage.getItem('casa_3d')==='0'||window.CALIDAD==='ligero'}catch(e){return false}};let sala0=null;   // en Ligero (menú 2D) cada sala nueva empieza en 2D
 function sala(k){const c=typeof V!='undefined'&&V&&V.code;if(!c||c===sala0)return;sala0=c;if(lig())on=false;else try{on=localStorage.getItem(k)!=='0'}catch(e){}}
 function active(){sala('cont_3d');if(!(on&&!!S&&!!V&&V.game==='continental'&&!!V.G))return false;const G=V.G;
- if(G.phase!==finPh){if(finPh==='play'&&G.phase==='end'&&window.MPJ&&MPJ.on&&!RM)finT=performance.now()+3200;finPh=G.phase}
+ if(G.phase!==finPh){if(finPh==='play'&&G.phase==='end'&&!RM)finT=performance.now()+(window.MPJ&&MPJ.on?3200:700);finPh=G.phase;finFd=0}
+ // de la mesa 3D a la tarjeta 2D del fin de ronda: el cambio pasa detrás del iris (c_cortina.js), nunca en seco
+ if(G.phase==='end'&&finT>1&&!finFd&&performance.now()>=finT&&window.CCAM){finFd=1;finT=Infinity;CCAM.fade(1,320).then(()=>{finT=1;requestAnimationFrame(()=>requestAnimationFrame(()=>CCAM.fade(0,460)))})}
  return G.phase==='play'||(G.phase==='end'&&performance.now()<finT)}
 const qZ=new THREE.Quaternion(),qX=new THREE.Quaternion().setFromAxisAngle(X,Math.PI/2-.1);
 function dragStep(dt){const d=drag;if(!d)return;const k=1-Math.exp(-dt/(RM?1:40)),ox=d.x;d.x+=(d.px-d.x)*k;d.y+=(d.py-d.ch*.15-d.y)*k;

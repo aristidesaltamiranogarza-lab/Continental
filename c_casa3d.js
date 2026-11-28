@@ -58,7 +58,7 @@ function goFloor(id,then){if(fBusy||id===FL.id||!canGo(id))return false;fBusy=tr
  if(!window.CCAM){sw();fBusy=false;return true}
  // pisos que cargan su GLB (CAJA: F.listo): se espera en negro a que estén, para aparecer en su llegada y junto a la mesa (tope 5 s)
  if(window.CORT)CORT.destino(id,FL.id);CCAM.fade(1,380).then(()=>{const f=id!=='pb'&&fmod(id).piso();return Promise.resolve(f&&f.listo&&(window.CCARGA?CCARGA.espera(f):Promise.race([f.listo,new Promise(r=>setTimeout(r,5000))]))).then(()=>f&&precarga(f.SC))}).catch(e=>console.error('[casa] carga',e))
-  .then(()=>{try{sw()}catch(e){console.error('[casa] piso '+id,e)}return CCAM.fade(0,520)}).then(()=>{fBusy=false});return true}
+  .then(()=>{try{sw()}catch(e){console.error('[casa] piso '+id,e)}return window.CORT&&CORT.estable()}).then(()=>CCAM.fade(0,520)).then(()=>{fBusy=false});return true}
 // estado del renderer para este piso (el sótano usa el tono de cine de la Ruleta). También al volver de una partida, que usa el mismo lienzo
 // full: applyQ completo (recompila materiales); al volver de una partida solo hace falta si la calidad es Media (la Ruleta prende las sombras)
 function rstate(full){R.toneMapping=FL.tm||THREE.NoToneMapping;R.toneMappingExposure=FL.tx||1;if(full!==false)applyQ(window.CALIDAD);else{R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.shadowMap.enabled=true}if(FL.enter)FL.enter(fpOn())}

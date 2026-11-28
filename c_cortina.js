@@ -108,6 +108,12 @@ addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ui-dim
  e.preventDefault();e.stopImmediatePropagation();pend={dim:true,a3};
  CCAM.fade(1,260).then(()=>{paso=true;try{b.isConnected?b.click():new Function(oc)()}catch(er){console.error('[cort] dim',er)}paso=false;return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}).then(()=>CCAM.fade(0,380))},true);
 
-window.CORT={fade,prog,destino:(a,de)=>{pend={a,de}},enPiso:()=>!!(modo&&modo.k==='piso'),
+// tras armar el piso, sigue tapado hasta que lleguen sus modelos (CGLB) y los cuadros vayan parejos: que no se trabe ya visible
+function estable(tope){tope=tope||20000;return new Promise(res=>{const t0=performance.now();let last=t0,ok=0;
+ const f=now=>{const dt=now-last;last=now;let c=0;try{c=window.CGLB&&CGLB.info?CGLB.info().cargando||0:0}catch(e){}
+  ok=dt<50&&!c?ok+1:0;if(modo&&modo.k==='piso')prog(.9+.07*Math.min(1,ok/8));
+  if((ok>=8&&now-t0>300)||now-t0>tope)return res();requestAnimationFrame(f)};requestAnimationFrame(f)})}
+
+window.CORT={fade,estable,prog,destino:(a,de)=>{pend={a,de}},enPiso:()=>!!(modo&&modo.k==='piso'),
  mini:t=>{arma();return `<div class="co-mini" role="progressbar" aria-label="${String(t||'Cargando').replace(/[&<>"]/g,'')}">${svg()}<b>${String(t||'').replace(/[&<>"]/g,'')}</b></div>`}};
 })();
