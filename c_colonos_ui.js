@@ -29,6 +29,7 @@ const medal=t=>`<i class="co-md" title="${t=='lr'?'Ruta más larga':'Ejército m
 const devCard=(c,n,cls,on)=>`<button class="co-dv ${cls||''}" style="--dc:${DEVC[c]}" ${on?`onclick="COU.dev('${c}')"`:'tabindex="-1"'} aria-label="${DEVN[c]}"><span>${DEVN[c]}</span>${n>1?`<b>${n}</b>`:''}</button>`;
 const die=v=>`<i class="co-die" data-v="${v}">${'<u></u>'.repeat(v)}</i>`;
 // ---------- quién y qué ----------
+const BD=()=>window.COB?COB():CO2,der=()=>window.CO3&&CO3.usa()!=null?(CO3.usa()&&window.MCAM?MCAM.boton(CO3.top,'CO3.arriba()'):'')+(window.UI&&UI.dim?UI.dim(CO3.usa()?1:0,'co3Toggle()'):''):'';
 const G=()=>V.G,me=()=>V.me,act=()=>V.G.actor,mine=()=>V.G.phase==='play'&&act()===me()&&me()>=0;
 function spots(){const g=G(),k=me();if(!mine())return null;const st=g.st;
  if(st=='setup')return g.sv<0?{w:'p',L:D.spots(g,k,'p')}:{w:'c',L:D.spots(g,k,'c')};
@@ -124,12 +125,12 @@ function final(){const g=G(),w=g.win,ks=g.players.map((p,k)=>k).sort((a,b)=>g.vp
 // ---------- la mesa ----------
 function mesa(){const g=G(),k=me(),n=g.players.length,ks=[];
  if(k>=0)for(let j=1;j<n;j++)ks.push((k+j)%n);else for(let j=0;j<n;j++)ks.push(j);
- if(g.phase==='final')return M2D.mesa({cls:'co2d fin',estilo:edl(),top:tira(),capa:`<div class="co-ui">${final()}</div>`,rules:GM.colonos.rules});
+ if(g.phase==='final')return M2D.mesa({cls:'co2d fin',estilo:edl(),top:tira(),der:der(),capa:`<div class="co-ui">${final()}</div>`,rules:GM.colonos.rules});
  const h=hint(),sp=spots();
  const capa=`<div class="co-ui${sp?' pick':''}"><div class="co-riv">${ks.map((x,j)=>`<div class="co-in" style="--d:${j*60}ms">${tag(x)}</div>`).join('')}</div>
  ${k>=0?mano()+`<div class="co-der">${tray()}${acciones()}</div>`:''}
  ${h?`<div class="co-hint ui-pill" role="status">${h}</div>`:''}${ofertas()}${mio()}${tapete()}${descarte()}${cartaSheet()}</div>`;
- return M2D.mesa({cls:'co2d',estilo:edl(),top:tira(),capa,rules:GM.colonos.rules})}
+ return M2D.mesa({cls:'co2d',estilo:edl(),top:tira(),der:der(),capa,rules:GM.colonos.rules})}
 const edl=()=>`--edl:-${Math.min(9e4,Date.now()-t0)}ms`;
 // el hueco del tablero: lo que no tapan la barra de arriba, los rivales, tu mano y la bandeja
 function encaja(){const q=s=>document.querySelector('#app .co2d '+s),R=s=>{const e=q(s);return e?e.getBoundingClientRect():null};
@@ -137,7 +138,7 @@ function encaja(){const q=s=>document.querySelector('#app .co2d '+s),R=s=>{const
  if(land){if(riv)i.l=Math.max(i.l,riv.right+4);if(man)i.l=Math.max(i.l,man.right+4);if(der)i.r=Math.max(i.r,W-der.left+4)}
  else{if(riv&&riv.height)i.t=Math.max(i.t,riv.bottom);const b=[man,der].filter(Boolean).map(r=>r.top);if(b.length)i.b=Math.max(8,H-Math.min(...b))}
  if(G().phase==='final'&&!finX){const f=R('.co-fin');if(f){if(land)i.r=Math.max(i.r,W-f.left);else i.b=Math.max(i.b,H-f.top)}}
- CO2.fit({t:Math.round(i.t),r:Math.round(i.r),b:Math.round(i.b),l:Math.round(i.l)})}
+ BD().fit({t:Math.round(i.t),r:Math.round(i.r),b:Math.round(i.b),l:Math.round(i.l)})}
 // ---------- acciones ----------
 const rr=()=>{if(typeof render=='function')render()},tick=()=>{if(typeof sfx=='function')sfx('tick')};
 CO2.onTap=(w,id)=>{const sp=spots();if(!sp||sp.w!==w)return;if(gh&&gh.at===id){COU.ok();return}gh={w:w=='h'?'h':G().st=='setup'?(G().sv<0?'p':'c'):G().st=='roads'?'c':sel,at:id};tick();rr()};
@@ -169,14 +170,14 @@ const COU=window.COU={rico,pzs,
  finX(){finX=!finX;tick();rr()}};
 // ---------- enganche con game.js ----------
 GM.colonos.body=function(){if(!active())return b0();try{
-  const g=G();if(!on){on=true;t0=Date.now();finX=false;CO2.show(true)}
+  const g=G();if(!on){on=true;t0=Date.now();finX=false;BD().show(true)}
   const key=g.st+'|'+g.tc;if(key!==lastSt){lastSt=key;gh=null;if(g.st!='main'&&g.st!='sbp')sel=null;if(g.st!='discard')dis=null;if(g.st!='main')mat=null}
   if(sel&&!canB(sel))sel=null;pk=pk&&(g.dev[me()]||[]).some(d=>d.c===pk.c)?pk:null;
   return mesa()}catch(e){console.warn('Colonos UI:',e);return b0()}};
 GM.colonos.after=function(){if(!active()){off();return}const g=G(),sp=spots();
- CO2.sync(g,me(),{spots:sp,ghost:gh,col:pc(Math.max(0,me()))});requestAnimationFrame(encaja);
+ BD().sync(g,me(),{spots:sp,ghost:gh,col:pc(Math.max(0,me()))});requestAnimationFrame(encaja);
  document.documentElement.classList.add('coui');if(window.COFX)COFX.after(g,me())};
-function off(){if(!on)return;on=false;sel=gh=mat=dis=pk=null;lastSt='';CO2.show(false);document.documentElement.classList.remove('coui');if(window.COFX)COFX.reset()}
+function off(){if(!on)return;on=false;sel=gh=mat=dis=pk=null;lastSt="";BD().show(false);document.documentElement.classList.remove('coui');if(window.COFX)COFX.reset()}
 setInterval(()=>{if(on&&!active())off()},400);
 let rz=0;addEventListener('resize',()=>{if(!on)return;clearTimeout(rz);rz=setTimeout(()=>{if(active())rr()},120)});
 })();
