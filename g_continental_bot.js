@@ -1,6 +1,6 @@
 // Bot de Continental (servidor). g_continental.js le pasa sus reglas: require('./g_continental_bot.js')(H) → bot(R,k) → {m, ms} o null.
 // Una sola dificultad: arma el contrato con lo que tiene (corridas primero, tercias con lo que sobra), toma o compra el descarte si lo
-// acerca al contrato, se baja en cuanto puede, pega todo lo que cabe y tira la carta alta que menos le sirve. Rechaza Conecta 4 y Backgammon.
+// acerca al contrato, se baja en cuanto puede, pega todo lo que cabe y tira la carta alta que menos le sirve.
 module.exports=function(H){
 const {C,pts,trio,runArr,runOrd,fits,CON}=H;
 const rnd=(a,b)=>a+Math.random()*(b-a);   // antes de descartar espera 2–3 s: chance de que las personas compren el descarte
@@ -49,7 +49,6 @@ function bot(R,k){const G=R.G,p=R.players[k];if(!G||!p||p.out)return null;
  const once=(key,f)=>mem['m'+key]!==undefined?mem['m'+key]:(mem['m'+key]=f());
  if(G.phase=='end')return G.rd&&!G.rd[k]?{m:{t:'ready'},ms:at('r'+G.dn+':'+k,2000,4000)}:null;
  if(G.phase!='play')return null;
- for(const [t,L] of [['c4',G.c4s],['bg',G.bgs]]){const g=(L||[]).find(x=>x.st=='inv'&&x.p[1]==k);if(g)return {m:{t,op:'end',id:g.id},ms:at('i'+t+g.id,1500,3000)}}
  const h=G.hands[k],con=CON[G.round],dn=G.down[k],top=G.disc[G.disc.length-1];
  if(G.turn!=k){// comprar el descarte que el de turno deja pasar, si lo acerca al contrato (máximo 2 por ronda)
   if(dn||G.tdc||top===undefined||R.cl[p.id]==G.tc)return null;const bk='b'+G.tc+':'+k,nk='bn'+G.dn+':'+k;

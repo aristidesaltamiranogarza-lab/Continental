@@ -68,10 +68,10 @@ function fpTog(){if(!window.CAV||!ready||fBusy)return;const P=window.CCAM&&CCAM.
  Object.assign(VT,f?{ox:0,oz:0,t:0,a:me.yaw-Math.PI}:{ox:0,oz:0,t:0,k:FL.k||1,a:VW.a});VW.a=VT.a;layout();snap();me.g.visible=true;if(FL.enter)FL.enter(f);
  if(P)CCAM.blendIn(CA,P,600);sfx('tick');render()}
 const EMO=['😭','🥺','🤣','👻','❤️','🔥','🤬','🖕','💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DANCE=['💃','🕺','👯','🎧','👟','🌀','🤸','🎮'],DMS=8000;   // los bailes duran DMS ms (o hasta que camines)
-const DESC={continental:'Rummy de 7 rondas con contratos de tríos y corridas. Tiene juegos escondidos en el cuarto.',
- uno:'Mismo color, número o símbolo; comodines y ¡UNO! Puedes jugar contra bots.',monopolydeal:'Junta 3 grupos de propiedades completos antes que los demás.',merida:'Compra colonias de Mérida, cobra renta y construye. Gana el último que no quiebre.',haciendas:'Pon ranchos y sacbés, cosecha y comercia en Yucatán. Gana quien llegue primero a los puntos.',
- ruleta:'Un revólver, una bala y nervios de acero. Gana el último que quede vivo. Los bots llenan la mesa.',
- rummy:'Sal a la terraza con los abuelos: arma series y escaleras con fichas de madera y reacomoda la mesa. Gana quien se quede sin fichas.'};
+const DESC={continental:'Siete rondas de tríos y corridas. Gana quien termine con menos puntos.',
+ uno:'Iguala color o número y quédate sin cartas. No olvides decir UNO.',monopolydeal:'Cobra, roba y negocia hasta completar tres colores.',merida:'Compra Mérida colonia por colonia y cobra la renta. Gana quien no quiebre.',haciendas:'Levanta ranchos y sacbés, cosecha y comercia por Yucatán.',
+ ruleta:'Un revólver, una bala. Gana quien siga en pie.',
+ rummy:'Fichas de madera en la terraza. Arma series y escaleras hasta quedarte sin fichas.'};
 const others=new Map(),seated=new Map();let rooms=[],roomsKey='',netBusy=false,netT=0,outEm=null,outSay=null,synced=false;
 
 // ---------- texturas ----------

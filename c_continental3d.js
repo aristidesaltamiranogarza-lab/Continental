@@ -1,5 +1,5 @@
 // Continental 3D: la partida en la mesa redonda (c_mesa3d.js) con los personajes (c_mesa_pj.js), la cámara viva (c_mesa_cam.js) y sus detalles
-// (c_mesa_fx.js). NO cambia reglas ni servidor. Sin la casa (FONDO) se ve el cuarto viejo con el Conecta 4 y el Backgammon escondidos.
+// (c_mesa_fx.js). NO cambia reglas ni servidor. Sin la casa (FONDO) se ve el cuarto viejo.
 // Se carga DESPUES de c_continental.js y envuelve GM.continental.body/after. Usa las mismas acciones que la vista 2D
 // (draw, pegar, discard, armar, bajar...). Lobby, fin de ronda y final se ven como siempre.
 (function(){
@@ -20,11 +20,11 @@ const $=s=>document.querySelector(s);
 // cámara libre: VT = adónde va, VW = dónde está (x,z = punto de la mesa que queda al centro, k = zoom, a = giro, t = inclinación). who = jugador que estás mirando
 const VW={x:0,z:0,k:1,a:0,t:0},VT={x:0,z:0,k:1,a:0,t:0,who:-1},KMAX=4,PL=new THREE.Plane(new THREE.Vector3(0,1,0),0),tch=new Map();
 let pin=null,myTc=null,lastNow=0,peekEl=null,peekId=null,dpvEl=null,ap=null,mc=null,hdNow=0;   // mc: cámara viva (c_mesa_cam.js); hdNow: giro de cabeza hacia el turno
-let c4found=false,mini=false,c4open=false,c4was=false,c4snap='';   // c4: ventana de Conecta 4 abierta, última ficha animada, estado anterior (para sonidos)
+let mini=false;
    // barra de arriba oculta (modo minimalista)
 try{mini=localStorage.getItem('cont_mini')=='1'}catch(e){}
 const touchy=matchMedia('(pointer:coarse)').matches,lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
-c4found=lsGet('cont_c4f')=='1';   // ¿ya descubriste el Conecta 4 en este dispositivo?
+
 // menús en modo oscuro: si nunca lo has elegido, sigue al sistema
 let dark=lsGet('cont_dark')!=null?lsGet('cont_dark')=='1':matchMedia('(prefers-color-scheme:dark)').matches;
 const setDark=d=>{dark=d;if(window.UI)UI.setTema(d?'noche':'dia');try{localStorage.setItem('cont_dark',d?'1':'0')}catch(e){}};
@@ -125,8 +125,8 @@ function buildTable(por){if(window.MPJ)MPJ.suelta();if(tbl){SC.remove(tbl);tbl.t
  // mazo y descarte al centro; las bajadas de cada quien en su zona, frente a su silla (L.zona(asiento)); en la tuya, mientras no te bajes, las siluetas de tu contrato
  L.deck=mesa.centro.mazo.clone();L.disc=mesa.centro.descarte.clone();L.zona=i=>mesa.asiento(i).zona;L.band=L.zona(0);
  const room=buildRoom(por,r,r);tbl.add(room);L.room=room.userData.room;L.roomG=room;L.baseM=mesa.pie;
- buildC4(por,r,r,room.userData.c4);buildBG(room.userData.bg)}
-// ---------- el cuarto: piso, paredes y muebles alrededor de la mesa (el Conecta 4 está en una esquina del fondo) ----------
+ }
+// ---------- el cuarto: piso, paredes y muebles alrededor de la mesa ----------
 function ctex(key,w,h,draw){if(texC[key])return texC[key];const c=cnv(w,h);draw(c.getContext('2d'),w,h);const t=tx(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return texC[key]=t}
 function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(rz+7.5),ZF=rz+7,WH=10;R.userData.room={X,ZB,ZF,FY};
  const std=(c,r,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r==null?.7:r},o||{}));
@@ -166,10 +166,10 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
  // sofá contra la pared del fondo
  const sofa=std(0x2f4a5a,.85),sx=-X*.35,sz=ZB+1.3;B(5.4,.9,2,sofa,sx,FY+.75,sz);B(5.4,1.7,.55,sofa,sx,FY+1.6,sz-.75);[-1,1].forEach(s=>B(.55,1.4,2,sofa,sx+s*2.7,FY+1.1,sz));
  [-1.3,1.3].forEach(dx=>{B(2.5,.35,1.6,std(0x37566a,.9),sx+dx,FY+1.35,sz+.15);B(1.1,.9,.3,std(0xc9a24a,.8),sx+dx*1.2,FY+1.9,sz-.35).rotation.z=dx*.08});
- // mesita a tus espaldas (junto a la pared de enfrente): ahí está el Backgammon, con dos puf
+ // mesita a tus espaldas (junto a la pared de enfrente) con dos puf
  const ct=std(0x4a2c18,.5),tx=-X*.35,tz=ZF-2.6;B(4,.14,2.9,ct,tx,FY+1.02,tz);[[-1.8,-1.25],[1.8,-1.25],[-1.8,1.25],[1.8,1.25]].forEach(([a,b])=>B(.14,.95,.14,ct,tx+a,FY+.48,tz+b));
  [-1,1].forEach(s=>{C(.75,.8,.9,std(0x7a2a2a,.85),tx+s*2.9,FY+.45,tz,null,24)});
- R.userData.bg=v3(tx,FY+1.09,tz);
+ 
  // librero en la pared izquierda, cerca del fondo
  const bw=std(0x4a2c18,.6),bz=ZB+3.6,bx=-X+.55;B(.9,7,.12,bw,bx,FY+3.5,bz-1.6);B(.9,7,.12,bw,bx,FY+3.5,bz+1.6);B(.1,7,3.3,bw,bx-.42,FY+3.5,bz);
  const BC=[0x8b1e1e,0x1e4f8b,0x2e6b3a,0xc9a24a,0x5a2a6b,0x2b2b2b,0xa85a1e,0xe0d6c0];
@@ -193,15 +193,9 @@ function buildRoom(por,rx,rz){const R=new THREE.Group(),FY=-1.55,X=rx+7.5,ZB=-(r
  // planta en la esquina del fondo a la izquierda
  const px=-X+1.2,pz=ZB+1.1;C(.45,.35,.9,std(0xb5643c,.7),px,FY+.45,pz);const lf=std(0x2e7d32,.8);
  for(let i=0;i<9;i++){const a=i/9*Math.PI*2,l=new THREE.Mesh(new THREE.ConeGeometry(.18,1.6,6),lf);l.position.set(px+Math.cos(a)*.25,FY+1.6,pz+Math.sin(a)*.25);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);l.castShadow=true;R.add(l)}
- // esquina del Conecta 4: lámpara de pie (luz cálida y tenue) y dos banquitos
- const cx=X-3,cz=ZB+3;R.userData.c4=v3(cx,0,cz);
- const fpole=std(0x2a2a2e,.4);C(.35,.4,.08,fpole,cx+1.9,FY+.04,cz-1.4);C(.04,.04,4.4,fpole,cx+1.9,FY+2.2,cz-1.4);
- const shade=C(.35,.6,.6,std(0xf3e2b8,.8,{emissive:0xffc477,emissiveIntensity:.6,side:THREE.DoubleSide}),cx+1.9,FY+4.5,cz-1.4,null,24);shade.material.transparent=true;shade.material.opacity=.95;
- const lt=new THREE.PointLight(0xffc477,6,9,1.6);lt.position.set(cx+1.9,FY+4.2,cz-1.4);R.add(lt);
- [-1,1].forEach(s=>{C(.45,.45,.12,std(0x7a2a2a,.8),cx+s*1.5,FY+1.05,cz+1.3);C(.06,.08,1,fpole,cx+s*1.5,FY+.5,cz+1.3)});
  return R}
-// ---------- tablero 3D de Conecta 4: en una mesita al fondo de la sala, detrás de la mesa ----------
-let C4B=null,DISC=null;const c4d=new Map(),c4cols=[];
+// ---------- modelo del Conecta 4 (lo usa la Casa 3D, c_juegos3d.js) ----------
+
 function mkC4(par,at,cols){   // el modelo solo (también lo usa la Casa 3D)
  const P=new THREE.Group(),g=new THREE.Group(),blue=new THREE.MeshPhysicalMaterial({color:0x2260d0,roughness:.28,clearcoat:1,clearcoatRoughness:.15});
  // marco con 42 hoyos (se ve a través, como el de verdad)
@@ -219,28 +213,8 @@ function mkC4(par,at,cols){   // el modelo solo (también lo usa la Casa 3D)
  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,1.4,16),wood);leg.position.y=-.8;P.add(leg);
  const ft=new THREE.Mesh(new THREE.CylinderGeometry(.9,1,.1,32),wood);ft.position.y=-1.5;P.add(ft);
  P.position.copy(at);P.rotation.y=-.5;par.add(P);P.updateMatrixWorld(true);return {P,g,mats:[blue,wood]}}
-// colores base para la penumbra: se ilumina cuando la cámara se acerca a jugar
-function buildC4(por,rx,rz,at){c4d.clear();c4cols.length=0;const o=mkC4(tbl,at,c4cols);C4B={P:o.P,g:o.g,id:null,lit:.4,mats:o.mats.map(m=>({m,base:m.color.clone()}))};c4light(.4)}
-function c4light(v){if(!C4B)return;C4B.lit=v;C4B.mats.forEach(o=>o.m.color.copy(o.base).multiplyScalar(v));c4d.forEach(m=>m.material.color.copy(m.userData.base).multiplyScalar(v))}
-// la partida que se muestra: la tuya, o si no juegas, cualquiera que esté en curso
-function c4show(){const L4=V.G.c4s||[];return L4.find(x=>x.p.includes(V.me))||L4.find(x=>x.st=='play')||null}
-function c4sync(){if(!C4B)return;const g=c4show(),key=g?g.id:0;hits.push(...c4cols);
- const rm=x=>{const m=c4d.get(x);if(!m)return;C4B.g.remove(m);m.material.dispose();c4d.delete(x)};
- if(key!==C4B.id){[...c4d.keys()].forEach(rm);C4B.id=key}
- const win=new Set(g&&g.line||[]);
- for(let x=0;x<42;x++){const v=g?g.b[x]:0;let m=c4d.get(x);if(!v){rm(x);continue}
-  if(!m){DISC=DISC||new THREE.CylinderGeometry(.4,.4,.2,32);
-   m=new THREE.Mesh(DISC,new THREE.MeshPhysicalMaterial({color:v==1?0xe53935:0xf9c623,roughness:.3,clearcoat:1,clearcoatRoughness:.1}));m.rotation.x=Math.PI/2;m.castShadow=true;
-   m.userData.base=m.material.color.clone();m.material.color.multiplyScalar(C4B.lit);
-   const y1=.7+Math.floor(x/7);m.position.set(x%7-3,y1,0);m.userData.y1=y1;if(x===g.last&&!first&&!RM){m.userData.t0=performance.now();m.position.y=7.4}C4B.g.add(m);c4d.set(x,m)}
-  m.userData.win=win.has(x)}}
-// caída con rebote y brillo de la línea ganadora
+// caída con rebote (la usa c_juegos3d.js)
 const bounce=k=>k<1/2.75?7.5625*k*k:k<2/2.75?7.5625*(k-=1.5/2.75)*k+.75:k<2.5/2.75?7.5625*(k-=2.25/2.75)*k+.9375:7.5625*(k-=2.625/2.75)*k+.984375;
-function c4step(now){const lt=VT.c4?1:.4;if(C4B&&Math.abs(C4B.lit-lt)>.005)c4light(C4B.lit+(lt-C4B.lit)*.06);
- c4d.forEach(m=>{const u=m.userData;if(u.t0){const k=Math.min(1,(now-u.t0)/650);m.position.y=u.y1+(7.4-u.y1)*(1-bounce(k));if(k>=1)u.t0=0}
- m.material.emissive.setHex(u.win?0xffffff:0);m.material.emissiveIntensity=u.win?.18+.18*Math.sin(now/140):0})}
-const c4mine=()=>{const g=c4g();return g&&g.st=='play'&&g.turn==g.p.indexOf(V.me)?g:null};
-function c4hover(c){c4cols.forEach((m,i)=>{m.material.opacity=i===c&&c4mine()?.2:0})}
 // ---------- avatares de los demás jugadores (estilo Xbox 360), sentados alrededor de la mesa ----------
 // 6 Miis ya armados (estilo propio, inspirado en los de Wii); a cada jugador le toca uno distinto. La ropa es del color de su ficha.
 const AVP=[
@@ -265,8 +239,8 @@ function mkAvatar(k,pi,o={}){return MII.mk(k,pi,o,COL[k%10],AVP[pi])}
 function avSync(){if(!window.MPJ||!mesa)return;const G=V.G,P=V.players||[];
  if(MPJ.sync(mesa,G.players.map((_,k)=>({i:rel(k),k,cod:(P[k]&&P[k].av)||MPJ.codigo(P[k]&&P[k].name)})).filter(x=>!(P[x.k]&&P[x.k].out)),{dorso:backTex(),listo:()=>sync()}))MPJ.hits().forEach(o=>hits.push(o))}
 function avStep(now){if(window.MPJ&&MPJ.on&&V&&V.G)MPJ.paso(now,V.G.turn>=0?rel(V.G.turn):-1)}
-// ---------- Backgammon: tablero 3D sobre la mesita de centro (otro juego escondido del cuarto) ----------
-const BGW=3,BGD=2.3,BGBAR=.24,BGPW=(BGW-BGBAR)/12;let BGB=null,bgSel=null,bgfound=lsGet('cont_bgf')=='1',bgopen=false,bgwas=false,bgsnap='';
+// ---------- Backgammon: el modelo del tablero (lo usa la Casa 3D, c_juegos3d.js) ----------
+const BGW=3,BGD=2.3,BGBAR=.24,BGPW=(BGW-BGBAR)/12;
 function bgX(i){if(i<12){const j=i;return BGW/2-(j+.5)*BGPW-(j>=6?BGBAR:0)}const j=i-12;return -BGW/2+(j+.5)*BGPW+(j>=6?BGBAR:0)}
 // caras del dado con v arriba (orden de BoxGeometry: +x,-x,+y,-y,+z,-z; las opuestas suman 7)
 function diceFaces(v){const o=[1,2,3,4,5,6].filter(x=>x!==v&&x!==7-v),a=o[0],b=o.find(x=>x!==a&&x!==7-a);return [a,7-a,v,7-v,b,7-b]}
@@ -291,75 +265,6 @@ function mkBG(par,at){const P=new THREE.Group(),g=new THREE.Group();P.add(g);P.p
  [0,1].forEach(p=>{for(let n=0;n<15;n++){const m=new THREE.Mesh(cg,new THREE.MeshPhysicalMaterial({color:p?0x26262b:0xf2ead8,roughness:.35,clearcoat:.8}));m.castShadow=true;m.position.set(tray,.2,0);g.add(m);ck[p].push(m)}});
  const dice=[0,1].map(()=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.17,.17,.17),[1,2,3,4,5,6].map(v=>std(0xffffff,.35,{map:pipTex(v)})));m.castShadow=true;m.visible=false;g.add(m);return m});
  par.add(P);P.updateMatrixWorld(true);return {P,g,zs,hits,ck,dice,tray,mats:[wood,felt,red,ivory]}}
-function buildBG(at){const o=mkBG(tbl,at);BGB=Object.assign(o,{id:null,rn:-1,lit:.4,mats:o.mats.map(m=>({m,base:m.color.clone()}))})}
-const bgg=()=>{const L=V.G.bgs||[];return L.find(x=>x.p.includes(V.me))};
-const bgshow=()=>{const L=V.G.bgs||[];return bgg()||L.find(x=>x.st=='play')||null};
-const bgmine=()=>{const g=bgg();return g&&g.st=='play'&&g.turn==g.p.indexOf(V.me)?g:null};
-// coloca fichas y dados según la partida; las fichas se deslizan a su lugar en bgStep
-function bgSync(){if(!BGB)return;hits.push(...BGB.hits);const g=bgshow();
- const put=(m,x,y,z)=>{m.userData.to=v3(x,y,z)};
- [0,1].forEach(p=>{let n=0;const ck=BGB.ck[p],s=p?-1:1;
-  if(g){for(let i=0;i<24;i++){const c=g.pts[i]*s;for(let k=0;k<c;k++){const layer=Math.floor(k/5),kk=k%5;put(ck[n++],bgX(i),.17+layer*.05,bgZ(i)+bgDir(i)*(BGPW*.45+kk*BGPW*.88+layer*BGPW*.44))}}
-   for(let k=0;k<g.bar[p];k++)put(ck[n++],0,.22,(p?1:-1)*(.18+k*BGPW*.88));
-   for(let k=0;k<g.off[p];k++)put(ck[n++],BGB.tray,.19+k*.047,(p?-1:1)*BGD*.3)}
-  while(n<15)put(ck[n++],BGB.tray,.19+(n-1)*.047,(p?-1:1)*BGD*.3)});
- // dados: se ven mientras hay partida; los que ya se usaron se oscurecen
- BGB.dice.forEach((d,j)=>{d.visible=!!(g&&g.st=='play');if(!g)return;const v=g.dice[j]||1,dbl=g.dice[0]==g.dice[1],used=dbl?(4-g.left.length)>=2*(j+1):!g.left.includes(v);
-  diceFaces(v).forEach((f,n)=>{const m=d.material[n];m.map=pipTex(f);m.color.setScalar(used?.45:1);m.needsUpdate=true});
-  d.userData.to=v3((g.turn?-1:1)*BGW/4+(j?.12:-.12),.23,j?.1:-.1)});
- if(g&&g.rn!==BGB.rn){BGB.rn=g.rn;BGB.dice.forEach(d=>d.userData.t0=performance.now())}
- bgMark()}
-// guía: tus fichas que se pueden mover, la elegida (amarillo) y a dónde puede ir (verde)
-function bgMark(){if(!BGB)return;const g=bgmine(),zs=BGB.zs;Object.values(zs).forEach(z=>{z.material.opacity=0});if(!g)return;
- if(bgSel!=null&&!g.mv.some(m=>m[0]===bgSel))bgSel=null;
- g.mv.forEach(m=>{const z=zs[m[0]];if(z&&bgSel==null){z.material.color.set(0x8fd0ff);z.material.opacity=.22}});
- if(bgSel!=null){zs[bgSel].material.color.set(0xffd54a);zs[bgSel].material.opacity=.35;[...g.mv,...(g.mv2||[])].filter(m=>m[0]===bgSel).forEach(m=>{const z=zs[m[2]];if(!z)return;z.material.color.set(0x6dff8a);z.material.opacity=.38})}}
-function bgLight(v){BGB.lit=v;BGB.mats.forEach(o=>o.m.color.copy(o.base).multiplyScalar(v))}
-function bgStep(now){if(!BGB)return;const lt=VT.bg?1:.45;if(Math.abs(BGB.lit-lt)>.005)bgLight(BGB.lit+(lt-BGB.lit)*.06);
- [...BGB.ck[0],...BGB.ck[1]].forEach(m=>{const t=m.userData.to;if(t)m.position.lerp(t,RM?1:.18)});
- BGB.dice.forEach(d=>{const t=d.userData.to;if(!t)return;const k=d.userData.t0?Math.min(1,(now-d.userData.t0)/650):1;d.position.copy(t);d.position.y+=Math.sin(k*Math.PI)*.35;
-  d.rotation.set((1-k)*9,(1-k)*7,(1-k)*5);if(k>=1)d.userData.t0=0})}
-// tocar el tablero: primero la cámara se acerca; luego eliges ficha y destino
-function bgTap(p){const g=bgmine();if(!g){if(!bgg()){bgopen=true;render()}return}
- if(bgSel!=null){const m=g.mv.find(x=>x[0]===bgSel&&x[2]===p),m2=!m&&(g.mv2||[]).find(x=>x[0]===bgSel&&x[2]===p);if(m2){bgSend({op:'moves',id:g.id,from:m2[0],dice:m2[2]});bgSel=null;sfx('place');return}if(m){bgSend({op:'move',id:g.id,from:m[0],die:m[1]});bgSel=null;sfx('place');return}}
- if(g.mv.some(x=>x[0]===p)){bgSel=bgSel===p?null:p;sfx('card')}else if(g.bar[g.p.indexOf(V.me)]&&g.mv.length){bgSel=25;sfx('card')}else bgSel=null;bgMark()}
-// cámara: casi desde arriba, del lado de tu color
-function bgLook(){if(!BGB||!L)return;const wc=BGB.g.localToWorld(v3(.2,.15,0)),me=bgg(),a=me&&me.p.indexOf(V.me)==1?Math.PI:0,e=1.3,t=wc.y/Math.sin(e);
- const k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/4.2*(L.por?.85:.62);
- Object.assign(VT,{x:wc.x-Math.sin(a)*Math.cos(e)*t,z:wc.z-Math.cos(a)*Math.cos(e)*t,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:false,bg:true,top:false});clampV();sfx('card')}
-function bgdiscover(){if(bgfound)return;bgfound=true;try{localStorage.setItem('cont_bgf','1')}catch(e){}sfx('win');confetti(30);banner('Juego secreto: Backgammon')}
-const BGIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" fill="#5a3418"/><rect x="3.5" y="5.5" width="17" height="13" fill="#1f5b3a"/><path d="M4 5.5l1.5 6 1.5-6zM7.5 5.5l1.5 6 1.5-6zM13.5 18.5l1.5-6 1.5 6zM17 18.5l1.5-6 1.5 6z" fill="#e8dcc0"/><path d="M5.8 18.5l1.5-6 1.5 6zM15.3 5.5l1.5 6 1.5-6z" fill="#9e2a2a"/><rect x="11.4" y="5.5" width="1.2" height="13" fill="#5a3418"/></svg>';
-const bgdisc=k=>`<i class="c4m" style="background:${k?'radial-gradient(circle at 35% 30%,#666,#26262b 60%)':'radial-gradient(circle at 35% 30%,#fff,#e8dcc0 60%)'}"></i>`;
-function bgUI(top){const G=V.G,me=V.me;if(me<0)return '';const g=bgg(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
- const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;if(fz||(!bgfound&&!g))return '';
- let h=`<button id="t3bgb" class="ui ui-rb t3gb${myT||inv?' on':''}" style="top:calc(env(safe-area-inset-top,0px) + ${top}px)" onclick="${bgopen&&VT.bg?'bgo(0)':'bggo()'}" title="Backgammon" aria-label="Backgammon">${BGIC}</button>`;
- if(inv&&!bgopen)h+=`<div id="t3bgi" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Backgammon</b><span><button class="ui-btn sec" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></span></div>`;
- if(!bgopen)return h;let b='';
- if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.bgs||[]).some(x=>x.st!='end'&&x.p.includes(k));
-  b=`<div class="c4t">Rival</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="bginv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>Sin rivales</span>'}</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a <b>${nm(op)}</b>…</div><div class="gj-btns"><button class="ui-btn sec" onclick="bga('end')">Cancelar</button></div>`
-  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Backgammon</div><div class="gj-btns"><button class="ui-btn" onclick="bga('acc')">Jugar</button><button class="ui-btn sec" onclick="bga('end')">Ahora no</button></div>`;
- else{const dc=g.dice[0]==g.dice[1]?`${g.dice[0]}·${g.dice[0]}`:g.dice.join(' y ');
-  const st=g.st=='play'?(myT?(g.mv.length?`${bgdisc(mi)} <b>¡Tu turno!</b> ${dc}`:`${bgdisc(mi)} ${dc} · sin jugadas`):`${bgdisc(1-mi)} ${nm(op)} · ${dc}`)
-   :g.w==mi?(g.why?`${nm(op)} se rindió`:'<b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
-  b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${bgdisc(0)} ${nm(g.p[0])} ${g.off[0]}/15 &nbsp;vs&nbsp; ${bgdisc(1)} ${nm(g.p[1])} ${g.off[1]}/15</div>
-   <div class="gj-btns">${VT.bg?'<button class="ui-btn sec" onclick="bgo(0)">Volver</button>':'<button class="ui-btn" onclick="bggo()">Ver tablero</button>'}${myT&&!g.mv.length?'<button class="ui-btn" onclick="bga(\'pass\')">Pasar</button>':''}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Backgammon?'))bga('end')">Rendirse</button>`:`<button class="ui-btn" onclick="bginv(${op})">Revancha</button><button class="ui-btn sec" onclick="bga('end')">Nueva partida</button>`}</div>`}
- return h+`<div id="t3bg" class="ui ui-card t3gp" role="dialog" aria-label="Backgammon"><div class="ui-hd"><h2 class="ui-h">Backgammon</h2><button class="ui-x" onclick="bgo(0)" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="ui-bd">${b}</div></div>`}
-function bgcheck(){const g=bgg();if(!g){bgsnap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,JSON.stringify(g.last),g.turn,g.rn,g.w].join('|');if(k===bgsnap)return;
- const o=bgsnap.split('|');bgsnap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
- if(o[2]!==JSON.stringify(g.last))sfx('place');if(o[4]!==String(g.rn))sfx('shuf');
- if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('¡Ganaste Backgammon!')}else sfx('tick')}
- else if(g.st=='play'&&g.turn==mi&&(o[1]!='play'||+o[3]!==g.turn))setTimeout(()=>sfx('go'),400)}
-const bgSend=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'bg'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
-window.bga=op=>{const g=bgg();if(op=='acc')bgdiscover();if(g)bgSend({op,id:g.id})};
-window.bgo=o=>{bgopen=!!o;menu=false;if(!o&&VT.bg)home();sfx('tick');render()};
-window.bggo=()=>{bgopen=true;menu=false;bgLook();render()};
-window.bginv=k=>{bgSend({op:'inv',k});sfx('card')};
-// llevar la cámara al tablero: su centro queda en medio de la pantalla
-function c4look(){if(!C4B||!L)return;const wc=C4B.g.localToWorld(v3(0,3.3,0)),e=.55,a=C4B.P.rotation.y,k=Math.min(2*(L.rx+.75),2*(L.rz+.75))/3.7*(L.por?.78:.6);
- // de frente al tablero: el punto del piso al que mira la cámara queda detrás de su centro, en la dirección de la vista
- const back=Math.cos(e)*wc.y/Math.sin(e);
- Object.assign(VT,{x:wc.x-Math.sin(a)*back,z:wc.z-Math.cos(a)*back,k:Math.max(1.5,Math.min(KMAX,k)),a,t:e-L.el,who:-1,c4:true,bg:false,top:false});clampV();sfx('card')}
 // Ajusta cámara y tamaños a la pantalla: la mesa ocupa lo que queda entre la barra de arriba y tu mano.
 const tkey=()=>(innerWidth/innerHeight<.95?'p':'l')+(V&&V.G?V.G.players.length:4);   // la mesa se rearma al girar o si cambia cuántos juegan
 // la lámpara cuelga justo arriba de lo que se ve desde tu silla (se asoma al acercar o inclinar la cámara)
@@ -389,7 +294,7 @@ const YA=v3(0,1,0),MLT=v3(0,0,0);
 // cámara viva (c_mesa_cam.js): voltea un poco hacia quien tiene el turno, regresa sola a tu vista, cortes; y la luz de la lámpara se va despacio a su zona
 function vivo(now,dt){const G=V.G;if(mesa&&G){const t=G.turn,z=t>=0&&G.phase==='play'?L.zona(rel(t)).c:null;MLT.set(z?z.x*.85:0,0,z?z.z*.85:0);mesa.luzHacia(MLT,1-Math.exp(-dt/900));mesa.pantalla(L.el+VW.t<1.2)}
  if(!mc||!L||!L.d)return;const e=L.el+VW.t,d=L.d/VW.k,t=G.turn;
- const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t>=0&&t!==V.me&&G.phase==='play'?L.zona(rel(t)).c:null,quieto:!!(VT.c4||VT.bg||drag||st||pin)});
+ const h=mc.paso(now,{cam:{px:VW.x+Math.sin(VW.a)*Math.cos(e)*d,pz:VW.z+Math.cos(VW.a)*Math.cos(e)*d,lx:VW.x,lz:VW.z},turno:t>=0&&t!==V.me&&G.phase==='play'?L.zona(rel(t)).c:null,quieto:!!(drag||st||pin)});
  if(h!==hdNow){hdNow=h;cam()}}
 // corte breve y cercano a un jugador: de frente a él, entre su zona y su silla. No a media jugada tuya (salvo al cerrar la ronda)
 function corte(k,ms,forzar){if(!mc||!mesa||(!forzar&&k===V.me)||(!forzar&&(V.G.turn===V.me||sel.size||drag)))return;const A=mesa.asiento(rel(k)),c=Math.cos(A.a),s=Math.sin(A.a),R=mesa.r*.62;
@@ -405,7 +310,7 @@ function viewStep(dt){const f=RM?1:1-Math.exp(-dt/110);let ch=0;
 const viewed=()=>VT.k>1.02||Math.abs(VT.x)>.05||Math.abs(VT.z)>.05||Math.abs(VT.a)>.01||Math.abs(VT.t)>.01;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // cuadrar: regresa a la vista de siempre por el camino corto
-function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,c4:false,bg:false,top:false})}
+function home(){VW.a=wrap(VW.a);Object.assign(VT,{x:0,z:0,k:1,a:0,t:0,who:-1,top:false})}
 // pasos de la barra de cámara y del teclado (suaves: solo mueven el destino)
 function camStep(c){const f=1.1/VT.k,sa=Math.sin(VT.a),ca=Math.cos(VT.a),mv={up:[0,-1],dn:[0,1],lf:[-1,0],rt:[1,0]}[c];
  if(c=='rl')VT.a-=.2;else if(c=='rr')VT.a+=.2;else if(c=='zi')VT.k*=1.2;else if(c=='zo')VT.k/=1.2;else if(c=='tu')VT.t+=.09;else if(c=='td')VT.t-=.09;
@@ -438,7 +343,7 @@ function look(k){if(!L)return;if(mc)mc.toca();if(VT.who===k)return home();const 
  if(bs.length){x0=Math.min(...bs.map(b=>b.x0));x1=Math.max(...bs.map(b=>b.x1));z0=Math.min(...bs.map(b=>b.z0));z1=Math.max(...bs.map(b=>b.z1))}
  else{const p=seatP(k,.84);x0=p.x-1.5;x1=p.x+1.5;z0=p.z-1;z1=p.z+1}
  const kk=Math.min(2*(L.rx+.75)/(x1-x0+1.2),2*(L.rz+.75)/(z1-z0+1.2))*.9;
- Object.assign(VT,{x:(x0+x1)/2,z:(z0+z1)/2,k:Math.max(1.5,Math.min(KMAX,kk)),who:k,c4:false,top:false});clampV();sfx('card')}
+ Object.assign(VT,{x:(x0+x1)/2,z:(z0+z1)/2,k:Math.max(1.5,Math.min(KMAX,kk)),who:k,top:false});clampV();sfx('card')}
 function loc(px,py,d){const v=v3(px/W*2-1,1-py/H*2,.5).applyMatrix4(CA.projectionMatrixInverse);return v.multiplyScalar(-d/v.z)}
 function toPx(p){const q=p.clone().project(CA);return [(q.x+1)/2*W,(1-q.y)/2*H]}
 
@@ -543,7 +448,7 @@ function sync(){if(!ready||!L||!active())return;
  // ronda nueva: se recoge todo y se reparte desde el mazo
  if(G.dn!==dealN){dealing=dealN>=0;dealN=G.dn;logN=-1;meshes.forEach((m,k)=>drop(k));home()}else dealing=false;dl=0;
  // empieza tu turno: si estabas mirando a alguien, la cámara regresa a la mesa
- if(mine&&myTc!==G.tc){myTc=G.tc;if(viewed())home();if((c4open||bgopen)&&W<700&&!first){c4open=bgopen=false;render()}}
+ if(mine&&myTc!==G.tc){myTc=G.tc;if(viewed())home();}
  // qué pasó desde la última vez (para saber de dónde sale cada carta)
  const from={},took={};(G.log||[]).forEach(e=>{if(e.n<=logN)return;if(logN>=0&&window.MPJ&&MPJ.on)pjLog(e);if(logN>=0)fxLog(e);if(e.c!=null&&/^(descartó|pegó|cambió)/.test(e.t))from[e.c]=e.k;if(/^(tomó|compró)/.test(e.t))took[e.k]=1});logN=Math.max(logN,G.ln||0);
  const seatW=k=>{const q=window.MPJ&&MPJ.on&&MPJ.mano(rel(k));if(q)return q;const p=seatP(k,.84);p.y=.3;return p};   // con personaje: sus manos
@@ -591,7 +496,7 @@ function sync(){if(!ready||!L||!active())return;
  meshes.forEach((m,key)=>{if(live.has(key)||m.userData.kill)return;const tk=m.userData.hit&&m.userData.hit.t=='disc'?Object.keys(took).find(k=>+k!==me):null;
   if(tk!=null&&!RM){m.userData.kill=1;target(m,SC,seatW(+tk),FD,.5,{ms:420})}else drop(key)});
  glows.forEach(g=>{if(!g.userData.used){g.visible=false;g.userData.lvl=0}});
- c4sync();bgSync();
+ 
  if(mesa)mesa.fieltro(FELT[sbg]||FELT.green);
  first=false}
 
@@ -626,7 +531,7 @@ function pMove(e){if(!active())return;if(mc&&(st||pin))mc.toca();
    pin.acc+=da;if(!pin.rot&&Math.abs(pin.acc)>.12){pin.rot=true;da=pin.acc}if(pin.rot)VT.a=VW.a+da;
    VT.k=pin.k*(Math.hypot(a[0]-b[0],a[1]-b[1])||1)/pin.d;snap();
    const p=ground(mx,my);if(p&&pin.g){VT.x+=pin.g.x-p.x;VT.z+=pin.g.z-p.z;snap()}return}}
- if(!st){if(e.pointerType==='mouse'){const h=pick(e),id=h&&h.t=='hand'?h.id:null;peek(!!h&&h.t=='disc');c4hover(h&&h.t=='c4'?h.c:-1);cv.style.cursor=h?'pointer':'default';if(id!==hov){hov=id;sync()}}return}
+ if(!st){if(e.pointerType==='mouse'){const h=pick(e),id=h&&h.t=='hand'?h.id:null;peek(!!h&&h.t=='disc');cv.style.cursor=h?'pointer':'default';if(id!==hov){hov=id;sync()}}return}
  if(e.pointerId!==st.pid)return;const h=st.hit;
  if(st.peek)return;if(st.lp&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){clearTimeout(st.lp);st.lp=null}
  if(!drag&&!st.pan&&!st.rot&&!st.g&&!VT.top&&(!h||h.t!='hand')&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){Object.assign(st,{rot:true,a0:VW.a,t0:VW.t,x:e.clientX,y:e.clientY});VT.who=-1;VT.top=false;cv.style.cursor='grabbing'}   // arrastrar gira alrededor de la mesa
@@ -670,8 +575,6 @@ function tap(h){if(!h){if(VT.who>=0)home();return}const G=V.G,me=V.me,mine=me>=0
  if(h.t=='disc'){if(mine&&G.step=='draw')return draw('disc');if(pl&&sel.size==1)return discard();return}
  if(h.t=='meld'){if(pl&&sel.size)return pegar(h.k);return look(G.melds[h.k].owner)}
  if(h.t=='seat')return look(h.k);
- if(h.t=='bg'){bgdiscover();if(!VT.bg){bgopen=true;bgLook();render();return}return bgTap(h.p)}
- if(h.t=='c4'){c4discover();if(!VT.c4){c4open=true;c4look();render();return}const g=c4mine();if(g)return c4drop(h.c);if(!c4g()){c4open=true;render()}return}
  if(h.t=='slot'){if(pl&&!dn)sel.size?addTo(h.k,[...sel]):backFrom(h.k);return}
  if(h.t=='hand'){if(pl)tog(h.id);else sfx('card')}}
 
@@ -703,53 +606,18 @@ function hud(){const G=V.G,i=V.me,t=G.turn,mine=i==t,dn=i>=0&&G.down[i],pl=mine&
  const tt=selTxt();if(tt)h+=`<div id="t3sel" class="ui${tt[0]=='✓'?' ok':tt[0]=='✗'?' no':''}">${tt}</div>`;
  if(pl&&!dn)staged.forEach((g,k)=>{const tot=staged.filter(x=>x.type==g.type).length,nn=staged.slice(0,k+1).filter(x=>x.type==g.type).length;
   h+=`<div class="ui gj-pl t3sl${okSlot(g)?' ok':''}" id="t3sl${k}">${TN[g.type]}${tot>1?' '+nn:''}${okSlot(g)?' ✓':''}</div>`});
- h+=c4UI();h+=bgUI(V.me>=0&&(c4found||c4g())?126:72);
+ 
  // menú ☰: un solo panel con pestañas (ajustes, jugadores, historial y reglas)
  if(menu){const rg=String(GM.continental.rules).replace(/^\s*<details>\s*<summary>[^<]*<\/summary>/,'').replace(/<\/details>\s*$/,'');
   const aj=GHUD.ajustes(GHUD.row('','Vista',UI.dim(1,'c3dToggle()'))+GHUD.row('','Última jugada',GHUD.sw(!mini,'c3dMini()','Última jugada')),
-   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Apariencia</button>${V.me>=0&&(c4found||c4g())?`<button class="ui-btn sec full" onclick="c4go()">${C4IC}Conecta 4</button>`:''}${V.me>=0&&(bgfound||bgg())?`<button class="ui-btn sec full" onclick="bggo()">${BGIC}Backgammon</button>`:''}${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
+   `<button class="ui-btn sec full" onclick="c3dAp()">${ic('ajustes')}Apariencia</button>${V.host?`<button class="ui-btn sec full" onclick="if(confirm('¿Cerrar la sala?')){send({t:'close'});leave()}">${ic('x')}Cerrar sala</button>`:''}`);
   h+=GHUD.sheet('Continental',[['aj','Ajustes',aj],['pl','Jugadores',plist()],['lg','Historial',logv()||'<p class="ui-sub gj-empty">Nada todavía.</p>'],['rg','Reglas',`<div class="gj-rt">${rg}</div>`]],'c3dMenu()')}
  return h}
-// ---------- Conecta 4 entre dos jugadores (se juega durante la partida; las reglas están en el servidor) ----------
-const C4IC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" fill="#2a63c6"/><circle cx="7" cy="9" r="2.6" fill="#0d2a5c"/><circle cx="12" cy="9" r="2.6" fill="#0d2a5c"/><circle cx="17" cy="9" r="2.6" fill="#f9c623"/><circle cx="7" cy="15" r="2.6" fill="#e53935"/><circle cx="12" cy="15" r="2.6" fill="#f9c623"/><circle cx="17" cy="15" r="2.6" fill="#e53935"/></svg>';
-function c4discover(){if(c4found)return;c4found=true;try{localStorage.setItem('cont_c4f','1')}catch(e){}sfx('win');confetti(30);banner('Juego secreto: Conecta 4')}
-const c4g=()=>{const L=V.G.c4s||[];return L.find(x=>x.p.includes(V.me))};
-const c4disc=k=>`<i class="c4m ${k?'y':'r'}"></i>`;
-function c4UI(){const G=V.G,me=V.me;if(me<0)return '';const g=c4g(),mi=g?g.p.indexOf(me):-1,op=g?g.p[1-mi]:-1;
- const myT=g&&g.st=='play'&&g.turn==mi,inv=g&&g.st=='inv'&&mi==1;
- if(fz||(!c4found&&!g))return '';
- let h=`<button id="t3c4b" class="ui ui-rb t3gb${myT||inv?' on':''}" onclick="${c4open&&VT.c4?'c4o(0)':'c4go()'}" title="Conecta 4" aria-label="Conecta 4">${C4IC}</button>`;
- // te retaron: aviso con botones aunque la ventana esté cerrada
- if(inv&&!c4open)h+=`<div id="t3c4i" class="ui ui-card t3gi">${chip(op)}<b>${nm(op)}</b> te reta a <b>Conecta 4</b><span><button class="ui-btn sec" onclick="c4a('acc')">Jugar</button><button class="ui-btn sec" onclick="c4a('end')">Ahora no</button></span></div>`;
- if(!c4open)return h;
- let b='';
- if(!g){const ks=G.players.map((_,k)=>k).filter(k=>k!==me&&!V.players[k].out),busy=k=>(G.c4s||[]).some(x=>x.st!='end'&&x.p.includes(k));
-  b=`<div class="c4t">Rival</div><div class="c4l">${ks.map(k=>`<button class="ui-btn sec" onclick="c4inv(${k})"${busy(k)?' disabled':''}>${chip(k)}${nm(k)}${busy(k)?' · jugando':''}</button>`).join('')||'<span>Sin rivales</span>'}</div>`}
- else if(g.st=='inv')b=mi==0?`<div class="c4t">Esperando a <b>${nm(op)}</b>…</div><div class="gj-btns"><button class="ui-btn sec" onclick="c4a('end')">Cancelar</button></div>`
-  :`<div class="c4t">${chip(op)}<b>${nm(op)}</b> te reta a Conecta 4</div><div class="gj-btns"><button class="ui-btn" onclick="c4a('acc')">Jugar</button><button class="ui-btn sec" onclick="c4a('end')">Ahora no</button></div>`;
- else{const st=g.st=='play'?(myT?`${c4disc(mi)} <b>¡Tu turno!</b>`:`${c4disc(1-mi)} ${nm(op)}…`)
-   :g.w==2?'Empate':g.w==mi?(g.why?`${nm(op)} se rindió`:'<b>¡Ganaste!</b>'):(g.why?'Te rendiste':`Ganó <b>${nm(op)}</b>`);
-  b=`<div class="c4s${myT?' me':''}">${st}</div><div class="c4p">${c4disc(0)} ${nm(g.p[0])} &nbsp;vs&nbsp; ${c4disc(1)} ${nm(g.p[1])}</div>
-   <div class="gj-btns">${VT.c4?'<button class="ui-btn sec" onclick="c4o(0)">Volver</button>':'<button class="ui-btn" onclick="c4go()">Ver tablero</button>'}${g.st=='play'?`<button class="ui-btn sec" onclick="if(confirm('¿Rendirte en Conecta 4?'))c4a('end')">Rendirse</button>`:`<button class="ui-btn" onclick="c4inv(${op})">Revancha</button><button class="ui-btn sec" onclick="c4a('end')">Nueva partida</button>`}</div>`}
- return h+`<div id="t3c4" class="ui ui-card t3gp" role="dialog" aria-label="Conecta 4"><div class="ui-hd"><h2 class="ui-h">Conecta 4</h2><button class="ui-x" onclick="c4o(0)" aria-label="Cerrar">${UI.ico('x')}</button></div><div class="ui-bd">${b}</div></div>`}
-// sonidos y avisos cuando cambia la partida (la jugada del otro, tu turno, el final)
-function c4check(){const g=c4g();if(!g){c4snap='';return}const mi=g.p.indexOf(V.me),k=[g.id,g.st,g.last,g.turn,g.w].join(':');if(k===c4snap)return;
- const o=c4snap.split(':');c4snap=k;if(!o[0]||+o[0]!==g.id){if(g.st=='inv'&&mi==1)sfx('go');return}
- if(+o[2]!==g.last)sfx('place');
- if(g.st=='end'&&o[1]!='end'){if(g.w==mi){sfx('win');confetti(40);banner('¡Ganaste Conecta 4!')}else sfx('tick')}
- else if(g.st=='play'&&g.turn==mi&&(o[1]!='play'||+o[3]!==g.turn))setTimeout(()=>sfx('go'),350)}
-// se manda directo (no con send) para no borrar las cartas que tengas seleccionadas en el Continental
-const c4send=m=>api('act',{c:S.c,t:S.t,m:Object.assign({t:'c4'},m)}).then(d=>{if(d&&d.err)bad(d.err)}).catch(()=>bad('Sin conexión.'));
-const c4a=op=>{const g=c4g();if(op=='acc')c4discover();if(g)c4send({op,id:g.id})};
-window.c4a=c4a;window.c4o=o=>{c4open=!!o;menu=false;if(!o&&VT.c4)home();sfx('tick');render()};
 // botón de orden: muestra el modo con su ícono; al tocarlo se despliega (ui_juegos.css .t3ord) y se puede elegir otro
 let ordA=0,ordT=0;const ORD=[['N','Número','numero'],['P','Palo','palo'],['L','Libre','libre']],ordCur=()=>manual?'L':sortS?'P':'N';
 function ordBtn(){const c=ordCur();return `<span class="ui t3ord${ordA?' open':''}" data-k="t3ord">${ORD.map(([k,n,ic])=>`<button class="${c==k?'on':''}" data-k="ord${k}" onclick="c3dOrd('${k}')" title="${n}" aria-label="${n}" aria-pressed="${c==k}">${UI.ico(ic)}<em>${n}</em></button>`).join('')}</span>`}
 window.c3dOrd=k=>{if(ordA&&k&&k!=ordCur()){manual=k=='L';sortS=k=='P';sfx('card')}ordA=1;clearTimeout(ordT);ordT=setTimeout(()=>{ordA=0;render()},1800);render()};
 window.c3dDesel=()=>{sel.clear();sfx('card');render()};
-window.c4go=()=>{c4open=true;menu=false;c4look();render()};
-window.c4inv=k=>{c4send({op:'inv',k});sfx('card')};   // el servidor borra la partida terminada al crear la nueva
-window.c4drop=c=>{const g=c4g();if(g)c4send({op:'drop',id:g.id,c})};
 // ---------- ventana "Cambiar apariencia" (como la de Solitario de Windows 7) ----------
 const APT={bg:{n:'Mesa',h:'Elige el color de la mesa:',o:[['green','Verde clásico'],['blue','Azul'],['red','Vino'],['orange','Ámbar'],['purple','Púrpura'],['graphite','Grafito']]},
  cards:{n:'Cartas',h:'Elige el diseño de las cartas:',o:[['classic','Clásicas'],['big','Grandes'],['black','Negras'],['retro','Retro'],['contrast','Contraste']]},
@@ -808,19 +676,19 @@ function loop3(now){requestAnimationFrame(loop3);const a=active(),dt=Math.min(10
  if(root.style.display!==(a?'block':'none'))root.style.display=a?'block':'none';document.documentElement.classList.toggle('c3on',a);if(!a){if(finT){finT=0;if(window.MPJ)MPJ.fin(-1);render()}first=true;peek(false);if(dpvEl)dpvEl.classList.remove('on');home();document.documentElement.classList.remove('c3mini');VW.x=VW.z=0;VW.k=1;return}
  if(shR&&cv.parentNode!==root&&!(document.documentElement.classList.contains('h3on')||document.documentElement.classList.contains('sala3d'))){root.prepend(cv);W=0}   // el lienzo de la casa pasa a la mesa
  if(!L||innerWidth!==W||innerHeight!==H||tkey()!==tableKey){layout();sync()}
- viewStep(dt);vivo(now,dt);step(now);dragStep(dt);if(window.MFX)MFX.paso(now);c4step(now);bgStep(now);avStep(now);pulse(now);labels();viewBtn();dpv();
+ viewStep(dt);vivo(now,dt);step(now);dragStep(dt);if(window.MFX)MFX.paso(now);avStep(now);pulse(now);labels();viewBtn();dpv();
  // primero el cuarto y la mesa; luego tu mano encima (que nunca la tape una cabeza ni la mesa)
  // con la casa de fondo (c_casa_fondo.js) va primero la casa y la mesa queda encima, sin su cuarto
  const fs=window.FONDO?FONDO.pinta(R,CA,'continental',{r:mesa.R,rt:2.6*mesa.R/(MESA.radio(4)+MESA.ORL)}):0;if(fs!==fz||L.roomG.visible!==!fs){fz=fs;casaModo()}
  if(!fs)R.clear();CA.layers.set(0);R.render(SC,CA);R.clearDepth();CA.layers.set(1);R.render(SC,CA);CA.layers.set(0)}
-// sin su cuarto en la casa: ni el Conecta 4 ni el Backgammon escondidos; los Miis a tamaño de casa
+// sin su cuarto en la casa: los Miis a tamaño de casa
 function casaModo(){const v=!fz;L.roomG.visible=L.baseM.visible=v;mesa.escala(fz?fz*FONDO.MII:1);mesa.sillas[0].visible=true;   // en la casa las sillas a su tamaño; tu personaje también se ve sentado
- [C4B,BGB].forEach(o=>{if(o&&o.P)o.P.visible=v});if(V&&V.G)sync();if(c4found||bgfound)render()}
+ if(V&&V.G)sync();}
 // con la barra de cámara abierta, su propio botón Cuadrar basta (salvo cuando miras a alguien)
 let topWas=false;
 function viewBtn(){if(!!VT.top!==topWas){topWas=!!VT.top;document.documentElement.classList.toggle('c3top',topWas);if(V&&V.G)sync()}const ab=document.querySelector('.gj-arr'),mv=viewed()&&!VT.top;   // uno a la vez: Arriba (en tu vista o en la de arriba) o Recentrar (cámara movida)
- if(ab){if(ab.classList.contains('on')!==!!VT.top){ab.classList.toggle('on',!!VT.top);ab.setAttribute('aria-pressed',!!VT.top)}const dsp=mv?'none':'';if(ab.style.display!==dsp)ab.style.display=dsp}if(c4open&&!!VT.c4!==c4was){c4was=!!VT.c4;render()}if(bgopen&&!!VT.bg!==bgwas){bgwas=!!VT.bg;render()}document.documentElement.classList.toggle('c3c4',!!(VT.c4||VT.bg));document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&!VT.top?String(VT.c4?'c4':VT.bg?'bg':VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
- el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=VT.bg||VT.c4?'Volver a la mesa · Esc':p?'Viendo a '+p.name+' · Recentrar · Esc':'Recentrar · Esc';
+ if(ab){if(ab.classList.contains('on')!==!!VT.top){ab.classList.toggle('on',!!VT.top);ab.setAttribute('aria-pressed',!!VT.top)}const dsp=mv?'none':'';if(ab.style.display!==dsp)ab.style.display=dsp}document.documentElement.classList.toggle('c3ap',!!ap);if(window.UI)dark=UI.noche();document.documentElement.classList.toggle('c3dark',dark);document.documentElement.classList.toggle('c3mini',mini);const el=document.getElementById('gjView');if(!el)return;const k=viewed()&&!VT.top?String(VT.who):'';if(el.dataset.k===k)return;el.dataset.k=k;
+ el.style.display=k?'':'none';const p=VT.who>=0&&V.G.players[VT.who];el.title=el.ariaLabel=p?'Viendo a '+p.name+' · Recentrar · Esc':'Recentrar · Esc';
  document.querySelectorAll('#app .gj-seat').forEach(s=>s.classList.toggle('look',+s.dataset.seat===VT.who))}
 function toggle(){on=!on;menu=false;try{localStorage.setItem('cont_3d',on?'1':'0')}catch(e){}render()}
 GM.continental.body=function(){
@@ -829,7 +697,7 @@ GM.continental.body=function(){
  GHUD.save();
  try{init();return hud()}catch(e){console.warn('Continental 3D:',e);on=false;return orig()}};
 GM.continental.after=function(){if(origAfter)origAfter();if(!active())return;
- try{c4check();bgcheck()}catch(e){}
+ 
  GHUD.restore();
  try{const bb=$('#gjBar .gj-bb');if(!L||!L.top||(bb&&Math.abs(bb.getBoundingClientRect().top-L.barTop)>2))layout();sync();labels()}catch(e){console.warn('Continental 3D:',e)}};
 window.c3dToggle=toggle;
@@ -842,4 +710,4 @@ window.c3dHome=home;window.c3dArriba=()=>{if(mc)mc.arriba(!VT.top)};
 window.c3dAp=apOpen;window.c3dApSet=apSet;window.c3dApClose=apClose;window.c3dApTab=k=>{ap.tab=k;render()};
 // el Uno 3D usa el mismo cuarto y los mismos Miis
 window.C3D={buildRoom,mkAvatar,seg,ik,setFace:(g,ex)=>window.MII&&MII.setFace(g,ex),AVP,hsh,mkC4,mkBG,bgX,bgZ,bgDir,diceFaces,pipTex,bounce,BGW,BGD,BGPW};
-})();
+})();
