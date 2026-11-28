@@ -152,7 +152,7 @@ window.SALA={ico,sync,tapa,hueco,
  copia:()=>{const v=vv();if(v)copyT(v.code)},
  comparte:()=>{const v=vv();if(!v)return;const u=url();if(navigator.share)navigator.share({title:'gamemash',text:'¡Ven a jugar '+nom(v.game)+' conmigo!',url:u}).catch(()=>{});else copiaL()},
  invita:()=>{const v=vv();if(!v)return;const u=url();modal(`<div class="sl-card" role="dialog" aria-label="Invitar a la sala"><h3>Invita a tu gente</h3>${window.GENTE?`<div class="sl-gen">${GENTE.invitables()}</div>`:''}<div class="sl-qr" id="slQr"></div><div class="sl-link">${es(u)}</div>
-  <div class="sl-dos"><button class="ui-btn sec" onclick="SALA.copiaL()">${I('copiar')}Copiar enlace</button><button class="ui-btn" onclick="SALA.comparte()">${I('compartir')}Compartir</button></div><button class="ui-btn ghost full" onclick="SALA.cierra()">Listo</button></div>`);qr(u)},
+  <div class="sl-dos">${navigator.share?`<button class="ui-btn full" onclick="SALA.comparte()">${I('compartir')}Compartir</button>`:`<button class="ui-btn full" onclick="SALA.copiaL()">${I('copiar')}Copiar enlace</button>`}</div><button class="ui-btn ghost full" onclick="SALA.cierra()">Listo</button></div>`);qr(u)},
  reglas:()=>{if(!cur)return;modal(`<div class="sl-card sl-rul" role="dialog" aria-label="Cómo se juega"><div class="sl-rh"><h3>Cómo se juega ${es(nom(sig.k))}</h3><button class="ui-x" onclick="SALA.cierra()" aria-label="Cerrar">${I('x')}</button></div><div class="sl-rb">${cur.rules||''}</div></div>`);
   $('slModal').querySelectorAll('details').forEach(d=>d.open=true)},
  cierra:()=>{const m=$('slModal');if(m&&!m.hidden){m.hidden=true;snd('tick')}},
